@@ -1,6 +1,6 @@
-# CORE
+# CRPP
 
-Clareza, Objetivos, Rotina e Execução — painel de produtividade pessoal do Leandro. Next.js (App Router) + Supabase (Postgres + Auth) + Vercel, com suporte a instalação como PWA no celular.
+Centro de Relacionamento de Produtividade Pessoal — painel de produtividade pessoal do Leandro. Next.js (App Router) + Supabase (Postgres + Auth) + Vercel, com suporte a instalação como PWA no celular.
 
 ## Stack
 

@@ -40,7 +40,7 @@ function BoardShell() {
   return (
     <div className="wrap">
       <div className="topbar">
-        <div className="brand">CORE</div>
+        <div className="brand">CRPP</div>
         <div className="topbar-right">
           <ActiveTimerBadge />
           <div className="today-date mono">{longLabel(todayISO())}</div>

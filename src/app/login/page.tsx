@@ -73,8 +73,8 @@ export default function LoginPage() {
   return (
     <div className="auth-wrap">
       <div className="auth-card">
-        <div className="auth-brand">CORE</div>
-        <p className="auth-sub">Clareza, Objetivos, Rotina e Execução</p>
+        <div className="auth-brand">CRPP</div>
+        <p className="auth-sub">Centro de Relacionamento de Produtividade Pessoal</p>
         <div className="auth-tabs">
           <button
             type="button"
