@@ -122,7 +122,7 @@ function BoardShell() {
             <Dashboard />
           ) : (
             <div className="day-layout">
-              <div className="section day-section-col">
+              <div className="section">
                 <div className="section-head">
                   <span className="section-pill accent">
                     {viewMode === "week" ? "Semana" : selectedDate === todayISO() ? "Hoje" : longLabel(selectedDate)}
@@ -150,7 +150,7 @@ function BoardShell() {
                   />
                 )}
               </div>
-              <div className="day-aside-col">
+              <div className="day-below-row">
                 <HoursPanel selectedDate={selectedDate} />
                 {viewMode === "day" && <DailyLogPanel selectedDate={selectedDate} />}
               </div>
