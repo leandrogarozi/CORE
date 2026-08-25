@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { useBoardCtx } from "./board-context";
 import { ChevronIcon } from "./icons";
+import { ToggleSwitch } from "./ToggleSwitch";
 import { CATEGORY_LABEL, OPTIONAL_FEATURES, isFeatureEnabled, type Category } from "@/lib/types";
 
 const CATEGORIES = Object.keys(CATEGORY_LABEL) as Category[];
@@ -119,17 +120,17 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
       <CollapsibleBox title="Painel do dia">
         <div className="settings-rows">
           {OPTIONAL_FEATURES.map((f) => (
-            <label className="settings-toggle-row" key={f.key}>
-              <input
-                type="checkbox"
-                checked={isFeatureEnabled(featureFlags, f.key)}
-                onChange={(e) => toggleFeature(f.key, e.target.checked)}
-              />
+            <div className="settings-toggle-row" key={f.key}>
               <span>
                 <span className="settings-label">{f.label}</span>
                 <span className="settings-toggle-hint">{f.hint}</span>
               </span>
-            </label>
+              <ToggleSwitch
+                checked={isFeatureEnabled(featureFlags, f.key)}
+                onChange={(v) => toggleFeature(f.key, v)}
+                ariaLabel={f.label}
+              />
+            </div>
           ))}
         </div>
         {waterEnabled && (
