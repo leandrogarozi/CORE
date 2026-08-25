@@ -37,7 +37,7 @@ const EMPTY_STATE: BoardState = {
   habits: [],
   fixedBlocks: [],
   taskSeries: [],
-  settings: { tagColors: DEFAULT_TAG_COLORS, dailyBudgetHours: 12, waterGoalMl: 2000 },
+  settings: { tagColors: DEFAULT_TAG_COLORS, dailyBudgetHours: 12, waterGoalMl: 2000, featureFlags: {} },
   activeTimer: null,
   dailyLogs: {},
 };
@@ -649,6 +649,7 @@ export function useBoard(userId: string | null) {
           tag_colors: merged.tagColors,
           daily_budget_hours: merged.dailyBudgetHours,
           water_goal_ml: merged.waterGoalMl,
+          feature_flags: merged.featureFlags,
         })
         .then(({ error }) => {
           if (error) console.error("updateSettings", error);

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
-import { CATEGORY_LABEL, type Category } from "@/lib/types";
+import { CATEGORY_LABEL, OPTIONAL_FEATURES, isFeatureEnabled, type Category } from "@/lib/types";
 
 const CATEGORIES = Object.keys(CATEGORY_LABEL) as Category[];
 
@@ -22,6 +22,12 @@ export function SettingsModal() {
   if (!settingsOpen) return null;
 
   const tagColors = board.state.settings.tagColors;
+  const featureFlags = board.state.settings.featureFlags;
+  const waterEnabled = isFeatureEnabled(featureFlags, "water");
+
+  function toggleFeature(key: string, checked: boolean) {
+    board.updateSettings({ featureFlags: { ...featureFlags, [key]: checked } });
+  }
 
   return (
     <>
@@ -73,6 +79,22 @@ export function SettingsModal() {
             );
           })}
         </div>
+        <div className="modal-sub">Funcionalidades do painel do dia</div>
+        <div className="settings-rows">
+          {OPTIONAL_FEATURES.map((f) => (
+            <label className="settings-toggle-row" key={f.key}>
+              <input
+                type="checkbox"
+                checked={isFeatureEnabled(featureFlags, f.key)}
+                onChange={(e) => toggleFeature(f.key, e.target.checked)}
+              />
+              <span>
+                <span className="settings-label">{f.label}</span>
+                <span className="settings-toggle-hint">{f.hint}</span>
+              </span>
+            </label>
+          ))}
+        </div>
         <div className="settings-row-standalone">
           <span className="settings-label">Teto diário de horas</span>
           <input
@@ -90,23 +112,25 @@ export function SettingsModal() {
             }}
           />
         </div>
-        <div className="settings-row-standalone">
-          <span className="settings-label">Meta diária de água (ml)</span>
-          <input
-            type="number"
-            min={0}
-            step={100}
-            className="budget-input"
-            value={waterGoalInput ?? board.state.settings.waterGoalMl}
-            onChange={(e) => setWaterGoalInput(e.target.value)}
-            onBlur={() => {
-              if (waterGoalInput === null) return;
-              const v = parseInt(waterGoalInput, 10);
-              if (!isNaN(v) && v >= 0) board.updateSettings({ waterGoalMl: v });
-              setWaterGoalInput(null);
-            }}
-          />
-        </div>
+        {waterEnabled && (
+          <div className="settings-row-standalone">
+            <span className="settings-label">Meta diária de água (ml)</span>
+            <input
+              type="number"
+              min={0}
+              step={100}
+              className="budget-input"
+              value={waterGoalInput ?? board.state.settings.waterGoalMl}
+              onChange={(e) => setWaterGoalInput(e.target.value)}
+              onBlur={() => {
+                if (waterGoalInput === null) return;
+                const v = parseInt(waterGoalInput, 10);
+                if (!isNaN(v) && v >= 0) board.updateSettings({ waterGoalMl: v });
+                setWaterGoalInput(null);
+              }}
+            />
+          </div>
+        )}
       </div>
     </>
   );

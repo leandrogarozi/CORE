@@ -195,6 +195,7 @@ export type Database = {
       settings: {
         Row: {
           daily_budget_hours: number
+          feature_flags: Json
           tag_colors: Json
           updated_at: string
           user_id: string
@@ -202,6 +203,7 @@ export type Database = {
         }
         Insert: {
           daily_budget_hours?: number
+          feature_flags?: Json
           tag_colors?: Json
           updated_at?: string
           user_id: string
@@ -209,6 +211,7 @@ export type Database = {
         }
         Update: {
           daily_budget_hours?: number
+          feature_flags?: Json
           tag_colors?: Json
           updated_at?: string
           user_id?: string

@@ -67,6 +67,20 @@ export interface Settings {
   tagColors: Record<Category, { hex: string; alpha: number }>;
   dailyBudgetHours: number;
   waterGoalMl: number;
+  featureFlags: Record<string, boolean>;
+}
+
+// Funcionalidades opcionais que podem ser ligadas/desligadas em Configurações.
+// Toda funcionalidade nova e opcional do painel do dia (e futuras seções) deve
+// entrar nessa lista em vez de aparecer sempre fixa na tela.
+export const OPTIONAL_FEATURES: { key: string; label: string; hint: string }[] = [
+  { key: "water", label: "Água", hint: "Meta diária e registro de água bebida" },
+  { key: "diet", label: "Dieta", hint: "% de fidelidade à dieta do dia" },
+  { key: "sleep", label: "Sono", hint: "Horário de dormir e de acordar" },
+];
+
+export function isFeatureEnabled(flags: Record<string, boolean> | undefined, key: string): boolean {
+  return flags?.[key] !== false;
 }
 
 export interface DailyLog {
