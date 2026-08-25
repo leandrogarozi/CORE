@@ -1,6 +1,6 @@
-# CRPP
+# Painel FARO
 
-Centro de Relacionamento de Produtividade Pessoal — painel de produtividade pessoal do Leandro. Next.js (App Router) + Supabase (Postgres + Auth) + Vercel, com suporte a instalação como PWA no celular.
+Foco, Ação, Rotina e Objetivos — painel de produtividade pessoal do Leandro. Next.js (App Router) + Supabase (Postgres + Auth) + Vercel, com suporte a instalação como PWA no celular.
 
 ## Stack
 

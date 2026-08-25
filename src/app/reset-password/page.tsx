@@ -33,7 +33,7 @@ export default function ResetPasswordPage() {
   return (
     <div className="auth-wrap">
       <div className="auth-card">
-        <div className="auth-brand">CRPP</div>
+        <div className="auth-brand">FARO</div>
         <p className="auth-sub">Escolha sua nova senha</p>
         <form onSubmit={handleSubmit} className="auth-form">
           <label>

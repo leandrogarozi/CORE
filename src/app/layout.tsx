@@ -2,13 +2,13 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CRPP",
-  description: "Centro de Relacionamento de Produtividade Pessoal — painel de produtividade do Leandro",
+  title: "Painel FARO",
+  description: "Foco, Ação, Rotina e Objetivos — painel de produtividade do Leandro",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "CRPP",
+    title: "FARO",
   },
 };
 
