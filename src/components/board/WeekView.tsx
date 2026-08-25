@@ -27,6 +27,7 @@ export function WeekView({ weekAnchor }: { weekAnchor: Date }) {
               tasks={tasks}
               emptyLabel={`Nada em ${longLabel(iso)}.`}
               quickAddId={`qa-week-${iso}`}
+              showHeader={false}
             />
           </div>
         );

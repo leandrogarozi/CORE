@@ -107,7 +107,17 @@ a{ color:inherit; }
 }
 .scope-choice-btn:hover{ border-color:var(--accent); color:var(--accent); }
 .scope-cancel{ margin-top:12px; width:100%; text-align:center; }
-.modal-sub{ font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-faint); margin:16px 0 10px; }
+.settings-panel{
+  background:var(--surface-2); border:1px solid var(--border); border-radius:12px;
+  padding:14px; margin-top:14px;
+}
+.settings-panel:first-of-type{ margin-top:16px; }
+.settings-panel-title{
+  font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-faint); margin-bottom:12px;
+}
+.settings-panel .settings-row-standalone{ margin-top:0; }
+.settings-panel .settings-row-standalone + .settings-row-standalone{ margin-top:14px; }
+.settings-panel .settings-rows + .settings-row-standalone{ margin-top:14px; }
 .settings-rows{ display:flex; flex-direction:column; gap:14px; }
 .settings-row-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
 .settings-label{ font-size:13px; font-weight:500; }
@@ -180,7 +190,6 @@ a{ color:inherit; }
 }
 
 /* daily log panel (água, dieta, sono) */
-.quick-legend{ font-size:10.5px; color:var(--text-faint); white-space:nowrap; }
 .daily-log-section{ width:100%; }
 .daily-log-panel{
   background:var(--surface); border:1px solid var(--border); border-radius:12px;
@@ -283,6 +292,21 @@ a{ color:inherit; }
 }
 .week-day-heading.is-today{ color:var(--accent); }
 .week-day-heading .count-inline{ font-size:10px; color:var(--text-faint); }
+
+/* task list column header */
+.task-list-header{
+  display:flex; align-items:center; gap:8px; padding:6px 12px;
+  border-bottom:1px solid var(--border); background:var(--surface-2);
+  font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-faint);
+}
+.tlh-status{ width:18px; flex:none; text-align:center; }
+.tlh-quick{ min-width:22px; flex:none; text-align:center; }
+.tlh-title{ flex:1; min-width:0; }
+.tlh-meta{ display:flex; align-items:center; gap:8px; flex:none; }
+.tlh-meta-item{ text-align:center; }
+@media (max-width:640px){
+  .task-list-header{ display:none; }
+}
 
 /* quick add */
 .quickadd-row{ display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid var(--border); }

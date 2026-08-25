@@ -25,11 +25,13 @@ export function TaskListCard({
   tasks,
   emptyLabel,
   quickAddId,
+  showHeader = true,
 }: {
   bucketKey: string;
   tasks: Task[];
   emptyLabel: string;
   quickAddId: string;
+  showHeader?: boolean;
 }) {
   const { board, sortByQuick } = useBoardCtx();
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -75,6 +77,20 @@ export function TaskListCard({
           onKeyDown={(e) => e.key === "Enter" && handleAdd()}
         />
       </div>
+      {showHeader && items.length > 0 && (
+        <div className="task-list-header">
+          <span className="tlh-status">Status</span>
+          <span className="tlh-quick">Velocidade</span>
+          <span className="tlh-title">Descrição</span>
+          <span className="tlh-meta">
+            <span className="tlh-meta-item">Categoria</span>
+            <span className="tlh-meta-item">Prioridade</span>
+            <span className="tlh-meta-item">Play</span>
+            <span className="tlh-meta-item">Duplicar</span>
+            <span className="tlh-meta-item">Excluir</span>
+          </span>
+        </div>
+      )}
       {!items.length && <div className="empty-row">{emptyLabel}</div>}
       {items.map((t) => (
         <TaskRow

@@ -86,33 +86,18 @@ function BoardShell() {
         >
           ›
         </button>
-        <button
-          className="today-btn"
-          type="button"
-          onClick={() => {
-            setWeekAnchor(mondayOf(new Date()));
-            setSelectedDate(todayISO());
-            setViewMode("day");
-          }}
-        >
-          Hoje
-        </button>
-        {viewMode !== "dashboard" && (
+        <div className="view-toggle">
           <button
             type="button"
-            className={"quicksort-btn" + (sortByQuick ? " active" : "")}
-            title="Reordena as listas colocando as tarefas mais rápidas (+++) primeiro"
-            onClick={() => setSortByQuick(!sortByQuick)}
+            className={"view-toggle-btn" + (viewMode !== "week" && viewMode !== "dashboard" ? " active" : "")}
+            onClick={() => {
+              setWeekAnchor(mondayOf(new Date()));
+              setSelectedDate(todayISO());
+              setViewMode("day");
+            }}
           >
-            ⚡ Rápidas primeiro
+            Hoje
           </button>
-        )}
-        {viewMode !== "dashboard" && (
-          <span className="quick-legend" title="Marque a velocidade de execução clicando no + ao lado de cada tarefa">
-            + lenta · ++ rápida · +++ bem rápida
-          </span>
-        )}
-        <div className="view-toggle">
           <button
             type="button"
             className={"view-toggle-btn" + (viewMode === "week" ? " active" : "")}
@@ -140,6 +125,14 @@ function BoardShell() {
                 {viewMode === "week" ? "Semana" : selectedDate === todayISO() ? "Hoje" : longLabel(selectedDate)}
                 <span className="count">{viewMode === "week" ? board.state.tasks.filter((t) => t.date).length : dayTasks.length}</span>
               </span>
+              <button
+                type="button"
+                className={"quicksort-btn" + (sortByQuick ? " active" : "")}
+                title="Reordena as listas colocando as tarefas mais rápidas (+++) primeiro"
+                onClick={() => setSortByQuick(!sortByQuick)}
+              >
+                ⚡ Rápidas primeiro
+              </button>
             </div>
             {viewMode === "week" ? (
               <WeekView weekAnchor={weekAnchor} />
