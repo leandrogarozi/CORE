@@ -112,7 +112,7 @@ export function TaskListCard({
             <div className="task-list-header" style={{ gridTemplateColumns: columns.gridTemplate }}>
               <span />
               {TASK_COLUMNS.map((c) => (
-                <span className="tlh-cell" key={c.key}>
+                <span className={`tlh-cell tlh-col-${c.key}`} key={c.key}>
                   {c.label}
                   <ColResizeHandle colKey={c.key} />
                 </span>

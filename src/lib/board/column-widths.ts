@@ -4,12 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 
 export const TASK_COLUMNS = [
   { key: "status", label: "Status", defaultWidth: 36, minWidth: 30 },
-  { key: "quick", label: "Velocidade", defaultWidth: 50, minWidth: 36 },
+  { key: "quick", label: "Vel.Ex", defaultWidth: 50, minWidth: 36 },
   { key: "desc", label: "Descrição", defaultWidth: 230, minWidth: 100 },
   { key: "category", label: "Categoria", defaultWidth: 100, minWidth: 60 },
   { key: "priority", label: "Prioridade", defaultWidth: 80, minWidth: 50 },
   { key: "play", label: "Play", defaultWidth: 66, minWidth: 40 },
-  { key: "duplicate", label: "Duplicar", defaultWidth: 50, minWidth: 36 },
+  { key: "duplicate", label: "Copiar", defaultWidth: 50, minWidth: 36 },
   { key: "delete", label: "Excluir", defaultWidth: 50, minWidth: 36 },
 ] as const;
 

@@ -155,7 +155,7 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
       <button
         className="icon-btn"
         type="button"
-        title="Duplicar tarefa"
+        title="Copiar tarefa"
         onClick={(e) => {
           e.stopPropagation();
           board.duplicateTask(t.id);

@@ -298,9 +298,10 @@ a{ color:inherit; }
 .task-list-header{
   display:grid; align-items:center; column-gap:14px; padding:7px 14px; min-width:max-content;
   border-bottom:1px solid var(--border); background:var(--bg);
-  font-size:12px; font-weight:400; color:var(--text-faint);
+  font-size:11px; font-weight:400; color:var(--text-faint);
 }
 .tlh-cell{ position:relative; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tlh-col-priority, .tlh-col-play, .tlh-col-duplicate, .tlh-col-delete{ text-align:center; }
 .col-resize-handle{
   position:absolute; top:0; right:-14px; width:28px; height:100%; cursor:col-resize; z-index:2;
   touch-action:none;
@@ -339,20 +340,20 @@ a{ color:inherit; }
 }
 .row-check.checked{ background:var(--success); border-color:var(--success); }
 .quick-badge{
-  justify-self:start; text-align:center; font-size:10.5px; font-weight:700;
+  justify-self:start; text-align:center; font-size:9.5px; font-weight:700;
   font-family:"IBM Plex Mono", ui-monospace, monospace; color:var(--text-faint);
   padding:1px 5px; border-radius:5px; border:1px solid transparent; opacity:0.45;
 }
 .quick-badge:hover{ opacity:1; color:var(--text-muted); }
 .quick-badge.set{ color:#8A6412; background:#FCEFD8; opacity:1; }
 .row-desc-cell{ display:flex; align-items:center; gap:8px; min-width:0; }
-.row-title{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:text; font-size:13px; background:none; border:none; text-align:left; padding:0; }
+.row-title{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:text; font-size:12px; background:none; border:none; text-align:left; padding:0; }
 .task-row.done .row-title{ text-decoration:line-through; color:var(--text-muted); }
 .row-category-cell{ display:flex; align-items:center; gap:6px; min-width:0; }
-.row-time{ font-size:11px; color:var(--text-muted); white-space:nowrap; flex:none; }
-.chip{ font-size:10px; font-weight:600; padding:1px 7px; border-radius:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.flag{ width:12px; height:12px; display:flex; align-items:center; justify-self:start; }
-.task-row > .icon-btn, .task-row > .timer-wrap{ justify-self:start; }
+.row-time{ font-size:10px; color:var(--text-muted); white-space:nowrap; flex:none; }
+.chip{ font-size:9px; font-weight:600; padding:1px 7px; border-radius:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.flag{ width:12px; height:12px; display:flex; align-items:center; justify-self:center; }
+.task-row > .icon-btn, .task-row > .timer-wrap{ justify-self:center; }
 .empty-row{ padding:14px 12px; font-size:12.5px; color:var(--text-faint); font-style:italic; }
 
 /* inline edit */
