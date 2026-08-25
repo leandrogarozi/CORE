@@ -50,6 +50,26 @@ export default function LoginPage() {
     setMessage("Conta criada. Confira seu e-mail para confirmar o acesso antes de entrar.");
   }
 
+  async function handleForgotPassword() {
+    if (!email) {
+      setError("Preencha o e-mail acima antes de clicar em \"Esqueci minha senha\".");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setMessage(null);
+    const supabase = createClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+    });
+    setLoading(false);
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    setMessage("Enviamos um e-mail com um link para redefinir sua senha.");
+  }
+
   return (
     <div className="auth-wrap">
       <div className="auth-card">
@@ -98,6 +118,11 @@ export default function LoginPage() {
           <button type="submit" className="auth-submit" disabled={loading}>
             {loading ? "Aguarde…" : mode === "signin" ? "Entrar" : "Criar conta"}
           </button>
+          {mode === "signin" && (
+            <button type="button" className="auth-forgot" onClick={handleForgotPassword} disabled={loading}>
+              Esqueci minha senha
+            </button>
+          )}
         </form>
       </div>
     </div>
