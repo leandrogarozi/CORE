@@ -1,0 +1,674 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import {
+  buildRecurring,
+  rowToActiveTimer,
+  rowToSeries,
+  rowToSettings,
+  rowToTask,
+  seriesToInsertRow,
+  seriesToUpdateRow,
+  taskToInsertRow,
+  taskToRow,
+} from "@/lib/board/mappers";
+import { occurrenceDates, todayISO } from "@/lib/date-utils";
+import type {
+  ActiveTimer,
+  BoardState,
+  Category,
+  DayLog,
+  Priority,
+  Repeat,
+  RecurringItem,
+  ScopeChoice,
+  Settings,
+  Task,
+  TaskSeries,
+  TimerKind,
+} from "@/lib/types";
+import { DEFAULT_TAG_COLORS } from "@/lib/types";
+
+const EMPTY_STATE: BoardState = {
+  tasks: [],
+  habits: [],
+  fixedBlocks: [],
+  taskSeries: [],
+  settings: { tagColors: DEFAULT_TAG_COLORS, dailyBudgetHours: 12 },
+  activeTimer: null,
+};
+
+export interface TaskEditFields {
+  title: string;
+  category: Category;
+  priority: Priority;
+  date: string | null;
+  time: string;
+  durationMin: number | null;
+  note: string;
+  repeat: Repeat;
+}
+
+function uid(): string {
+  return crypto.randomUUID();
+}
+
+function bucketOf(t: Pick<Task, "date">): string {
+  return t.date || "";
+}
+
+export function useBoard(userId: string | null) {
+  const supabase = useMemo(() => createClient(), []);
+  const [state, setState] = useState<BoardState>(EMPTY_STATE);
+  const [loading, setLoading] = useState(true);
+  const stateRef = useRef(state);
+
+  const apply = useCallback((producer: (s: BoardState) => BoardState) => {
+    const next = producer(stateRef.current);
+    stateRef.current = next;
+    setState(next);
+    return next;
+  }, []);
+
+  const load = useCallback(async () => {
+    if (!userId) return;
+    setLoading(true);
+    const [tasksRes, habitsRes, blocksRes, habitLogsRes, blockLogsRes, seriesRes, settingsRes, timerRes] =
+      await Promise.all([
+        supabase.from("tasks").select("*").order("sort_order"),
+        supabase.from("habits").select("*").order("sort_order"),
+        supabase.from("fixed_blocks").select("*").order("sort_order"),
+        supabase.from("habit_logs").select("*"),
+        supabase.from("fixed_block_logs").select("*"),
+        supabase.from("task_series").select("*"),
+        supabase.from("settings").select("*").maybeSingle(),
+        supabase.from("active_timer").select("*").maybeSingle(),
+      ]);
+
+    const next: BoardState = {
+      tasks: (tasksRes.data ?? []).map(rowToTask),
+      habits: buildRecurring(habitsRes.data ?? [], habitLogsRes.data ?? [], "habit_id"),
+      fixedBlocks: buildRecurring(blocksRes.data ?? [], blockLogsRes.data ?? [], "block_id"),
+      taskSeries: (seriesRes.data ?? []).map(rowToSeries),
+      settings: rowToSettings(settingsRes.data ?? null),
+      activeTimer: rowToActiveTimer(timerRes.data ?? null),
+    };
+    stateRef.current = next;
+    setState(next);
+    setLoading(false);
+  }, [supabase, userId]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial async data load, setState happens after awaits
+    void load();
+  }, [load]);
+
+  // ---------- tasks ----------
+  const nextOrder = useCallback((bucketKey: string) => {
+    const xs = stateRef.current.tasks.filter((t) => bucketOf(t) === bucketKey);
+    if (!xs.length) return 0;
+    return Math.max(...xs.map((t) => t.order || 0)) + 1;
+  }, []);
+
+  const addTask = useCallback(
+    (bucketKey: string, title: string) => {
+      if (!userId || !title.trim()) return;
+      const t: Task = {
+        id: uid(),
+        title: title.trim(),
+        category: "trabalho",
+        priority: "media",
+        date: bucketKey || null,
+        time: "",
+        durationMin: null,
+        note: "",
+        done: false,
+        order: nextOrder(bucketKey),
+        seriesId: null,
+        trackedSeconds: 0,
+        quick: 0,
+      };
+      apply((s) => ({ ...s, tasks: [...s.tasks, t] }));
+      supabase.from("tasks").insert(taskToInsertRow(t, userId)).then(({ error }) => {
+        if (error) console.error("addTask", error);
+      });
+    },
+    [apply, nextOrder, supabase, userId]
+  );
+
+  const toggleTaskDone = useCallback(
+    (id: string) => {
+      const t = stateRef.current.tasks.find((x) => x.id === id);
+      if (!t) return;
+      const done = !t.done;
+      apply((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === id ? { ...x, done } : x)) }));
+      supabase.from("tasks").update({ done }).eq("id", id).then(({ error }) => {
+        if (error) console.error("toggleTaskDone", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  const cycleQuick = useCallback(
+    (id: string) => {
+      const t = stateRef.current.tasks.find((x) => x.id === id);
+      if (!t) return;
+      const quick = (((t.quick || 0) + 1) % 4) as 0 | 1 | 2 | 3;
+      apply((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === id ? { ...x, quick } : x)) }));
+      supabase.from("tasks").update({ quick }).eq("id", id).then(({ error }) => {
+        if (error) console.error("cycleQuick", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  const reorderBucket = useCallback(
+    (bucketKey: string, orderedIds: string[]) => {
+      apply((s) => ({
+        ...s,
+        tasks: s.tasks.map((t) => {
+          const idx = orderedIds.indexOf(t.id);
+          return idx === -1 ? t : { ...t, order: idx };
+        }),
+      }));
+      orderedIds.forEach((id, idx) => {
+        supabase.from("tasks").update({ sort_order: idx }).eq("id", id).then(({ error }) => {
+          if (error) console.error("reorderBucket", error);
+        });
+      });
+    },
+    [apply, supabase]
+  );
+
+  const duplicateTask = useCallback(
+    (id: string) => {
+      if (!userId) return;
+      const t = stateRef.current.tasks.find((x) => x.id === id);
+      if (!t) return;
+      const myBucket = bucketOf(t);
+      const myOrder = t.order || 0;
+      const bumped = stateRef.current.tasks.map((x) =>
+        bucketOf(x) === myBucket && (x.order || 0) > myOrder ? { ...x, order: (x.order || 0) + 1 } : x
+      );
+      const clone: Task = {
+        ...t,
+        id: uid(),
+        done: false,
+        order: myOrder + 1,
+        durationMin: null,
+        trackedSeconds: 0,
+        seriesId: null,
+      };
+      apply((s) => ({ ...s, tasks: [...bumped, clone] }));
+      bumped
+        .filter((x) => bucketOf(x) === myBucket && x.id !== t.id && (x.order || 0) > myOrder)
+        .forEach((x) => {
+          supabase.from("tasks").update({ sort_order: x.order }).eq("id", x.id).then(() => {});
+        });
+      supabase.from("tasks").insert(taskToInsertRow(clone, userId)).then(({ error }) => {
+        if (error) console.error("duplicateTask", error);
+      });
+    },
+    [apply, supabase, userId]
+  );
+
+  const deleteTask = useCallback(
+    (id: string, scope: ScopeChoice | null) => {
+      const t = stateRef.current.tasks.find((x) => x.id === id);
+      if (!t) return;
+
+      if (stateRef.current.activeTimer?.kind === "task" && stateRef.current.activeTimer.itemId === id) {
+        apply((s) => ({ ...s, activeTimer: null }));
+        supabase.from("active_timer").delete().eq("user_id", userId!).then(() => {});
+      }
+
+      if (!t.seriesId || scope === "esta" || !scope) {
+        apply((s) => ({ ...s, tasks: s.tasks.filter((x) => x.id !== id) }));
+        supabase.from("tasks").delete().eq("id", id).then(({ error }) => {
+          if (error) console.error("deleteTask", error);
+        });
+        if (t.seriesId) {
+          const series = stateRef.current.taskSeries.find((sr) => sr.id === t.seriesId);
+          if (series) {
+            const skipped = [...series.skippedDates, t.date!].filter(Boolean) as string[];
+            apply((s) => ({
+              ...s,
+              taskSeries: s.taskSeries.map((sr) => (sr.id === series.id ? { ...sr, skippedDates: skipped } : sr)),
+            }));
+            supabase
+              .from("task_series")
+              .update({ skipped_dates: skipped })
+              .eq("id", series.id)
+              .then(({ error }) => {
+                if (error) console.error("deleteTask skip", error);
+              });
+          }
+        }
+        return;
+      }
+
+      const today = todayISO();
+      const seriesId = t.seriesId;
+      const toDeleteIds = stateRef.current.tasks
+        .filter((x) => x.seriesId === seriesId && !x.done)
+        .filter((x) => {
+          if (x.id === id) return true;
+          if (scope === "todas") return true;
+          if (scope === "proximas" && x.date && x.date > today) return true;
+          return false;
+        })
+        .map((x) => x.id);
+
+      apply((s) => ({ ...s, tasks: s.tasks.filter((x) => !toDeleteIds.includes(x.id)) }));
+      supabase.from("tasks").delete().in("id", toDeleteIds).then(({ error }) => {
+        if (error) console.error("deleteTask bulk", error);
+      });
+      apply((s) => ({
+        ...s,
+        taskSeries: s.taskSeries.map((sr) => (sr.id === seriesId ? { ...sr, repeat: "none" } : sr)),
+      }));
+      supabase.from("task_series").update({ repeat: "none" }).eq("id", seriesId).then(({ error }) => {
+        if (error) console.error("deleteTask stop series", error);
+      });
+    },
+    [apply, supabase, userId]
+  );
+
+  const saveTaskEdit = useCallback(
+    (id: string, vals: TaskEditFields, scope: ScopeChoice | null) => {
+      if (!userId) return;
+      const t = stateRef.current.tasks.find((x) => x.id === id);
+      if (!t) return;
+      const newBucket = vals.date || "";
+      const oldBucket = bucketOf(t);
+      const order = newBucket !== oldBucket ? nextOrder(newBucket) : t.order;
+
+      if (!t.seriesId) {
+        const updated: Task = {
+          ...t,
+          title: vals.title,
+          category: vals.category,
+          priority: vals.priority,
+          date: vals.date,
+          time: vals.time,
+          durationMin: vals.durationMin,
+          note: vals.note,
+          order,
+        };
+
+        if (vals.repeat !== "none") {
+          const series: TaskSeries = {
+            id: uid(),
+            title: vals.title,
+            category: vals.category,
+            priority: vals.priority,
+            note: vals.note,
+            time: vals.time,
+            repeat: vals.repeat,
+            startDate: vals.date || todayISO(),
+            skippedDates: [],
+          };
+          updated.seriesId = series.id;
+          apply((s) => ({
+            ...s,
+            tasks: s.tasks.map((x) => (x.id === id ? updated : x)),
+            taskSeries: [...s.taskSeries, series],
+          }));
+          supabase.from("task_series").insert(seriesToInsertRow(series, userId)).then(({ error }) => {
+            if (error) console.error("saveTaskEdit series insert", error);
+          });
+        } else {
+          apply((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === id ? updated : x)) }));
+        }
+        supabase
+          .from("tasks")
+          .update(taskToRow(updated, userId))
+          .eq("id", id)
+          .then(({ error }) => {
+            if (error) console.error("saveTaskEdit", error);
+          });
+        return;
+      }
+
+      // belongs to a series already
+      const updated: Task = {
+        ...t,
+        title: vals.title,
+        category: vals.category,
+        priority: vals.priority,
+        date: vals.date,
+        time: vals.time,
+        durationMin: vals.durationMin,
+        note: vals.note,
+        order,
+      };
+      apply((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === id ? updated : x)) }));
+      supabase
+        .from("tasks")
+        .update(taskToRow(updated, userId))
+        .eq("id", id)
+        .then(({ error }) => {
+          if (error) console.error("saveTaskEdit occurrence", error);
+        });
+
+      if (scope === "esta" || !scope) return;
+
+      const seriesId = t.seriesId;
+      const seriesPatch = {
+        title: vals.title,
+        category: vals.category,
+        priority: vals.priority,
+        note: vals.note,
+        time: vals.time,
+        repeat: vals.repeat,
+      };
+      apply((s) => ({
+        ...s,
+        taskSeries: s.taskSeries.map((sr) => (sr.id === seriesId ? { ...sr, ...seriesPatch } : sr)),
+      }));
+      supabase.from("task_series").update(seriesToUpdateRow(seriesPatch)).eq("id", seriesId).then(({ error }) => {
+        if (error) console.error("saveTaskEdit series update", error);
+      });
+
+      const today = todayISO();
+      const siblingIds: string[] = [];
+      apply((s) => ({
+        ...s,
+        tasks: s.tasks.map((x) => {
+          if (x.seriesId !== seriesId || x.id === id || x.done) return x;
+          if (scope === "proximas" && !(x.date && x.date > today)) return x;
+          siblingIds.push(x.id);
+          return { ...x, title: vals.title, category: vals.category, priority: vals.priority, time: vals.time, note: vals.note };
+        }),
+      }));
+      siblingIds.forEach((sid) => {
+        supabase
+          .from("tasks")
+          .update({ title: vals.title, category: vals.category, priority: vals.priority, time: vals.time || null, note: vals.note })
+          .eq("id", sid)
+          .then(({ error }) => {
+            if (error) console.error("saveTaskEdit sibling", error);
+          });
+      });
+    },
+    [apply, nextOrder, supabase, userId]
+  );
+
+  const ensureOccurrencesInView = useCallback(
+    (fromISO: string, toISO: string) => {
+      if (!userId) return;
+      const created: Task[] = [];
+      stateRef.current.taskSeries.forEach((series) => {
+        if (!series.repeat || series.repeat === "none") return;
+        occurrenceDates(series, fromISO, toISO).forEach((iso) => {
+          if (series.skippedDates.includes(iso)) return;
+          const exists = stateRef.current.tasks.some((t) => t.seriesId === series.id && t.date === iso);
+          const alreadyQueued = created.some((t) => t.seriesId === series.id && t.date === iso);
+          if (exists || alreadyQueued) return;
+          created.push({
+            id: uid(),
+            title: series.title,
+            category: series.category,
+            priority: series.priority,
+            date: iso,
+            time: series.time || "",
+            durationMin: null,
+            note: series.note || "",
+            done: false,
+            order: nextOrder(iso),
+            seriesId: series.id,
+            trackedSeconds: 0,
+            quick: 0,
+          });
+        });
+      });
+      if (!created.length) return;
+      apply((s) => ({ ...s, tasks: [...s.tasks, ...created] }));
+      supabase
+        .from("tasks")
+        .insert(created.map((t) => taskToInsertRow(t, userId)))
+        .then(({ error }) => {
+          if (error) console.error("ensureOccurrencesInView", error);
+        });
+    },
+    [apply, nextOrder, supabase, userId]
+  );
+
+  // ---------- recurring (habits / fixed blocks) ----------
+  const tableFor = (kind: "habit" | "block") => (kind === "habit" ? "habits" : "fixed_blocks");
+  const listKeyFor = (kind: "habit" | "block"): "habits" | "fixedBlocks" =>
+    kind === "habit" ? "habits" : "fixedBlocks";
+
+  const addRecurring = useCallback(
+    (kind: "habit" | "block", name: string, durationMin: number | null) => {
+      if (!userId || !name.trim()) return;
+      const listKey = listKeyFor(kind);
+      const order = stateRef.current[listKey].length
+        ? Math.max(...stateRef.current[listKey].map((x) => x.order)) + 1
+        : 0;
+      const item: RecurringItem = { id: uid(), name: name.trim(), durationMin, order, logs: {} };
+      apply((s) => ({ ...s, [listKey]: [...s[listKey], item] }));
+      supabase
+        .from(tableFor(kind))
+        .insert({ id: item.id, user_id: userId, name: item.name, duration_minutes: durationMin, sort_order: order })
+        .then(({ error }) => {
+          if (error) console.error("addRecurring", error);
+        });
+    },
+    [apply, supabase, userId]
+  );
+
+  const updateRecurring = useCallback(
+    (kind: "habit" | "block", id: string, name: string, durationMin: number | null) => {
+      const listKey = listKeyFor(kind);
+      apply((s) => ({
+        ...s,
+        [listKey]: s[listKey].map((x) => (x.id === id ? { ...x, name, durationMin } : x)),
+      }));
+      supabase
+        .from(tableFor(kind))
+        .update({ name, duration_minutes: durationMin })
+        .eq("id", id)
+        .then(({ error }) => {
+          if (error) console.error("updateRecurring", error);
+        });
+    },
+    [apply, supabase]
+  );
+
+  const deleteRecurringItem = useCallback(
+    (kind: "habit" | "block", id: string) => {
+      const listKey = listKeyFor(kind);
+      if (stateRef.current.activeTimer?.kind === kind && stateRef.current.activeTimer.itemId === id) {
+        apply((s) => ({ ...s, activeTimer: null }));
+        supabase.from("active_timer").delete().eq("user_id", userId!).then(() => {});
+      }
+      apply((s) => ({ ...s, [listKey]: s[listKey].filter((x) => x.id !== id) }));
+      supabase.from(tableFor(kind)).delete().eq("id", id).then(({ error }) => {
+        if (error) console.error("deleteRecurringItem", error);
+      });
+    },
+    [apply, supabase, userId]
+  );
+
+  const deleteRecurringLog = useCallback(
+    (kind: "habit" | "block", id: string, iso: string) => {
+      const query =
+        kind === "habit"
+          ? supabase.from("habit_logs").delete().eq("habit_id", id).eq("log_date", iso)
+          : supabase.from("fixed_block_logs").delete().eq("block_id", id).eq("log_date", iso);
+      query.then(({ error }) => {
+        if (error) console.error("deleteRecurringLog", error);
+      });
+    },
+    [supabase]
+  );
+
+  const upsertRecurringLog = useCallback(
+    (kind: "habit" | "block", id: string, iso: string, trackedSeconds: number, userId: string) => {
+      const query =
+        kind === "habit"
+          ? supabase
+              .from("habit_logs")
+              .upsert(
+                { user_id: userId, habit_id: id, log_date: iso, checked: true, tracked_seconds: trackedSeconds },
+                { onConflict: "habit_id,log_date" }
+              )
+          : supabase
+              .from("fixed_block_logs")
+              .upsert(
+                { user_id: userId, block_id: id, log_date: iso, checked: true, tracked_seconds: trackedSeconds },
+                { onConflict: "block_id,log_date" }
+              );
+      query.then(({ error }) => {
+        if (error) console.error("upsertRecurringLog", error);
+      });
+    },
+    [supabase]
+  );
+
+  const clearRecurringDay = useCallback(
+    (kind: "habit" | "block", id: string, iso: string) => {
+      const listKey = listKeyFor(kind);
+      apply((s) => ({
+        ...s,
+        [listKey]: s[listKey].map((x) => {
+          if (x.id !== id) return x;
+          const logs = { ...x.logs };
+          delete logs[iso];
+          return { ...x, logs };
+        }),
+      }));
+      deleteRecurringLog(kind, id, iso);
+    },
+    [apply, deleteRecurringLog]
+  );
+
+  const commitRecurringDay = useCallback(
+    (kind: "habit" | "block", id: string, iso: string, minutes: number) => {
+      if (!userId) return;
+      const listKey = listKeyFor(kind);
+      const trackedSeconds = Math.max(0, minutes) * 60;
+      const log: DayLog = { checked: true, trackedSeconds };
+      apply((s) => ({
+        ...s,
+        [listKey]: s[listKey].map((x) => (x.id === id ? { ...x, logs: { ...x.logs, [iso]: log } } : x)),
+      }));
+      upsertRecurringLog(kind, id, iso, trackedSeconds, userId);
+    },
+    [apply, upsertRecurringLog, userId]
+  );
+
+  // ---------- timer ----------
+  const findTrackable = useCallback((kind: TimerKind, id: string) => {
+    if (kind === "task") return stateRef.current.tasks.find((x) => x.id === id);
+    const list = kind === "habit" ? stateRef.current.habits : stateRef.current.fixedBlocks;
+    return list.find((x) => x.id === id);
+  }, []);
+
+  const stopActiveTimer = useCallback(() => {
+    const at = stateRef.current.activeTimer;
+    if (!at || !userId) return;
+    const elapsed = Math.max(0, Math.floor((Date.now() - at.startedAt) / 1000));
+    if (at.kind === "task") {
+      const t = stateRef.current.tasks.find((x) => x.id === at.itemId);
+      if (t) {
+        const trackedSeconds = t.trackedSeconds + elapsed;
+        const durationMin = Math.round(trackedSeconds / 60);
+        apply((s) => ({
+          ...s,
+          tasks: s.tasks.map((x) => (x.id === at.itemId ? { ...x, trackedSeconds, durationMin } : x)),
+        }));
+        supabase
+          .from("tasks")
+          .update({ tracked_seconds: trackedSeconds, duration_minutes: durationMin })
+          .eq("id", at.itemId)
+          .then(({ error }) => {
+            if (error) console.error("stopActiveTimer task", error);
+          });
+      }
+    } else {
+      const kind = at.kind;
+      const listKey = listKeyFor(kind);
+      const item = stateRef.current[listKey].find((x) => x.id === at.itemId);
+      const prevSeconds = item?.logs[at.logDate]?.trackedSeconds || 0;
+      const trackedSeconds = prevSeconds + elapsed;
+      apply((s) => ({
+        ...s,
+        [listKey]: s[listKey].map((x) =>
+          x.id === at.itemId ? { ...x, logs: { ...x.logs, [at.logDate]: { checked: true, trackedSeconds } } } : x
+        ),
+      }));
+      upsertRecurringLog(kind, at.itemId, at.logDate, trackedSeconds, userId);
+    }
+  }, [apply, supabase, upsertRecurringLog, userId]);
+
+  const toggleTimer = useCallback(
+    (kind: TimerKind, id: string, logDate: string) => {
+      if (!userId) return;
+      const already = stateRef.current.activeTimer?.kind === kind && stateRef.current.activeTimer.itemId === id;
+      stopActiveTimer();
+      if (already) {
+        apply((s) => ({ ...s, activeTimer: null }));
+        supabase.from("active_timer").delete().eq("user_id", userId).then(() => {});
+        return;
+      }
+      const at: ActiveTimer = { kind, itemId: id, logDate, startedAt: Date.now() };
+      apply((s) => ({ ...s, activeTimer: at }));
+      supabase
+        .from("active_timer")
+        .upsert({ user_id: userId, kind, item_id: id, log_date: logDate, started_at: new Date(at.startedAt).toISOString() })
+        .then(({ error }) => {
+          if (error) console.error("toggleTimer", error);
+        });
+    },
+    [apply, stopActiveTimer, supabase, userId]
+  );
+
+  // ---------- settings ----------
+  const updateSettings = useCallback(
+    (patch: Partial<Settings>) => {
+      if (!userId) return;
+      const merged = { ...stateRef.current.settings, ...patch };
+      apply((s) => ({ ...s, settings: merged }));
+      supabase
+        .from("settings")
+        .upsert({
+          user_id: userId,
+          tag_colors: merged.tagColors,
+          daily_budget_hours: merged.dailyBudgetHours,
+        })
+        .then(({ error }) => {
+          if (error) console.error("updateSettings", error);
+        });
+    },
+    [apply, supabase, userId]
+  );
+
+  return {
+    state,
+    loading,
+    reload: load,
+    isTimerRunning: (kind: TimerKind, id: string) =>
+      state.activeTimer?.kind === kind && state.activeTimer.itemId === id,
+    findTrackable,
+    addTask,
+    toggleTaskDone,
+    cycleQuick,
+    reorderBucket,
+    duplicateTask,
+    deleteTask,
+    saveTaskEdit,
+    ensureOccurrencesInView,
+    addRecurring,
+    updateRecurring,
+    deleteRecurringItem,
+    clearRecurringDay,
+    commitRecurringDay,
+    toggleTimer,
+    updateSettings,
+  };
+}
+
+export type UseBoard = ReturnType<typeof useBoard>;

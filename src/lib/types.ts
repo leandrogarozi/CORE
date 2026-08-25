@@ -1,0 +1,85 @@
+export type Category = "trabalho" | "estudo" | "dev" | "saude" | "pessoal" | "familia";
+export type Priority = "alta" | "media" | "baixa";
+export type Repeat = "none" | "daily" | "weekly" | "monthly" | "yearly";
+export type TimerKind = "task" | "habit" | "block";
+export type ScopeChoice = "esta" | "proximas" | "todas";
+
+export const CATEGORY_LABEL: Record<Category, string> = {
+  trabalho: "Trabalho",
+  estudo: "Estudo",
+  dev: "Dev. pessoal",
+  saude: "Saúde",
+  pessoal: "Pessoal",
+  familia: "Família",
+};
+
+export const DEFAULT_TAG_COLORS: Record<Category, { hex: string; alpha: number }> = {
+  trabalho: { hex: "#B0581A", alpha: 0.5 },
+  estudo: { hex: "#226C9C", alpha: 0.5 },
+  dev: { hex: "#6C4296", alpha: 0.5 },
+  saude: { hex: "#277644", alpha: 0.5 },
+  pessoal: { hex: "#A23E68", alpha: 0.5 },
+  familia: { hex: "#1B7F79", alpha: 0.5 },
+};
+
+export interface Task {
+  id: string;
+  title: string;
+  category: Category;
+  priority: Priority;
+  date: string | null; // ISO date, null = backlog
+  time: string; // "HH:MM" or ""
+  durationMin: number | null;
+  note: string;
+  done: boolean;
+  order: number;
+  seriesId: string | null;
+  trackedSeconds: number;
+  quick: number; // 0-3
+}
+
+export interface TaskSeries {
+  id: string;
+  title: string;
+  category: Category;
+  priority: Priority;
+  note: string;
+  time: string;
+  repeat: Repeat;
+  startDate: string;
+  skippedDates: string[];
+}
+
+export interface DayLog {
+  checked: boolean;
+  trackedSeconds: number;
+}
+
+export interface RecurringItem {
+  id: string;
+  name: string;
+  durationMin: number | null;
+  order: number;
+  logs: Record<string, DayLog>; // iso date -> log
+}
+
+export interface Settings {
+  tagColors: Record<Category, { hex: string; alpha: number }>;
+  dailyBudgetHours: number;
+}
+
+export interface ActiveTimer {
+  kind: TimerKind;
+  itemId: string;
+  logDate: string;
+  startedAt: number; // epoch ms
+}
+
+export interface BoardState {
+  tasks: Task[];
+  habits: RecurringItem[];
+  fixedBlocks: RecurringItem[];
+  taskSeries: TaskSeries[];
+  settings: Settings;
+  activeTimer: ActiveTimer | null;
+}
