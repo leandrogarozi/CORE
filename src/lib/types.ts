@@ -66,6 +66,14 @@ export interface RecurringItem {
 export interface Settings {
   tagColors: Record<Category, { hex: string; alpha: number }>;
   dailyBudgetHours: number;
+  waterGoalMl: number;
+}
+
+export interface DailyLog {
+  waterMl: number;
+  dietPct: number | null;
+  sleptAt: string | null; // "HH:MM"
+  wokeAt: string | null; // "HH:MM"
 }
 
 export interface ActiveTimer {
@@ -82,4 +90,5 @@ export interface BoardState {
   taskSeries: TaskSeries[];
   settings: Settings;
   activeTimer: ActiveTimer | null;
+  dailyLogs: Record<string, DailyLog>; // iso date -> log
 }

@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   buildRecurring,
   rowToActiveTimer,
+  rowToDailyLog,
   rowToSeries,
   rowToSettings,
   rowToTask,
@@ -18,6 +19,7 @@ import type {
   ActiveTimer,
   BoardState,
   Category,
+  DailyLog,
   DayLog,
   Priority,
   Repeat,
@@ -35,8 +37,9 @@ const EMPTY_STATE: BoardState = {
   habits: [],
   fixedBlocks: [],
   taskSeries: [],
-  settings: { tagColors: DEFAULT_TAG_COLORS, dailyBudgetHours: 12 },
+  settings: { tagColors: DEFAULT_TAG_COLORS, dailyBudgetHours: 12, waterGoalMl: 2000 },
   activeTimer: null,
+  dailyLogs: {},
 };
 
 export interface TaskEditFields {
@@ -74,7 +77,7 @@ export function useBoard(userId: string | null) {
   const load = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
-    const [tasksRes, habitsRes, blocksRes, habitLogsRes, blockLogsRes, seriesRes, settingsRes, timerRes] =
+    const [tasksRes, habitsRes, blocksRes, habitLogsRes, blockLogsRes, seriesRes, settingsRes, timerRes, dailyLogsRes] =
       await Promise.all([
         supabase.from("tasks").select("*").order("sort_order"),
         supabase.from("habits").select("*").order("sort_order"),
@@ -84,7 +87,13 @@ export function useBoard(userId: string | null) {
         supabase.from("task_series").select("*"),
         supabase.from("settings").select("*").maybeSingle(),
         supabase.from("active_timer").select("*").maybeSingle(),
+        supabase.from("daily_logs").select("*"),
       ]);
+
+    const dailyLogs: Record<string, DailyLog> = {};
+    (dailyLogsRes.data ?? []).forEach((row) => {
+      dailyLogs[row.log_date] = rowToDailyLog(row);
+    });
 
     const next: BoardState = {
       tasks: (tasksRes.data ?? []).map(rowToTask),
@@ -93,6 +102,7 @@ export function useBoard(userId: string | null) {
       taskSeries: (seriesRes.data ?? []).map(rowToSeries),
       settings: rowToSettings(settingsRes.data ?? null),
       activeTimer: rowToActiveTimer(timerRes.data ?? null),
+      dailyLogs,
     };
     stateRef.current = next;
     setState(next);
@@ -638,9 +648,42 @@ export function useBoard(userId: string | null) {
           user_id: userId,
           tag_colors: merged.tagColors,
           daily_budget_hours: merged.dailyBudgetHours,
+          water_goal_ml: merged.waterGoalMl,
         })
         .then(({ error }) => {
           if (error) console.error("updateSettings", error);
+        });
+    },
+    [apply, supabase, userId]
+  );
+
+  // ---------- daily log (água, dieta, sono) ----------
+  const updateDailyLog = useCallback(
+    (logDate: string, patch: Partial<DailyLog>) => {
+      if (!userId) return;
+      const current: DailyLog = stateRef.current.dailyLogs[logDate] ?? {
+        waterMl: 0,
+        dietPct: null,
+        sleptAt: null,
+        wokeAt: null,
+      };
+      const merged: DailyLog = { ...current, ...patch };
+      apply((s) => ({ ...s, dailyLogs: { ...s.dailyLogs, [logDate]: merged } }));
+      supabase
+        .from("daily_logs")
+        .upsert(
+          {
+            user_id: userId,
+            log_date: logDate,
+            water_ml: merged.waterMl,
+            diet_pct: merged.dietPct,
+            slept_at: merged.sleptAt,
+            woke_at: merged.wokeAt,
+          },
+          { onConflict: "user_id,log_date" }
+        )
+        .then(({ error }) => {
+          if (error) console.error("updateDailyLog", error);
         });
     },
     [apply, supabase, userId]
@@ -668,6 +711,7 @@ export function useBoard(userId: string | null) {
     commitRecurringDay,
     toggleTimer,
     updateSettings,
+    updateDailyLog,
   };
 }
 

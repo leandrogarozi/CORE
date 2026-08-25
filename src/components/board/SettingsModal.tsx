@@ -18,6 +18,7 @@ function hexToRgba(hex: string, alpha: number) {
 export function SettingsModal() {
   const { board, settingsOpen, setSettingsOpen } = useBoardCtx();
   const [budgetInput, setBudgetInput] = useState<string | null>(null);
+  const [waterGoalInput, setWaterGoalInput] = useState<string | null>(null);
   if (!settingsOpen) return null;
 
   const tagColors = board.state.settings.tagColors;
@@ -86,6 +87,23 @@ export function SettingsModal() {
               const v = parseFloat(budgetInput);
               if (!isNaN(v) && v >= 0) board.updateSettings({ dailyBudgetHours: v });
               setBudgetInput(null);
+            }}
+          />
+        </div>
+        <div className="settings-row-standalone">
+          <span className="settings-label">Meta diária de água (ml)</span>
+          <input
+            type="number"
+            min={0}
+            step={100}
+            className="budget-input"
+            value={waterGoalInput ?? board.state.settings.waterGoalMl}
+            onChange={(e) => setWaterGoalInput(e.target.value)}
+            onBlur={() => {
+              if (waterGoalInput === null) return;
+              const v = parseInt(waterGoalInput, 10);
+              if (!isNaN(v) && v >= 0) board.updateSettings({ waterGoalMl: v });
+              setWaterGoalInput(null);
             }}
           />
         </div>

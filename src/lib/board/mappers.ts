@@ -2,6 +2,7 @@ import type { Tables, TablesInsert, TablesUpdate } from "@/lib/database.types";
 import type {
   ActiveTimer,
   Category,
+  DailyLog,
   DayLog,
   Priority,
   Repeat,
@@ -21,6 +22,7 @@ type BlockLogRow = Tables<"fixed_block_logs">;
 type SeriesRow = Tables<"task_series">;
 type SettingsRow = Tables<"settings">;
 type ActiveTimerRow = Tables<"active_timer">;
+type DailyLogRow = Tables<"daily_logs">;
 
 export function rowToTask(row: TaskRow): Task {
   return {
@@ -150,6 +152,16 @@ export function rowToSettings(row: SettingsRow | null): Settings {
   return {
     tagColors,
     dailyBudgetHours: row?.daily_budget_hours ?? 12,
+    waterGoalMl: row?.water_goal_ml ?? 2000,
+  };
+}
+
+export function rowToDailyLog(row: DailyLogRow): DailyLog {
+  return {
+    waterMl: row.water_ml,
+    dietPct: row.diet_pct,
+    sleptAt: row.slept_at ? row.slept_at.slice(0, 5) : null,
+    wokeAt: row.woke_at ? row.woke_at.slice(0, 5) : null,
   };
 }
 

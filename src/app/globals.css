@@ -164,14 +164,42 @@ a{ color:inherit; }
 
 .day-layout{ display:flex; gap:16px; align-items:flex-start; }
 .day-layout > .day-section-col{ flex:1; min-width:0; }
-.hours-section{ width:250px; flex:none; }
+.day-aside-col{ width:250px; flex:none; display:flex; flex-direction:column; gap:16px; }
+.hours-section{ width:100%; }
 .hours-panel{
   background:var(--surface); border:1px solid var(--border); border-radius:12px;
   box-shadow:var(--shadow); overflow:hidden;
 }
 @media (max-width:760px){
   .day-layout{ flex-direction:column; }
-  .hours-section{ width:100%; }
+  .day-aside-col{ width:100%; }
+}
+
+/* daily log panel (água, dieta, sono) */
+.quick-legend{ font-size:10.5px; color:var(--text-faint); white-space:nowrap; }
+.daily-log-section{ width:100%; }
+.daily-log-panel{
+  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  box-shadow:var(--shadow); padding:12px 14px; display:flex; flex-direction:column; gap:14px;
+}
+.dl-row + .dl-row{ padding-top:14px; border-top:1px solid var(--border); }
+.dl-row-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; }
+.dl-label{ font-size:12.5px; font-weight:500; }
+.dl-value{ font-size:13px; font-weight:600; }
+.dl-of{ font-weight:500; color:var(--text-faint); }
+.dl-water-actions{ display:flex; gap:6px; margin-top:8px; }
+.dl-water-btn{ font-size:11.5px; padding:4px 9px; }
+.dl-diet-input{ display:flex; align-items:center; gap:4px; }
+.dl-pct-input{
+  width:64px; background:var(--surface); border:1px solid var(--border-strong); border-radius:7px;
+  padding:6px 8px; font-size:13px; color:var(--text);
+}
+.dl-pct-sign{ font-size:12.5px; color:var(--text-faint); }
+.dl-sleep-inputs{ display:flex; gap:10px; }
+.dl-sleep-field{ display:flex; flex-direction:column; gap:3px; font-size:11px; color:var(--text-faint); flex:1; }
+.dl-sleep-field input{
+  background:var(--surface); border:1px solid var(--border-strong); border-radius:7px;
+  padding:6px 8px; font-size:12.5px; color:var(--text);
 }
 .hp-total{ font-size:22px; font-weight:700; padding:14px 14px 0; }
 .hp-total .hp-of{ font-size:12px; font-weight:500; color:var(--text-faint); }

@@ -7,6 +7,7 @@ import { TaskListCard } from "./TaskListCard";
 import { WeekView } from "./WeekView";
 import { Dashboard } from "./Dashboard";
 import { HoursPanel } from "./HoursPanel";
+import { DailyLogPanel } from "./DailyLogPanel";
 import { RecurringSection } from "./RecurringSection";
 import { SettingsModal } from "./SettingsModal";
 import { ScopeModal } from "./ScopeModal";
@@ -106,6 +107,11 @@ function BoardShell() {
             ⚡ Rápidas primeiro
           </button>
         )}
+        {viewMode !== "dashboard" && (
+          <span className="quick-legend" title="Marque a velocidade de execução clicando no + ao lado de cada tarefa">
+            + lenta · ++ rápida · +++ bem rápida
+          </span>
+        )}
         <div className="view-toggle">
           <button
             type="button"
@@ -146,7 +152,10 @@ function BoardShell() {
               />
             )}
           </div>
-          <HoursPanel selectedDate={selectedDate} />
+          <div className="day-aside-col">
+            <HoursPanel selectedDate={selectedDate} />
+            {viewMode === "day" && <DailyLogPanel selectedDate={selectedDate} />}
+          </div>
         </div>
       )}
 
