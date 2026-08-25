@@ -17,8 +17,6 @@ interface BoardCtxValue {
   askScope: (question: string, onChoose: (choice: ScopeChoice) => void) => void;
   scopeModal: ScopeModalState;
   closeScopeModal: () => void;
-  settingsOpen: boolean;
-  setSettingsOpen: (v: boolean) => void;
 }
 
 const BoardCtx = createContext<BoardCtxValue | null>(null);
@@ -26,7 +24,6 @@ const BoardCtx = createContext<BoardCtxValue | null>(null);
 export function BoardProvider({ userId, children }: { userId: string; children: ReactNode }) {
   const board = useBoard(userId);
   const [sortByQuick, setSortByQuick] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [scopeModal, setScopeModal] = useState<ScopeModalState>({ open: false, question: "", onChoose: null });
 
   const askScope = useCallback((question: string, onChoose: (choice: ScopeChoice) => void) => {
@@ -39,7 +36,7 @@ export function BoardProvider({ userId, children }: { userId: string; children: 
 
   return (
     <BoardCtx.Provider
-      value={{ board, sortByQuick, setSortByQuick, askScope, scopeModal, closeScopeModal, settingsOpen, setSettingsOpen }}
+      value={{ board, sortByQuick, setSortByQuick, askScope, scopeModal, closeScopeModal }}
     >
       {children}
     </BoardCtx.Provider>
