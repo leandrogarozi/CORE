@@ -16,7 +16,15 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
   const goalMl = board.state.settings.waterGoalMl || 2000;
   const pct = goalMl > 0 ? Math.min(100, (waterMl / goalMl) * 100) : 0;
   const [dietInput, setDietInput] = useState<string | null>(null);
-  const label = selectedDate === todayISO() ? "hoje" : selectedDate;
+  const isToday = selectedDate === todayISO();
+  const label = isToday ? "hoje" : selectedDate;
+
+  const missing: string[] = [];
+  if (isToday) {
+    if (!wokeAt) missing.push("horário que acordou");
+    if (!sleptAt) missing.push("horário de dormir");
+    if (dietPct === null) missing.push("% da dieta");
+  }
 
   function addWater(ml: number) {
     board.updateDailyLog(selectedDate, { waterMl: Math.max(0, waterMl + ml) });
@@ -35,6 +43,9 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
         <span className="section-pill accent">Registro do dia</span>
       </div>
       <div className="daily-log-panel">
+        {missing.length > 0 && (
+          <div className="dl-reminder">🔔 Ainda falta registrar hoje: {missing.join(", ")}.</div>
+        )}
         <div className="dl-row">
           <div className="dl-row-top">
             <span className="dl-label">💧 Água</span>
@@ -85,19 +96,19 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
           </div>
           <div className="dl-sleep-inputs">
             <label className="dl-sleep-field">
-              <span>Dormiu</span>
-              <input
-                type="time"
-                value={sleptAt}
-                onChange={(e) => board.updateDailyLog(selectedDate, { sleptAt: e.target.value || null })}
-              />
-            </label>
-            <label className="dl-sleep-field">
               <span>Acordou</span>
               <input
                 type="time"
                 value={wokeAt}
                 onChange={(e) => board.updateDailyLog(selectedDate, { wokeAt: e.target.value || null })}
+              />
+            </label>
+            <label className="dl-sleep-field">
+              <span>Dormiu</span>
+              <input
+                type="time"
+                value={sleptAt}
+                onChange={(e) => board.updateDailyLog(selectedDate, { sleptAt: e.target.value || null })}
               />
             </label>
           </div>

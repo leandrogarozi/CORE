@@ -182,6 +182,10 @@ a{ color:inherit; }
   background:var(--surface); border:1px solid var(--border); border-radius:12px;
   box-shadow:var(--shadow); padding:12px 14px; display:flex; flex-direction:column; gap:14px;
 }
+.dl-reminder{
+  font-size:11.5px; color:#8A6412; background:#FCEFD8; border:1px solid #E8C077;
+  border-radius:8px; padding:8px 10px;
+}
 .dl-row + .dl-row{ padding-top:14px; border-top:1px solid var(--border); }
 .dl-row-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; }
 .dl-label{ font-size:12.5px; font-weight:500; }
