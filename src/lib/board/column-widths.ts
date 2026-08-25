@@ -57,7 +57,17 @@ export function useColumnWidths() {
     });
   }, []);
 
-  const gridTemplate = ["20px", ...TASK_COLUMNS.map((c) => `${widthFor(c.key)}px`)].join(" ");
+  const gridTemplate = [
+    "20px",
+    ...TASK_COLUMNS.map((c) => {
+      // Descrição fills any leftover row width until the user drags it to an
+      // explicit size — avoids a dead strip of blank space after the last column.
+      if (c.key === "desc" && widths.desc === undefined) {
+        return `minmax(${c.defaultWidth}px, 1fr)`;
+      }
+      return `${widthFor(c.key)}px`;
+    }),
+  ].join(" ");
 
   return { widthFor, setColumnWidth, gridTemplate };
 }

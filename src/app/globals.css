@@ -296,9 +296,9 @@ a{ color:inherit; }
 }
 .task-table-scroll::-webkit-scrollbar{ display:none; height:0; }
 .task-list-header{
-  display:grid; align-items:center; column-gap:14px; padding:11px 14px; min-width:max-content;
+  display:grid; align-items:center; column-gap:14px; padding:7px 14px; min-width:max-content;
   border-bottom:1px solid var(--border); background:var(--bg);
-  font-size:12.5px; font-weight:400; color:var(--text-faint);
+  font-size:12px; font-weight:400; color:var(--text-faint);
 }
 .tlh-cell{ position:relative; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .col-resize-handle{
@@ -306,11 +306,11 @@ a{ color:inherit; }
   touch-action:none;
 }
 .col-resize-handle::after{
-  content:""; position:absolute; top:15%; bottom:15%; left:13px; width:2px;
+  content:""; position:absolute; top:4px; bottom:4px; left:13px; width:2px;
   border-radius:2px; background:transparent;
 }
-.col-resize-handle:hover::after{ background:var(--border-strong); }
-.col-resize-handle:active::after{ background:var(--accent); }
+.col-resize-handle:hover::after{ background:var(--accent); opacity:0.5; }
+.col-resize-handle:active::after{ background:var(--accent); opacity:1; }
 
 /* quick add */
 .quickadd-row{ display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid var(--border); }
@@ -321,7 +321,7 @@ a{ color:inherit; }
 
 /* task row */
 .task-row{
-  display:grid; align-items:center; column-gap:14px; padding:12px 14px;
+  display:grid; align-items:center; column-gap:14px; padding:6px 14px;
   border-bottom:1px solid var(--border); background:var(--surface); min-width:max-content;
 }
 .task-row:last-child{ border-bottom:none; }
@@ -334,24 +334,24 @@ a{ color:inherit; }
 .drag-handle.disabled{ opacity:0; cursor:default; }
 .drag-handle span{ width:3px; height:3px; border-radius:50%; background:var(--border-strong); }
 .row-check{
-  width:18px; height:18px; border-radius:50%; border:1.5px solid var(--border-strong);
+  width:15px; height:15px; border-radius:50%; border:1.5px solid var(--border-strong);
   display:flex; align-items:center; justify-content:center; color:var(--accent-contrast); justify-self:start;
 }
 .row-check.checked{ background:var(--success); border-color:var(--success); }
 .quick-badge{
-  justify-self:start; text-align:center; font-size:11px; font-weight:700;
+  justify-self:start; text-align:center; font-size:10.5px; font-weight:700;
   font-family:"IBM Plex Mono", ui-monospace, monospace; color:var(--text-faint);
-  padding:2px 5px; border-radius:6px; border:1px solid transparent; opacity:0.45;
+  padding:1px 5px; border-radius:5px; border:1px solid transparent; opacity:0.45;
 }
 .quick-badge:hover{ opacity:1; color:var(--text-muted); }
 .quick-badge.set{ color:#8A6412; background:#FCEFD8; opacity:1; }
 .row-desc-cell{ display:flex; align-items:center; gap:8px; min-width:0; }
-.row-title{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:text; font-size:13.5px; background:none; border:none; text-align:left; padding:0; }
+.row-title{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:text; font-size:13px; background:none; border:none; text-align:left; padding:0; }
 .task-row.done .row-title{ text-decoration:line-through; color:var(--text-muted); }
 .row-category-cell{ display:flex; align-items:center; gap:6px; min-width:0; }
-.row-time{ font-size:11.5px; color:var(--text-muted); white-space:nowrap; flex:none; }
-.chip{ font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.flag{ width:13px; height:13px; display:flex; align-items:center; justify-self:start; }
+.row-time{ font-size:11px; color:var(--text-muted); white-space:nowrap; flex:none; }
+.chip{ font-size:10px; font-weight:600; padding:1px 7px; border-radius:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.flag{ width:12px; height:12px; display:flex; align-items:center; justify-self:start; }
 .task-row > .icon-btn, .task-row > .timer-wrap{ justify-self:start; }
 .empty-row{ padding:14px 12px; font-size:12.5px; color:var(--text-faint); font-style:italic; }
 

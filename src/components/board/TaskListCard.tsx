@@ -13,7 +13,10 @@ function ColResizeHandle({ colKey }: { colKey: ColumnKey }) {
     (e: React.PointerEvent) => {
       e.preventDefault();
       const startX = e.clientX;
-      const startWidth = columns.widthFor(colKey);
+      // Measure the cell's actual rendered width (not the stored value) so a column
+      // currently auto-filling leftover space (Descrição) doesn't jump on first drag.
+      const cell = e.currentTarget.parentElement as HTMLElement | null;
+      const startWidth = cell?.getBoundingClientRect().width ?? columns.widthFor(colKey);
       function onMove(ev: PointerEvent) {
         columns.setColumnWidth(colKey, startWidth + (ev.clientX - startX));
       }
