@@ -15,7 +15,10 @@ export const TASK_COLUMNS = [
 
 export type ColumnKey = (typeof TASK_COLUMNS)[number]["key"];
 
-const STORAGE_KEY = "faro-task-col-widths";
+// v2: bumped to discard widths stored before the icon columns became
+// center-aligned, which could leave a column looking stretched with no
+// obvious way to fix it.
+const STORAGE_KEY = "faro-task-col-widths-v2";
 
 function loadStoredWidths(): Partial<Record<ColumnKey, number>> {
   if (typeof window === "undefined") return {};
@@ -57,6 +60,20 @@ export function useColumnWidths() {
     });
   }, []);
 
+  const resetColumnWidth = useCallback((key: ColumnKey) => {
+    setWidths((prev) => {
+      if (!(key in prev)) return prev;
+      const next = { ...prev };
+      delete next[key];
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // ignore write failures (private browsing, storage full, etc.)
+      }
+      return next;
+    });
+  }, []);
+
   const gridTemplate = [
     "20px",
     ...TASK_COLUMNS.map((c) => {
@@ -69,7 +86,7 @@ export function useColumnWidths() {
     }),
   ].join(" ");
 
-  return { widthFor, setColumnWidth, gridTemplate };
+  return { widthFor, setColumnWidth, resetColumnWidth, gridTemplate };
 }
 
 export type UseColumnWidths = ReturnType<typeof useColumnWidths>;

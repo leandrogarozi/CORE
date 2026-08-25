@@ -30,7 +30,18 @@ function ColResizeHandle({ colKey }: { colKey: ColumnKey }) {
     [columns, colKey]
   );
 
-  return <span className="col-resize-handle" onPointerDown={onPointerDown} aria-hidden="true" />;
+  return (
+    <span
+      className="col-resize-handle"
+      onPointerDown={onPointerDown}
+      onDoubleClick={(e) => {
+        e.preventDefault();
+        columns.resetColumnWidth(colKey);
+      }}
+      title="Arraste para redimensionar. Clique duas vezes para restaurar o tamanho padrão."
+      aria-hidden="true"
+    />
+  );
 }
 
 function sortForDisplay(list: Task[], sortByQuick: boolean): Task[] {
