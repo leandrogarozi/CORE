@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useBoardCtx } from "./board-context";
+import { ChevronIcon } from "./icons";
 import { CATEGORY_LABEL, OPTIONAL_FEATURES, isFeatureEnabled, type Category } from "@/lib/types";
 
 const CATEGORIES = Object.keys(CATEGORY_LABEL) as Category[];
@@ -13,6 +14,21 @@ function hexToRgba(hex: string, alpha: number) {
   const g = parseInt(full.substring(2, 4), 16) || 153;
   const b = parseInt(full.substring(4, 6), 16) || 153;
   return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function CollapsibleBox({ title, children }: { title: string; children: ReactNode }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div className="dash-box">
+      <button type="button" className="dash-box-toggle" onClick={() => setOpen((v) => !v)}>
+        <span className="dash-box-title">{title}</span>
+        <span className={"chevron" + (open ? " open" : "")}>
+          <ChevronIcon />
+        </span>
+      </button>
+      {open && <div className="dash-box-body">{children}</div>}
+    </div>
+  );
 }
 
 export function SettingsView({ onBack }: { onBack: () => void }) {
@@ -38,8 +54,7 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
         <span style={{ width: 30 }} />
       </div>
 
-      <div className="dash-box">
-        <div className="dash-box-title">Tags da tarefa</div>
+      <CollapsibleBox title="Tags da tarefa">
         <div className="settings-rows">
           {CATEGORIES.map((cat) => {
             const cfg = tagColors[cat];
@@ -79,10 +94,9 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
             );
           })}
         </div>
-      </div>
+      </CollapsibleBox>
 
-      <div className="dash-box">
-        <div className="dash-box-title">Painel de horas</div>
+      <CollapsibleBox title="Painel de horas">
         <div className="settings-row-standalone">
           <span className="settings-label">Teto diário de horas</span>
           <input
@@ -100,10 +114,9 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
             }}
           />
         </div>
-      </div>
+      </CollapsibleBox>
 
-      <div className="dash-box">
-        <div className="dash-box-title">Painel do dia</div>
+      <CollapsibleBox title="Painel do dia">
         <div className="settings-rows">
           {OPTIONAL_FEATURES.map((f) => (
             <label className="settings-toggle-row" key={f.key}>
@@ -138,7 +151,7 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
             />
           </div>
         )}
-      </div>
+      </CollapsibleBox>
     </div>
   );
 }

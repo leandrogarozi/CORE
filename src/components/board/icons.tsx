@@ -69,6 +69,14 @@ export function PauseIcon() {
   );
 }
 
+export function ChevronIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="12" height="12">
+      <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function SettingsIcon() {
   return (
     <svg viewBox="0 0 16 16" width="15" height="15">

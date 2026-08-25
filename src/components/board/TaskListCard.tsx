@@ -1,9 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { TaskRow } from "./TaskRow";
+import { TASK_COLUMNS, type ColumnKey } from "@/lib/board/column-widths";
 import type { Task } from "@/lib/types";
+
+function ColResizeHandle({ colKey }: { colKey: ColumnKey }) {
+  const { columns } = useBoardCtx();
+
+  const onPointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault();
+      const startX = e.clientX;
+      const startWidth = columns.widthFor(colKey);
+      function onMove(ev: PointerEvent) {
+        columns.setColumnWidth(colKey, startWidth + (ev.clientX - startX));
+      }
+      function onUp() {
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+      }
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+    },
+    [columns, colKey]
+  );
+
+  return <span className="col-resize-handle" onPointerDown={onPointerDown} aria-hidden="true" />;
+}
 
 function sortForDisplay(list: Task[], sortByQuick: boolean): Task[] {
   const copy = [...list];
@@ -33,7 +58,7 @@ export function TaskListCard({
   quickAddId: string;
   showHeader?: boolean;
 }) {
-  const { board, sortByQuick } = useBoardCtx();
+  const { board, sortByQuick, columns } = useBoardCtx();
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const [inputVal, setInputVal] = useState("");
@@ -77,32 +102,34 @@ export function TaskListCard({
           onKeyDown={(e) => e.key === "Enter" && handleAdd()}
         />
       </div>
-      {showHeader && items.length > 0 && (
-        <div className="task-list-header">
-          <span className="tlh-status">Status</span>
-          <span className="tlh-quick">Velocidade</span>
-          <span className="tlh-title">Descrição</span>
-          <span className="tlh-meta">
-            <span className="tlh-meta-item">Categoria</span>
-            <span className="tlh-meta-item">Prioridade</span>
-            <span className="tlh-meta-item">Play</span>
-            <span className="tlh-meta-item">Duplicar</span>
-            <span className="tlh-meta-item">Excluir</span>
-          </span>
+      {!items.length && <div className="empty-row">{emptyLabel}</div>}
+      {items.length > 0 && (
+        <div className="task-table-scroll">
+          {showHeader && (
+            <div className="task-list-header" style={{ gridTemplateColumns: columns.gridTemplate }}>
+              <span />
+              {TASK_COLUMNS.map((c) => (
+                <span className="tlh-cell" key={c.key}>
+                  {c.label}
+                  <ColResizeHandle colKey={c.key} />
+                </span>
+              ))}
+            </div>
+          )}
+          {items.map((t) => (
+            <TaskRow
+              key={t.id}
+              task={t}
+              draggable={draggable}
+              dragging={draggingId === t.id}
+              onDragStart={setDraggingId}
+              onDragOverRow={setOverId}
+              onDrop={handleDrop}
+              gridTemplate={columns.gridTemplate}
+            />
+          ))}
         </div>
       )}
-      {!items.length && <div className="empty-row">{emptyLabel}</div>}
-      {items.map((t) => (
-        <TaskRow
-          key={t.id}
-          task={t}
-          draggable={draggable}
-          dragging={draggingId === t.id}
-          onDragStart={setDraggingId}
-          onDragOverRow={setOverId}
-          onDrop={handleDrop}
-        />
-      ))}
     </div>
   );
 }

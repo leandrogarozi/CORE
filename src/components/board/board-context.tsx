@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 import { useBoard, type UseBoard } from "@/lib/board/use-board";
+import { useColumnWidths, type UseColumnWidths } from "@/lib/board/column-widths";
 import type { ScopeChoice } from "@/lib/types";
 
 interface ScopeModalState {
@@ -17,6 +18,7 @@ interface BoardCtxValue {
   askScope: (question: string, onChoose: (choice: ScopeChoice) => void) => void;
   scopeModal: ScopeModalState;
   closeScopeModal: () => void;
+  columns: UseColumnWidths;
 }
 
 const BoardCtx = createContext<BoardCtxValue | null>(null);
@@ -25,6 +27,7 @@ export function BoardProvider({ userId, children }: { userId: string; children: 
   const board = useBoard(userId);
   const [sortByQuick, setSortByQuick] = useState(false);
   const [scopeModal, setScopeModal] = useState<ScopeModalState>({ open: false, question: "", onChoose: null });
+  const columns = useColumnWidths();
 
   const askScope = useCallback((question: string, onChoose: (choice: ScopeChoice) => void) => {
     setScopeModal({ open: true, question, onChoose });
@@ -36,7 +39,7 @@ export function BoardProvider({ userId, children }: { userId: string; children: 
 
   return (
     <BoardCtx.Provider
-      value={{ board, sortByQuick, setSortByQuick, askScope, scopeModal, closeScopeModal }}
+      value={{ board, sortByQuick, setSortByQuick, askScope, scopeModal, closeScopeModal, columns }}
     >
       {children}
     </BoardCtx.Provider>

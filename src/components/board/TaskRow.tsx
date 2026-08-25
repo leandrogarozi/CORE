@@ -68,9 +68,10 @@ interface TaskRowProps {
   onDragOverRow?: (id: string) => void;
   onDrop?: () => void;
   dragging?: boolean;
+  gridTemplate: string;
 }
 
-export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop, dragging }: TaskRowProps) {
+export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop, dragging, gridTemplate }: TaskRowProps) {
   const { board, askScope } = useBoardCtx();
   const [editing, setEditing] = useState(false);
 
@@ -93,6 +94,7 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
   return (
     <div
       className={"task-row" + (t.done ? " done" : "") + (isOverdue(t) ? " overdue" : "") + (dragging ? " dragging" : "")}
+      style={{ gridTemplateColumns: gridTemplate }}
       draggable={draggable}
       data-id={t.id}
       onDragStart={() => onDragStart?.(t.id)}
@@ -105,13 +107,11 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
         onDrop?.();
       }}
     >
-      {draggable && (
-        <span className="drag-handle" aria-hidden="true">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <span key={i} />
-          ))}
-        </span>
-      )}
+      <span className={"drag-handle" + (draggable ? "" : " disabled")} aria-hidden="true">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <span key={i} />
+        ))}
+      </span>
       <button
         type="button"
         className={"row-check" + (t.done ? " checked" : "")}
@@ -131,36 +131,41 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
       >
         {quickLabel(t.quick || 0)}
       </button>
-      <button type="button" className="row-title" title={t.title} onClick={() => setEditing(true)}>
-        {t.title}
-      </button>
-      <div className="row-meta">
+      <div className="row-desc-cell">
         {t.time && <span className="row-time mono">{t.time}</span>}
-        <CategoryChip category={t.category} />
-        <span className="flag" title={t.priority === "alta" ? "Alta prioridade" : t.priority === "media" ? "Média prioridade" : "Baixa prioridade"}>
-          <FlagIcon color={priorityColor(t.priority)} />
-        </span>
+        <button type="button" className="row-title" title={t.title} onClick={() => setEditing(true)}>
+          {t.title}
+        </button>
+      </div>
+      <div className="row-category-cell">
         {t.seriesId && (
           <span className="flag" title="Tarefa recorrente">
             <RepeatIcon />
           </span>
         )}
-        <TimerButton kind="task" id={t.id} logDate={todayISO()} />
-        <button
-          className="icon-btn"
-          type="button"
-          title="Duplicar tarefa"
-          onClick={(e) => {
-            e.stopPropagation();
-            board.duplicateTask(t.id);
-          }}
-        >
-          <DuplicateIcon />
-        </button>
-        <button className="icon-btn danger-hover" type="button" title="Excluir" onClick={handleDelete}>
-          <TrashIcon />
-        </button>
+        <CategoryChip category={t.category} />
       </div>
+      <span
+        className="flag"
+        title={t.priority === "alta" ? "Alta prioridade" : t.priority === "media" ? "Média prioridade" : "Baixa prioridade"}
+      >
+        <FlagIcon color={priorityColor(t.priority)} />
+      </span>
+      <TimerButton kind="task" id={t.id} logDate={todayISO()} />
+      <button
+        className="icon-btn"
+        type="button"
+        title="Duplicar tarefa"
+        onClick={(e) => {
+          e.stopPropagation();
+          board.duplicateTask(t.id);
+        }}
+      >
+        <DuplicateIcon />
+      </button>
+      <button className="icon-btn danger-hover" type="button" title="Excluir" onClick={handleDelete}>
+        <TrashIcon />
+      </button>
     </div>
   );
 }
