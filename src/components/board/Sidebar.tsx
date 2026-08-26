@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { BellIcon, BookIcon, ChartIcon, HomeIcon, PillIcon, SettingsIcon, WeekIcon } from "./icons";
 
-export type ViewMode = "day" | "week" | "dashboard" | "settings";
+export type ViewMode = "day" | "week" | "dashboard" | "settings" | "books";
 
 export function Sidebar({
   open,
@@ -55,11 +55,18 @@ export function Sidebar({
           </button>
         </div>
 
+        <div className="sidebar-section">
+          <button
+            type="button"
+            className={"sidebar-item" + (viewMode === "books" ? " active" : "")}
+            onClick={() => onSelect("books")}
+          >
+            <BookIcon /> Livros
+          </button>
+        </div>
+
         <div className="sidebar-section-label">Em breve</div>
         <div className="sidebar-section">
-          <span className="sidebar-item disabled">
-            <BookIcon /> Livros
-          </span>
           <span className="sidebar-item disabled">
             <PillIcon /> Medicamentos
           </span>

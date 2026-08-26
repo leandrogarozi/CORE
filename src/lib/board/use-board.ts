@@ -3,8 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
+  bookToInsertRow,
+  bookToUpdateRow,
   buildRecurring,
   rowToActiveTimer,
+  rowToBook,
   rowToDailyLog,
   rowToSeries,
   rowToSettings,
@@ -20,6 +23,7 @@ import {
 import { occurrenceDates, todayISO } from "@/lib/date-utils";
 import type {
   ActiveTimer,
+  Book,
   BoardState,
   Category,
   DailyLog,
@@ -42,6 +46,7 @@ const EMPTY_STATE: BoardState = {
   fixedBlocks: [],
   taskSeries: [],
   taskStatuses: [],
+  books: [],
   settings: { tagColors: DEFAULT_TAG_COLORS, dailyBudgetHours: 12, waterGoalMl: 2000, featureFlags: {} },
   activeTimer: null,
   dailyLogs: {},
@@ -90,6 +95,7 @@ export function useBoard(userId: string | null) {
       blockLogsRes,
       seriesRes,
       taskStatusesRes,
+      booksRes,
       settingsRes,
       timerRes,
       dailyLogsRes,
@@ -101,6 +107,7 @@ export function useBoard(userId: string | null) {
       supabase.from("fixed_block_logs").select("*"),
       supabase.from("task_series").select("*"),
       supabase.from("task_statuses").select("*").order("sort_order"),
+      supabase.from("books").select("*").order("created_at"),
       supabase.from("settings").select("*").maybeSingle(),
       supabase.from("active_timer").select("*").maybeSingle(),
       supabase.from("daily_logs").select("*"),
@@ -117,6 +124,7 @@ export function useBoard(userId: string | null) {
       fixedBlocks: buildRecurring(blocksRes.data ?? [], blockLogsRes.data ?? [], "block_id"),
       taskSeries: (seriesRes.data ?? []).map(rowToSeries),
       taskStatuses: (taskStatusesRes.data ?? []).map(rowToTaskStatus),
+      books: (booksRes.data ?? []).map(rowToBook),
       settings: rowToSettings(settingsRes.data ?? null),
       activeTimer: rowToActiveTimer(timerRes.data ?? null),
       dailyLogs,
@@ -548,6 +556,39 @@ export function useBoard(userId: string | null) {
     [apply, supabase]
   );
 
+  // ---------- books ----------
+  const addBook = useCallback(
+    (title: string) => {
+      if (!userId || !title.trim()) return;
+      const b: Book = { id: uid(), title: title.trim(), status: "para_ler", insights: null };
+      apply((s) => ({ ...s, books: [...s.books, b] }));
+      supabase.from("books").insert(bookToInsertRow(b, userId)).then(({ error }) => {
+        if (error) console.error("addBook", error);
+      });
+    },
+    [apply, supabase, userId]
+  );
+
+  const updateBook = useCallback(
+    (id: string, patch: Partial<Pick<Book, "title" | "status" | "insights">>) => {
+      apply((s) => ({ ...s, books: s.books.map((b) => (b.id === id ? { ...b, ...patch } : b)) }));
+      supabase.from("books").update(bookToUpdateRow(patch)).eq("id", id).then(({ error }) => {
+        if (error) console.error("updateBook", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  const deleteBook = useCallback(
+    (id: string) => {
+      apply((s) => ({ ...s, books: s.books.filter((b) => b.id !== id) }));
+      supabase.from("books").delete().eq("id", id).then(({ error }) => {
+        if (error) console.error("deleteBook", error);
+      });
+    },
+    [apply, supabase]
+  );
+
   // ---------- recurring (habits / fixed blocks) ----------
   const tableFor = (kind: "habit" | "block") => (kind === "habit" ? "habits" : "fixed_blocks");
   const listKeyFor = (kind: "habit" | "block"): "habits" | "fixedBlocks" =>
@@ -824,6 +865,9 @@ export function useBoard(userId: string | null) {
     updateTaskStatus,
     deleteTaskStatus,
     reorderTaskStatuses,
+    addBook,
+    updateBook,
+    deleteBook,
     addRecurring,
     updateRecurring,
     deleteRecurringItem,

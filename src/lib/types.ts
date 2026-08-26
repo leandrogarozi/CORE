@@ -115,12 +115,28 @@ export interface ActiveTimer {
   startedAt: number; // epoch ms
 }
 
+export type BookStatus = "para_ler" | "lendo" | "finalizado";
+
+export const BOOK_STATUS_LABEL: Record<BookStatus, string> = {
+  para_ler: "Para ler",
+  lendo: "Lendo",
+  finalizado: "Finalizado",
+};
+
+export interface Book {
+  id: string;
+  title: string;
+  status: BookStatus;
+  insights: string | null;
+}
+
 export interface BoardState {
   tasks: Task[];
   habits: RecurringItem[];
   fixedBlocks: RecurringItem[];
   taskSeries: TaskSeries[];
   taskStatuses: TaskStatus[];
+  books: Book[];
   settings: Settings;
   activeTimer: ActiveTimer | null;
   dailyLogs: Record<string, DailyLog>; // iso date -> log

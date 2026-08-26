@@ -34,7 +34,7 @@ da esquerda). Motivo: muita coisa nova vai entrar como seção própria (ver
 backlog abaixo) e não cabe mais como pill no topo.
 
 Estado atual (implementado): gaveta com Painel / Semana / Dashboard /
-Configurações, mais uma seção "Em breve" com Livros / Medicamentos /
+Livros / Configurações, mais uma seção "Em breve" com Medicamentos /
 Lembretes como itens desabilitados (só pra sinalizar o que vem por aí).
 As pills do topo continuam funcionando também — não foram removidas.
 
@@ -45,13 +45,16 @@ de feature flags que já existe pra água/dieta/sono/humor
 
 ## Seções novas que vão morar no menu lateral (specs)
 
-### Lista de livros
+### Lista de livros — implementado
 
-- Estados: **Para ler** → **Lendo** → **Finalizado**.
-- Campo de resumo/insights por livro.
-- Vira conteúdo de "inspiração" dentro do painel da pessoa (puxado em
-  algum lugar do dashboard/home — onde exatamente ainda não foi
-  definido).
+- Estados: **Para ler** → **Lendo** → **Finalizado** (`BooksView.tsx`,
+  tabela `books`). Cada livro tem título editável, seletor de estado, e
+  um ícone de comentário (mesmo `CommentButton` da dieta/humor) pra
+  resumo/insights.
+- **Pendente**: o resumo/insights ainda não vira conteúdo de
+  "inspiração" em nenhum outro lugar do painel — por enquanto só fica
+  guardado no livro. Puxar isso pro dashboard/home é trabalho futuro,
+  onde exatamente ainda não foi definido.
 
 ### Medicamentos
 
@@ -88,7 +91,8 @@ de feature flags que já existe pra água/dieta/sono/humor
 - [x] Status de tarefa customizável
 - [ ] Lista de lembretes — specs acima, parado a pedido do Leandro
 - [ ] Lista de medicação — sem spec ainda
-- [ ] Livros lidos + insights — specs acima
+- [x] Livros lidos + insights — feito; falta só a parte de virar
+      "conteúdo de inspiração" em outro lugar do painel (ver acima)
 - [x] Cadastro de tipos de lazer — coberto pelo campo de nota nos blocos
       fixos (ex.: bloco "Lazer"), não precisa de tela própria
 - [x] Check-in de humor diário

@@ -10,6 +10,7 @@ import { HoursPanel } from "./HoursPanel";
 import { DailyLogPanel } from "./DailyLogPanel";
 import { RecurringSection } from "./RecurringSection";
 import { SettingsView } from "./SettingsView";
+import { BooksView } from "./BooksView";
 import { ScopeModal } from "./ScopeModal";
 import { ActiveTimerBadge } from "./TimerButton";
 import { Sidebar, type ViewMode } from "./Sidebar";
@@ -75,6 +76,8 @@ function BoardShell() {
 
       {viewMode === "settings" ? (
         <SettingsView onBack={() => setViewMode("day")} />
+      ) : viewMode === "books" ? (
+        <BooksView onBack={() => setViewMode("day")} />
       ) : (
         <>
           <div className="day-strip-wrap">

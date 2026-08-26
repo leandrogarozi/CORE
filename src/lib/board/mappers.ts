@@ -1,6 +1,8 @@
 import type { Tables, TablesInsert, TablesUpdate } from "@/lib/database.types";
 import type {
   ActiveTimer,
+  Book,
+  BookStatus,
   Category,
   DailyLog,
   DayLog,
@@ -25,6 +27,7 @@ type TaskStatusRow = Tables<"task_statuses">;
 type SettingsRow = Tables<"settings">;
 type ActiveTimerRow = Tables<"active_timer">;
 type DailyLogRow = Tables<"daily_logs">;
+type BookRow = Tables<"books">;
 
 export function rowToTask(row: TaskRow): Task {
   return {
@@ -212,4 +215,31 @@ export function rowToActiveTimer(row: ActiveTimerRow | null): ActiveTimer | null
     logDate: row.log_date ?? "",
     startedAt: new Date(row.started_at).getTime(),
   };
+}
+
+export function rowToBook(row: BookRow): Book {
+  return {
+    id: row.id,
+    title: row.title,
+    status: row.status as BookStatus,
+    insights: row.insights,
+  };
+}
+
+export function bookToInsertRow(b: Book, userId: string): TablesInsert<"books"> {
+  return {
+    id: b.id,
+    user_id: userId,
+    title: b.title,
+    status: b.status,
+    insights: b.insights,
+  };
+}
+
+export function bookToUpdateRow(b: Partial<Book>): TablesUpdate<"books"> {
+  const row: TablesUpdate<"books"> = {};
+  if (b.title !== undefined) row.title = b.title;
+  if (b.status !== undefined) row.status = b.status;
+  if (b.insights !== undefined) row.insights = b.insights;
+  return row;
 }
