@@ -25,6 +25,20 @@ export function TrashIcon() {
   );
 }
 
+export function CommentIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="13" height="13" fill="none">
+      <path
+        d="M2 3.5C2 2.7 2.7 2 3.5 2H12.5C13.3 2 14 2.7 14 3.5V9.5C14 10.3 13.3 11 12.5 11H6.5L3.5 13.5V11C2.7 11 2 10.3 2 9.5V3.5Z"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function EditIcon() {
   return (
     <svg viewBox="0 0 16 16" width="13" height="13" fill="none">

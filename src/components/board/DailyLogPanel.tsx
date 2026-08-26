@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
+import { CommentButton } from "./CommentButton";
 import { todayISO } from "@/lib/date-utils";
 import { isFeatureEnabled } from "@/lib/types";
 
@@ -25,16 +26,14 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
   const moodOn = isFeatureEnabled(flags, "mood");
   const waterMl = log?.waterMl ?? 0;
   const dietPct = log?.dietPct ?? null;
-  const dietNote = log?.dietNote ?? "";
+  const dietNote = log?.dietNote ?? null;
   const sleptAt = log?.sleptAt ?? "";
   const wokeAt = log?.wokeAt ?? "";
   const mood = log?.mood ?? null;
-  const moodNote = log?.moodNote ?? "";
+  const moodNote = log?.moodNote ?? null;
   const goalMl = board.state.settings.waterGoalMl || 2000;
   const pct = goalMl > 0 ? Math.min(100, (waterMl / goalMl) * 100) : 0;
   const [dietInput, setDietInput] = useState<string | null>(null);
-  const [dietNoteInput, setDietNoteInput] = useState<string | null>(null);
-  const [moodNoteInput, setMoodNoteInput] = useState<string | null>(null);
   const isToday = selectedDate === todayISO();
   const label = isToday ? "hoje" : selectedDate;
 
@@ -53,12 +52,6 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
     board.updateDailyLog(selectedDate, next === null ? { mood: null, moodNote: null } : { mood: next });
   }
 
-  function commitMoodNote() {
-    if (moodNoteInput === null) return;
-    board.updateDailyLog(selectedDate, { moodNote: moodNoteInput.trim() || null });
-    setMoodNoteInput(null);
-  }
-
   function addWater(ml: number) {
     board.updateDailyLog(selectedDate, { waterMl: Math.max(0, waterMl + ml) });
   }
@@ -68,12 +61,6 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
     const v = dietInput === "" ? null : Math.max(0, Math.min(100, parseInt(dietInput, 10)));
     board.updateDailyLog(selectedDate, { dietPct: isNaN(v as number) ? null : v });
     setDietInput(null);
-  }
-
-  function commitDietNote() {
-    if (dietNoteInput === null) return;
-    board.updateDailyLog(selectedDate, { dietNote: dietNoteInput.trim() || null });
-    setDietNoteInput(null);
   }
 
   return (
@@ -129,14 +116,11 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
                 onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
               />
               <span className="dl-pct-sign">%</span>
-              <input
-                type="text"
-                className="dl-note-input"
+              <CommentButton
+                value={dietNote}
                 placeholder="observação (opcional)"
-                value={dietNoteInput ?? dietNote}
-                onChange={(e) => setDietNoteInput(e.target.value)}
-                onBlur={commitDietNote}
-                onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+                ariaLabel="Observação da dieta"
+                onSave={(text) => board.updateDailyLog(selectedDate, { dietNote: text || null })}
               />
             </div>
           </div>
@@ -188,15 +172,14 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
               ))}
             </div>
             {mood !== null && (
-              <input
-                type="text"
-                className="dl-note-input dl-mood-note"
-                placeholder="Quer comentar por que está se sentindo assim? (opcional)"
-                value={moodNoteInput ?? moodNote}
-                onChange={(e) => setMoodNoteInput(e.target.value)}
-                onBlur={commitMoodNote}
-                onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-              />
+              <div className="dl-mood-note">
+                <CommentButton
+                  value={moodNote}
+                  placeholder="Quer comentar por que está se sentindo assim?"
+                  ariaLabel="Comentário sobre o humor"
+                  onSave={(text) => board.updateDailyLog(selectedDate, { moodNote: text || null })}
+                />
+              </div>
             )}
           </div>
         )}

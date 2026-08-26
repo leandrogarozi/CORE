@@ -254,10 +254,6 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   padding:6px 8px; font-size:13px; color:var(--text);
 }
 .dl-pct-sign{ font-size:12.5px; color:var(--text-faint); }
-.dl-note-input{
-  flex:1; min-width:0; margin-left:6px; background:var(--surface); border:1px solid var(--border-strong);
-  border-radius:7px; padding:6px 8px; font-size:12px; color:var(--text);
-}
 .dl-mood-options{ display:flex; gap:6px; }
 .dl-mood-btn{
   flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
@@ -269,7 +265,7 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .dl-mood-btn.active{ border-color:var(--accent); background:var(--accent-soft); }
 .dl-mood-btn.active .dl-mood-emoji{ filter:none; opacity:1; }
 .dl-mood-btn.active .dl-mood-name{ color:var(--accent); }
-.dl-mood-note{ margin-left:0; margin-top:8px; width:100%; }
+.dl-mood-note{ margin-top:8px; }
 .dl-sleep-inputs{ display:flex; gap:10px; }
 .dl-sleep-field{ display:flex; flex-direction:column; gap:3px; font-size:11px; color:var(--text-faint); flex:1; }
 .dl-sleep-field input{
@@ -494,6 +490,26 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   padding:6px 8px; font-size:12.5px; color:var(--text); width:100%;
 }
 .daylog-popover .edit-actions{ margin-top:2px; }
+.comment-btn{
+  position:relative; color:var(--text-faint); padding:3px; line-height:1;
+  display:inline-flex; align-items:center; justify-content:center; flex:none;
+}
+.comment-btn:hover{ color:var(--text-muted); }
+.comment-btn.has-comment{ color:var(--accent); }
+.comment-btn.has-comment::after{
+  content:""; position:absolute; top:1px; right:1px; width:6px; height:6px; border-radius:50%;
+  background:var(--accent); border:1.5px solid var(--surface);
+}
+.comment-popover{
+  position:fixed; z-index:50; width:min(240px, 80vw);
+  background:var(--surface); border:1px solid var(--border); border-radius:9px; box-shadow:var(--shadow);
+  padding:10px; display:flex; flex-direction:column; gap:8px;
+}
+.comment-popover textarea{
+  background:var(--bg); border:1px solid var(--border-strong); border-radius:7px;
+  padding:7px 8px; font-size:12.5px; color:var(--text); width:100%; min-height:60px; resize:vertical;
+  font-family:inherit;
+}
 .habit-add{ display:flex; gap:6px; margin-top:10px; }
 .habit-add input{ flex:1; background:var(--bg); border:1px solid var(--border-strong); border-radius:6px; padding:6px 8px; font-size:12px; min-width:0; }
 .habit-add input.block-duration-input{ flex:0 0 64px; }
