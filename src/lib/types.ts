@@ -87,6 +87,7 @@ export const OPTIONAL_FEATURES: { key: string; label: string; hint: string }[] =
   { key: "water", label: "Água", hint: "Meta diária e registro de água bebida" },
   { key: "diet", label: "Dieta", hint: "% de fidelidade à dieta do dia" },
   { key: "sleep", label: "Sono", hint: "Horário de dormir e de acordar" },
+  { key: "mood", label: "Humor", hint: "Check-in de humor diário" },
 ];
 
 export function isFeatureEnabled(flags: Record<string, boolean> | undefined, key: string): boolean {
@@ -99,6 +100,7 @@ export interface DailyLog {
   dietNote: string | null;
   sleptAt: string | null; // "HH:MM"
   wokeAt: string | null; // "HH:MM"
+  mood: number | null; // 1-5
 }
 
 export interface ActiveTimer {

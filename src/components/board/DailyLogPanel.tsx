@@ -7,6 +7,14 @@ import { isFeatureEnabled } from "@/lib/types";
 
 const WATER_STEPS = [200, 500];
 
+const MOODS = [
+  { v: 1, emoji: "😞", label: "Muito mal" },
+  { v: 2, emoji: "😕", label: "Mal" },
+  { v: 3, emoji: "😐", label: "Neutro" },
+  { v: 4, emoji: "🙂", label: "Bem" },
+  { v: 5, emoji: "😄", label: "Muito bem" },
+];
+
 export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
   const { board } = useBoardCtx();
   const log = board.state.dailyLogs[selectedDate];
@@ -14,11 +22,13 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
   const waterOn = isFeatureEnabled(flags, "water");
   const dietOn = isFeatureEnabled(flags, "diet");
   const sleepOn = isFeatureEnabled(flags, "sleep");
+  const moodOn = isFeatureEnabled(flags, "mood");
   const waterMl = log?.waterMl ?? 0;
   const dietPct = log?.dietPct ?? null;
   const dietNote = log?.dietNote ?? "";
   const sleptAt = log?.sleptAt ?? "";
   const wokeAt = log?.wokeAt ?? "";
+  const mood = log?.mood ?? null;
   const goalMl = board.state.settings.waterGoalMl || 2000;
   const pct = goalMl > 0 ? Math.min(100, (waterMl / goalMl) * 100) : 0;
   const [dietInput, setDietInput] = useState<string | null>(null);
@@ -31,9 +41,14 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
     if (sleepOn && !wokeAt) missing.push("horário que acordou");
     if (sleepOn && !sleptAt) missing.push("horário de dormir");
     if (dietOn && dietPct === null) missing.push("% da dieta");
+    if (moodOn && mood === null) missing.push("humor do dia");
   }
 
-  if (!waterOn && !dietOn && !sleepOn) return null;
+  if (!waterOn && !dietOn && !sleepOn && !moodOn) return null;
+
+  function setMood(v: number) {
+    board.updateDailyLog(selectedDate, { mood: mood === v ? null : v });
+  }
 
   function addWater(ml: number) {
     board.updateDailyLog(selectedDate, { waterMl: Math.max(0, waterMl + ml) });
@@ -140,6 +155,28 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
                   onChange={(e) => board.updateDailyLog(selectedDate, { sleptAt: e.target.value || null })}
                 />
               </label>
+            </div>
+          </div>
+        )}
+
+        {moodOn && (
+          <div className="dl-row">
+            <div className="dl-row-top">
+              <span className="dl-label">🙂 Humor {label}</span>
+            </div>
+            <div className="dl-mood-options">
+              {MOODS.map((m) => (
+                <button
+                  key={m.v}
+                  type="button"
+                  className={"dl-mood-btn" + (mood === m.v ? " active" : "")}
+                  title={m.label}
+                  aria-label={m.label}
+                  onClick={() => setMood(m.v)}
+                >
+                  {m.emoji}
+                </button>
+              ))}
             </div>
           </div>
         )}
