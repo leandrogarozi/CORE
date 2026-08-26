@@ -151,6 +151,15 @@ export function BookIcon() {
   );
 }
 
+export function BookSolidIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="13" height="13">
+      <rect x="2" y="2.2" width="12" height="11.6" rx="2.2" fill="currentColor" />
+      <line x1="8" x2="8" y1="2.2" y2="13.8" stroke="var(--surface)" strokeWidth="1.2" />
+    </svg>
+  );
+}
+
 export function PillIcon() {
   return (
     <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
