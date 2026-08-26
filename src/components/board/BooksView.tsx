@@ -3,8 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
-import { ChevronIcon, CommentIcon, TrashIcon } from "./icons";
-import { BOOK_STATUS_COLOR, BOOK_STATUS_LABEL, BOOK_STATUS_ORDER, type Book, type BookStatus } from "@/lib/types";
+import { BookIcon, ChevronIcon, CommentIcon, TrashIcon } from "./icons";
+import {
+  BOOK_GROUP_LABEL,
+  BOOK_STATUS_COLOR,
+  BOOK_STATUS_LABEL,
+  BOOK_STATUS_ORDER,
+  type Book,
+  type BookStatus,
+} from "@/lib/types";
 
 function BookStatusPicker({ book }: { book: Book }) {
   const { board } = useBoardCtx();
@@ -37,13 +44,11 @@ function BookStatusPicker({ book }: { book: Book }) {
       <button
         ref={btnRef}
         type="button"
-        className="book-status-pill"
+        className="book-status-dot"
         style={{ "--pill-color": BOOK_STATUS_COLOR[book.status] } as React.CSSProperties}
+        title={BOOK_STATUS_LABEL[book.status]}
         onClick={toggleOpen}
-      >
-        <span className="book-status-dot" />
-        {BOOK_STATUS_LABEL[book.status]}
-      </button>
+      />
       {open &&
         pos &&
         createPortal(
@@ -216,12 +221,13 @@ export function BooksView({ onBack }: { onBack: () => void }) {
                     <ChevronIcon />
                   </span>
                   <span
-                    className="book-group-pill"
+                    className="book-group-icon"
                     style={{ "--group-color": BOOK_STATUS_COLOR[status] } as React.CSSProperties}
                   >
-                    {BOOK_STATUS_LABEL[status].toUpperCase()}
-                    <span className="count">{books.length}</span>
+                    <BookIcon />
                   </span>
+                  <span className="book-group-name">{BOOK_GROUP_LABEL[status]}</span>
+                  <span className="book-group-count">{books.length}</span>
                 </button>
                 {!isCollapsed && books.map((b) => <BookRow key={b.id} book={b} />)}
               </div>

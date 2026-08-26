@@ -131,6 +131,12 @@ export const BOOK_STATUS_COLOR: Record<BookStatus, string> = {
   finalizado: "var(--success)",
 };
 
+export const BOOK_GROUP_LABEL: Record<BookStatus, string> = {
+  para_ler: "Para ler",
+  lendo: "Em leitura",
+  finalizado: "Concluído",
+};
+
 export interface Book {
   id: string;
   title: string;
