@@ -10,6 +10,7 @@ import type {
   Settings,
   Task,
   TaskSeries,
+  TaskStatus,
   TimerKind,
 } from "@/lib/types";
 import { DEFAULT_TAG_COLORS } from "@/lib/types";
@@ -20,6 +21,7 @@ type BlockRow = Tables<"fixed_blocks">;
 type HabitLogRow = Tables<"habit_logs">;
 type BlockLogRow = Tables<"fixed_block_logs">;
 type SeriesRow = Tables<"task_series">;
+type TaskStatusRow = Tables<"task_statuses">;
 type SettingsRow = Tables<"settings">;
 type ActiveTimerRow = Tables<"active_timer">;
 type DailyLogRow = Tables<"daily_logs">;
@@ -39,6 +41,7 @@ export function rowToTask(row: TaskRow): Task {
     seriesId: row.series_id,
     trackedSeconds: row.tracked_seconds,
     quick: row.quick,
+    statusId: row.status_id,
   };
 }
 
@@ -56,6 +59,7 @@ export function taskToRow(t: Partial<Task> & { id: string }, userId: string): Ta
   if (t.seriesId !== undefined) row.series_id = t.seriesId;
   if (t.trackedSeconds !== undefined) row.tracked_seconds = t.trackedSeconds;
   if (t.quick !== undefined) row.quick = t.quick;
+  if (t.statusId !== undefined) row.status_id = t.statusId;
   return row;
 }
 
@@ -75,7 +79,38 @@ export function taskToInsertRow(t: Task, userId: string): TablesInsert<"tasks"> 
     series_id: t.seriesId,
     tracked_seconds: t.trackedSeconds,
     quick: t.quick,
+    status_id: t.statusId,
   };
+}
+
+export function rowToTaskStatus(row: TaskStatusRow): TaskStatus {
+  return {
+    id: row.id,
+    label: row.label,
+    color: row.color,
+    isDone: row.is_done,
+    order: row.sort_order,
+  };
+}
+
+export function taskStatusToInsertRow(s: TaskStatus, userId: string): TablesInsert<"task_statuses"> {
+  return {
+    id: s.id,
+    user_id: userId,
+    label: s.label,
+    color: s.color,
+    is_done: s.isDone,
+    sort_order: s.order,
+  };
+}
+
+export function taskStatusToUpdateRow(s: Partial<TaskStatus>): TablesUpdate<"task_statuses"> {
+  const row: TablesUpdate<"task_statuses"> = {};
+  if (s.label !== undefined) row.label = s.label;
+  if (s.color !== undefined) row.color = s.color;
+  if (s.isDone !== undefined) row.is_done = s.isDone;
+  if (s.order !== undefined) row.sort_order = s.order;
+  return row;
 }
 
 export function rowToSeries(row: SeriesRow): TaskSeries {

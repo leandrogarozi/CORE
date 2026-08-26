@@ -36,6 +36,15 @@ export interface Task {
   seriesId: string | null;
   trackedSeconds: number;
   quick: number; // 0-3
+  statusId: string | null;
+}
+
+export interface TaskStatus {
+  id: string;
+  label: string;
+  color: string;
+  isDone: boolean;
+  order: number;
 }
 
 export interface TaskSeries {
@@ -102,6 +111,7 @@ export interface BoardState {
   habits: RecurringItem[];
   fixedBlocks: RecurringItem[];
   taskSeries: TaskSeries[];
+  taskStatuses: TaskStatus[];
   settings: Settings;
   activeTimer: ActiveTimer | null;
   dailyLogs: Record<string, DailyLog>; // iso date -> log

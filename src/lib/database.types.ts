@@ -264,6 +264,36 @@ export type Database = {
         }
         Relationships: []
       }
+      task_statuses: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          is_done: boolean
+          label: string
+          sort_order: number
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_done?: boolean
+          label: string
+          sort_order?: number
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_done?: boolean
+          label?: string
+          sort_order?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           category: string
@@ -277,6 +307,7 @@ export type Database = {
           quick: number
           series_id: string | null
           sort_order: number
+          status_id: string | null
           time: string | null
           title: string
           tracked_seconds: number
@@ -295,6 +326,7 @@ export type Database = {
           quick?: number
           series_id?: string | null
           sort_order?: number
+          status_id?: string | null
           time?: string | null
           title: string
           tracked_seconds?: number
@@ -313,6 +345,7 @@ export type Database = {
           quick?: number
           series_id?: string | null
           sort_order?: number
+          status_id?: string | null
           time?: string | null
           title?: string
           tracked_seconds?: number
@@ -325,6 +358,13 @@ export type Database = {
             columns: ["series_id"]
             isOneToOne: false
             referencedRelation: "task_series"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_status_id_fkey"
+            columns: ["status_id"]
+            isOneToOne: false
+            referencedRelation: "task_statuses"
             referencedColumns: ["id"]
           },
         ]

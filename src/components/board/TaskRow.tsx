@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { TimerButton } from "./TimerButton";
-import { CheckIcon, DuplicateIcon, FlagIcon, RepeatIcon, TrashIcon } from "./icons";
+import { StatusPicker } from "./StatusPicker";
+import { DuplicateIcon, FlagIcon, RepeatIcon, TrashIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
 import { CATEGORY_LABEL, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
 import type { TaskEditFields } from "@/lib/board/use-board";
@@ -112,14 +113,11 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
           <span key={i} />
         ))}
       </span>
-      <button
-        type="button"
-        className={"row-check" + (t.done ? " checked" : "")}
-        aria-label="marcar concluída"
-        onClick={() => board.toggleTaskDone(t.id)}
-      >
-        {t.done && <CheckIcon />}
-      </button>
+      <StatusPicker
+        statuses={board.state.taskStatuses}
+        currentId={t.statusId}
+        onSelect={(statusId) => board.setTaskStatus(t.id, statusId)}
+      />
       <button
         type="button"
         className={"quick-badge" + ((t.quick || 0) > 0 ? " set" : "")}

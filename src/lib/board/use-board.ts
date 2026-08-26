@@ -9,8 +9,11 @@ import {
   rowToSeries,
   rowToSettings,
   rowToTask,
+  rowToTaskStatus,
   seriesToInsertRow,
   seriesToUpdateRow,
+  taskStatusToInsertRow,
+  taskStatusToUpdateRow,
   taskToInsertRow,
   taskToRow,
 } from "@/lib/board/mappers";
@@ -28,6 +31,7 @@ import type {
   Settings,
   Task,
   TaskSeries,
+  TaskStatus,
   TimerKind,
 } from "@/lib/types";
 import { DEFAULT_TAG_COLORS } from "@/lib/types";
@@ -37,6 +41,7 @@ const EMPTY_STATE: BoardState = {
   habits: [],
   fixedBlocks: [],
   taskSeries: [],
+  taskStatuses: [],
   settings: { tagColors: DEFAULT_TAG_COLORS, dailyBudgetHours: 12, waterGoalMl: 2000, featureFlags: {} },
   activeTimer: null,
   dailyLogs: {},
@@ -77,18 +82,29 @@ export function useBoard(userId: string | null) {
   const load = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
-    const [tasksRes, habitsRes, blocksRes, habitLogsRes, blockLogsRes, seriesRes, settingsRes, timerRes, dailyLogsRes] =
-      await Promise.all([
-        supabase.from("tasks").select("*").order("sort_order"),
-        supabase.from("habits").select("*").order("sort_order"),
-        supabase.from("fixed_blocks").select("*").order("sort_order"),
-        supabase.from("habit_logs").select("*"),
-        supabase.from("fixed_block_logs").select("*"),
-        supabase.from("task_series").select("*"),
-        supabase.from("settings").select("*").maybeSingle(),
-        supabase.from("active_timer").select("*").maybeSingle(),
-        supabase.from("daily_logs").select("*"),
-      ]);
+    const [
+      tasksRes,
+      habitsRes,
+      blocksRes,
+      habitLogsRes,
+      blockLogsRes,
+      seriesRes,
+      taskStatusesRes,
+      settingsRes,
+      timerRes,
+      dailyLogsRes,
+    ] = await Promise.all([
+      supabase.from("tasks").select("*").order("sort_order"),
+      supabase.from("habits").select("*").order("sort_order"),
+      supabase.from("fixed_blocks").select("*").order("sort_order"),
+      supabase.from("habit_logs").select("*"),
+      supabase.from("fixed_block_logs").select("*"),
+      supabase.from("task_series").select("*"),
+      supabase.from("task_statuses").select("*").order("sort_order"),
+      supabase.from("settings").select("*").maybeSingle(),
+      supabase.from("active_timer").select("*").maybeSingle(),
+      supabase.from("daily_logs").select("*"),
+    ]);
 
     const dailyLogs: Record<string, DailyLog> = {};
     (dailyLogsRes.data ?? []).forEach((row) => {
@@ -100,6 +116,7 @@ export function useBoard(userId: string | null) {
       habits: buildRecurring(habitsRes.data ?? [], habitLogsRes.data ?? [], "habit_id"),
       fixedBlocks: buildRecurring(blocksRes.data ?? [], blockLogsRes.data ?? [], "block_id"),
       taskSeries: (seriesRes.data ?? []).map(rowToSeries),
+      taskStatuses: (taskStatusesRes.data ?? []).map(rowToTaskStatus),
       settings: rowToSettings(settingsRes.data ?? null),
       activeTimer: rowToActiveTimer(timerRes.data ?? null),
       dailyLogs,
@@ -115,6 +132,12 @@ export function useBoard(userId: string | null) {
   }, [load]);
 
   // ---------- tasks ----------
+  const defaultStatusId = useCallback(() => {
+    const statuses = stateRef.current.taskStatuses;
+    const notDone = statuses.filter((s) => !s.isDone).sort((a, b) => a.order - b.order);
+    return notDone[0]?.id ?? statuses[0]?.id ?? null;
+  }, []);
+
   const nextOrder = useCallback((bucketKey: string) => {
     const xs = stateRef.current.tasks.filter((t) => bucketOf(t) === bucketKey);
     if (!xs.length) return 0;
@@ -138,23 +161,24 @@ export function useBoard(userId: string | null) {
         seriesId: null,
         trackedSeconds: 0,
         quick: 0,
+        statusId: defaultStatusId(),
       };
       apply((s) => ({ ...s, tasks: [...s.tasks, t] }));
       supabase.from("tasks").insert(taskToInsertRow(t, userId)).then(({ error }) => {
         if (error) console.error("addTask", error);
       });
     },
-    [apply, nextOrder, supabase, userId]
+    [apply, defaultStatusId, nextOrder, supabase, userId]
   );
 
-  const toggleTaskDone = useCallback(
-    (id: string) => {
-      const t = stateRef.current.tasks.find((x) => x.id === id);
-      if (!t) return;
-      const done = !t.done;
-      apply((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === id ? { ...x, done } : x)) }));
-      supabase.from("tasks").update({ done }).eq("id", id).then(({ error }) => {
-        if (error) console.error("toggleTaskDone", error);
+  const setTaskStatus = useCallback(
+    (id: string, statusId: string) => {
+      const status = stateRef.current.taskStatuses.find((s) => s.id === statusId);
+      if (!status) return;
+      const done = status.isDone;
+      apply((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === id ? { ...x, statusId, done } : x)) }));
+      supabase.from("tasks").update({ status_id: statusId, done }).eq("id", id).then(({ error }) => {
+        if (error) console.error("setTaskStatus", error);
       });
     },
     [apply, supabase]
@@ -209,6 +233,7 @@ export function useBoard(userId: string | null) {
         durationMin: null,
         trackedSeconds: 0,
         seriesId: null,
+        statusId: defaultStatusId(),
       };
       apply((s) => ({ ...s, tasks: [...bumped, clone] }));
       bumped
@@ -220,7 +245,7 @@ export function useBoard(userId: string | null) {
         if (error) console.error("duplicateTask", error);
       });
     },
-    [apply, supabase, userId]
+    [apply, defaultStatusId, supabase, userId]
   );
 
   const deleteTask = useCallback(
@@ -430,6 +455,7 @@ export function useBoard(userId: string | null) {
             seriesId: series.id,
             trackedSeconds: 0,
             quick: 0,
+            statusId: defaultStatusId(),
           });
         });
       });
@@ -442,7 +468,84 @@ export function useBoard(userId: string | null) {
           if (error) console.error("ensureOccurrencesInView", error);
         });
     },
-    [apply, nextOrder, supabase, userId]
+    [apply, defaultStatusId, nextOrder, supabase, userId]
+  );
+
+  // ---------- task statuses ----------
+  const addTaskStatus = useCallback(
+    (label: string, color: string) => {
+      if (!userId || !label.trim()) return;
+      const order = stateRef.current.taskStatuses.length
+        ? Math.max(...stateRef.current.taskStatuses.map((s) => s.order)) + 1
+        : 0;
+      const status: TaskStatus = { id: uid(), label: label.trim(), color, isDone: false, order };
+      apply((s) => ({ ...s, taskStatuses: [...s.taskStatuses, status] }));
+      supabase.from("task_statuses").insert(taskStatusToInsertRow(status, userId)).then(({ error }) => {
+        if (error) console.error("addTaskStatus", error);
+      });
+    },
+    [apply, supabase, userId]
+  );
+
+  const updateTaskStatus = useCallback(
+    (id: string, patch: Partial<Pick<TaskStatus, "label" | "color" | "isDone">>) => {
+      apply((s) => ({ ...s, taskStatuses: s.taskStatuses.map((x) => (x.id === id ? { ...x, ...patch } : x)) }));
+      supabase.from("task_statuses").update(taskStatusToUpdateRow(patch)).eq("id", id).then(({ error }) => {
+        if (error) console.error("updateTaskStatus", error);
+      });
+      if (patch.isDone === undefined) return;
+      const isDone = patch.isDone;
+      const affectedIds = stateRef.current.tasks.filter((t) => t.statusId === id && t.done !== isDone).map((t) => t.id);
+      if (!affectedIds.length) return;
+      apply((s) => ({ ...s, tasks: s.tasks.map((t) => (t.statusId === id ? { ...t, done: isDone } : t)) }));
+      supabase.from("tasks").update({ done: isDone }).in("id", affectedIds).then(({ error }) => {
+        if (error) console.error("updateTaskStatus sync done", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  const deleteTaskStatus = useCallback(
+    (id: string) => {
+      const remaining = stateRef.current.taskStatuses.filter((s) => s.id !== id);
+      if (!remaining.length) return; // always keep at least one status
+      const fallback = remaining.find((s) => !s.isDone) ?? remaining[0];
+      const affectedIds = stateRef.current.tasks.filter((t) => t.statusId === id).map((t) => t.id);
+      apply((s) => ({
+        ...s,
+        taskStatuses: remaining,
+        tasks: s.tasks.map((t) => (t.statusId === id ? { ...t, statusId: fallback.id, done: fallback.isDone } : t)),
+      }));
+      supabase.from("task_statuses").delete().eq("id", id).then(({ error }) => {
+        if (error) console.error("deleteTaskStatus", error);
+      });
+      if (affectedIds.length) {
+        supabase
+          .from("tasks")
+          .update({ status_id: fallback.id, done: fallback.isDone })
+          .in("id", affectedIds)
+          .then(({ error }) => {
+            if (error) console.error("deleteTaskStatus reassign", error);
+          });
+      }
+    },
+    [apply, supabase]
+  );
+
+  const reorderTaskStatuses = useCallback(
+    (orderedIds: string[]) => {
+      apply((s) => ({
+        ...s,
+        taskStatuses: s.taskStatuses.map((st) => {
+          const idx = orderedIds.indexOf(st.id);
+          return idx === -1 ? st : { ...st, order: idx };
+        }),
+      }));
+      orderedIds.forEach((id, idx) => {
+        supabase.from("task_statuses").update({ sort_order: idx }).eq("id", id).then(() => {});
+      });
+    },
+    [apply, supabase]
   );
 
   // ---------- recurring (habits / fixed blocks) ----------
@@ -698,13 +801,17 @@ export function useBoard(userId: string | null) {
       state.activeTimer?.kind === kind && state.activeTimer.itemId === id,
     findTrackable,
     addTask,
-    toggleTaskDone,
+    setTaskStatus,
     cycleQuick,
     reorderBucket,
     duplicateTask,
     deleteTask,
     saveTaskEdit,
     ensureOccurrencesInView,
+    addTaskStatus,
+    updateTaskStatus,
+    deleteTaskStatus,
+    reorderTaskStatuses,
     addRecurring,
     updateRecurring,
     deleteRecurringItem,
