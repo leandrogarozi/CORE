@@ -55,6 +55,16 @@ de feature flags que já existe pra água/dieta/sono/humor
   "inspiração" em nenhum outro lugar do painel — por enquanto só fica
   guardado no livro. Puxar isso pro dashboard/home é trabalho futuro,
   onde exatamente ainda não foi definido.
+- Lista real do Leandro já foi importada (45 livros: 21 finalizados, 8
+  lendo, 16 para ler), a partir de um board que ele já mantinha fora do
+  app. Os "para ler" são todos livros que ele já tem fisicamente — não
+  precisa de um passo de "aquisição" separado.
+- **Ideia nova do Leandro**: com os dados de livros + insights + humor
+  (e o que ele estiver buscando no momento), o app deveria ajudar a
+  **escolher o próximo livro de acordo com o momento de vida da
+  pessoa**. Isso é IA raciocinando sobre os dados, não é filtro/UI —
+  entra no backlog 🔴 como item próprio (ver abaixo), relacionado mas
+  distinto da "IA de distribuição de tarefas".
 
 ### Medicamentos
 
@@ -103,6 +113,8 @@ de feature flags que já existe pra água/dieta/sono/humor
 
 - [ ] Painel de frases diárias / motivacionais
 - [ ] IA de distribuição de tarefas
+- [ ] IA de recomendação do próximo livro — cruza livros/insights/humor/
+      objetivos do momento pra sugerir o que ler a seguir
 - [ ] Sincronização com Google Agenda (inclui sync de lembretes, ver acima)
 - [ ] Ferramentas / Roda da Vida
 - [ ] Relatório cruzando dados (tarefas × hábitos × humor × sono etc.)
