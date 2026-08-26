@@ -4,6 +4,16 @@ Documento vivo de decisões de produto e backlog do Leandro. Complementa o
 `README.md` (que é técnico/setup) — este aqui é sobre **o quê** e **por quê**.
 Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
 
+## Próximos passos confirmados (retomar aqui)
+
+- [ ] **Lembretes** — Leandro confirmou seguir com o spec já capturado
+      abaixo (com/sem data, com/sem repetição; sync com Google Agenda
+      fica pra depois, item 🔴 separado). Pode começar a implementar.
+- [ ] **Pacote de ícones do Leandro** — ele vai baixar um pack de ícones
+      (biblioteca conhecida ou SVGs próprios) e passar pra mim, pra
+      deixar os ícones do app mais padronizados/no estilo dele. Trocar
+      os ícones em `src/components/board/icons.tsx` quando ele mandar.
+
 ## Humor (check-in diário)
 
 - Escala 1–5 com emoji (Péssimo/Ruim/Neutro/Bom/Ótimo), rótulo discreto
