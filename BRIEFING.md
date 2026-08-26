@@ -133,7 +133,13 @@ de feature flags que já existe pra água/dieta/sono/humor
       Cadastro não é tela própria — vive dentro da edição do bloco (ex.:
       bloco "Lazer" → praia, filme, jogo, férias...).
 - [x] Check-in de humor diário
-- [ ] Pergunta de desempenho ao marcar treino
+- [x] Pergunta de desempenho ao marcar treino — "opções de nota" agora
+      funciona em **hábitos** também, não só blocos fixos (mesma edição
+      → "Opções de nota"). Diferente do lazer (que usa entradas
+      múltiplas), hábito com opções mostra um **popover de escolha
+      única** (chip selecionado vira a nota do dia) — combina com
+      hábitos que só acontecem uma vez por dia. Já cadastrado nos
+      hábitos "Corrida" e "Crossfit" com Fraco/Médio/Bom/Excelente.
 - [ ] Aba treino/suplementação
 
 ### 🔴 Grandes

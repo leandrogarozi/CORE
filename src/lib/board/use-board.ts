@@ -635,13 +635,14 @@ export function useBoard(userId: string | null) {
   );
 
   const updateRecurringNoteOptions = useCallback(
-    (id: string, noteOptions: string[]) => {
+    (kind: "habit" | "block", id: string, noteOptions: string[]) => {
+      const listKey = listKeyFor(kind);
       apply((s) => ({
         ...s,
-        fixedBlocks: s.fixedBlocks.map((x) => (x.id === id ? { ...x, noteOptions } : x)),
+        [listKey]: s[listKey].map((x) => (x.id === id ? { ...x, noteOptions } : x)),
       }));
       supabase
-        .from("fixed_blocks")
+        .from(tableFor(kind))
         .update({ note_options: noteOptions })
         .eq("id", id)
         .then(({ error }) => {

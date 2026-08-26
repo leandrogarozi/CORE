@@ -257,6 +257,7 @@ export type Database = {
           duration_minutes: number | null
           id: string
           name: string
+          note_options: Json
           sort_order: number
           user_id: string
         }
@@ -265,6 +266,7 @@ export type Database = {
           duration_minutes?: number | null
           id?: string
           name: string
+          note_options?: Json
           sort_order?: number
           user_id: string
         }
@@ -273,6 +275,7 @@ export type Database = {
           duration_minutes?: number | null
           id?: string
           name?: string
+          note_options?: Json
           sort_order?: number
           user_id?: string
         }
