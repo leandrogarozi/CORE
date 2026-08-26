@@ -28,6 +28,7 @@ import type {
   Category,
   DailyLog,
   DayLog,
+  DayLogEntry,
   Priority,
   Repeat,
   RecurringItem,
@@ -93,6 +94,7 @@ export function useBoard(userId: string | null) {
       blocksRes,
       habitLogsRes,
       blockLogsRes,
+      blockLogEntriesRes,
       seriesRes,
       taskStatusesRes,
       booksRes,
@@ -105,6 +107,7 @@ export function useBoard(userId: string | null) {
       supabase.from("fixed_blocks").select("*").order("sort_order"),
       supabase.from("habit_logs").select("*"),
       supabase.from("fixed_block_logs").select("*"),
+      supabase.from("fixed_block_log_entries").select("*"),
       supabase.from("task_series").select("*"),
       supabase.from("task_statuses").select("*").order("sort_order"),
       supabase.from("books").select("*").order("created_at"),
@@ -121,7 +124,7 @@ export function useBoard(userId: string | null) {
     const next: BoardState = {
       tasks: (tasksRes.data ?? []).map(rowToTask),
       habits: buildRecurring(habitsRes.data ?? [], habitLogsRes.data ?? [], "habit_id"),
-      fixedBlocks: buildRecurring(blocksRes.data ?? [], blockLogsRes.data ?? [], "block_id"),
+      fixedBlocks: buildRecurring(blocksRes.data ?? [], blockLogsRes.data ?? [], "block_id", blockLogEntriesRes.data ?? []),
       taskSeries: (seriesRes.data ?? []).map(rowToSeries),
       taskStatuses: (taskStatusesRes.data ?? []).map(rowToTaskStatus),
       books: (booksRes.data ?? []).map(rowToBook),
@@ -735,6 +738,67 @@ export function useBoard(userId: string | null) {
     [apply, upsertRecurringLog, userId]
   );
 
+  // fixed blocks with noteOptions: multiple marked entries (type + minutes) per day,
+  // kept in sync with a summary row (fixed_block_logs) so Dashboard/HoursPanel keep working unchanged.
+  const addBlockLogEntry = useCallback(
+    (blockId: string, iso: string, note: string, minutes: number) => {
+      if (!userId || !note || minutes <= 0) return;
+      const block = stateRef.current.fixedBlocks.find((b) => b.id === blockId);
+      const entries: DayLogEntry[] = [...(block?.logs[iso]?.entries ?? []), { id: uid(), note, minutes }];
+      const trackedSeconds = entries.reduce((sum, e) => sum + e.minutes, 0) * 60;
+      const summaryNote = Array.from(new Set(entries.map((e) => e.note))).join(", ");
+      const newEntry = entries[entries.length - 1];
+      apply((s) => ({
+        ...s,
+        fixedBlocks: s.fixedBlocks.map((b) =>
+          b.id === blockId
+            ? { ...b, logs: { ...b.logs, [iso]: { checked: true, trackedSeconds, note: summaryNote, entries } } }
+            : b
+        ),
+      }));
+      supabase
+        .from("fixed_block_log_entries")
+        .insert({ id: newEntry.id, user_id: userId, block_id: blockId, log_date: iso, note, minutes })
+        .then(({ error }) => {
+          if (error) console.error("addBlockLogEntry", error);
+        });
+      upsertRecurringLog("block", blockId, iso, trackedSeconds, userId, summaryNote);
+    },
+    [apply, supabase, userId, upsertRecurringLog]
+  );
+
+  const deleteBlockLogEntry = useCallback(
+    (blockId: string, iso: string, entryId: string) => {
+      const block = stateRef.current.fixedBlocks.find((b) => b.id === blockId);
+      const entries = (block?.logs[iso]?.entries ?? []).filter((e) => e.id !== entryId);
+      const trackedSeconds = entries.reduce((sum, e) => sum + e.minutes, 0) * 60;
+      const summaryNote = Array.from(new Set(entries.map((e) => e.note))).join(", ");
+      apply((s) => ({
+        ...s,
+        fixedBlocks: s.fixedBlocks.map((b) => {
+          if (b.id !== blockId) return b;
+          const logs = { ...b.logs };
+          if (entries.length === 0) delete logs[iso];
+          else logs[iso] = { checked: true, trackedSeconds, note: summaryNote, entries };
+          return { ...b, logs };
+        }),
+      }));
+      supabase
+        .from("fixed_block_log_entries")
+        .delete()
+        .eq("id", entryId)
+        .then(({ error }) => {
+          if (error) console.error("deleteBlockLogEntry", error);
+        });
+      if (entries.length === 0) {
+        deleteRecurringLog("block", blockId, iso);
+      } else if (userId) {
+        upsertRecurringLog("block", blockId, iso, trackedSeconds, userId, summaryNote);
+      }
+    },
+    [apply, supabase, userId, upsertRecurringLog, deleteRecurringLog]
+  );
+
   // ---------- timer ----------
   const findTrackable = useCallback((kind: TimerKind, id: string) => {
     if (kind === "task") return stateRef.current.tasks.find((x) => x.id === id);
@@ -891,6 +955,8 @@ export function useBoard(userId: string | null) {
     deleteRecurringItem,
     clearRecurringDay,
     commitRecurringDay,
+    addBlockLogEntry,
+    deleteBlockLogEntry,
     toggleTimer,
     updateSettings,
     updateDailyLog,

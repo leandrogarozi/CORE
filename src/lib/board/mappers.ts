@@ -22,6 +22,7 @@ type HabitRow = Tables<"habits">;
 type BlockRow = Tables<"fixed_blocks">;
 type HabitLogRow = Tables<"habit_logs">;
 type BlockLogRow = Tables<"fixed_block_logs">;
+type BlockLogEntryRow = Tables<"fixed_block_log_entries">;
 type SeriesRow = Tables<"task_series">;
 type TaskStatusRow = Tables<"task_statuses">;
 type SettingsRow = Tables<"settings">;
@@ -161,7 +162,8 @@ export function seriesToUpdateRow(s: Partial<TaskSeries>): TablesUpdate<"task_se
 export function buildRecurring(
   items: (HabitRow | BlockRow)[],
   logs: (HabitLogRow | BlockLogRow)[],
-  logKeyField: "habit_id" | "block_id"
+  logKeyField: "habit_id" | "block_id",
+  entryRows?: BlockLogEntryRow[]
 ): RecurringItem[] {
   return items
     .map((item) => {
@@ -170,6 +172,13 @@ export function buildRecurring(
         .filter((l) => (l as Record<string, unknown>)[logKeyField] === item.id)
         .forEach((l) => {
           itemLogs[l.log_date] = { checked: l.checked, trackedSeconds: l.tracked_seconds, note: l.note };
+        });
+      entryRows
+        ?.filter((e) => e.block_id === item.id)
+        .forEach((e) => {
+          const log = itemLogs[e.log_date] ?? { checked: true, trackedSeconds: 0 };
+          const entries = [...(log.entries ?? []), { id: e.id, note: e.note, minutes: e.minutes }];
+          itemLogs[e.log_date] = { ...log, entries };
         });
       const noteOptions = "note_options" in item ? ((item.note_options as string[] | null) ?? []) : undefined;
       return {

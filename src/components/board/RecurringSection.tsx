@@ -6,7 +6,7 @@ import { useBoardCtx } from "./board-context";
 import { TimerButton } from "./TimerButton";
 import { EditIcon, TrashIcon } from "./icons";
 import { fmtDayLabel, fmtHM, isoFromDate, todayISO, weekDatesFrom } from "@/lib/date-utils";
-import type { RecurringItem } from "@/lib/types";
+import type { DayLogEntry, RecurringItem } from "@/lib/types";
 
 type Kind = "habit" | "block";
 
@@ -62,7 +62,6 @@ function DayLogPopover({
   initialMinutes,
   initialNote,
   showNote,
-  noteOptions,
   onSave,
   onCancel,
 }: {
@@ -70,7 +69,6 @@ function DayLogPopover({
   initialMinutes: number;
   initialNote: string;
   showNote: boolean;
-  noteOptions: string[];
   onSave: (minutes: number, note: string) => void;
   onCancel: () => void;
 }) {
@@ -110,24 +108,7 @@ function DayLogPopover({
           }}
         />
       </label>
-      {showNote && noteOptions.length > 0 && (
-        <label className="edit-field">
-          <span className="edit-field-label">Tipo (opcional)</span>
-          <div className="note-options-chips">
-            {noteOptions.map((opt) => (
-              <button
-                key={opt}
-                type="button"
-                className={"note-chip" + (note === opt ? " active" : "")}
-                onClick={() => setNote((n) => (n === opt ? "" : opt))}
-              >
-                {opt}
-              </button>
-            ))}
-          </div>
-        </label>
-      )}
-      {showNote && noteOptions.length === 0 && (
+      {showNote && (
         <label className="edit-field">
           <span className="edit-field-label">Nota (opcional)</span>
           <input
@@ -155,6 +136,96 @@ function DayLogPopover({
   );
 }
 
+function DayEntriesPopover({
+  anchorRect,
+  entries,
+  noteOptions,
+  onAdd,
+  onRemove,
+  onClose,
+}: {
+  anchorRect: DOMRect;
+  entries: DayLogEntry[];
+  noteOptions: string[];
+  onAdd: (note: string, minutes: number) => void;
+  onRemove: (entryId: string) => void;
+  onClose: () => void;
+}) {
+  const [selected, setSelected] = useState<string | null>(null);
+  const [minutes, setMinutes] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onDocPointerDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    }
+    window.addEventListener("mousedown", onDocPointerDown);
+    return () => window.removeEventListener("mousedown", onDocPointerDown);
+  }, [onClose]);
+
+  function handleAdd() {
+    const m = parseInt(minutes, 10);
+    if (!selected || isNaN(m) || m <= 0) return;
+    onAdd(selected, m);
+    setSelected(null);
+    setMinutes("");
+  }
+
+  return createPortal(
+    <div className="daylog-popover entries-popover" ref={ref} style={{ top: anchorRect.bottom + 4, left: anchorRect.left }}>
+      {entries.length > 0 && (
+        <div className="day-entries-list">
+          {entries.map((e) => (
+            <div key={e.id} className="day-entry-row">
+              <span className="day-entry-note">{e.note}</span>
+              <span className="day-entry-min">{e.minutes}min</span>
+              <button type="button" aria-label={`Remover ${e.note}`} onClick={() => onRemove(e.id)}>
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      <label className="edit-field">
+        <span className="edit-field-label">Tipo</span>
+        <div className="note-options-chips">
+          {noteOptions.map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              className={"note-chip" + (selected === opt ? " active" : "")}
+              onClick={() => setSelected((s) => (s === opt ? null : opt))}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      </label>
+      <label className="edit-field">
+        <span className="edit-field-label">Minutos</span>
+        <input
+          type="number"
+          min={0}
+          step={5}
+          autoFocus
+          value={minutes}
+          onChange={(e) => setMinutes(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+        />
+      </label>
+      <div className="edit-actions">
+        <button type="button" className="btn btn-ghost" onClick={onClose}>
+          Fechar
+        </button>
+        <button type="button" className="btn btn-accent" onClick={handleAdd}>
+          Adicionar
+        </button>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 function RecurringRow({ kind, item, weekAnchor }: { kind: Kind; item: RecurringItem; weekAnchor: Date }) {
   const { board } = useBoardCtx();
   const [editing, setEditing] = useState(false);
@@ -169,6 +240,8 @@ function RecurringRow({ kind, item, weekAnchor }: { kind: Kind; item: RecurringI
   function openDayEditor(iso: string, rect: DOMRect) {
     setDayEditor({ iso, rect });
   }
+
+  const entriesMode = kind === "block" && (item.noteOptions?.length ?? 0) > 0;
 
   return (
     <div className="habit-row">
@@ -211,16 +284,32 @@ function RecurringRow({ kind, item, weekAnchor }: { kind: Kind; item: RecurringI
               className={"habit-cell" + (done ? " done" : "") + (iso === today ? " today" : "") + (log?.note ? " has-note" : "")}
               aria-label={`${item.name} ${iso}`}
               title={title || undefined}
-              onClick={(e) =>
-                done ? board.clearRecurringDay(kind, item.id, iso) : openDayEditor(iso, e.currentTarget.getBoundingClientRect())
-              }
+              onClick={(e) => {
+                if (entriesMode) {
+                  openDayEditor(iso, e.currentTarget.getBoundingClientRect());
+                } else if (done) {
+                  board.clearRecurringDay(kind, item.id, iso);
+                } else {
+                  openDayEditor(iso, e.currentTarget.getBoundingClientRect());
+                }
+              }}
             >
               {fmtDayLabel(d)[0]}
             </button>
           );
         })}
       </div>
-      {dayEditor && (
+      {dayEditor && entriesMode && (
+        <DayEntriesPopover
+          anchorRect={dayEditor.rect}
+          entries={item.logs[dayEditor.iso]?.entries ?? []}
+          noteOptions={item.noteOptions ?? []}
+          onAdd={(note, minutes) => board.addBlockLogEntry(item.id, dayEditor.iso, note, minutes)}
+          onRemove={(entryId) => board.deleteBlockLogEntry(item.id, dayEditor.iso, entryId)}
+          onClose={() => setDayEditor(null)}
+        />
+      )}
+      {dayEditor && !entriesMode && (
         <DayLogPopover
           anchorRect={dayEditor.rect}
           initialMinutes={
@@ -228,7 +317,6 @@ function RecurringRow({ kind, item, weekAnchor }: { kind: Kind; item: RecurringI
           }
           initialNote={item.logs[dayEditor.iso]?.note || ""}
           showNote={kind === "block"}
-          noteOptions={item.noteOptions ?? []}
           onSave={(minutes, note) => {
             board.commitRecurringDay(kind, item.id, dayEditor.iso, minutes, note);
             setDayEditor(null);

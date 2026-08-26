@@ -59,10 +59,17 @@ export interface TaskSeries {
   skippedDates: string[];
 }
 
+export interface DayLogEntry {
+  id: string;
+  note: string;
+  minutes: number;
+}
+
 export interface DayLog {
   checked: boolean;
   trackedSeconds: number;
   note?: string | null;
+  entries?: DayLogEntry[]; // fixed blocks with noteOptions: multiple marked entries for the day
 }
 
 export interface RecurringItem {

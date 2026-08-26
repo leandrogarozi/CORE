@@ -172,6 +172,44 @@ export type Database = {
         }
         Relationships: []
       }
+      fixed_block_log_entries: {
+        Row: {
+          block_id: string
+          created_at: string
+          id: string
+          log_date: string
+          minutes: number
+          note: string
+          user_id: string
+        }
+        Insert: {
+          block_id: string
+          created_at?: string
+          id?: string
+          log_date: string
+          minutes?: number
+          note: string
+          user_id: string
+        }
+        Update: {
+          block_id?: string
+          created_at?: string
+          id?: string
+          log_date?: string
+          minutes?: number
+          note?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fixed_block_log_entries_block_id_fkey"
+            columns: ["block_id"]
+            isOneToOne: false
+            referencedRelation: "fixed_blocks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       habit_logs: {
         Row: {
           checked: boolean

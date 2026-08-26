@@ -118,11 +118,14 @@ de feature flags que já existe pra água/dieta/sono/humor
       "conteúdo de inspiração" em outro lugar do painel (ver acima)
 - [x] Cadastro de tipos de lazer — cada bloco fixo tem uma lista própria de
       "opções de nota" cadastrável (editar bloco → "Opções de nota"). Se o
-      bloco tem opções cadastradas, o popover de registro do dia mostra
-      chips pra **marcar** em vez de um campo de texto livre; sem opções
-      cadastradas, cai de volta pro texto livre. Não é uma tela própria —
-      vive dentro da edição do bloco (ex.: bloco "Lazer" → praia, filme,
-      férias...).
+      bloco tem opções cadastradas, clicar num dia abre um registro por
+      **entradas**: dá pra marcar **vários tipos no mesmo dia, cada um com
+      seu próprio tempo** (ex.: hoje — Filme 90min, Video game 60min),
+      cada entrada some da lista com um "×". Sem opções cadastradas, cai
+      de volta pro campo único de minutos + texto livre de antes. O total
+      do dia (pra Dashboard/Painel de horas) é a soma das entradas.
+      Cadastro não é tela própria — vive dentro da edição do bloco (ex.:
+      bloco "Lazer" → praia, filme, jogo, férias...).
 - [x] Check-in de humor diário
 - [ ] Pergunta de desempenho ao marcar treino
 - [ ] Aba treino/suplementação
