@@ -12,7 +12,8 @@ import {
   todayISO,
   weekDatesFrom,
 } from "@/lib/date-utils";
-import { CATEGORY_LABEL, type Category, type Priority, type Task } from "@/lib/types";
+import { CATEGORY_LABEL, isFeatureEnabled, type Category, type Priority, type Task } from "@/lib/types";
+import { moodByValue } from "@/lib/mood";
 import { TaskListModal } from "./TaskListModal";
 
 type Period = "week" | "month";
@@ -119,6 +120,10 @@ export function Dashboard() {
       statusBuckets[st.id] = s.tasks.filter((t) => t.statusId === st.id);
     });
 
+    const moodDays = days.map((iso) => ({ iso, mood: s.dailyLogs[iso]?.mood ?? null }));
+    const moodValues = moodDays.map((d) => d.mood).filter((v): v is number => v !== null);
+    const moodAvg = moodValues.length ? moodValues.reduce((a, b) => a + b, 0) / moodValues.length : null;
+
     return {
       overdueCount,
       overdueTasks,
@@ -134,6 +139,8 @@ export function Dashboard() {
       priorityPending,
       statusBuckets,
       taskStatuses: [...s.taskStatuses].sort((a, b) => a.order - b.order),
+      moodDays,
+      moodAvg,
     };
   }, [board.state, fromISO, toISO, today]);
 
@@ -157,6 +164,8 @@ export function Dashboard() {
   const maxBlockMin = Math.max(1, ...stats.blockStats.map((b) => b.min));
   const maxPriority = Math.max(1, ...Object.values(stats.priorityPending));
   const doneTotal = stats.doneCount + stats.pendingCount;
+
+  const moodOn = isFeatureEnabled(board.state.settings.featureFlags, "mood");
 
   function shiftPeriod(dir: 1 | -1) {
     if (period === "week") {
@@ -248,6 +257,35 @@ export function Dashboard() {
             <span className="dash-legend-pct mono">{stats.overdueCount}</span>
           </button>
         </div>
+
+        {moodOn && (
+          <div className="dash-box">
+            <div className="dash-box-title">Humor</div>
+            {stats.moodAvg === null ? (
+              <div className="bar-empty">Nenhum humor registrado no período.</div>
+            ) : (
+              <>
+                <div className="mood-thermo-avg">
+                  <span className="mood-thermo-emoji">{moodByValue(Math.round(stats.moodAvg))?.emoji}</span>
+                  <span className="mood-thermo-value mono">{stats.moodAvg.toFixed(1)}</span>
+                  <span className="mood-thermo-label">
+                    {moodByValue(Math.round(stats.moodAvg))?.label} · média do período
+                  </span>
+                </div>
+                <div className="mood-thermo-strip">
+                  {stats.moodDays.map((d) => (
+                    <span
+                      key={d.iso}
+                      className="mood-thermo-day"
+                      title={`${d.iso}${d.mood ? " — " + moodByValue(d.mood)?.label : ""}`}
+                      style={{ background: d.mood ? moodByValue(d.mood)?.color : "var(--surface-2)" }}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         <div className="dash-box">
           <div className="dash-box-title">Hábitos</div>

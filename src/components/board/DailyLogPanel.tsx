@@ -5,16 +5,9 @@ import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
 import { todayISO } from "@/lib/date-utils";
 import { isFeatureEnabled } from "@/lib/types";
+import { MOODS } from "@/lib/mood";
 
 const WATER_STEPS = [200, 500];
-
-const MOODS = [
-  { v: 1, emoji: "😞", label: "Péssimo" },
-  { v: 2, emoji: "😕", label: "Ruim" },
-  { v: 3, emoji: "😐", label: "Neutro" },
-  { v: 4, emoji: "🙂", label: "Bom" },
-  { v: 5, emoji: "😄", label: "Ótimo" },
-];
 
 export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
   const { board } = useBoardCtx();
@@ -159,28 +152,27 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
             </div>
             <div className="dl-mood-options">
               {MOODS.map((m) => (
-                <button
-                  key={m.v}
-                  type="button"
-                  className={"dl-mood-btn" + (mood === m.v ? " active" : "")}
-                  aria-label={m.label}
-                  onClick={() => setMood(m.v)}
-                >
-                  <span className="dl-mood-emoji">{m.emoji}</span>
-                  <span className="dl-mood-name">{m.label}</span>
-                </button>
+                <div className="dl-mood-item" key={m.v}>
+                  <button
+                    type="button"
+                    className={"dl-mood-btn" + (mood === m.v ? " active" : "")}
+                    aria-label={m.label}
+                    onClick={() => setMood(m.v)}
+                  >
+                    <span className="dl-mood-emoji">{m.emoji}</span>
+                    <span className="dl-mood-name">{m.label}</span>
+                  </button>
+                  {mood === m.v && (
+                    <CommentButton
+                      value={moodNote}
+                      placeholder="Quer comentar por que está se sentindo assim?"
+                      ariaLabel="Comentário sobre o humor"
+                      onSave={(text) => board.updateDailyLog(selectedDate, { moodNote: text || null })}
+                    />
+                  )}
+                </div>
               ))}
             </div>
-            {mood !== null && (
-              <div className="dl-mood-note">
-                <CommentButton
-                  value={moodNote}
-                  placeholder="Quer comentar por que está se sentindo assim?"
-                  ariaLabel="Comentário sobre o humor"
-                  onSave={(text) => board.updateDailyLog(selectedDate, { moodNote: text || null })}
-                />
-              </div>
-            )}
           </div>
         )}
       </div>

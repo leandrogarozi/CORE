@@ -255,8 +255,9 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 }
 .dl-pct-sign{ font-size:12.5px; color:var(--text-faint); }
 .dl-mood-options{ display:flex; gap:6px; }
+.dl-mood-item{ position:relative; flex:1; }
 .dl-mood-btn{
-  flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+  width:100%; display:flex; flex-direction:column; align-items:center; gap:3px;
   padding:6px 0; border-radius:8px; border:1px solid var(--border); background:var(--surface);
 }
 .dl-mood-emoji{ font-size:19px; line-height:1; filter:grayscale(1); opacity:0.5; }
@@ -265,7 +266,10 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .dl-mood-btn.active{ border-color:var(--accent); background:var(--accent-soft); }
 .dl-mood-btn.active .dl-mood-emoji{ filter:none; opacity:1; }
 .dl-mood-btn.active .dl-mood-name{ color:var(--accent); }
-.dl-mood-note{ margin-top:8px; }
+.dl-mood-item .comment-btn{
+  position:absolute; top:-6px; right:-6px; background:var(--surface); border:1px solid var(--border);
+  border-radius:50%; padding:3px; box-shadow:var(--shadow);
+}
 .dl-sleep-inputs{ display:flex; gap:10px; }
 .dl-sleep-field{ display:flex; flex-direction:column; gap:3px; font-size:11px; color:var(--text-faint); flex:1; }
 .dl-sleep-field input{
@@ -336,6 +340,12 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   text-align:left;
 }
 .dash-status-row:hover{ background:var(--surface-2); }
+.mood-thermo-avg{ display:flex; align-items:baseline; gap:8px; margin-bottom:10px; }
+.mood-thermo-emoji{ font-size:20px; line-height:1; }
+.mood-thermo-value{ font-size:20px; font-weight:700; }
+.mood-thermo-label{ font-size:11.5px; color:var(--text-faint); }
+.mood-thermo-strip{ display:flex; flex-wrap:wrap; gap:3px; }
+.mood-thermo-day{ width:12px; height:12px; border-radius:3px; flex:none; }
 .bar-row{ padding:6px 0; }
 .bar-row-top{ display:flex; align-items:center; gap:8px; font-size:12.5px; margin-bottom:4px; }
 .bar-row-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
