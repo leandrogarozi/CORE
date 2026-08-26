@@ -62,6 +62,7 @@ export interface TaskSeries {
 export interface DayLog {
   checked: boolean;
   trackedSeconds: number;
+  note?: string | null;
 }
 
 export interface RecurringItem {
@@ -95,6 +96,7 @@ export function isFeatureEnabled(flags: Record<string, boolean> | undefined, key
 export interface DailyLog {
   waterMl: number;
   dietPct: number | null;
+  dietNote: string | null;
   sleptAt: string | null; // "HH:MM"
   wokeAt: string | null; // "HH:MM"
 }

@@ -619,19 +619,23 @@ export function useBoard(userId: string | null) {
   );
 
   const upsertRecurringLog = useCallback(
-    (kind: "habit" | "block", id: string, iso: string, trackedSeconds: number, userId: string) => {
+    (kind: "habit" | "block", id: string, iso: string, trackedSeconds: number, userId: string, note?: string | null) => {
+      // `note` is only included in the upsert payload when the caller explicitly
+      // passes it, so an omitted note (e.g. from the timer auto-stop path) never
+      // clobbers a note the user already typed for that day.
+      const noteField = note !== undefined ? { note: note || null } : {};
       const query =
         kind === "habit"
           ? supabase
               .from("habit_logs")
               .upsert(
-                { user_id: userId, habit_id: id, log_date: iso, checked: true, tracked_seconds: trackedSeconds },
+                { user_id: userId, habit_id: id, log_date: iso, checked: true, tracked_seconds: trackedSeconds, ...noteField },
                 { onConflict: "habit_id,log_date" }
               )
           : supabase
               .from("fixed_block_logs")
               .upsert(
-                { user_id: userId, block_id: id, log_date: iso, checked: true, tracked_seconds: trackedSeconds },
+                { user_id: userId, block_id: id, log_date: iso, checked: true, tracked_seconds: trackedSeconds, ...noteField },
                 { onConflict: "block_id,log_date" }
               );
       query.then(({ error }) => {
@@ -659,16 +663,16 @@ export function useBoard(userId: string | null) {
   );
 
   const commitRecurringDay = useCallback(
-    (kind: "habit" | "block", id: string, iso: string, minutes: number) => {
+    (kind: "habit" | "block", id: string, iso: string, minutes: number, note?: string) => {
       if (!userId) return;
       const listKey = listKeyFor(kind);
       const trackedSeconds = Math.max(0, minutes) * 60;
-      const log: DayLog = { checked: true, trackedSeconds };
+      const log: DayLog = { checked: true, trackedSeconds, note: note?.trim() || null };
       apply((s) => ({
         ...s,
         [listKey]: s[listKey].map((x) => (x.id === id ? { ...x, logs: { ...x.logs, [iso]: log } } : x)),
       }));
-      upsertRecurringLog(kind, id, iso, trackedSeconds, userId);
+      upsertRecurringLog(kind, id, iso, trackedSeconds, userId, log.note);
     },
     [apply, upsertRecurringLog, userId]
   );
@@ -710,7 +714,9 @@ export function useBoard(userId: string | null) {
       apply((s) => ({
         ...s,
         [listKey]: s[listKey].map((x) =>
-          x.id === at.itemId ? { ...x, logs: { ...x.logs, [at.logDate]: { checked: true, trackedSeconds } } } : x
+          x.id === at.itemId
+            ? { ...x, logs: { ...x.logs, [at.logDate]: { ...x.logs[at.logDate], checked: true, trackedSeconds } } }
+            : x
         ),
       }));
       upsertRecurringLog(kind, at.itemId, at.logDate, trackedSeconds, userId);
@@ -768,6 +774,7 @@ export function useBoard(userId: string | null) {
       const current: DailyLog = stateRef.current.dailyLogs[logDate] ?? {
         waterMl: 0,
         dietPct: null,
+        dietNote: null,
         sleptAt: null,
         wokeAt: null,
       };
@@ -781,6 +788,7 @@ export function useBoard(userId: string | null) {
             log_date: logDate,
             water_ml: merged.waterMl,
             diet_pct: merged.dietPct,
+            diet_note: merged.dietNote,
             slept_at: merged.sleptAt,
             woke_at: merged.wokeAt,
           },

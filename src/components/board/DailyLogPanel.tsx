@@ -16,11 +16,13 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
   const sleepOn = isFeatureEnabled(flags, "sleep");
   const waterMl = log?.waterMl ?? 0;
   const dietPct = log?.dietPct ?? null;
+  const dietNote = log?.dietNote ?? "";
   const sleptAt = log?.sleptAt ?? "";
   const wokeAt = log?.wokeAt ?? "";
   const goalMl = board.state.settings.waterGoalMl || 2000;
   const pct = goalMl > 0 ? Math.min(100, (waterMl / goalMl) * 100) : 0;
   const [dietInput, setDietInput] = useState<string | null>(null);
+  const [dietNoteInput, setDietNoteInput] = useState<string | null>(null);
   const isToday = selectedDate === todayISO();
   const label = isToday ? "hoje" : selectedDate;
 
@@ -42,6 +44,12 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
     const v = dietInput === "" ? null : Math.max(0, Math.min(100, parseInt(dietInput, 10)));
     board.updateDailyLog(selectedDate, { dietPct: isNaN(v as number) ? null : v });
     setDietInput(null);
+  }
+
+  function commitDietNote() {
+    if (dietNoteInput === null) return;
+    board.updateDailyLog(selectedDate, { dietNote: dietNoteInput.trim() || null });
+    setDietNoteInput(null);
   }
 
   return (
@@ -97,6 +105,15 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
                 onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
               />
               <span className="dl-pct-sign">%</span>
+              <input
+                type="text"
+                className="dl-note-input"
+                placeholder="observação (opcional)"
+                value={dietNoteInput ?? dietNote}
+                onChange={(e) => setDietNoteInput(e.target.value)}
+                onBlur={commitDietNote}
+                onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+              />
             </div>
           </div>
         )}

@@ -166,7 +166,7 @@ export function buildRecurring(
       logs
         .filter((l) => (l as Record<string, unknown>)[logKeyField] === item.id)
         .forEach((l) => {
-          itemLogs[l.log_date] = { checked: l.checked, trackedSeconds: l.tracked_seconds };
+          itemLogs[l.log_date] = { checked: l.checked, trackedSeconds: l.tracked_seconds, note: l.note };
         });
       return {
         id: item.id,
@@ -196,6 +196,7 @@ export function rowToDailyLog(row: DailyLogRow): DailyLog {
   return {
     waterMl: row.water_ml,
     dietPct: row.diet_pct,
+    dietNote: row.diet_note,
     sleptAt: row.slept_at ? row.slept_at.slice(0, 5) : null,
     wokeAt: row.woke_at ? row.woke_at.slice(0, 5) : null,
   };

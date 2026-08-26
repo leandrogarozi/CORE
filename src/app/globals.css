@@ -108,16 +108,34 @@ a{ color:inherit; }
 }
 .scope-choice-btn:hover{ border-color:var(--accent); color:var(--accent); }
 .scope-cancel{ margin-top:12px; width:100%; text-align:center; }
-.settings-rows{ display:flex; flex-direction:column; gap:14px; }
+.settings-rows{ display:flex; flex-direction:column; gap:8px; }
+.settings-row{ border:1px solid var(--border); border-radius:9px; padding:10px 12px; background:var(--surface); }
 .settings-row-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
 .settings-label{ font-size:13.5px; font-weight:400; }
 .settings-row-controls{ display:flex; align-items:center; gap:10px; }
-.settings-row-controls input[type="color"]{
-  width:30px; height:30px; padding:0; border:1px solid var(--border-strong); border-radius:7px; background:none;
+input[type="color"]{
+  -webkit-appearance:none; appearance:none; border:none; padding:0; cursor:pointer; background:none;
 }
-.settings-row-controls input[type="range"]{ flex:1; accent-color:var(--accent); }
+input[type="color"]::-webkit-color-swatch-wrapper{ padding:0; border-radius:50%; }
+input[type="color"]::-webkit-color-swatch{ border:1px solid var(--border-strong); border-radius:50%; }
+input[type="color"]::-moz-color-swatch{ border:1px solid var(--border-strong); border-radius:50%; }
+.settings-row-controls input[type="color"]{ width:20px; height:20px; }
+.settings-row-controls input[type="range"]{ flex:1; }
+input[type="range"]{
+  -webkit-appearance:none; appearance:none; width:100%; height:14px; background:transparent; cursor:pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track{ height:3px; border-radius:2px; background:var(--border-strong); }
+input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none; appearance:none; width:12px; height:12px; border-radius:50%;
+  background:var(--text-muted); margin-top:-4.5px; border:none;
+}
+input[type="range"]::-moz-range-track{ height:3px; border-radius:2px; background:var(--border-strong); }
+input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50%; background:var(--text-muted); border:none; }
 .settings-pct{ font-size:11.5px; color:var(--text-muted); width:34px; text-align:right; }
-.settings-toggle-row{ display:flex; align-items:center; justify-content:space-between; gap:14px; }
+.settings-toggle-row{
+  display:flex; align-items:center; justify-content:space-between; gap:14px;
+  border:1px solid var(--border); border-radius:9px; padding:10px 12px; background:var(--surface);
+}
 .settings-toggle-row > span{ display:flex; flex-direction:column; gap:2px; }
 .settings-toggle-hint{ font-size:11px; color:var(--text-faint); }
 .toggle-switch{
@@ -132,10 +150,11 @@ a{ color:inherit; }
 }
 .toggle-switch.on .toggle-knob{ transform:translateX(14px); }
 .status-rows{ display:flex; flex-direction:column; gap:8px; }
-.status-row{ display:flex; align-items:center; gap:10px; }
-.status-row input[type="color"]{
-  width:26px; height:26px; padding:0; border:1px solid var(--border-strong); border-radius:6px; background:none; flex:none;
+.status-row{
+  display:flex; align-items:center; gap:10px;
+  border:1px solid var(--border); border-radius:9px; padding:8px 10px; background:var(--surface);
 }
+.status-row input[type="color"]{ width:20px; height:20px; flex:none; }
 .status-row-label{
   flex:1; min-width:0; background:var(--surface); border:1px solid var(--border-strong); border-radius:7px;
   padding:6px 8px; font-size:13px; color:var(--text);
@@ -228,6 +247,10 @@ a{ color:inherit; }
   padding:6px 8px; font-size:13px; color:var(--text);
 }
 .dl-pct-sign{ font-size:12.5px; color:var(--text-faint); }
+.dl-note-input{
+  flex:1; min-width:0; margin-left:6px; background:var(--surface); border:1px solid var(--border-strong);
+  border-radius:7px; padding:6px 8px; font-size:12px; color:var(--text);
+}
 .dl-sleep-inputs{ display:flex; gap:10px; }
 .dl-sleep-field{ display:flex; flex-direction:column; gap:3px; font-size:11px; color:var(--text-faint); flex:1; }
 .dl-sleep-field input{
@@ -362,11 +385,11 @@ a{ color:inherit; }
 .drag-handle.disabled{ opacity:0; cursor:default; }
 .drag-handle span{ width:3px; height:3px; border-radius:50%; background:var(--border-strong); }
 .status-dot{
-  width:15px; height:15px; border-radius:50%; border:1.5px solid var(--status-color, var(--border-strong));
-  display:flex; align-items:center; justify-content:center; color:#fff; justify-self:start; background:transparent;
+  width:15px; height:15px; border-radius:50%; border:none;
+  background:var(--status-color, var(--text-faint));
+  display:flex; align-items:center; justify-content:center; color:#fff; justify-self:start;
 }
 .status-dot svg{ width:9px; height:9px; }
-.status-dot.done{ background:var(--status-color, var(--text-faint)); }
 .status-menu{
   position:fixed; z-index:50; min-width:150px;
   background:var(--surface); border:1px solid var(--border); border-radius:8px; box-shadow:var(--shadow);
@@ -432,10 +455,21 @@ a{ color:inherit; }
 }
 .habit-cell.done{ background:var(--success); border-color:var(--success); color:#fff; }
 .habit-cell.today{ box-shadow:0 0 0 2px var(--accent) inset; }
-.habit-cell-input{
-  width:34px; height:20px; border-radius:6px; border:1.5px solid var(--accent);
-  background:var(--surface); font-size:10px; text-align:center; padding:0 2px; color:var(--text);
+.habit-cell.has-note{ position:relative; }
+.habit-cell.has-note::after{
+  content:""; position:absolute; top:-2px; right:-2px; width:5px; height:5px; border-radius:50%;
+  background:var(--accent);
 }
+.daylog-popover{
+  position:fixed; z-index:50; min-width:170px;
+  background:var(--surface); border:1px solid var(--border); border-radius:9px; box-shadow:var(--shadow);
+  padding:10px; display:flex; flex-direction:column; gap:8px;
+}
+.daylog-popover input{
+  background:var(--bg); border:1px solid var(--border-strong); border-radius:7px;
+  padding:6px 8px; font-size:12.5px; color:var(--text); width:100%;
+}
+.daylog-popover .edit-actions{ margin-top:2px; }
 .habit-add{ display:flex; gap:6px; margin-top:10px; }
 .habit-add input{ flex:1; background:var(--bg); border:1px solid var(--border-strong); border-radius:6px; padding:6px 8px; font-size:12px; min-width:0; }
 .habit-add input.block-duration-input{ flex:0 0 64px; }

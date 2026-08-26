@@ -40,6 +40,7 @@ export type Database = {
       }
       daily_logs: {
         Row: {
+          diet_note: string | null
           diet_pct: number | null
           log_date: string
           slept_at: string | null
@@ -49,6 +50,7 @@ export type Database = {
           woke_at: string | null
         }
         Insert: {
+          diet_note?: string | null
           diet_pct?: number | null
           log_date: string
           slept_at?: string | null
@@ -58,6 +60,7 @@ export type Database = {
           woke_at?: string | null
         }
         Update: {
+          diet_note?: string | null
           diet_pct?: number | null
           log_date?: string
           slept_at?: string | null
@@ -74,6 +77,7 @@ export type Database = {
           checked: boolean
           id: string
           log_date: string
+          note: string | null
           tracked_seconds: number
           user_id: string
         }
@@ -82,6 +86,7 @@ export type Database = {
           checked?: boolean
           id?: string
           log_date: string
+          note?: string | null
           tracked_seconds?: number
           user_id: string
         }
@@ -90,6 +95,7 @@ export type Database = {
           checked?: boolean
           id?: string
           log_date?: string
+          note?: string | null
           tracked_seconds?: number
           user_id?: string
         }
@@ -136,6 +142,7 @@ export type Database = {
           habit_id: string
           id: string
           log_date: string
+          note: string | null
           tracked_seconds: number
           user_id: string
         }
@@ -144,6 +151,7 @@ export type Database = {
           habit_id: string
           id?: string
           log_date: string
+          note?: string | null
           tracked_seconds?: number
           user_id: string
         }
@@ -152,6 +160,7 @@ export type Database = {
           habit_id?: string
           id?: string
           log_date?: string
+          note?: string | null
           tracked_seconds?: number
           user_id?: string
         }
