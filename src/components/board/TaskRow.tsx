@@ -130,10 +130,10 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
         {quickLabel(t.quick || 0)}
       </button>
       <div className="row-desc-cell">
-        {t.time && <span className="row-time mono">{t.time}</span>}
         <button type="button" className="row-title" title={t.title} onClick={() => setEditing(true)}>
           {t.title}
         </button>
+        {t.time && <span className="row-time mono">{t.time}</span>}
       </div>
       <div className="row-category-cell">
         {t.seriesId && (

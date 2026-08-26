@@ -12,7 +12,8 @@ import {
   todayISO,
   weekDatesFrom,
 } from "@/lib/date-utils";
-import { CATEGORY_LABEL, type Category, type Priority } from "@/lib/types";
+import { CATEGORY_LABEL, type Category, type Priority, type Task } from "@/lib/types";
+import { TaskListModal } from "./TaskListModal";
 
 type Period = "week" | "month";
 
@@ -65,9 +66,12 @@ export function Dashboard() {
   const { fromISO, toISO } = rangeForPeriod(period, weekAnchor, monthAnchor);
   const today = todayISO();
 
+  const [modal, setModal] = useState<{ title: string; tasks: Task[] } | null>(null);
+
   const stats = useMemo(() => {
     const s = board.state;
-    const overdueCount = s.tasks.filter((t) => !t.done && t.date && t.date < today).length;
+    const overdueTasks = s.tasks.filter((t) => !t.done && t.date && t.date < today);
+    const overdueCount = overdueTasks.length;
     const noDateCount = s.tasks.filter((t) => !t.date).length;
     const doneInPeriod = s.tasks.filter((t) => t.done && t.date && t.date >= fromISO && t.date <= toISO);
     const pendingInPeriod = s.tasks.filter((t) => !t.done && t.date && t.date >= fromISO && t.date <= toISO);
@@ -107,16 +111,29 @@ export function Dashboard() {
       if (!t.done) priorityPending[t.priority]++;
     });
 
+    const workMin = (byCategory.trabalho || 0) + (byCategory.pessoal || 0);
+    const studyMin = (byCategory.estudo || 0) + (byCategory.dev || 0);
+
+    const statusBuckets: Record<string, Task[]> = {};
+    s.taskStatuses.forEach((st) => {
+      statusBuckets[st.id] = s.tasks.filter((t) => t.statusId === st.id);
+    });
+
     return {
       overdueCount,
+      overdueTasks,
       noDateCount,
       doneCount: doneInPeriod.length,
       pendingCount: pendingInPeriod.length,
       totalMin: taskMinTotal + habitMinTotal + blockMinTotal,
+      workMin,
+      studyMin,
       byCategory,
       habitStats,
       blockStats,
       priorityPending,
+      statusBuckets,
+      taskStatuses: [...s.taskStatuses].sort((a, b) => a.order - b.order),
     };
   }, [board.state, fromISO, toISO, today]);
 
@@ -196,9 +213,42 @@ export function Dashboard() {
           <div className="dash-stat-value">{fmtHM(stats.totalMin)}</div>
           <div className="dash-stat-label">Tempo total</div>
         </div>
+        <div className="dash-stat-card">
+          <div className="dash-stat-value">{fmtHM(stats.workMin)}</div>
+          <div className="dash-stat-label">Horas trabalhadas</div>
+        </div>
+        <div className="dash-stat-card">
+          <div className="dash-stat-value">{fmtHM(stats.studyMin)}</div>
+          <div className="dash-stat-label">Estudo e dev. pessoal</div>
+        </div>
       </div>
 
       <div className="dash-charts">
+        <div className="dash-box">
+          <div className="dash-box-title">Tarefas</div>
+          {stats.taskStatuses.map((st) => (
+            <button
+              type="button"
+              key={st.id}
+              className="dash-status-row"
+              onClick={() => setModal({ title: st.label, tasks: stats.statusBuckets[st.id] || [] })}
+            >
+              <span className="dash-legend-dot" style={{ background: st.color }} />
+              <span className="dash-legend-name">{st.label}</span>
+              <span className="dash-legend-pct mono">{(stats.statusBuckets[st.id] || []).length}</span>
+            </button>
+          ))}
+          <button
+            type="button"
+            className="dash-status-row"
+            onClick={() => setModal({ title: "Atrasadas", tasks: stats.overdueTasks })}
+          >
+            <span className="dash-legend-dot" style={{ background: "var(--danger)" }} />
+            <span className="dash-legend-name">Atrasadas</span>
+            <span className="dash-legend-pct mono">{stats.overdueCount}</span>
+          </button>
+        </div>
+
         <div className="dash-box">
           <div className="dash-box-title">Hábitos</div>
           {!stats.habitStats.length && <div className="bar-empty">Nenhum hábito cadastrado.</div>}
@@ -284,6 +334,8 @@ export function Dashboard() {
           </div>
         </div>
       </div>
+
+      {modal && <TaskListModal title={modal.title} tasks={modal.tasks} onClose={() => setModal(null)} />}
     </div>
   );
 }

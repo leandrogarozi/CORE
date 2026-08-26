@@ -9,15 +9,6 @@ import type { UseBoard } from "@/lib/board/use-board";
 
 const CATEGORIES = Object.keys(CATEGORY_LABEL) as Category[];
 
-function hexToRgba(hex: string, alpha: number) {
-  const h = hex.replace("#", "");
-  const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
-  const r = parseInt(full.substring(0, 2), 16) || 153;
-  const g = parseInt(full.substring(2, 4), 16) || 153;
-  const b = parseInt(full.substring(4, 6), 16) || 153;
-  return `rgba(${r},${g},${b},${alpha})`;
-}
-
 function CollapsibleBox({ title, children }: { title: string; children: ReactNode }) {
   const [open, setOpen] = useState(true);
   return (
@@ -149,36 +140,29 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
             const cfg = tagColors[cat];
             return (
               <div className="settings-row" key={cat}>
-                <div className="settings-row-top">
-                  <span className="settings-label">{CATEGORY_LABEL[cat]}</span>
-                  <span className="chip" style={{ background: hexToRgba(cfg.hex, cfg.alpha), color: cfg.hex }}>
-                    {CATEGORY_LABEL[cat]}
-                  </span>
-                </div>
-                <div className="settings-row-controls">
-                  <input
-                    type="color"
-                    value={cfg.hex}
-                    onChange={(e) =>
-                      board.updateSettings({
-                        tagColors: { ...tagColors, [cat]: { hex: e.target.value, alpha: cfg.alpha } },
-                      })
-                    }
-                  />
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    step={5}
-                    value={Math.round(cfg.alpha * 100)}
-                    onChange={(e) =>
-                      board.updateSettings({
-                        tagColors: { ...tagColors, [cat]: { hex: cfg.hex, alpha: Number(e.target.value) / 100 } },
-                      })
-                    }
-                  />
-                  <span className="settings-pct mono">{Math.round(cfg.alpha * 100)}%</span>
-                </div>
+                <input
+                  type="color"
+                  value={cfg.hex}
+                  onChange={(e) =>
+                    board.updateSettings({
+                      tagColors: { ...tagColors, [cat]: { hex: e.target.value, alpha: cfg.alpha } },
+                    })
+                  }
+                />
+                <span className="settings-label">{CATEGORY_LABEL[cat]}</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={5}
+                  value={Math.round(cfg.alpha * 100)}
+                  onChange={(e) =>
+                    board.updateSettings({
+                      tagColors: { ...tagColors, [cat]: { hex: cfg.hex, alpha: Number(e.target.value) / 100 } },
+                    })
+                  }
+                />
+                <span className="settings-pct mono">{Math.round(cfg.alpha * 100)}%</span>
               </div>
             );
           })}
