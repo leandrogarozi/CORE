@@ -78,6 +78,12 @@ de feature flags que já existe pra água/dieta/sono/humor
   pessoa**. Isso é IA raciocinando sobre os dados, não é filtro/UI —
   entra no backlog 🔴 como item próprio (ver abaixo), relacionado mas
   distinto da "IA de distribuição de tarefas".
+- **Datas nos livros** (pra dar pra cruzar livro × período de vida):
+  `finalizado` tem um campo de **ano de conclusão** (só o ano — pros
+  livros antigos ele só sabe o ano, não o dia exato); `lendo` tem um
+  campo de **data de início** (data completa). `para_ler` não tem data
+  (ainda não começou). Guardado em `started_at`/`finished_year` na
+  tabela `books`.
 
 ### Medicamentos
 

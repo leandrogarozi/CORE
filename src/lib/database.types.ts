@@ -41,24 +41,30 @@ export type Database = {
       books: {
         Row: {
           created_at: string
+          finished_year: number | null
           id: string
           insights: string | null
+          started_at: string | null
           status: string
           title: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          finished_year?: number | null
           id?: string
           insights?: string | null
+          started_at?: string | null
           status?: string
           title: string
           user_id: string
         }
         Update: {
           created_at?: string
+          finished_year?: number | null
           id?: string
           insights?: string | null
+          started_at?: string | null
           status?: string
           title?: string
           user_id?: string

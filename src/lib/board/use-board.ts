@@ -563,7 +563,7 @@ export function useBoard(userId: string | null) {
   const addBook = useCallback(
     (title: string) => {
       if (!userId || !title.trim()) return;
-      const b: Book = { id: uid(), title: title.trim(), status: "para_ler", insights: null };
+      const b: Book = { id: uid(), title: title.trim(), status: "para_ler", insights: null, startedAt: null, finishedYear: null };
       apply((s) => ({ ...s, books: [...s.books, b] }));
       supabase.from("books").insert(bookToInsertRow(b, userId)).then(({ error }) => {
         if (error) console.error("addBook", error);
@@ -573,7 +573,7 @@ export function useBoard(userId: string | null) {
   );
 
   const updateBook = useCallback(
-    (id: string, patch: Partial<Pick<Book, "title" | "status" | "insights">>) => {
+    (id: string, patch: Partial<Pick<Book, "title" | "status" | "insights" | "startedAt" | "finishedYear">>) => {
       apply((s) => ({ ...s, books: s.books.map((b) => (b.id === id ? { ...b, ...patch } : b)) }));
       supabase.from("books").update(bookToUpdateRow(patch)).eq("id", id).then(({ error }) => {
         if (error) console.error("updateBook", error);

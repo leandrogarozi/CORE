@@ -137,12 +137,20 @@ function BookInsightsButton({ book }: { book: Book }) {
 function BookRow({ book }: { book: Book }) {
   const { board } = useBoardCtx();
   const [titleDraft, setTitleDraft] = useState<string | null>(null);
+  const [yearDraft, setYearDraft] = useState<string | null>(null);
 
   function commitTitle() {
     if (titleDraft === null) return;
     const trimmed = titleDraft.trim();
     if (trimmed && trimmed !== book.title) board.updateBook(book.id, { title: trimmed });
     setTitleDraft(null);
+  }
+
+  function commitYear() {
+    if (yearDraft === null) return;
+    const n = parseInt(yearDraft, 10);
+    board.updateBook(book.id, { finishedYear: yearDraft.trim() && !isNaN(n) ? n : null });
+    setYearDraft(null);
   }
 
   return (
@@ -155,6 +163,26 @@ function BookRow({ book }: { book: Book }) {
         onBlur={commitTitle}
         onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
       />
+      {book.status === "finalizado" && (
+        <input
+          type="number"
+          className="book-year-input"
+          placeholder="Ano"
+          value={yearDraft ?? book.finishedYear ?? ""}
+          onChange={(e) => setYearDraft(e.target.value)}
+          onBlur={commitYear}
+          onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+        />
+      )}
+      {book.status === "lendo" && (
+        <input
+          type="date"
+          className="book-date-input"
+          title="Data de início"
+          value={book.startedAt ?? ""}
+          onChange={(e) => board.updateBook(book.id, { startedAt: e.target.value || null })}
+        />
+      )}
       <BookStatusPicker book={book} />
       <BookInsightsButton book={book} />
       <button

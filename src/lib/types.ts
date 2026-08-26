@@ -150,6 +150,8 @@ export interface Book {
   title: string;
   status: BookStatus;
   insights: string | null;
+  startedAt: string | null; // ISO date, "lendo": quando começou
+  finishedYear: number | null; // "finalizado": ano de conclusão (só o ano, sem dia/mês)
 }
 
 export interface BoardState {
