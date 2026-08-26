@@ -171,12 +171,14 @@ export function buildRecurring(
         .forEach((l) => {
           itemLogs[l.log_date] = { checked: l.checked, trackedSeconds: l.tracked_seconds, note: l.note };
         });
+      const noteOptions = "note_options" in item ? ((item.note_options as string[] | null) ?? []) : undefined;
       return {
         id: item.id,
         name: item.name,
         durationMin: item.duration_minutes,
         order: item.sort_order,
         logs: itemLogs,
+        noteOptions,
       };
     })
     .sort((a, b) => a.order - b.order);

@@ -62,6 +62,7 @@ function DayLogPopover({
   initialMinutes,
   initialNote,
   showNote,
+  noteOptions,
   onSave,
   onCancel,
 }: {
@@ -69,6 +70,7 @@ function DayLogPopover({
   initialMinutes: number;
   initialNote: string;
   showNote: boolean;
+  noteOptions: string[];
   onSave: (minutes: number, note: string) => void;
   onCancel: () => void;
 }) {
@@ -108,7 +110,24 @@ function DayLogPopover({
           }}
         />
       </label>
-      {showNote && (
+      {showNote && noteOptions.length > 0 && (
+        <label className="edit-field">
+          <span className="edit-field-label">Tipo (opcional)</span>
+          <div className="note-options-chips">
+            {noteOptions.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                className={"note-chip" + (note === opt ? " active" : "")}
+                onClick={() => setNote((n) => (n === opt ? "" : opt))}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        </label>
+      )}
+      {showNote && noteOptions.length === 0 && (
         <label className="edit-field">
           <span className="edit-field-label">Nota (opcional)</span>
           <input
@@ -209,6 +228,7 @@ function RecurringRow({ kind, item, weekAnchor }: { kind: Kind; item: RecurringI
           }
           initialNote={item.logs[dayEditor.iso]?.note || ""}
           showNote={kind === "block"}
+          noteOptions={item.noteOptions ?? []}
           onSave={(minutes, note) => {
             board.commitRecurringDay(kind, item.id, dayEditor.iso, minutes, note);
             setDayEditor(null);
@@ -224,10 +244,20 @@ function RecurringEditRow({ kind, item, onDone }: { kind: Kind; item: RecurringI
   const { board } = useBoardCtx();
   const [name, setName] = useState(item.name);
   const [duration, setDuration] = useState(item.durationMin != null ? String(item.durationMin) : "");
+  const [options, setOptions] = useState<string[]>(item.noteOptions ?? []);
+  const [newOption, setNewOption] = useState("");
 
   function save() {
     onDone();
     board.updateRecurring(kind, item.id, name.trim() || item.name, duration ? parseInt(duration, 10) || 0 : null);
+    if (kind === "block") board.updateRecurringNoteOptions(item.id, options);
+  }
+
+  function addOption() {
+    const v = newOption.trim();
+    if (!v || options.includes(v)) return;
+    setOptions((o) => [...o, v]);
+    setNewOption("");
   }
 
   return (
@@ -242,6 +272,40 @@ function RecurringEditRow({ kind, item, onDone }: { kind: Kind; item: RecurringI
         />
         <input type="number" min={0} step={5} value={duration} onChange={(e) => setDuration(e.target.value)} />
       </div>
+      {kind === "block" && (
+        <div className="note-options-editor">
+          <span className="edit-field-label">Opções de nota (marcar em vez de escrever)</span>
+          {options.length > 0 && (
+            <div className="note-options-chips">
+              {options.map((opt) => (
+                <span key={opt} className="note-chip removable">
+                  {opt}
+                  <button type="button" aria-label={`Remover ${opt}`} onClick={() => setOptions((o) => o.filter((x) => x !== opt))}>
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="note-options-add">
+            <input
+              type="text"
+              placeholder="+ opção (ex.: praia, filme...)"
+              value={newOption}
+              onChange={(e) => setNewOption(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addOption();
+                }
+              }}
+            />
+            <button type="button" className="btn btn-ghost" onClick={addOption}>
+              Add
+            </button>
+          </div>
+        </div>
+      )}
       <div className="edit-actions">
         <button className="btn btn-ghost" type="button" onClick={onDone}>
           Cancelar

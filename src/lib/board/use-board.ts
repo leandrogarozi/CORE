@@ -631,6 +631,23 @@ export function useBoard(userId: string | null) {
     [apply, supabase]
   );
 
+  const updateRecurringNoteOptions = useCallback(
+    (id: string, noteOptions: string[]) => {
+      apply((s) => ({
+        ...s,
+        fixedBlocks: s.fixedBlocks.map((x) => (x.id === id ? { ...x, noteOptions } : x)),
+      }));
+      supabase
+        .from("fixed_blocks")
+        .update({ note_options: noteOptions })
+        .eq("id", id)
+        .then(({ error }) => {
+          if (error) console.error("updateRecurringNoteOptions", error);
+        });
+    },
+    [apply, supabase]
+  );
+
   const deleteRecurringItem = useCallback(
     (kind: "habit" | "block", id: string) => {
       const listKey = listKeyFor(kind);
@@ -870,6 +887,7 @@ export function useBoard(userId: string | null) {
     deleteBook,
     addRecurring,
     updateRecurring,
+    updateRecurringNoteOptions,
     deleteRecurringItem,
     clearRecurringDay,
     commitRecurringDay,

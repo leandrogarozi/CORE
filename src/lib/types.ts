@@ -71,6 +71,7 @@ export interface RecurringItem {
   durationMin: number | null;
   order: number;
   logs: Record<string, DayLog>; // iso date -> log
+  noteOptions?: string[]; // fixed blocks only: registered options to pick instead of typing a note
 }
 
 export interface Settings {

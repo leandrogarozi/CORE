@@ -116,8 +116,13 @@ de feature flags que já existe pra água/dieta/sono/humor
 - [ ] Lista de medicação — sem spec ainda
 - [x] Livros lidos + insights — feito; falta só a parte de virar
       "conteúdo de inspiração" em outro lugar do painel (ver acima)
-- [x] Cadastro de tipos de lazer — coberto pelo campo de nota nos blocos
-      fixos (ex.: bloco "Lazer"), não precisa de tela própria
+- [x] Cadastro de tipos de lazer — cada bloco fixo tem uma lista própria de
+      "opções de nota" cadastrável (editar bloco → "Opções de nota"). Se o
+      bloco tem opções cadastradas, o popover de registro do dia mostra
+      chips pra **marcar** em vez de um campo de texto livre; sem opções
+      cadastradas, cai de volta pro texto livre. Não é uma tela própria —
+      vive dentro da edição do bloco (ex.: bloco "Lazer" → praia, filme,
+      férias...).
 - [x] Check-in de humor diário
 - [ ] Pergunta de desempenho ao marcar treino
 - [ ] Aba treino/suplementação

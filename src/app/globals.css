@@ -554,6 +554,23 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .habit-add input.block-duration-input{ flex:0 0 64px; }
 .block-duration{ font-size:11px; color:var(--text-faint); flex:none; }
 .recurring-edit-row{ border-radius:8px; margin-top:0; }
+.note-options-chips{ display:flex; flex-wrap:wrap; gap:6px; }
+.note-chip{
+  display:inline-flex; align-items:center; gap:5px;
+  border:1px solid var(--border-strong); border-radius:20px; background:var(--surface);
+  padding:5px 11px; font-size:12px; color:var(--text-muted);
+}
+.note-chip:hover{ border-color:var(--accent); color:var(--text); }
+.note-chip.active{ background:var(--accent-soft); border-color:var(--accent); color:var(--accent); font-weight:600; }
+.note-chip.removable{ padding:4px 6px 4px 11px; }
+.note-chip.removable button{ color:var(--text-faint); font-size:14px; line-height:1; padding:0 2px; }
+.note-chip.removable button:hover{ color:var(--danger); }
+.note-options-editor{ display:flex; flex-direction:column; gap:6px; margin-bottom:6px; }
+.note-options-add{ display:flex; gap:6px; }
+.note-options-add input{
+  flex:1; background:var(--bg); border:1px solid var(--border-strong); border-radius:6px;
+  padding:6px 8px; font-size:12px; min-width:0;
+}
 
 /* books */
 .books-container{ max-width:640px; margin:0 auto; }
