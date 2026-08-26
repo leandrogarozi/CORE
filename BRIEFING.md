@@ -49,8 +49,21 @@ de feature flags que já existe pra água/dieta/sono/humor
 
 - Estados: **Para ler** → **Lendo** → **Finalizado** (`BooksView.tsx`,
   tabela `books`). Cada livro tem título editável, seletor de estado, e
-  um ícone de comentário (mesmo `CommentButton` da dieta/humor) pra
-  resumo/insights.
+  um ícone de comentário pra resumo/insights.
+- **Redesign (pedido do Leandro, referência ClickUp)**: era 3 seções
+  separadas em cards grandes — trocado por **uma lista única**, contida
+  (largura máx. 640px, não estica a tela toda — mesma lógica dos blocos
+  de referência tipo Hábitos/dieta), agrupada por status com cabeçalhos
+  recolhíveis estilo ClickUp (pill colorida + contagem, ex. "LENDO 3"),
+  separados por linhas finas e simples em vez de cards com borda.
+- **Cores de status** (decisão explícita do Leandro): 🟢 verde =
+  Finalizado (lido), 🟠 laranja = Para ler, 🟡 amarelo = Lendo. Aplicado
+  tanto na pill do cabeçalho de grupo quanto no seletor de status de
+  cada linha (substituiu o `<select>` nativo por um pill colorido com
+  dropdown, no mesmo padrão do `StatusPicker` de tarefas).
+- O campo de insights abre como uma "folha de documento" — modal maior
+  (não mais popover pequeno) com textarea espaçosa, pensado pra escrever
+  resumos de verdade, não só uma nota rápida.
 - **Pendente**: o resumo/insights ainda não vira conteúdo de
   "inspiração" em nenhum outro lugar do painel — por enquanto só fica
   guardado no livro. Puxar isso pro dashboard/home é trabalho futuro,

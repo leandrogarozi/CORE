@@ -117,10 +117,18 @@ export interface ActiveTimer {
 
 export type BookStatus = "para_ler" | "lendo" | "finalizado";
 
+export const BOOK_STATUS_ORDER: BookStatus[] = ["lendo", "para_ler", "finalizado"];
+
 export const BOOK_STATUS_LABEL: Record<BookStatus, string> = {
   para_ler: "Para ler",
   lendo: "Lendo",
   finalizado: "Finalizado",
+};
+
+export const BOOK_STATUS_COLOR: Record<BookStatus, string> = {
+  para_ler: "var(--book-orange)",
+  lendo: "var(--book-yellow)",
+  finalizado: "var(--success)",
 };
 
 export interface Book {
