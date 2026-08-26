@@ -778,6 +778,7 @@ export function useBoard(userId: string | null) {
         sleptAt: null,
         wokeAt: null,
         mood: null,
+        moodNote: null,
       };
       const merged: DailyLog = { ...current, ...patch };
       apply((s) => ({ ...s, dailyLogs: { ...s.dailyLogs, [logDate]: merged } }));
@@ -793,6 +794,7 @@ export function useBoard(userId: string | null) {
             slept_at: merged.sleptAt,
             woke_at: merged.wokeAt,
             mood: merged.mood,
+            mood_note: merged.moodNote,
           },
           { onConflict: "user_id,log_date" }
         )

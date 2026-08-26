@@ -101,6 +101,11 @@ export interface DailyLog {
   sleptAt: string | null; // "HH:MM"
   wokeAt: string | null; // "HH:MM"
   mood: number | null; // 1-5
+  // Free-text "why do you feel this way" the user can attach when picking a mood.
+  // Kept around (not just the number) as raw material for the future mood
+  // panel: recurring-thought / trigger detection, motivational phrases, and
+  // correlating mood swings against routine data to spot gaps.
+  moodNote: string | null;
 }
 
 export interface ActiveTimer {

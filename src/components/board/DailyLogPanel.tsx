@@ -8,11 +8,11 @@ import { isFeatureEnabled } from "@/lib/types";
 const WATER_STEPS = [200, 500];
 
 const MOODS = [
-  { v: 1, emoji: "😞", label: "Muito mal" },
-  { v: 2, emoji: "😕", label: "Mal" },
+  { v: 1, emoji: "😞", label: "Péssimo" },
+  { v: 2, emoji: "😕", label: "Ruim" },
   { v: 3, emoji: "😐", label: "Neutro" },
-  { v: 4, emoji: "🙂", label: "Bem" },
-  { v: 5, emoji: "😄", label: "Muito bem" },
+  { v: 4, emoji: "🙂", label: "Bom" },
+  { v: 5, emoji: "😄", label: "Ótimo" },
 ];
 
 export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
@@ -29,10 +29,12 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
   const sleptAt = log?.sleptAt ?? "";
   const wokeAt = log?.wokeAt ?? "";
   const mood = log?.mood ?? null;
+  const moodNote = log?.moodNote ?? "";
   const goalMl = board.state.settings.waterGoalMl || 2000;
   const pct = goalMl > 0 ? Math.min(100, (waterMl / goalMl) * 100) : 0;
   const [dietInput, setDietInput] = useState<string | null>(null);
   const [dietNoteInput, setDietNoteInput] = useState<string | null>(null);
+  const [moodNoteInput, setMoodNoteInput] = useState<string | null>(null);
   const isToday = selectedDate === todayISO();
   const label = isToday ? "hoje" : selectedDate;
 
@@ -47,7 +49,14 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
   if (!waterOn && !dietOn && !sleepOn && !moodOn) return null;
 
   function setMood(v: number) {
-    board.updateDailyLog(selectedDate, { mood: mood === v ? null : v });
+    const next = mood === v ? null : v;
+    board.updateDailyLog(selectedDate, next === null ? { mood: null, moodNote: null } : { mood: next });
+  }
+
+  function commitMoodNote() {
+    if (moodNoteInput === null) return;
+    board.updateDailyLog(selectedDate, { moodNote: moodNoteInput.trim() || null });
+    setMoodNoteInput(null);
   }
 
   function addWater(ml: number) {
@@ -170,14 +179,25 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
                   key={m.v}
                   type="button"
                   className={"dl-mood-btn" + (mood === m.v ? " active" : "")}
-                  title={m.label}
                   aria-label={m.label}
                   onClick={() => setMood(m.v)}
                 >
-                  {m.emoji}
+                  <span className="dl-mood-emoji">{m.emoji}</span>
+                  <span className="dl-mood-name">{m.label}</span>
                 </button>
               ))}
             </div>
+            {mood !== null && (
+              <input
+                type="text"
+                className="dl-note-input dl-mood-note"
+                placeholder="Quer comentar por que está se sentindo assim? (opcional)"
+                value={moodNoteInput ?? moodNote}
+                onChange={(e) => setMoodNoteInput(e.target.value)}
+                onBlur={commitMoodNote}
+                onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+              />
+            )}
           </div>
         )}
       </div>

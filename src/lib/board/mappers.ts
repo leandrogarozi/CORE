@@ -200,6 +200,7 @@ export function rowToDailyLog(row: DailyLogRow): DailyLog {
     sleptAt: row.slept_at ? row.slept_at.slice(0, 5) : null,
     wokeAt: row.woke_at ? row.woke_at.slice(0, 5) : null,
     mood: row.mood,
+    moodNote: row.mood_note,
   };
 }
 

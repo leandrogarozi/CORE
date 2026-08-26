@@ -61,12 +61,14 @@ function DayLogPopover({
   anchorRect,
   initialMinutes,
   initialNote,
+  showNote,
   onSave,
   onCancel,
 }: {
   anchorRect: DOMRect;
   initialMinutes: number;
   initialNote: string;
+  showNote: boolean;
   onSave: (minutes: number, note: string) => void;
   onCancel: () => void;
 }) {
@@ -106,19 +108,21 @@ function DayLogPopover({
           }}
         />
       </label>
-      <label className="edit-field">
-        <span className="edit-field-label">Nota (opcional)</span>
-        <input
-          type="text"
-          placeholder="ex.: praia, filme..."
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") commit();
-            else if (e.key === "Escape") onCancel();
-          }}
-        />
-      </label>
+      {showNote && (
+        <label className="edit-field">
+          <span className="edit-field-label">Nota (opcional)</span>
+          <input
+            type="text"
+            placeholder="ex.: praia, filme..."
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") commit();
+              else if (e.key === "Escape") onCancel();
+            }}
+          />
+        </label>
+      )}
       <div className="edit-actions">
         <button type="button" className="btn btn-ghost" onClick={onCancel}>
           Cancelar
@@ -204,6 +208,7 @@ function RecurringRow({ kind, item, weekAnchor }: { kind: Kind; item: RecurringI
             item.logs[dayEditor.iso] ? Math.round(item.logs[dayEditor.iso].trackedSeconds / 60) : item.durationMin || 0
           }
           initialNote={item.logs[dayEditor.iso]?.note || ""}
+          showNote={kind === "block"}
           onSave={(minutes, note) => {
             board.commitRecurringDay(kind, item.id, dayEditor.iso, minutes, note);
             setDayEditor(null);
