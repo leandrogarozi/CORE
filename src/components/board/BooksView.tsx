@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
-import { BookSolidIcon, ChevronIcon, CommentIcon, TrashIcon } from "./icons";
+import { BookSolidIcon, ChevronIcon, CommentIcon, TrashIcon, WeekIcon } from "./icons";
+import { dateFromISO, MONTH_NAMES } from "@/lib/date-utils";
 import {
   BOOK_GROUP_LABEL,
   BOOK_STATUS_COLOR,
@@ -12,6 +13,87 @@ import {
   type Book,
   type BookStatus,
 } from "@/lib/types";
+
+function fmtShortDate(iso: string): string {
+  const d = dateFromISO(iso);
+  return `${d.getDate()} ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function BookStartDateButton({ book }: { book: Book }) {
+  const { board } = useBoardCtx();
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(book.startedAt ?? "");
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const popRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDocPointerDown(e: MouseEvent) {
+      if (popRef.current?.contains(e.target as Node) || btnRef.current?.contains(e.target as Node)) return;
+      setOpen(false);
+    }
+    window.addEventListener("mousedown", onDocPointerDown);
+    return () => window.removeEventListener("mousedown", onDocPointerDown);
+  }, [open]);
+
+  function toggleOpen(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (!open) {
+      setDraft(book.startedAt ?? "");
+      if (btnRef.current) {
+        const r = btnRef.current.getBoundingClientRect();
+        setPos({ top: r.bottom + 4, left: r.left });
+      }
+    }
+    setOpen((v) => !v);
+  }
+
+  function save() {
+    board.updateBook(book.id, { startedAt: draft || null });
+    setOpen(false);
+  }
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        className={"book-date-btn" + (book.startedAt ? " has-date" : "")}
+        title={book.startedAt ? `Início: ${fmtShortDate(book.startedAt)}` : "Definir data de início"}
+        onClick={toggleOpen}
+      >
+        <WeekIcon />
+        {book.startedAt && <span>{fmtShortDate(book.startedAt)}</span>}
+      </button>
+      {open &&
+        pos &&
+        createPortal(
+          <div className="daylog-popover" ref={popRef} style={{ top: pos.top, left: pos.left }}>
+            <input
+              type="date"
+              autoFocus
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") save();
+                else if (e.key === "Escape") setOpen(false);
+              }}
+            />
+            <div className="edit-actions">
+              <button type="button" className="btn btn-ghost" onClick={() => setOpen(false)}>
+                Cancelar
+              </button>
+              <button type="button" className="btn btn-accent" onClick={save}>
+                Salvar
+              </button>
+            </div>
+          </div>,
+          document.body
+        )}
+    </>
+  );
+}
 
 function BookStatusPicker({ book }: { book: Book }) {
   const { board } = useBoardCtx();
@@ -155,15 +237,7 @@ function BookRow({ book }: { book: Book }) {
         onBlur={commitTitle}
         onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
       />
-      {book.status === "lendo" && (
-        <input
-          type="date"
-          className="book-date-input"
-          title="Data de início"
-          value={book.startedAt ?? ""}
-          onChange={(e) => board.updateBook(book.id, { startedAt: e.target.value || null })}
-        />
-      )}
+      {book.status === "lendo" && <BookStartDateButton book={book} />}
       <BookStatusPicker book={book} />
       <BookInsightsButton book={book} />
       <button
