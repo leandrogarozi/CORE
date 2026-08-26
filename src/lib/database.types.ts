@@ -41,7 +41,6 @@ export type Database = {
       books: {
         Row: {
           created_at: string
-          finished_year: number | null
           id: string
           insights: string | null
           started_at: string | null
@@ -51,7 +50,6 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          finished_year?: number | null
           id?: string
           insights?: string | null
           started_at?: string | null
@@ -61,7 +59,6 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          finished_year?: number | null
           id?: string
           insights?: string | null
           started_at?: string | null

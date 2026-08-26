@@ -235,7 +235,6 @@ export function rowToBook(row: BookRow): Book {
     status: row.status as BookStatus,
     insights: row.insights,
     startedAt: row.started_at,
-    finishedYear: row.finished_year,
   };
 }
 
@@ -247,7 +246,6 @@ export function bookToInsertRow(b: Book, userId: string): TablesInsert<"books"> 
     status: b.status,
     insights: b.insights,
     started_at: b.startedAt,
-    finished_year: b.finishedYear,
   };
 }
 
@@ -257,6 +255,5 @@ export function bookToUpdateRow(b: Partial<Book>): TablesUpdate<"books"> {
   if (b.status !== undefined) row.status = b.status;
   if (b.insights !== undefined) row.insights = b.insights;
   if (b.startedAt !== undefined) row.started_at = b.startedAt;
-  if (b.finishedYear !== undefined) row.finished_year = b.finishedYear;
   return row;
 }
