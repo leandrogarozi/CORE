@@ -73,9 +73,35 @@ a{ color:inherit; }
 .auth-forgot:disabled{ opacity:0.6; cursor:default; }
 
 /* top bar */
-.topbar{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:16px; }
-.brand{ font-weight:700; font-size:16px; letter-spacing:-0.01em; }
+.topbar{ display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+.brand{ font-weight:700; font-size:16px; letter-spacing:-0.01em; flex:1; }
 .topbar-right{ display:flex; align-items:center; gap:12px; }
+.menu-btn{ flex:none; }
+
+/* sidebar */
+.sidebar-backdrop{
+  position:fixed; inset:0; background:rgba(10,10,14,0.4); z-index:60;
+  opacity:0; pointer-events:none; transition:opacity 0.2s ease;
+}
+.sidebar-backdrop.open{ opacity:1; pointer-events:auto; }
+.sidebar{
+  position:fixed; top:0; left:0; bottom:0; width:240px; max-width:80vw;
+  background:var(--surface); border-right:1px solid var(--border); z-index:61;
+  transform:translateX(-100%); transition:transform 0.2s ease;
+  display:flex; flex-direction:column; padding:16px 10px; box-shadow:var(--shadow);
+}
+.sidebar.open{ transform:translateX(0); }
+.sidebar-brand{ font-weight:700; font-size:16px; letter-spacing:-0.01em; padding:4px 10px 16px; }
+.sidebar-section{ display:flex; flex-direction:column; gap:2px; }
+.sidebar-section-label{ font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-faint); padding:14px 10px 4px; }
+.sidebar-item{
+  display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px;
+  font-size:13px; color:var(--text-muted); text-align:left; width:100%;
+}
+.sidebar-item:hover{ background:var(--surface-2); color:var(--text); }
+.sidebar-item.active{ background:var(--accent-soft); color:var(--accent); font-weight:600; }
+.sidebar-item.disabled{ color:var(--text-faint); opacity:0.55; cursor:default; }
+.sidebar-section-bottom{ margin-top:auto; padding-top:12px; border-top:1px solid var(--border); }
 .today-date{ font-size:12.5px; color:var(--text-faint); }
 .icon-btn{ color:var(--text-faint); padding:2px; line-height:1; display:inline-flex; align-items:center; justify-content:center; }
 .icon-btn:hover{ color:var(--text); }

@@ -12,16 +12,25 @@ import { RecurringSection } from "./RecurringSection";
 import { SettingsView } from "./SettingsView";
 import { ScopeModal } from "./ScopeModal";
 import { ActiveTimerBadge } from "./TimerButton";
-import { SettingsIcon } from "./icons";
+import { Sidebar, type ViewMode } from "./Sidebar";
+import { MenuIcon, SettingsIcon } from "./icons";
 import { longLabel, mondayOf, todayISO } from "@/lib/date-utils";
-
-type ViewMode = "day" | "week" | "dashboard" | "settings";
 
 function BoardShell() {
   const { board, sortByQuick, setSortByQuick } = useBoardCtx();
   const [viewMode, setViewMode] = useState<ViewMode>("day");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [weekAnchor, setWeekAnchor] = useState(() => mondayOf(new Date()));
   const [selectedDate, setSelectedDate] = useState(() => todayISO());
+
+  function selectView(mode: ViewMode) {
+    if (mode === "day") {
+      setWeekAnchor(mondayOf(new Date()));
+      setSelectedDate(todayISO());
+    }
+    setViewMode(mode);
+    setSidebarOpen(false);
+  }
 
   const weekDatesISO = useMemo(() => {
     const from = new Date(weekAnchor);
@@ -40,7 +49,12 @@ function BoardShell() {
 
   return (
     <div className="wrap">
+      <Sidebar open={sidebarOpen} viewMode={viewMode} onSelect={selectView} onClose={() => setSidebarOpen(false)} />
+
       <div className="topbar">
+        <button className="icon-btn menu-btn" type="button" aria-label="Abrir menu" onClick={() => setSidebarOpen(true)}>
+          <MenuIcon />
+        </button>
         <div className="brand">FARO</div>
         <div className="topbar-right">
           <ActiveTimerBadge />

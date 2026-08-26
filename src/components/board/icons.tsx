@@ -91,6 +91,98 @@ export function ChevronIcon() {
   );
 }
 
+export function MenuIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="15" height="15">
+      <line x1="2" x2="14" y1="4" y2="4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <line x1="2" x2="14" y1="8" y2="8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <line x1="2" x2="14" y1="12" y2="12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function HomeIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+      <path d="M2 7.3L8 2.3L14 7.3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M3.5 6.3V13H12.5V6.3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M6.3 13V9.3H9.7V13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function WeekIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+      <rect x="2" y="3" width="12" height="10.5" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+      <line x1="2" x2="14" y1="6" y2="6" stroke="currentColor" strokeWidth="1.3" />
+      <line x1="5" x2="5" y1="1.7" y2="4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      <line x1="11" x2="11" y1="1.7" y2="4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function ChartIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+      <rect x="2.3" y="8.5" width="3" height="5" rx="0.6" stroke="currentColor" strokeWidth="1.3" />
+      <rect x="6.5" y="4.5" width="3" height="9" rx="0.6" stroke="currentColor" strokeWidth="1.3" />
+      <rect x="10.7" y="2" width="3" height="11.5" rx="0.6" stroke="currentColor" strokeWidth="1.3" />
+    </svg>
+  );
+}
+
+export function BookIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+      <path
+        d="M2.5 3C2.5 2.4 3 2 3.6 2H7.5V13.3H3.6C3 13.3 2.5 12.9 2.5 12.3V3Z"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M13.5 3C13.5 2.4 13 2 12.4 2H8.5V13.3H12.4C13 13.3 13.5 12.9 13.5 12.3V3Z"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function PillIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+      <rect
+        x="2.3"
+        y="6.3"
+        width="11.4"
+        height="5"
+        rx="2.5"
+        transform="rotate(-45 8 8.8)"
+        stroke="currentColor"
+        strokeWidth="1.3"
+      />
+      <line x1="7.1" y1="6.1" x2="9.6" y2="8.6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function BellIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+      <path
+        d="M4 6.5C4 4.3 5.6 2.5 8 2.5C10.4 2.5 12 4.3 12 6.5C12 10 13 10.7 13 11.2H3C3 10.7 4 10 4 6.5Z"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+      <path d="M6.3 13C6.5 13.6 7.1 14 8 14C8.9 14 9.5 13.6 9.7 13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function SettingsIcon() {
   return (
     <svg viewBox="0 0 16 16" width="15" height="15">
