@@ -53,7 +53,7 @@ export function FaroMascot() {
           fill
           sizes="64px"
           priority
-          style={{ objectFit: "cover", objectPosition: "50% 32%" }}
+          style={{ objectFit: "contain", objectPosition: "50% 30%" }}
         />
       </button>
     </div>
