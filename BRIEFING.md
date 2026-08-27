@@ -49,16 +49,18 @@ por dificuldade:
     reabre/fecha o balão manualmente a qualquer momento.
   - **Visual**: Leandro pediu um cachorro-robô, animado (a ideia é
     reforçar "isso é IA"). Trocado o emoji placeholder por um SVG
-    próprio (`FaroDogIcon` dentro de `FaroMascot.tsx`) — corpo/cabeça/
-    orelhas/rabo em silhueta sólida (mesmo estilo dos outros ícones do
-    app), com antena e luz piscante no topo (detalhe "robótico"). Tem
-    animação em CSS: flutua devagar, pisca os olhos de vez em quando,
-    balança o rabo, e a luz da antena pulsa — tudo só com
-    `@keyframes`, sem depender de imagem/GIF/lib externa (respeita
-    `prefers-reduced-motion`). Ainda é uma ilustração simples feita
-    por código, não arte de verdade — se o Leandro quiser algo mais
-    trabalhado visualmente (ilustração desenhada, animação mais rica),
-    é um passo futuro à parte.
+    próprio (`FaroDogIcon` dentro de `FaroMascot.tsx`). Primeira
+    versão tinha corpo inteiro + rabo; Leandro mandou referências de
+    brinquedos de cachorro-robô (cabeça só, orelhas pontudas tipo
+    antena, olhos grandes e brilhantes) e redesenhamos pra ficar só a
+    **cabeça**: duas orelhas/antenas pontudas com luz piscante na
+    ponta, olhos grandes em âmbar que piscam. Tem animação em CSS:
+    flutua devagar, pisca os olhos de vez em quando, e as luzes das
+    antenas pulsam — tudo só com `@keyframes`, sem depender de imagem/
+    GIF/lib externa (respeita `prefers-reduced-motion`). Ainda é uma
+    ilustração simples feita por código, não arte de verdade — se o
+    Leandro quiser algo mais trabalhado visualmente (ilustração
+    desenhada, animação mais rica), é um passo futuro à parte.
 - **Fase 2 — conversa de verdade (ainda não implementado)**: clicar no
   FARO permite perguntar/pedir coisas em linguagem natural, ex.:
   "Faro, cruza os dados pra mim, como tenho produzido esse mês?" ou
