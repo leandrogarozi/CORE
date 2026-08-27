@@ -336,7 +336,14 @@ de feature flags que já existe pra água/dieta/sono/humor
 - [x] Status de tarefa customizável
 - [x] Lista de lembretes — specs acima, implementado (tela própria +
       bloco no Painel do dia)
-- [ ] Lista de medicação — sem spec ainda
+- [ ] Lista de medicação — spec capturada acima (lembrete de horário,
+      ativo/inativo, duração em dias), aguardando confirmação pra
+      começar a implementar
+- [ ] Checklist de viagem — ideia do Leandro (27/08), ainda sem spec de
+      implementação. Ajudar a organizar mala/o que levar antes de
+      viajar — provavelmente um checklist reutilizável (itens marcáveis
+      que resetam a cada viagem nova, ou modelos/templates por tipo de
+      viagem). Definir formato quando for a vez.
 - [x] Livros lidos + insights — feito; falta só a parte de virar
       "conteúdo de inspiração" em outro lugar do painel (ver acima)
 - [x] Cadastro de tipos de lazer — cada bloco fixo tem uma lista própria de
