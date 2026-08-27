@@ -6,9 +6,12 @@ import {
   bookToInsertRow,
   bookToUpdateRow,
   buildRecurring,
+  reminderToInsertRow,
+  reminderToUpdateRow,
   rowToActiveTimer,
   rowToBook,
   rowToDailyLog,
+  rowToReminder,
   rowToSeries,
   rowToSettings,
   rowToTask,
@@ -32,6 +35,7 @@ import type {
   Priority,
   Repeat,
   RecurringItem,
+  Reminder,
   ScopeChoice,
   Settings,
   Task,
@@ -48,6 +52,7 @@ const EMPTY_STATE: BoardState = {
   taskSeries: [],
   taskStatuses: [],
   books: [],
+  reminders: [],
   settings: { tagColors: DEFAULT_TAG_COLORS, dailyBudgetHours: 12, waterGoalMl: 2000, featureFlags: {} },
   activeTimer: null,
   dailyLogs: {},
@@ -98,6 +103,7 @@ export function useBoard(userId: string | null) {
       seriesRes,
       taskStatusesRes,
       booksRes,
+      remindersRes,
       settingsRes,
       timerRes,
       dailyLogsRes,
@@ -111,6 +117,7 @@ export function useBoard(userId: string | null) {
       supabase.from("task_series").select("*"),
       supabase.from("task_statuses").select("*").order("sort_order"),
       supabase.from("books").select("*").order("created_at"),
+      supabase.from("reminders").select("*").order("created_at"),
       supabase.from("settings").select("*").maybeSingle(),
       supabase.from("active_timer").select("*").maybeSingle(),
       supabase.from("daily_logs").select("*"),
@@ -128,6 +135,7 @@ export function useBoard(userId: string | null) {
       taskSeries: (seriesRes.data ?? []).map(rowToSeries),
       taskStatuses: (taskStatusesRes.data ?? []).map(rowToTaskStatus),
       books: (booksRes.data ?? []).map(rowToBook),
+      reminders: (remindersRes.data ?? []).map(rowToReminder),
       settings: rowToSettings(settingsRes.data ?? null),
       activeTimer: rowToActiveTimer(timerRes.data ?? null),
       dailyLogs,
@@ -592,6 +600,39 @@ export function useBoard(userId: string | null) {
     [apply, supabase]
   );
 
+  // ---------- reminders ----------
+  const addReminder = useCallback(
+    (title: string) => {
+      if (!userId || !title.trim()) return;
+      const r: Reminder = { id: uid(), title: title.trim(), date: null, repeat: "none", done: false };
+      apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
+      supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
+        if (error) console.error("addReminder", error);
+      });
+    },
+    [apply, supabase, userId]
+  );
+
+  const updateReminder = useCallback(
+    (id: string, patch: Partial<Pick<Reminder, "title" | "date" | "repeat" | "done">>) => {
+      apply((s) => ({ ...s, reminders: s.reminders.map((r) => (r.id === id ? { ...r, ...patch } : r)) }));
+      supabase.from("reminders").update(reminderToUpdateRow(patch)).eq("id", id).then(({ error }) => {
+        if (error) console.error("updateReminder", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  const deleteReminder = useCallback(
+    (id: string) => {
+      apply((s) => ({ ...s, reminders: s.reminders.filter((r) => r.id !== id) }));
+      supabase.from("reminders").delete().eq("id", id).then(({ error }) => {
+        if (error) console.error("deleteReminder", error);
+      });
+    },
+    [apply, supabase]
+  );
+
   // ---------- recurring (habits / fixed blocks) ----------
   const tableFor = (kind: "habit" | "block") => (kind === "habit" ? "habits" : "fixed_blocks");
   const listKeyFor = (kind: "habit" | "block"): "habits" | "fixedBlocks" =>
@@ -950,6 +991,9 @@ export function useBoard(userId: string | null) {
     addBook,
     updateBook,
     deleteBook,
+    addReminder,
+    updateReminder,
+    deleteReminder,
     addRecurring,
     updateRecurring,
     updateRecurringNoteOptions,

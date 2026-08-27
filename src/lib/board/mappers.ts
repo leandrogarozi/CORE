@@ -9,6 +9,7 @@ import type {
   Priority,
   Repeat,
   RecurringItem,
+  Reminder,
   Settings,
   Task,
   TaskSeries,
@@ -29,6 +30,7 @@ type SettingsRow = Tables<"settings">;
 type ActiveTimerRow = Tables<"active_timer">;
 type DailyLogRow = Tables<"daily_logs">;
 type BookRow = Tables<"books">;
+type ReminderRow = Tables<"reminders">;
 
 export function rowToTask(row: TaskRow): Task {
   return {
@@ -255,5 +257,35 @@ export function bookToUpdateRow(b: Partial<Book>): TablesUpdate<"books"> {
   if (b.status !== undefined) row.status = b.status;
   if (b.insights !== undefined) row.insights = b.insights;
   if (b.startedAt !== undefined) row.started_at = b.startedAt;
+  return row;
+}
+
+export function rowToReminder(row: ReminderRow): Reminder {
+  return {
+    id: row.id,
+    title: row.title,
+    date: row.remind_date,
+    repeat: (row.repeat as Repeat) ?? "none",
+    done: row.done,
+  };
+}
+
+export function reminderToInsertRow(r: Reminder, userId: string): TablesInsert<"reminders"> {
+  return {
+    id: r.id,
+    user_id: userId,
+    title: r.title,
+    remind_date: r.date,
+    repeat: r.repeat === "none" ? null : r.repeat,
+    done: r.done,
+  };
+}
+
+export function reminderToUpdateRow(r: Partial<Reminder>): TablesUpdate<"reminders"> {
+  const row: TablesUpdate<"reminders"> = {};
+  if (r.title !== undefined) row.title = r.title;
+  if (r.date !== undefined) row.remind_date = r.date;
+  if (r.repeat !== undefined) row.repeat = r.repeat === "none" ? null : r.repeat;
+  if (r.done !== undefined) row.done = r.done;
   return row;
 }

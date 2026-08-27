@@ -26,6 +26,11 @@ export function dateFromISO(iso: string): Date {
   return new Date(y, m - 1, d);
 }
 
+export function fmtShortDate(iso: string): string {
+  const d = dateFromISO(iso);
+  return `${d.getDate()} ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
+}
+
 export function mondayOf(date: Date): Date {
   const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   const day = d.getDay();

@@ -6,9 +6,8 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
 
 ## Próximos passos confirmados (retomar aqui)
 
-- [ ] **Lembretes** — Leandro confirmou seguir com o spec já capturado
-      abaixo (com/sem data, com/sem repetição; sync com Google Agenda
-      fica pra depois, item 🔴 separado). Pode começar a implementar.
+- [x] **Lembretes** — implementado seguindo o spec (ver seção própria
+      abaixo, dentro de "Especificações capturadas").
 - [x] **Pacote de ícones do Leandro** — recebido (442 SVGs do Figma,
       organizados em 14 pastas por categoria) e já aplicado. Guardado
       em `design/icon-pack/` no repo (fora do build, só como fonte pra
@@ -180,13 +179,24 @@ de feature flags que já existe pra água/dieta/sono/humor
 
 ### Lembretes
 
-- Com data ou sem data.
-- Com repetição ou sem repetição.
-- Opção futura de sincronizar com a agenda (Google Agenda — já é item 🔴
-  abaixo).
-- Leandro pediu explicitamente pra deixar esse item parado por enquanto
-  ("tenho que pensar com mais calma") — specs capturadas aqui, mas não
-  começar a implementar sem ele confirmar.
+- Implementado (`RemindersView.tsx`, tabela `reminders`), acessível pelo
+  menu lateral (junto de Livros).
+- Lista única com "+ Adicionar lembrete", cada item com: checkbox de
+  concluído (risca o texto), título editável, ícone de repetição
+  (quando tem), botão de data colapsável (mesmo padrão do
+  `BookStartDateButton`) e excluir. Pendentes e concluídos ficam em
+  cards separados (mesmo estilo dos grupos de Livros).
+- Data é opcional (`remind_date`, null = sem data). Repetição
+  (`repeat`: nenhuma/diária/semanal/mensal/anual — reaproveita o mesmo
+  tipo `Repeat` já usado nas tarefas) só fica disponível quando existe
+  uma data definida, já que repetir precisa de uma âncora — sem data,
+  a repetição é sempre "nenhuma".
+- Repetição por enquanto é só metadado (mostra o ícone, não gera
+  múltiplas ocorrências futuras automaticamente) — isso e a sincronia
+  com o Google Agenda (item 🔴 abaixo) ficam pra uma fase 2.
+- Classes CSS dos cards (`.narrow-list`, `.list-quickadd-card`,
+  `.list-card`) foram generalizadas a partir das de Livros, pra dar
+  pra reusar em Medicamentos também quando chegar a vez.
 
 ## Decisões de design (visual)
 

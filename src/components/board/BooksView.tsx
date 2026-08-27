@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { BookIcon, BookmarkIcon, BookOpenIcon, ChevronIcon, CommentIcon, TrashIcon, WeekIcon } from "./icons";
-import { dateFromISO, MONTH_NAMES } from "@/lib/date-utils";
+import { fmtShortDate } from "@/lib/date-utils";
 import {
   BOOK_GROUP_LABEL,
   BOOK_STATUS_COLOR,
@@ -19,11 +19,6 @@ const BOOK_STATUS_ICON: Record<BookStatus, () => React.JSX.Element> = {
   lendo: BookOpenIcon,
   finalizado: BookIcon,
 };
-
-function fmtShortDate(iso: string): string {
-  const d = dateFromISO(iso);
-  return `${d.getDate()} ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
-}
 
 function BookStartDateButton({ book }: { book: Book }) {
   const { board } = useBoardCtx();
@@ -284,8 +279,8 @@ export function BooksView({ onBack }: { onBack: () => void }) {
         <span style={{ width: 30 }} />
       </div>
 
-      <div className="books-container">
-        <div className="book-quickadd-card">
+      <div className="narrow-list">
+        <div className="list-quickadd-card">
           <div className="quickadd-row">
             <span className="quickadd-plus" aria-hidden="true">
               +
@@ -307,7 +302,7 @@ export function BooksView({ onBack }: { onBack: () => void }) {
           const hasRows = !isCollapsed && books.length > 0;
           const GroupIcon = BOOK_STATUS_ICON[status];
           return (
-            <div key={status} className="book-group-card">
+            <div key={status} className="list-card">
               <button
                 type="button"
                 className={"book-group-head" + (hasRows ? " has-rows" : "")}

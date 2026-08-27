@@ -153,6 +153,14 @@ export interface Book {
   startedAt: string | null; // ISO date, "lendo": quando começou
 }
 
+export interface Reminder {
+  id: string;
+  title: string;
+  date: string | null; // ISO date, null = sem data
+  repeat: Repeat; // só faz sentido com date definido
+  done: boolean;
+}
+
 export interface BoardState {
   tasks: Task[];
   habits: RecurringItem[];
@@ -160,6 +168,7 @@ export interface BoardState {
   taskSeries: TaskSeries[];
   taskStatuses: TaskStatus[];
   books: Book[];
+  reminders: Reminder[];
   settings: Settings;
   activeTimer: ActiveTimer | null;
   dailyLogs: Record<string, DailyLog>; // iso date -> log

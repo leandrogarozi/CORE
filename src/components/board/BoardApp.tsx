@@ -13,6 +13,7 @@ import { DailyLogPanel } from "./DailyLogPanel";
 import { RecurringSection } from "./RecurringSection";
 import { SettingsView } from "./SettingsView";
 import { BooksView } from "./BooksView";
+import { RemindersView } from "./RemindersView";
 import { ScopeModal } from "./ScopeModal";
 import { FaroMascot } from "./FaroMascot";
 import { ActiveTimerBadge } from "./TimerButton";
@@ -112,6 +113,8 @@ function BoardShell() {
         <SettingsView onBack={() => setViewMode("day")} />
       ) : viewMode === "books" ? (
         <BooksView onBack={() => setViewMode("day")} />
+      ) : viewMode === "reminders" ? (
+        <RemindersView onBack={() => setViewMode("day")} />
       ) : viewMode === "calendar" ? (
         <CalendarView onBack={() => setViewMode("day")} onSelectWeek={() => setViewMode("week")} onSelectDay={goToDate} />
       ) : (

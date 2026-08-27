@@ -281,6 +281,36 @@ export type Database = {
         }
         Relationships: []
       }
+      reminders: {
+        Row: {
+          created_at: string
+          done: boolean
+          id: string
+          remind_date: string | null
+          repeat: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          done?: boolean
+          id?: string
+          remind_date?: string | null
+          repeat?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          done?: boolean
+          id?: string
+          remind_date?: string | null
+          repeat?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       settings: {
         Row: {
           daily_budget_hours: number
