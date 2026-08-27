@@ -410,6 +410,21 @@ de feature flags que já existe pra água/dieta/sono/humor
         2) o nome certo pra chamar o Leandro, em vez de só "Leandro"
         fixo no código. Isso ainda não está conectado a nada de IA —
         por enquanto só guarda o dado.
+      - **Atalho de acesso rápido (27/08)**: pedido do Leandro depois de
+        ver o Perfil pronto — em vez de precisar entrar em
+        Configurações inteira só pra editar a foto/nome, ganhou um
+        bolinha própria com a foto (ou `UserIcon` se ainda não tem
+        foto) do lado do ícone de engrenagem, na topbar. Clicar nela
+        abre a `ProfileView` — uma tela dedicada, só com os 3 campos
+        do Perfil, sem o resto de Configurações junto. Os campos
+        (`AvatarUploader` + inputs) foram extraídos pra
+        `ProfileFields.tsx`, reaproveitado tanto pela tela dedicada
+        quanto por qualquer coisa futura que precise deles; a caixa
+        "Perfil" que existia dentro de Configurações foi removida (fica
+        só nesse atalho agora, pra não duplicar o mesmo formulário em
+        dois lugares). Combinado com o Leandro: "mais adiante podemos
+        melhorar lá com outras opções e ir enriquecendo" — ou seja,
+        essa tela de Perfil é o lugar certo pra crescer no futuro.
 - [x] Livros lidos + insights — feito; falta só a parte de virar
       "conteúdo de inspiração" em outro lugar do painel (ver acima)
 - [x] Cadastro de tipos de lazer — cada bloco fixo tem uma lista própria de

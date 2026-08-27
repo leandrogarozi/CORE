@@ -134,6 +134,15 @@ a{ color:inherit; }
 .icon-btn:hover{ color:var(--text); }
 .icon-btn.danger-hover:hover{ color:var(--danger); }
 .icon-btn.active{ color:var(--accent); }
+.profile-avatar-nav-btn{
+  position:relative; flex:none; width:26px; height:26px; border-radius:50%; overflow:hidden;
+  background:var(--surface-2); border:1px solid var(--border-strong); color:var(--text-faint);
+  display:flex; align-items:center; justify-content:center;
+}
+.profile-avatar-nav-btn svg{ width:15px; height:15px; }
+.profile-avatar-nav-btn:hover{ border-color:var(--accent); color:var(--accent); }
+.profile-avatar-nav-btn.active{ border-color:var(--accent); color:var(--accent); }
+.profile-avatar-nav-img{ object-fit:cover; }
 .active-timer-badge{
   display:flex; align-items:center; gap:7px;
   background:var(--accent-soft); color:var(--accent);

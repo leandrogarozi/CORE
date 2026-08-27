@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { BoardProvider, useBoardCtx } from "./board-context";
 import { DayStrip } from "./DayStrip";
@@ -18,8 +19,9 @@ import { MedicationsView } from "./MedicationsView";
 import { ScopeModal } from "./ScopeModal";
 import { FaroMascot } from "./FaroMascot";
 import { ActiveTimerBadge } from "./TimerButton";
+import { ProfileView } from "./ProfileView";
 import { Sidebar, type ViewMode } from "./Sidebar";
-import { MenuIcon, SettingsIcon, WeekIcon } from "./icons";
+import { MenuIcon, SettingsIcon, UserIcon, WeekIcon } from "./icons";
 import { dateFromISO, longLabel, mondayOf, todayISO } from "@/lib/date-utils";
 import type { Task } from "@/lib/types";
 
@@ -105,6 +107,19 @@ function BoardShell() {
           >
             <SettingsIcon />
           </button>
+          <button
+            className={"profile-avatar-nav-btn" + (viewMode === "profile" ? " active" : "")}
+            type="button"
+            aria-label="Perfil"
+            title="Perfil"
+            onClick={() => setViewMode(viewMode === "profile" ? "day" : "profile")}
+          >
+            {board.state.settings.avatarUrl ? (
+              <Image src={board.state.settings.avatarUrl} alt="" fill sizes="26px" className="profile-avatar-nav-img" />
+            ) : (
+              <UserIcon />
+            )}
+          </button>
         </div>
       </div>
 
@@ -112,6 +127,8 @@ function BoardShell() {
 
       {viewMode === "settings" ? (
         <SettingsView onBack={() => setViewMode("day")} />
+      ) : viewMode === "profile" ? (
+        <ProfileView onBack={() => setViewMode("day")} />
       ) : viewMode === "books" ? (
         <BooksView onBack={() => setViewMode("day")} />
       ) : viewMode === "reminders" ? (

@@ -3,7 +3,16 @@
 import { useEffect } from "react";
 import { BellIcon, BookIcon, ChartIcon, HomeIcon, PillIcon, SettingsIcon, WeekIcon } from "./icons";
 
-export type ViewMode = "day" | "week" | "dashboard" | "settings" | "books" | "calendar" | "reminders" | "medications";
+export type ViewMode =
+  | "day"
+  | "week"
+  | "dashboard"
+  | "settings"
+  | "profile"
+  | "books"
+  | "calendar"
+  | "reminders"
+  | "medications";
 
 export function Sidebar({
   open,
