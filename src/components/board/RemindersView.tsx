@@ -27,6 +27,7 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
   const { board } = useBoardCtx();
   const [open, setOpen] = useState(false);
   const [dateDraft, setDateDraft] = useState(reminder.date ?? "");
+  const [timeDraft, setTimeDraft] = useState(reminder.time ?? "");
   const [repeatDraft, setRepeatDraft] = useState<Repeat>(reminder.repeat);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -46,6 +47,7 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
     e.stopPropagation();
     if (!open) {
       setDateDraft(reminder.date ?? "");
+      setTimeDraft(reminder.time ?? "");
       setRepeatDraft(reminder.repeat);
       if (btnRef.current) {
         const r = btnRef.current.getBoundingClientRect();
@@ -57,12 +59,18 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
 
   function save() {
     const nextDate = dateDraft || null;
-    board.updateReminder(reminder.id, { date: nextDate, repeat: nextDate ? repeatDraft : "none" });
+    board.updateReminder(reminder.id, {
+      date: nextDate,
+      time: nextDate ? timeDraft || null : null,
+      repeat: nextDate ? repeatDraft : "none",
+    });
     setOpen(false);
   }
 
   const label = reminder.date
-    ? fmtShortDate(reminder.date) + (reminder.repeat !== "none" ? ` · ${REPEAT_SHORT[reminder.repeat]}` : "")
+    ? fmtShortDate(reminder.date) +
+      (reminder.time ? ` às ${reminder.time}` : "") +
+      (reminder.repeat !== "none" ? ` · ${REPEAT_SHORT[reminder.repeat]}` : "")
     : null;
 
   return (
@@ -86,6 +94,13 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
               autoFocus
               value={dateDraft}
               onChange={(e) => setDateDraft(e.target.value)}
+              onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
+            />
+            <input
+              type="time"
+              value={timeDraft}
+              disabled={!dateDraft}
+              onChange={(e) => setTimeDraft(e.target.value)}
               onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
             />
             <select
@@ -185,6 +200,9 @@ export function RemindersButton({ onOpenFull }: { onOpenFull: () => void }) {
     if (!open) return;
     function onDocPointerDown(e: MouseEvent) {
       if (popRef.current?.contains(e.target as Node) || btnRef.current?.contains(e.target as Node)) return;
+      // Ignora cliques dentro de popovers filhos (ex.: o seletor de data de um lembrete),
+      // que são portais próprios pra document.body e não ficam "dentro" de popRef no DOM.
+      if ((e.target as HTMLElement).closest?.(".daylog-popover")) return;
       setOpen(false);
     }
     window.addEventListener("mousedown", onDocPointerDown);

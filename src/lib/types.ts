@@ -157,6 +157,7 @@ export interface Reminder {
   id: string;
   title: string;
   date: string | null; // ISO date, null = sem data
+  time: string | null; // "HH:MM", só faz sentido com date definido
   repeat: Repeat; // só faz sentido com date definido
   done: boolean;
 }

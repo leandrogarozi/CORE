@@ -287,6 +287,7 @@ export type Database = {
           done: boolean
           id: string
           remind_date: string | null
+          remind_time: string | null
           repeat: string | null
           title: string
           user_id: string
@@ -296,6 +297,7 @@ export type Database = {
           done?: boolean
           id?: string
           remind_date?: string | null
+          remind_time?: string | null
           repeat?: string | null
           title: string
           user_id: string
@@ -305,6 +307,7 @@ export type Database = {
           done?: boolean
           id?: string
           remind_date?: string | null
+          remind_time?: string | null
           repeat?: string | null
           title?: string
           user_id?: string

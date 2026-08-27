@@ -265,6 +265,7 @@ export function rowToReminder(row: ReminderRow): Reminder {
     id: row.id,
     title: row.title,
     date: row.remind_date,
+    time: row.remind_time,
     repeat: (row.repeat as Repeat) ?? "none",
     done: row.done,
   };
@@ -276,6 +277,7 @@ export function reminderToInsertRow(r: Reminder, userId: string): TablesInsert<"
     user_id: userId,
     title: r.title,
     remind_date: r.date,
+    remind_time: r.time,
     repeat: r.repeat === "none" ? null : r.repeat,
     done: r.done,
   };
@@ -285,6 +287,7 @@ export function reminderToUpdateRow(r: Partial<Reminder>): TablesUpdate<"reminde
   const row: TablesUpdate<"reminders"> = {};
   if (r.title !== undefined) row.title = r.title;
   if (r.date !== undefined) row.remind_date = r.date;
+  if (r.time !== undefined) row.remind_time = r.time;
   if (r.repeat !== undefined) row.repeat = r.repeat === "none" ? null : r.repeat;
   if (r.done !== undefined) row.done = r.done;
   return row;

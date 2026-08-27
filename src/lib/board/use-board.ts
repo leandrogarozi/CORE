@@ -604,7 +604,7 @@ export function useBoard(userId: string | null) {
   const addReminder = useCallback(
     (title: string) => {
       if (!userId || !title.trim()) return;
-      const r: Reminder = { id: uid(), title: title.trim(), date: null, repeat: "none", done: false };
+      const r: Reminder = { id: uid(), title: title.trim(), date: null, time: null, repeat: "none", done: false };
       apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
       supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
         if (error) console.error("addReminder", error);
@@ -614,7 +614,7 @@ export function useBoard(userId: string | null) {
   );
 
   const updateReminder = useCallback(
-    (id: string, patch: Partial<Pick<Reminder, "title" | "date" | "repeat" | "done">>) => {
+    (id: string, patch: Partial<Pick<Reminder, "title" | "date" | "time" | "repeat" | "done">>) => {
       apply((s) => ({ ...s, reminders: s.reminders.map((r) => (r.id === id ? { ...r, ...patch } : r)) }));
       supabase.from("reminders").update(reminderToUpdateRow(patch)).eq("id", id).then(({ error }) => {
         if (error) console.error("updateReminder", error);

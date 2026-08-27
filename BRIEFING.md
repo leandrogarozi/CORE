@@ -194,11 +194,12 @@ de feature flags que já existe pra água/dieta/sono/humor
   (quando tem), botão de data colapsável (mesmo padrão do
   `BookStartDateButton`) e excluir. Pendentes e concluídos ficam em
   cards separados (mesmo estilo dos grupos de Livros).
-- Data é opcional (`remind_date`, null = sem data). Repetição
-  (`repeat`: nenhuma/diária/semanal/mensal/anual — reaproveita o mesmo
-  tipo `Repeat` já usado nas tarefas) só fica disponível quando existe
-  uma data definida, já que repetir precisa de uma âncora — sem data,
-  a repetição é sempre "nenhuma".
+- Data é opcional (`remind_date`, null = sem data). Horário
+  (`remind_time`, campo `<input type="time">`) e repetição (`repeat`:
+  nenhuma/diária/semanal/mensal/anual — reaproveita o mesmo tipo
+  `Repeat` já usado nas tarefas) só ficam disponíveis quando existe uma
+  data definida, já que os dois precisam de uma âncora — sem data, o
+  horário fica vazio e a repetição é sempre "nenhuma".
 - Repetição por enquanto é só metadado (mostra o ícone, não gera
   múltiplas ocorrências futuras automaticamente) — isso e a sincronia
   com o Google Agenda (item 🔴 abaixo) ficam pra uma fase 2.
