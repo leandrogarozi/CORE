@@ -7,6 +7,8 @@ import type {
   DailyLog,
   DayLog,
   Medication,
+  MedicationGroup,
+  MedicationTimeMode,
   Priority,
   Repeat,
   RecurringItem,
@@ -33,6 +35,7 @@ type DailyLogRow = Tables<"daily_logs">;
 type BookRow = Tables<"books">;
 type ReminderRow = Tables<"reminders">;
 type MedicationRow = Tables<"medications">;
+type MedicationGroupRow = Tables<"medication_groups">;
 
 export function rowToTask(row: TaskRow): Task {
   return {
@@ -298,8 +301,10 @@ export function reminderToUpdateRow(r: Partial<Reminder>): TablesUpdate<"reminde
 export function rowToMedication(row: MedicationRow): Medication {
   return {
     id: row.id,
+    groupId: row.group_id,
     name: row.name,
     time: row.med_time,
+    notes: row.notes,
     startDate: row.start_date,
     durationDays: row.duration_days,
     active: row.active,
@@ -310,8 +315,10 @@ export function medicationToInsertRow(m: Medication, userId: string): TablesInse
   return {
     id: m.id,
     user_id: userId,
+    group_id: m.groupId,
     name: m.name,
     med_time: m.time,
+    notes: m.notes,
     start_date: m.startDate,
     duration_days: m.durationDays,
     active: m.active,
@@ -320,10 +327,51 @@ export function medicationToInsertRow(m: Medication, userId: string): TablesInse
 
 export function medicationToUpdateRow(m: Partial<Medication>): TablesUpdate<"medications"> {
   const row: TablesUpdate<"medications"> = {};
+  if (m.groupId !== undefined) row.group_id = m.groupId;
   if (m.name !== undefined) row.name = m.name;
   if (m.time !== undefined) row.med_time = m.time;
+  if (m.notes !== undefined) row.notes = m.notes;
   if (m.startDate !== undefined) row.start_date = m.startDate;
   if (m.durationDays !== undefined) row.duration_days = m.durationDays;
   if (m.active !== undefined) row.active = m.active;
+  return row;
+}
+
+export function rowToMedicationGroup(row: MedicationGroupRow): MedicationGroup {
+  return {
+    id: row.id,
+    name: row.name,
+    notes: row.notes,
+    timeMode: (row.time_mode as MedicationTimeMode) ?? "shared",
+    sharedTime: row.shared_time,
+    startDate: row.start_date,
+    durationDays: row.duration_days,
+    active: row.active,
+  };
+}
+
+export function medicationGroupToInsertRow(g: MedicationGroup, userId: string): TablesInsert<"medication_groups"> {
+  return {
+    id: g.id,
+    user_id: userId,
+    name: g.name,
+    notes: g.notes,
+    time_mode: g.timeMode,
+    shared_time: g.sharedTime,
+    start_date: g.startDate,
+    duration_days: g.durationDays,
+    active: g.active,
+  };
+}
+
+export function medicationGroupToUpdateRow(g: Partial<MedicationGroup>): TablesUpdate<"medication_groups"> {
+  const row: TablesUpdate<"medication_groups"> = {};
+  if (g.name !== undefined) row.name = g.name;
+  if (g.notes !== undefined) row.notes = g.notes;
+  if (g.timeMode !== undefined) row.time_mode = g.timeMode;
+  if (g.sharedTime !== undefined) row.shared_time = g.sharedTime;
+  if (g.startDate !== undefined) row.start_date = g.startDate;
+  if (g.durationDays !== undefined) row.duration_days = g.durationDays;
+  if (g.active !== undefined) row.active = g.active;
   return row;
 }

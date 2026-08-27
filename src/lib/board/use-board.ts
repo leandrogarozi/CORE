@@ -6,6 +6,8 @@ import {
   bookToInsertRow,
   bookToUpdateRow,
   buildRecurring,
+  medicationGroupToInsertRow,
+  medicationGroupToUpdateRow,
   medicationToInsertRow,
   medicationToUpdateRow,
   reminderToInsertRow,
@@ -14,6 +16,7 @@ import {
   rowToBook,
   rowToDailyLog,
   rowToMedication,
+  rowToMedicationGroup,
   rowToReminder,
   rowToSeries,
   rowToSettings,
@@ -36,6 +39,7 @@ import type {
   DayLog,
   DayLogEntry,
   Medication,
+  MedicationGroup,
   Priority,
   Repeat,
   RecurringItem,
@@ -58,6 +62,7 @@ const EMPTY_STATE: BoardState = {
   books: [],
   reminders: [],
   medications: [],
+  medicationGroups: [],
   settings: { tagColors: DEFAULT_TAG_COLORS, dailyBudgetHours: 12, waterGoalMl: 2000, featureFlags: {} },
   activeTimer: null,
   dailyLogs: {},
@@ -110,6 +115,7 @@ export function useBoard(userId: string | null) {
       booksRes,
       remindersRes,
       medicationsRes,
+      medicationGroupsRes,
       settingsRes,
       timerRes,
       dailyLogsRes,
@@ -125,6 +131,7 @@ export function useBoard(userId: string | null) {
       supabase.from("books").select("*").order("created_at"),
       supabase.from("reminders").select("*").order("created_at"),
       supabase.from("medications").select("*").order("created_at"),
+      supabase.from("medication_groups").select("*").order("created_at"),
       supabase.from("settings").select("*").maybeSingle(),
       supabase.from("active_timer").select("*").maybeSingle(),
       supabase.from("daily_logs").select("*"),
@@ -144,22 +151,36 @@ export function useBoard(userId: string | null) {
       books: (booksRes.data ?? []).map(rowToBook),
       reminders: (remindersRes.data ?? []).map(rowToReminder),
       medications: (medicationsRes.data ?? []).map(rowToMedication),
+      medicationGroups: (medicationGroupsRes.data ?? []).map(rowToMedicationGroup),
       settings: rowToSettings(settingsRes.data ?? null),
       activeTimer: rowToActiveTimer(timerRes.data ?? null),
       dailyLogs,
     };
 
     const today = todayISO();
-    const expired = next.medications.filter(
-      (m) => m.active && m.startDate && m.durationDays && today >= isoAddDays(m.startDate, m.durationDays)
-    );
-    if (expired.length > 0) {
+    const isExpired = (startDate: string | null, durationDays: number | null) =>
+      !!startDate && !!durationDays && today >= isoAddDays(startDate, durationDays);
+
+    const expiredMeds = next.medications.filter((m) => m.active && isExpired(m.startDate, m.durationDays));
+    if (expiredMeds.length > 0) {
       next.medications = next.medications.map((m) =>
-        expired.some((e) => e.id === m.id) ? { ...m, active: false } : m
+        expiredMeds.some((e) => e.id === m.id) ? { ...m, active: false } : m
       );
-      expired.forEach((m) => {
+      expiredMeds.forEach((m) => {
         supabase.from("medications").update({ active: false }).eq("id", m.id).then(({ error }) => {
           if (error) console.error("auto-deactivate medication", error);
+        });
+      });
+    }
+
+    const expiredGroups = next.medicationGroups.filter((g) => g.active && isExpired(g.startDate, g.durationDays));
+    if (expiredGroups.length > 0) {
+      next.medicationGroups = next.medicationGroups.map((g) =>
+        expiredGroups.some((e) => e.id === g.id) ? { ...g, active: false } : g
+      );
+      expiredGroups.forEach((g) => {
+        supabase.from("medication_groups").update({ active: false }).eq("id", g.id).then(({ error }) => {
+          if (error) console.error("auto-deactivate medication group", error);
         });
       });
     }
@@ -656,9 +677,18 @@ export function useBoard(userId: string | null) {
 
   // ---------- medications ----------
   const addMedication = useCallback(
-    (name: string) => {
+    (name: string, groupId: string | null) => {
       if (!userId || !name.trim()) return;
-      const m: Medication = { id: uid(), name: name.trim(), time: null, startDate: null, durationDays: null, active: true };
+      const m: Medication = {
+        id: uid(),
+        groupId,
+        name: name.trim(),
+        time: null,
+        notes: null,
+        startDate: null,
+        durationDays: null,
+        active: true,
+      };
       apply((s) => ({ ...s, medications: [...s.medications, m] }));
       supabase.from("medications").insert(medicationToInsertRow(m, userId)).then(({ error }) => {
         if (error) console.error("addMedication", error);
@@ -668,7 +698,7 @@ export function useBoard(userId: string | null) {
   );
 
   const updateMedication = useCallback(
-    (id: string, patch: Partial<Pick<Medication, "name" | "time" | "startDate" | "durationDays" | "active">>) => {
+    (id: string, patch: Partial<Pick<Medication, "name" | "time" | "notes" | "startDate" | "durationDays" | "active">>) => {
       apply((s) => ({ ...s, medications: s.medications.map((m) => (m.id === id ? { ...m, ...patch } : m)) }));
       supabase.from("medications").update(medicationToUpdateRow(patch)).eq("id", id).then(({ error }) => {
         if (error) console.error("updateMedication", error);
@@ -682,6 +712,55 @@ export function useBoard(userId: string | null) {
       apply((s) => ({ ...s, medications: s.medications.filter((m) => m.id !== id) }));
       supabase.from("medications").delete().eq("id", id).then(({ error }) => {
         if (error) console.error("deleteMedication", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  // ---------- medication groups (tratamentos temporários) ----------
+  const addMedicationGroup = useCallback(
+    (name: string) => {
+      if (!userId || !name.trim()) return;
+      const g: MedicationGroup = {
+        id: uid(),
+        name: name.trim(),
+        notes: null,
+        timeMode: "shared",
+        sharedTime: null,
+        startDate: null,
+        durationDays: null,
+        active: true,
+      };
+      apply((s) => ({ ...s, medicationGroups: [...s.medicationGroups, g] }));
+      supabase.from("medication_groups").insert(medicationGroupToInsertRow(g, userId)).then(({ error }) => {
+        if (error) console.error("addMedicationGroup", error);
+      });
+    },
+    [apply, supabase, userId]
+  );
+
+  const updateMedicationGroup = useCallback(
+    (
+      id: string,
+      patch: Partial<Pick<MedicationGroup, "name" | "notes" | "timeMode" | "sharedTime" | "startDate" | "durationDays" | "active">>
+    ) => {
+      apply((s) => ({ ...s, medicationGroups: s.medicationGroups.map((g) => (g.id === id ? { ...g, ...patch } : g)) }));
+      supabase.from("medication_groups").update(medicationGroupToUpdateRow(patch)).eq("id", id).then(({ error }) => {
+        if (error) console.error("updateMedicationGroup", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  const deleteMedicationGroup = useCallback(
+    (id: string) => {
+      apply((s) => ({
+        ...s,
+        medicationGroups: s.medicationGroups.filter((g) => g.id !== id),
+        medications: s.medications.filter((m) => m.groupId !== id),
+      }));
+      supabase.from("medication_groups").delete().eq("id", id).then(({ error }) => {
+        if (error) console.error("deleteMedicationGroup", error);
       });
     },
     [apply, supabase]
@@ -1051,6 +1130,9 @@ export function useBoard(userId: string | null) {
     addMedication,
     updateMedication,
     deleteMedication,
+    addMedicationGroup,
+    updateMedicationGroup,
+    deleteMedicationGroup,
     addRecurring,
     updateRecurring,
     updateRecurringNoteOptions,

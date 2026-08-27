@@ -202,24 +202,35 @@ de feature flags que já existe pra água/dieta/sono/humor
     Twilio, conta Business verificada, aprovação da Meta). Enquanto
     isso não existir, o comportamento é igual ao dos Lembretes hoje:
     visível na tela, sem alarme de verdade.
-- **Implementado (27/08)**: `MedicationsView.tsx`, tabela `medications`
-  (RLS por user_id). Acessível pelo menu lateral, junto de Livros/
-  Lembretes. Reaproveita os mesmos componentes visuais de Lembretes
-  (`.narrow-list`/`.list-quickadd-card`/`.list-card`, popover de
-  horário no padrão `.daylog-popover`).
-  - Cada linha: `ToggleSwitch` ativo/inativo (mais rápido que abrir o
-    popover — ação principal do dia a dia), nome editável, botão de
-    horário (`ClockIcon`, novo — do pack, `Calendar/Clock.svg`) que
-    abre horário + duração em dias, excluir.
-  - Ativos e inativos ficam em cards separados (inativos embaixo).
+- **Implementado (27/08), reestruturado no mesmo dia** depois do
+  Leandro explicar melhor o caso de uso real: dois grupos —
+  **Temporários** (organizados por motivo/tratamento) e **Recorrentes**
+  (lista solta, uso contínuo).
+  - **Temporários**: cadastra primeiro o **motivo** (`MedicationGroup`,
+    tabela `medication_groups` — ex.: "Tratamento sinusite"), depois os
+    remédios dentro dele (`medications.group_id` aponta pro grupo). O
+    grupo tem observação geral, duração em dias (desativa o tratamento
+    inteiro sozinho quando expira) e um seletor **Único vs Individual**
+    de horário: "Único" = um horário só, vale pra todos os remédios do
+    grupo (`shared_time`); "Individual" = cada remédio tem seu próprio
+    horário.
+  - **Cada remédio** (temporário ou recorrente) tem, além do nome:
+    observação própria (dosagem/instruções, via `CommentButton`
+    reaproveitado), e **duração própria em dias** — independente da
+    duração do grupo, porque remédios de um mesmo tratamento podem
+    parar em dias diferentes (ex.: antibiótico 7 dias + spray nasal 14
+    dias dentro do mesmo tratamento de sinusite). Cada remédio também
+    tem seu próprio ativo/inativo (`ToggleSwitch`), além do ativo/
+    inativo do grupo.
+  - **Recorrentes**: lista solta (sem grupo, `group_id` null) — nome,
+    horário, observação, duração opcional, ativo/inativo. Uso contínuo
+    por padrão (sem duração cadastrada = sem prazo pra parar).
   - **Desativação automática**: calculada no carregamento do board
-    (`use-board.ts`, dentro de `load()`) — se tem `startDate` +
-    `durationDays` e hoje já passou do prazo (`startDate + duration`
-    dias), desativa sozinho (grava `active:false` no banco, não é só
-    visual). Sem duração cadastrada, fica ativo até desativar na mão.
-  - Botão de horário mostra o horário e, se tiver duração, "até DD
-    mmm" (ou "encerrado" se já passou — cobre o instante entre expirar
-    e a próxima sincronização automática).
+    (`use-board.ts`, dentro de `load()`) — roda tanto pra grupos quanto
+    pra remédios individuais, cada um com seu próprio `startDate` +
+    `durationDays`; grava `active:false` no banco quando expira (não é
+    só visual).
+  - Ícone de horário: `ClockIcon`, novo, do pack (`Calendar/Clock.svg`).
   - Ainda sem bloco/atalho na home (diferente de Lembretes) — só a
     tela própria por enquanto. Notificação via WhatsApp segue como
     dependência futura (ver acima).

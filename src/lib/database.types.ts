@@ -281,15 +281,17 @@ export type Database = {
         }
         Relationships: []
       }
-      medications: {
+      medication_groups: {
         Row: {
           active: boolean
           created_at: string
           duration_days: number | null
           id: string
-          med_time: string | null
           name: string
+          notes: string | null
+          shared_time: string | null
           start_date: string | null
+          time_mode: string
           user_id: string
         }
         Insert: {
@@ -297,9 +299,11 @@ export type Database = {
           created_at?: string
           duration_days?: number | null
           id?: string
-          med_time?: string | null
           name: string
+          notes?: string | null
+          shared_time?: string | null
           start_date?: string | null
+          time_mode?: string
           user_id: string
         }
         Update: {
@@ -307,12 +311,61 @@ export type Database = {
           created_at?: string
           duration_days?: number | null
           id?: string
-          med_time?: string | null
           name?: string
+          notes?: string | null
+          shared_time?: string | null
           start_date?: string | null
+          time_mode?: string
           user_id?: string
         }
         Relationships: []
+      }
+      medications: {
+        Row: {
+          active: boolean
+          created_at: string
+          duration_days: number | null
+          group_id: string | null
+          id: string
+          med_time: string | null
+          name: string
+          notes: string | null
+          start_date: string | null
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          duration_days?: number | null
+          group_id?: string | null
+          id?: string
+          med_time?: string | null
+          name: string
+          notes?: string | null
+          start_date?: string | null
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          duration_days?: number | null
+          group_id?: string | null
+          id?: string
+          med_time?: string | null
+          name?: string
+          notes?: string | null
+          start_date?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medications_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "medication_groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reminders: {
         Row: {

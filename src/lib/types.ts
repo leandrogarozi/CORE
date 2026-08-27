@@ -162,12 +162,27 @@ export interface Reminder {
   done: boolean;
 }
 
+export type MedicationTimeMode = "shared" | "individual";
+
+export interface MedicationGroup {
+  id: string;
+  name: string; // motivo/tratamento, ex.: "Tratamento sinusite"
+  notes: string | null;
+  timeMode: MedicationTimeMode; // "shared": um horário pra todos os remédios; "individual": cada um o seu
+  sharedTime: string | null; // usado quando timeMode === "shared"
+  startDate: string | null; // ISO date — quando usada com durationDays
+  durationDays: number | null; // duração do tratamento inteiro, ex.: 10 dias
+  active: boolean;
+}
+
 export interface Medication {
   id: string;
+  groupId: string | null; // null = recorrente (avulso); definido = pertence a um tratamento temporário
   name: string;
-  time: string | null; // "HH:MM", mesmo horário todo dia
-  startDate: string | null; // ISO date — quando usada com durationDays
-  durationDays: number | null; // ex.: 10 = antibiótico por 10 dias
+  time: string | null; // "HH:MM" — próprio; ignorado se o grupo estiver em modo "shared"
+  notes: string | null;
+  startDate: string | null; // ISO date — duração própria do remédio (opcional, independente do grupo)
+  durationDays: number | null;
   active: boolean;
 }
 
@@ -180,6 +195,7 @@ export interface BoardState {
   books: Book[];
   reminders: Reminder[];
   medications: Medication[];
+  medicationGroups: MedicationGroup[];
   settings: Settings;
   activeTimer: ActiveTimer | null;
   dailyLogs: Record<string, DailyLog>; // iso date -> log
