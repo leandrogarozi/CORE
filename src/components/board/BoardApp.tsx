@@ -212,7 +212,7 @@ function BoardShell() {
 
           <div className="section">
             <div className="section-head">
-              <span className="section-pill">
+              <span className="section-pill accent">
                 Sem data<span className="count">{backlogTasks.length}</span>
               </span>
             </div>
@@ -222,7 +222,7 @@ function BoardShell() {
           <div className="habits-blocks-row">
             <div className="section">
               <div className="section-head">
-                <span className="section-pill">Hábitos</span>
+                <span className="section-pill accent">Hábitos</span>
               </div>
               <div className="hint-text">
                 Aperte o play pra cronometrar em tempo real, ou preencha uma duração fixa e marque o check
@@ -233,7 +233,7 @@ function BoardShell() {
 
             <div className="section">
               <div className="section-head">
-                <span className="section-pill">Blocos fixos do dia</span>
+                <span className="section-pill accent">Blocos fixos do dia</span>
               </div>
               <div className="hint-text">
                 Coisas que costumam ocupar tempo todo dia (almoço, deslocamento, academia...). Aperte o play na hora
