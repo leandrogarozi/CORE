@@ -247,6 +247,15 @@ de feature flags que já existe pra água/dieta/sono/humor
   ícone de balão; abrir um comentário existente mostra uma bolinha de
   notificação no ícone; salvar fecha de volta. Não deixar caixa de texto
   aberta por padrão.
+- Dia marcado como concluído em Hábitos/Blocos fixos usa uma cor própria
+  (`#2A9D8F`, `.habit-cell.done`), não o `--success` genérico do resto do
+  app — testados antes `--success` padrão e depois `#9BFAB0`, nenhum
+  agradou; `#2A9D8F` foi a escolha final do Leandro.
+- Faixa de dias da semana (topo do Painel): fica esticada preenchendo o
+  espaço disponível (não compacta) — já tentamos compactar pra abrir
+  espaço pro botão de Lembretes, mas o Leandro preferiu do jeito
+  original. Revisitar se a barra de botões do topo ficar apertada
+  conforme mais coisas forem entrando ali.
 
 ## Backlog
 
