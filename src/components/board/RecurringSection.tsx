@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { TimerButton } from "./TimerButton";
@@ -9,6 +9,31 @@ import { fmtDayLabel, fmtHM, isoFromDate, todayISO, weekDatesFrom } from "@/lib/
 import type { DayLogEntry, RecurringItem } from "@/lib/types";
 
 type Kind = "habit" | "block";
+
+function useClampedPopoverPos(anchorRect: DOMRect, ref: React.RefObject<HTMLDivElement | null>) {
+  const [pos, setPos] = useState({ top: anchorRect.bottom + 4, left: anchorRect.left });
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const margin = 8;
+    const rect = el.getBoundingClientRect();
+    let left = anchorRect.left;
+    let top = anchorRect.bottom + 4;
+
+    if (left + rect.width > window.innerWidth - margin) {
+      left = Math.max(margin, window.innerWidth - margin - rect.width);
+    }
+    if (top + rect.height > window.innerHeight - margin) {
+      const above = anchorRect.top - rect.height - 4;
+      top = above >= margin ? above : Math.max(margin, window.innerHeight - margin - rect.height);
+    }
+    setPos({ top, left });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [anchorRect]);
+
+  return pos;
+}
 
 export function RecurringSection({ kind, weekAnchor }: { kind: Kind; weekAnchor: Date }) {
   const { board } = useBoardCtx();
@@ -77,6 +102,7 @@ function DayLogPopover({
   const [minutes, setMinutes] = useState(String(initialMinutes));
   const [note, setNote] = useState(initialNote);
   const ref = useRef<HTMLDivElement>(null);
+  const pos = useClampedPopoverPos(anchorRect, ref);
 
   useEffect(() => {
     function onDocPointerDown(e: MouseEvent) {
@@ -93,7 +119,7 @@ function DayLogPopover({
   }
 
   return createPortal(
-    <div className="daylog-popover" ref={ref} style={{ top: anchorRect.bottom + 4, left: anchorRect.left }}>
+    <div className="daylog-popover" ref={ref} style={{ top: pos.top, left: pos.left }}>
       <label className="edit-field">
         <span className="edit-field-label">Minutos</span>
         <input
@@ -173,6 +199,7 @@ function DayEntriesPopover({
   const [selected, setSelected] = useState<string | null>(null);
   const [minutes, setMinutes] = useState("");
   const ref = useRef<HTMLDivElement>(null);
+  const pos = useClampedPopoverPos(anchorRect, ref);
 
   useEffect(() => {
     function onDocPointerDown(e: MouseEvent) {
@@ -191,7 +218,7 @@ function DayEntriesPopover({
   }
 
   return createPortal(
-    <div className="daylog-popover entries-popover" ref={ref} style={{ top: anchorRect.bottom + 4, left: anchorRect.left }}>
+    <div className="daylog-popover entries-popover" ref={ref} style={{ top: pos.top, left: pos.left }}>
       {entries.length > 0 && (
         <div className="day-entries-list">
           {entries.map((e) => (
