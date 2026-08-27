@@ -769,15 +769,13 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 }
 .faro-avatar:hover{ filter:brightness(1.06); }
 .faro-dog{ overflow:visible; animation:faro-bob 3.2s ease-in-out infinite; }
-.faro-dog-tail{ transform-origin:31px 30px; animation:faro-wag 1.1s ease-in-out infinite; }
 .faro-dog-eyes{ transform-origin:center; animation:faro-blink 4.5s ease-in-out infinite; }
 .faro-dog-light{ animation:faro-pulse 1.6s ease-in-out infinite; }
 @keyframes faro-bob{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-3px); } }
-@keyframes faro-wag{ 0%,100%{ transform:rotate(-8deg); } 50%{ transform:rotate(10deg); } }
 @keyframes faro-blink{ 0%,92%,100%{ transform:scaleY(1); } 95%{ transform:scaleY(0.12); } }
 @keyframes faro-pulse{ 0%,100%{ opacity:0.4; } 50%{ opacity:1; } }
 @media (prefers-reduced-motion: reduce){
-  .faro-dog, .faro-dog-tail, .faro-dog-eyes, .faro-dog-light{ animation:none; }
+  .faro-dog, .faro-dog-eyes, .faro-dog-light{ animation:none; }
 }
 .faro-bubble{
   position:relative; max-width:220px;
