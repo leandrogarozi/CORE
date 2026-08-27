@@ -213,7 +213,16 @@ de feature flags que já existe pra água/dieta/sono/humor
   navegador + algum gatilho agendado rodando no servidor, já que o
   Vercel não roda nada em background sozinho). Virou item 🔴 separado
   no backlog ("Notificações push de lembretes"), distinto da sync com
-  Google Agenda — não começar sem confirmação do Leandro.
+  Google Agenda.
+  - **Confirmado pelo Leandro**: quer notificação de verdade, sim —
+    mas fica anotado pra implementar depois, não é pra começar agora.
+  - **Ideal (nova ideia do Leandro)**: o lembrete chegar também por
+    WhatsApp, se der pra fazer. Isso é uma integração à parte da
+    notificação push do navegador — precisaria de uma API de WhatsApp
+    (ex.: WhatsApp Business API/Twilio) enviando mensagem no horário
+    do lembrete. Anotado como parte do mesmo item de backlog, mas é
+    tecnicamente outra peça (fora do que o navegador consegue fazer
+    sozinho).
 
 ## Decisões de design (visual)
 
@@ -266,10 +275,14 @@ de feature flags que já existe pra água/dieta/sono/humor
 - [ ] IA de recomendação do próximo livro — cruza livros/insights/humor/
       objetivos do momento pra sugerir o que ler a seguir
 - [ ] Sincronização com Google Agenda (inclui sync de lembretes, ver acima)
-- [ ] Notificações push de lembretes — alerta de verdade na hora
-      marcada (som/notificação do navegador). Precisa de service
-      worker + permissão de notificação + gatilho agendado no
-      servidor. Distinto da sync com Google Agenda.
+- [ ] Notificações push de lembretes — **confirmado pelo Leandro,
+      implementar depois** (não é próximo passo agora). Alerta de
+      verdade na hora marcada (som/notificação do navegador). Precisa
+      de service worker + permissão de notificação + gatilho agendado
+      no servidor. Distinto da sync com Google Agenda. Ideal, se der:
+      lembrete chegando também por **WhatsApp** (precisaria de API
+      própria pra isso, ex. WhatsApp Business API/Twilio — integração
+      separada da notificação do navegador).
 - [ ] Ferramentas / Roda da Vida
 - [ ] Relatório cruzando dados (tarefas × hábitos × humor × sono etc.)
 - [ ] Observação do humor no dashboard alimentada por IA (rotina agendada
