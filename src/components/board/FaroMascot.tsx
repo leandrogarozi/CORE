@@ -14,17 +14,18 @@ function greetingMessage(mood: number | null | undefined): string {
 
 function FaroDogIcon() {
   return (
-    <svg viewBox="0 0 40 40" width="34" height="34" className="faro-dog">
-      <path d="M11 13 L4 2 L14 8 Z" fill="currentColor" />
-      <path d="M29 13 L36 2 L26 8 Z" fill="currentColor" />
-      <circle className="faro-dog-light" cx="5" cy="2.5" r="2" fill="#FFD166" />
-      <circle className="faro-dog-light" cx="35" cy="2.5" r="2" fill="#FFD166" />
-      <rect x="6" y="10" width="28" height="23" rx="10" fill="currentColor" />
+    <svg viewBox="0 0 44 44" width="34" height="34" className="faro-dog">
+      <rect x="6" y="2" width="6" height="16" rx="3" fill="currentColor" transform="rotate(-14 9 18)" />
+      <rect x="32" y="2" width="6" height="16" rx="3" fill="currentColor" transform="rotate(14 35 18)" />
+      <rect x="9" y="11" width="26" height="26" rx="9" fill="currentColor" />
+      <circle className="faro-dog-light" cx="22" cy="7" r="1.8" fill="#FFD166" />
       <g className="faro-dog-eyes">
-        <circle cx="15" cy="21.5" r="4.4" fill="#FFD166" />
-        <circle cx="25" cy="21.5" r="4.4" fill="#FFD166" />
+        <circle cx="17.5" cy="24.5" r="5.6" fill="#FFD166" />
+        <circle cx="26.5" cy="24.5" r="5.6" fill="#FFD166" />
+        <circle cx="15.7" cy="22.4" r="1.4" fill="#fff" opacity="0.85" />
+        <circle cx="24.7" cy="22.4" r="1.4" fill="#fff" opacity="0.85" />
       </g>
-      <rect x="17" y="28" width="6" height="2.2" rx="1.1" fill="var(--accent)" />
+      <path d="M15 31 Q22 36 29 31" stroke="#FFD166" strokeWidth="2" strokeLinecap="round" fill="none" />
     </svg>
   );
 }
