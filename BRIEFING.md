@@ -41,7 +41,24 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
   periodicamente e chame uma IA pra escrever o resumo. Tratar como item
   de backlog separado (ver 🔴 abaixo), não como parte do gráfico em si.
 
-## Navegação — Menu lateral
+## Busca e Calendário (topbar)
+
+- **Busca de tarefas**: campo de busca na topbar, ao lado do nome FARO
+  (`TaskSearch.tsx`). Filtra por título (case-insensitive) em todas as
+  tarefas, mostra até 8 resultados num popover com título + data (ou
+  "Sem data"). Clicar num resultado navega pro dia da tarefa (ou pro
+  Painel do dia, se for backlog sem data).
+- **Botão "Hoje" na topbar**: ao lado da data, pula direto pro dia
+  atual (mesma lógica do botão "Hoje" que já existia embaixo, na faixa
+  de dias — os dois agora compartilham a mesma função `goToday`).
+- **Ícone de calendário na topbar**: abre a view "Calendário"
+  (`CalendarView.tsx`) — grade mensal (domingo a sábado, linhas
+  variáveis conforme o mês) com navegação de mês (‹ ›), botão Hoje, e
+  alternância "Mês"/"Semana" (Semana leva pra view de Semana já
+  existente). Cada dia mostra um resumo compacto: um "chip" colorido
+  por status de tarefa presente naquele dia (reaproveitando as cores
+  dos status customizáveis em Configurações), com a contagem. Clicar
+  num dia navega direto pra ele no Painel do dia.
 
 Decisão: sair de pills soltas no topo (Hoje/Semana/Dashboard/Configurações)
 para um menu lateral (ícone de hambúrguer no topbar → gaveta que desliza

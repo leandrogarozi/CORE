@@ -5,6 +5,8 @@ import { BoardProvider, useBoardCtx } from "./board-context";
 import { DayStrip } from "./DayStrip";
 import { TaskListCard } from "./TaskListCard";
 import { WeekView } from "./WeekView";
+import { CalendarView } from "./CalendarView";
+import { TaskSearch } from "./TaskSearch";
 import { Dashboard } from "./Dashboard";
 import { HoursPanel } from "./HoursPanel";
 import { DailyLogPanel } from "./DailyLogPanel";
@@ -14,8 +16,9 @@ import { BooksView } from "./BooksView";
 import { ScopeModal } from "./ScopeModal";
 import { ActiveTimerBadge } from "./TimerButton";
 import { Sidebar, type ViewMode } from "./Sidebar";
-import { MenuIcon, SettingsIcon } from "./icons";
-import { longLabel, mondayOf, todayISO } from "@/lib/date-utils";
+import { MenuIcon, SettingsIcon, WeekIcon } from "./icons";
+import { dateFromISO, longLabel, mondayOf, todayISO } from "@/lib/date-utils";
+import type { Task } from "@/lib/types";
 
 function BoardShell() {
   const { board, sortByQuick, setSortByQuick } = useBoardCtx();
@@ -31,6 +34,23 @@ function BoardShell() {
     }
     setViewMode(mode);
     setSidebarOpen(false);
+  }
+
+  function goToday() {
+    setWeekAnchor(mondayOf(new Date()));
+    setSelectedDate(todayISO());
+    setViewMode("day");
+  }
+
+  function goToDate(iso: string) {
+    setSelectedDate(iso);
+    setWeekAnchor(mondayOf(dateFromISO(iso)));
+    setViewMode("day");
+  }
+
+  function goToTask(task: Task) {
+    if (task.date) goToDate(task.date);
+    else setViewMode("day");
   }
 
   const weekDatesISO = useMemo(() => {
@@ -57,9 +77,22 @@ function BoardShell() {
           <MenuIcon />
         </button>
         <div className="brand">FARO</div>
+        <TaskSearch onNavigate={goToTask} />
         <div className="topbar-right">
           <ActiveTimerBadge />
           <div className="today-date mono">{longLabel(todayISO())}</div>
+          <button className="today-btn" type="button" onClick={goToday}>
+            Hoje
+          </button>
+          <button
+            className={"icon-btn" + (viewMode === "calendar" ? " active" : "")}
+            type="button"
+            aria-label="Abrir calendário"
+            title="Calendário"
+            onClick={() => setViewMode("calendar")}
+          >
+            <WeekIcon />
+          </button>
           <button
             className={"icon-btn settings-btn" + (viewMode === "settings" ? " active" : "")}
             id="settings-btn"
@@ -78,6 +111,8 @@ function BoardShell() {
         <SettingsView onBack={() => setViewMode("day")} />
       ) : viewMode === "books" ? (
         <BooksView onBack={() => setViewMode("day")} />
+      ) : viewMode === "calendar" ? (
+        <CalendarView onBack={() => setViewMode("day")} onSelectWeek={() => setViewMode("week")} onSelectDay={goToDate} />
       ) : (
         <>
           <div className="day-strip-wrap">
@@ -110,11 +145,7 @@ function BoardShell() {
               <button
                 type="button"
                 className={"view-toggle-btn" + (viewMode !== "week" && viewMode !== "dashboard" ? " active" : "")}
-                onClick={() => {
-                  setWeekAnchor(mondayOf(new Date()));
-                  setSelectedDate(todayISO());
-                  setViewMode("day");
-                }}
+                onClick={goToday}
               >
                 Hoje
               </button>

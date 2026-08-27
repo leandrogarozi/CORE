@@ -94,6 +94,22 @@ export function longLabel(iso: string): string {
   return `${fmtDayLabel(d)} · ${d.getDate()} ${MONTH_NAMES[d.getMonth()]}`;
 }
 
+export function monthGridDates(monthAnchor: Date): Date[] {
+  const first = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth(), 1);
+  const last = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth() + 1, 0);
+  const start = new Date(first);
+  start.setDate(start.getDate() - first.getDay());
+  const end = new Date(last);
+  end.setDate(end.getDate() + (6 - last.getDay()));
+  const out: Date[] = [];
+  const cur = new Date(start);
+  while (cur <= end) {
+    out.push(new Date(cur));
+    cur.setDate(cur.getDate() + 1);
+  }
+  return out;
+}
+
 export function weekDatesFrom(anchorMonday: Date): Date[] {
   const out: Date[] = [];
   for (let i = 0; i < 7; i++) {
