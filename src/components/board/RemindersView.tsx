@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
-import { CheckIcon, RepeatIcon, TrashIcon, WeekIcon } from "./icons";
+import { BellIcon, CheckIcon, RepeatIcon, TrashIcon, WeekIcon } from "./icons";
 import { fmtShortDate, todayISO } from "@/lib/date-utils";
 import type { Reminder, Repeat } from "@/lib/types";
 
@@ -170,6 +170,102 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
         <TrashIcon />
       </button>
     </div>
+  );
+}
+
+export function RemindersButton({ onOpenFull }: { onOpenFull: () => void }) {
+  const { board } = useBoardCtx();
+  const [open, setOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const popRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDocPointerDown(e: MouseEvent) {
+      if (popRef.current?.contains(e.target as Node) || btnRef.current?.contains(e.target as Node)) return;
+      setOpen(false);
+    }
+    window.addEventListener("mousedown", onDocPointerDown);
+    return () => window.removeEventListener("mousedown", onDocPointerDown);
+  }, [open]);
+
+  const today = todayISO();
+  const pending = [...board.state.reminders]
+    .filter((r) => !r.done)
+    .sort((a, b) => (a.date ?? "9999-99-99").localeCompare(b.date ?? "9999-99-99"));
+  const hasOverdue = pending.some((r) => r.date && r.date < today);
+  const hasDueToday = pending.some((r) => r.date === today);
+
+  function toggleOpen(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (!open && btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect();
+      setPos({ top: r.bottom + 6, left: r.left });
+    }
+    setOpen((v) => !v);
+  }
+
+  function handleAdd() {
+    const title = newTitle.trim();
+    if (!title) return;
+    board.addReminder(title);
+    setNewTitle("");
+  }
+
+  return (
+    <>
+      <button ref={btnRef} type="button" className="reminders-btn" onClick={toggleOpen}>
+        <BellIcon />
+        Lembretes
+        {(hasOverdue || hasDueToday) && (
+          <span className={"reminders-btn-dot" + (hasOverdue ? " overdue" : "")} aria-hidden="true" />
+        )}
+      </button>
+      {open &&
+        pos &&
+        createPortal(
+          <div className="reminders-popover" ref={popRef} style={{ top: pos.top, left: pos.left }}>
+            <div className="reminders-popover-head">
+              <span>Lembretes</span>
+              <button
+                type="button"
+                className="reminders-popover-viewall"
+                onClick={() => {
+                  setOpen(false);
+                  onOpenFull();
+                }}
+              >
+                Ver todos
+              </button>
+            </div>
+            <div className="quickadd-row">
+              <span className="quickadd-plus" aria-hidden="true">
+                +
+              </span>
+              <input
+                type="text"
+                className="quickadd-input"
+                placeholder="+ Adicionar lembrete"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+              />
+            </div>
+            {pending.length === 0 ? (
+              <div className="hp-empty">Nenhum lembrete pendente.</div>
+            ) : (
+              <div className="reminders-popover-list">
+                {pending.map((r) => (
+                  <ReminderRow key={r.id} reminder={r} />
+                ))}
+              </div>
+            )}
+          </div>,
+          document.body
+        )}
+    </>
   );
 }
 

@@ -198,11 +198,21 @@ de feature flags que já existe pra água/dieta/sono/humor
   `.list-card`) foram generalizadas a partir das de Livros, pra dar
   pra reusar em Medicamentos também quando chegar a vez.
 - **Bloco na página principal**: pedido do Leandro pra dar visibilidade
-  sem precisar abrir a tela de Lembretes. Nova seção "Lembretes" no
-  Painel do dia (junto de Sem data/Hábitos/Blocos fixos), mostrando os
-  pendentes ordenados por data (sem data por último), reaproveitando o
-  mesmo `ReminderRow` da tela cheia — mesmo componente, sem duplicar
-  lógica.
+  sem precisar abrir a tela de Lembretes. Primeira versão era uma seção
+  inteira fixa no meio da página — ficou "sumida"/perdida entre Hábitos
+  e Blocos fixos. Trocado por um **botão sempre visível** no topo do
+  Painel (linha da faixa de dias, junto de Hoje/Semana/Dashboard):
+  ícone de sino + "Lembretes", com uma **bolinha de atenção** que
+  aparece só quando tem pendência — amarela se tem lembrete pra hoje,
+  vermelha se tem algo atrasado. Clicar abre um popover compacto com
+  "+ Adicionar" rápido, a lista de pendentes e um link "Ver todos" que
+  leva pra tela cheia. Reaproveita o mesmo `ReminderRow` da tela cheia
+  (`RemindersButton` em `RemindersView.tsx`) — sem duplicar lógica.
+- **Hábitos e Blocos fixos lado a lado**: pedido do Leandro pra
+  economizar espaço vertical na home — as duas seções agora ficam em
+  duas colunas (`.habits-blocks-row`, grid 1fr 1fr) em telas largas;
+  em telas estreitas (≤640px, mesmo ponto de corte já usado no resto
+  do app) volta a empilhar em uma coluna só.
 - **Como o lembrete "avisa" (resposta pro Leandro)**: hoje não existe
   alarme/notificação de verdade — o lembrete só fica visível (na tela
   de Lembretes e agora também no bloco do Painel) e ganha destaque
