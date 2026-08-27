@@ -86,6 +86,9 @@ export interface Settings {
   dailyBudgetHours: number;
   waterGoalMl: number;
   featureFlags: Record<string, boolean>;
+  avatarUrl: string | null;
+  preferredName: string | null; // como o FARO (IA, fase 2) deve chamar o usuário
+  birthDate: string | null; // ISO date
 }
 
 // Funcionalidades opcionais que podem ser ligadas/desligadas em Configurações.

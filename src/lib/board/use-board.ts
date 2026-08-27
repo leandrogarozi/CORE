@@ -63,7 +63,15 @@ const EMPTY_STATE: BoardState = {
   reminders: [],
   medications: [],
   medicationGroups: [],
-  settings: { tagColors: DEFAULT_TAG_COLORS, dailyBudgetHours: 12, waterGoalMl: 2000, featureFlags: {} },
+  settings: {
+    tagColors: DEFAULT_TAG_COLORS,
+    dailyBudgetHours: 12,
+    waterGoalMl: 2000,
+    featureFlags: {},
+    avatarUrl: null,
+    preferredName: null,
+    birthDate: null,
+  },
   activeTimer: null,
   dailyLogs: {},
 };
@@ -1057,12 +1065,32 @@ export function useBoard(userId: string | null) {
           daily_budget_hours: merged.dailyBudgetHours,
           water_goal_ml: merged.waterGoalMl,
           feature_flags: merged.featureFlags,
+          avatar_url: merged.avatarUrl,
+          preferred_name: merged.preferredName,
+          birth_date: merged.birthDate,
         })
         .then(({ error }) => {
           if (error) console.error("updateSettings", error);
         });
     },
     [apply, supabase, userId]
+  );
+
+  const uploadAvatar = useCallback(
+    async (file: File): Promise<string | null> => {
+      if (!userId) return "Não foi possível identificar o usuário.";
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${userId}/avatar.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true, cacheControl: "3600" });
+      if (uploadError) return uploadError.message;
+      const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+      const url = `${data.publicUrl}?v=${Date.now()}`;
+      updateSettings({ avatarUrl: url });
+      return null;
+    },
+    [supabase, userId, updateSettings]
   );
 
   // ---------- daily log (água, dieta, sono) ----------
@@ -1144,6 +1172,7 @@ export function useBoard(userId: string | null) {
     deleteBlockLogEntry,
     toggleTimer,
     updateSettings,
+    uploadAvatar,
     updateDailyLog,
   };
 }

@@ -405,24 +405,33 @@ export type Database = {
       }
       settings: {
         Row: {
+          avatar_url: string | null
+          birth_date: string | null
           daily_budget_hours: number
           feature_flags: Json
+          preferred_name: string | null
           tag_colors: Json
           updated_at: string
           user_id: string
           water_goal_ml: number
         }
         Insert: {
+          avatar_url?: string | null
+          birth_date?: string | null
           daily_budget_hours?: number
           feature_flags?: Json
+          preferred_name?: string | null
           tag_colors?: Json
           updated_at?: string
           user_id: string
           water_goal_ml?: number
         }
         Update: {
+          avatar_url?: string | null
+          birth_date?: string | null
           daily_budget_hours?: number
           feature_flags?: Json
+          preferred_name?: string | null
           tag_colors?: Json
           updated_at?: string
           user_id?: string

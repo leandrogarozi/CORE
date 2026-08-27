@@ -210,6 +210,9 @@ export function rowToSettings(row: SettingsRow | null): Settings {
     dailyBudgetHours: row?.daily_budget_hours ?? 12,
     waterGoalMl: row?.water_goal_ml ?? 2000,
     featureFlags: (row?.feature_flags as Record<string, boolean> | null) ?? {},
+    avatarUrl: row?.avatar_url ?? null,
+    preferredName: row?.preferred_name ?? null,
+    birthDate: row?.birth_date ?? null,
   };
 }
 
