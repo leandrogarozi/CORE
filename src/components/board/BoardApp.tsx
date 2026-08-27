@@ -13,7 +13,7 @@ import { DailyLogPanel } from "./DailyLogPanel";
 import { RecurringSection } from "./RecurringSection";
 import { SettingsView } from "./SettingsView";
 import { BooksView } from "./BooksView";
-import { RemindersView } from "./RemindersView";
+import { RemindersView, ReminderRow } from "./RemindersView";
 import { ScopeModal } from "./ScopeModal";
 import { FaroMascot } from "./FaroMascot";
 import { ActiveTimerBadge } from "./TimerButton";
@@ -69,6 +69,9 @@ function BoardShell() {
 
   const backlogTasks = board.state.tasks.filter((t) => !t.date);
   const dayTasks = board.state.tasks.filter((t) => t.date === selectedDate);
+  const pendingReminders = [...board.state.reminders]
+    .filter((r) => !r.done)
+    .sort((a, b) => (a.date ?? "9999-99-99").localeCompare(b.date ?? "9999-99-99"));
 
   return (
     <div className="wrap">
@@ -216,6 +219,23 @@ function BoardShell() {
               </span>
             </div>
             <TaskListCard bucketKey="" tasks={backlogTasks} emptyLabel="Backlog vazio." quickAddId="qa-backlog" />
+          </div>
+
+          <div className="section">
+            <div className="section-head">
+              <span className="section-pill">
+                Lembretes<span className="count">{pendingReminders.length}</span>
+              </span>
+            </div>
+            {pendingReminders.length === 0 ? (
+              <div className="hp-empty">Nenhum lembrete pendente.</div>
+            ) : (
+              <div className="list-card">
+                {pendingReminders.map((r) => (
+                  <ReminderRow key={r.id} reminder={r} />
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="section">

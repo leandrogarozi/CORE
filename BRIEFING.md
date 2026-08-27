@@ -197,6 +197,23 @@ de feature flags que já existe pra água/dieta/sono/humor
 - Classes CSS dos cards (`.narrow-list`, `.list-quickadd-card`,
   `.list-card`) foram generalizadas a partir das de Livros, pra dar
   pra reusar em Medicamentos também quando chegar a vez.
+- **Bloco na página principal**: pedido do Leandro pra dar visibilidade
+  sem precisar abrir a tela de Lembretes. Nova seção "Lembretes" no
+  Painel do dia (junto de Sem data/Hábitos/Blocos fixos), mostrando os
+  pendentes ordenados por data (sem data por último), reaproveitando o
+  mesmo `ReminderRow` da tela cheia — mesmo componente, sem duplicar
+  lógica.
+- **Como o lembrete "avisa" (resposta pro Leandro)**: hoje não existe
+  alarme/notificação de verdade — o lembrete só fica visível (na tela
+  de Lembretes e agora também no bloco do Painel) e ganha destaque
+  visual quando a data chega: linha fica avermelhada se **atrasado**,
+  amarela se é **hoje**. Não há aviso automático "na hora marcada"
+  (nem som, nem notificação push) — isso exigiria um pedaço de
+  infraestrutura novo (service worker + permissão de notificação do
+  navegador + algum gatilho agendado rodando no servidor, já que o
+  Vercel não roda nada em background sozinho). Virou item 🔴 separado
+  no backlog ("Notificações push de lembretes"), distinto da sync com
+  Google Agenda — não começar sem confirmação do Leandro.
 
 ## Decisões de design (visual)
 
@@ -217,7 +234,8 @@ de feature flags que já existe pra água/dieta/sono/humor
 ### 🟡 Médios
 
 - [x] Status de tarefa customizável
-- [ ] Lista de lembretes — specs acima, parado a pedido do Leandro
+- [x] Lista de lembretes — specs acima, implementado (tela própria +
+      bloco no Painel do dia)
 - [ ] Lista de medicação — sem spec ainda
 - [x] Livros lidos + insights — feito; falta só a parte de virar
       "conteúdo de inspiração" em outro lugar do painel (ver acima)
@@ -248,6 +266,10 @@ de feature flags que já existe pra água/dieta/sono/humor
 - [ ] IA de recomendação do próximo livro — cruza livros/insights/humor/
       objetivos do momento pra sugerir o que ler a seguir
 - [ ] Sincronização com Google Agenda (inclui sync de lembretes, ver acima)
+- [ ] Notificações push de lembretes — alerta de verdade na hora
+      marcada (som/notificação do navegador). Precisa de service
+      worker + permissão de notificação + gatilho agendado no
+      servidor. Distinto da sync com Google Agenda.
 - [ ] Ferramentas / Roda da Vida
 - [ ] Relatório cruzando dados (tarefas × hábitos × humor × sono etc.)
 - [ ] Observação do humor no dashboard alimentada por IA (rotina agendada

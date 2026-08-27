@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { CheckIcon, RepeatIcon, TrashIcon, WeekIcon } from "./icons";
-import { fmtShortDate } from "@/lib/date-utils";
+import { fmtShortDate, todayISO } from "@/lib/date-utils";
 import type { Reminder, Repeat } from "@/lib/types";
 
 const REPEATS: { v: Repeat; l: string }[] = [
@@ -115,7 +115,7 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
   );
 }
 
-function ReminderRow({ reminder }: { reminder: Reminder }) {
+export function ReminderRow({ reminder }: { reminder: Reminder }) {
   const { board } = useBoardCtx();
   const [titleDraft, setTitleDraft] = useState<string | null>(null);
 
@@ -126,8 +126,19 @@ function ReminderRow({ reminder }: { reminder: Reminder }) {
     setTitleDraft(null);
   }
 
+  const today = todayISO();
+  const overdue = !reminder.done && !!reminder.date && reminder.date < today;
+  const dueToday = !reminder.done && reminder.date === today;
+
   return (
-    <div className={"reminder-row" + (reminder.done ? " done" : "")}>
+    <div
+      className={
+        "reminder-row" +
+        (reminder.done ? " done" : "") +
+        (overdue ? " overdue" : "") +
+        (dueToday ? " due-today" : "")
+      }
+    >
       <button
         type="button"
         className={"reminder-check" + (reminder.done ? " done" : "")}

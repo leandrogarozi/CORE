@@ -672,6 +672,10 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 }
 .reminder-row:last-child{ border-bottom:none; }
 .reminder-row.done .reminder-title-input{ color:var(--text-faint); text-decoration:line-through; }
+.reminder-row.overdue{ background:color-mix(in srgb, var(--danger) 6%, var(--surface)); }
+.reminder-row.overdue .reminder-date-btn{ color:var(--danger); }
+.reminder-row.due-today{ background:color-mix(in srgb, var(--book-yellow) 8%, var(--surface)); }
+.reminder-row.due-today .reminder-date-btn{ color:var(--book-yellow); font-weight:600; }
 .reminder-check{
   width:16px; height:16px; border-radius:50%; flex:none;
   border:1.5px solid var(--border-strong);
