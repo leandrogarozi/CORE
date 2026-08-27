@@ -320,11 +320,13 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   box-shadow:var(--shadow); padding:12px 14px; display:flex; flex-direction:column; gap:14px;
 }
 .dl-reminder{
+  display:flex; align-items:center; gap:7px;
   font-size:11.5px; border-radius:8px; padding:8px 10px;
   color:color-mix(in srgb, var(--book-yellow) 55%, var(--warn-text-mix));
   background:color-mix(in srgb, var(--book-yellow) 18%, var(--surface));
   border:1px solid color-mix(in srgb, var(--book-yellow) 45%, var(--surface));
 }
+.dl-reminder svg{ flex:none; width:13px; height:13px; }
 .dl-row + .dl-row{ padding-top:14px; border-top:1px solid var(--border); }
 .dl-row-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; }
 .dl-label{ font-size:12.5px; font-weight:500; }

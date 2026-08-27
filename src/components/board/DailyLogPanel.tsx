@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
+import { BellIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
 import { isFeatureEnabled } from "@/lib/types";
 import { MOODS } from "@/lib/mood";
@@ -63,7 +64,10 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
       </div>
       <div className="daily-log-panel">
         {missing.length > 0 && (
-          <div className="dl-reminder">🔔 Ainda falta registrar hoje: {missing.join(", ")}.</div>
+          <div className="dl-reminder">
+            <BellIcon />
+            <span>Ainda falta registrar hoje: {missing.join(", ")}.</span>
+          </div>
         )}
         {waterOn && (
           <div className="dl-row">
