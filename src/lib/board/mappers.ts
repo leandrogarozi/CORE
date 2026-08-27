@@ -213,6 +213,8 @@ export function rowToSettings(row: SettingsRow | null): Settings {
     avatarUrl: row?.avatar_url ?? null,
     preferredName: row?.preferred_name ?? null,
     birthDate: row?.birth_date ?? null,
+    notifyPhone: row?.notify_phone ?? null,
+    timezone: row?.timezone ?? null,
   };
 }
 

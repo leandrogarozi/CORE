@@ -89,6 +89,8 @@ export interface Settings {
   avatarUrl: string | null;
   preferredName: string | null; // como o FARO (IA, fase 2) deve chamar o usuário
   birthDate: string | null; // ISO date
+  notifyPhone: string | null; // WhatsApp/telefone — pra onde mandar notificações (dependência futura)
+  timezone: string | null; // IANA tz, ex. "America/Sao_Paulo"; null = detectar do navegador
 }
 
 // Funcionalidades opcionais que podem ser ligadas/desligadas em Configurações.

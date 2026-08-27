@@ -425,27 +425,34 @@ de feature flags que já existe pra água/dieta/sono/humor
         dois lugares). Combinado com o Leandro: "mais adiante podemos
         melhorar lá com outras opções e ir enriquecendo" — ou seja,
         essa tela de Perfil é o lugar certo pra crescer no futuro.
-      - **Próximos campos já combinados (27/08), ainda não implementados**
-        — discutido o que apps costumam ter em Perfil e falta aqui; o
-        Leandro confirmou dois como prioridade real (os outros —
-        usuário/handle, bio pública, localização — ficam de fora, não
-        fazem sentido num app de uso pessoal só):
-        - **Para onde mandar notificação** (telefone/WhatsApp, e-mail
-          se fizer sentido): campo(s) no Perfil pra guardar o destino
-          das notificações — é o que falta pra sair do papel a
-          notificação via WhatsApp já combinada em Lembretes/
-          Medicamentos (ver 🔴 "Notificações push de lembretes"
-          abaixo). Sem isso, aquela integração não tem pra onde
-          mandar mensagem.
-        - **Fuso horário**: pra lembretes/remédios continuarem
-          disparando na hora certa se o Leandro viajar.
+      - **Campos de notificação, fuso horário e "Sair" (27/08),
+        implementado** — discutido o que apps costumam ter em Perfil e
+        faltava aqui; o Leandro confirmou dois campos como prioridade
+        real (usuário/handle, bio pública, localização ficaram de fora,
+        não fazem sentido num app de uso pessoal só):
+        - **WhatsApp/telefone** (`settings.notify_phone`): campo de
+          texto livre pra guardar o destino das notificações — é o que
+          faltava pra sair do papel a notificação via WhatsApp já
+          combinada em Lembretes/Medicamentos (ver 🔴 "Notificações
+          push de lembretes" abaixo). O campo existe e guarda o dado;
+          **ainda não está conectado a nenhuma notificação de
+          verdade** — isso continua dependendo da integração com
+          WhatsApp Business API/Twilio, que segue não implementada.
+        - **Fuso horário** (`settings.timezone`, IANA tz):
+          `<select>` populado via `Intl.supportedValuesOf("timeZone")`
+          (fallback pra uma lista curta de fusos do Brasil se o
+          navegador não suportar), com "Detectar do navegador" como
+          opção padrão (valor null). Pra lembretes/remédios
+          continuarem disparando na hora certa se o Leandro viajar —
+          mas hoje isso também é só o dado guardado, nenhum horário
+          no app ainda lê esse campo pra ajustar o fuso de verdade.
         - Quando chegar a vez de configurar a **sincronização com o
-          Google Agenda** (🔴 abaixo), colocar as opções de sync
-          também dentro do Perfil, no mesmo lugar — não criar uma
-          tela separada só pra isso.
-        - Também ficou combinado: mover o botão "Sair" (hoje meio
-          perdido no rodapé do app) pra dentro do Perfil, é o lugar
-          mais lógico pra ele.
+          Google Agenda** (🔴 abaixo), as opções de sync entram dentro
+          do Perfil, no mesmo lugar — não criar uma tela separada só
+          pra isso.
+        - O botão **"Sair"** (antes solto no rodapé do app, aparecia
+          em toda tela) foi movido pra dentro da `ProfileView`, no
+          fim da página, é o lugar mais lógico pra ele.
 - [x] Livros lidos + insights — feito; falta só a parte de virar
       "conteúdo de inspiração" em outro lugar do painel (ver acima)
 - [x] Cadastro de tipos de lazer — cada bloco fixo tem uma lista própria de

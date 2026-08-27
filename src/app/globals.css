@@ -838,3 +838,4 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .top-actions form{ display:inline; }
 .signout-btn{ font-size:11.5px; color:var(--text-faint); }
 .signout-btn:hover{ color:var(--text); }
+.profile-signout-box{ display:flex; justify-content:flex-end; }

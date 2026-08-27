@@ -19,6 +19,14 @@ export function ProfileView({ onBack }: { onBack: () => void }) {
       <div className="dash-box">
         <ProfileFields board={board} />
       </div>
+
+      <div className="dash-box profile-signout-box">
+        <form action="/auth/signout" method="post">
+          <button type="submit" className="signout-btn">
+            Sair
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

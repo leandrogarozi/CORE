@@ -265,14 +265,6 @@ function BoardShell() {
         </>
       )}
 
-      <div className="top-actions">
-        <form action="/auth/signout" method="post">
-          <button type="submit" className="signout-btn">
-            Sair
-          </button>
-        </form>
-      </div>
-
       <FaroMascot />
     </div>
   );

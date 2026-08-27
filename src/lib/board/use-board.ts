@@ -71,6 +71,8 @@ const EMPTY_STATE: BoardState = {
     avatarUrl: null,
     preferredName: null,
     birthDate: null,
+    notifyPhone: null,
+    timezone: null,
   },
   activeTimer: null,
   dailyLogs: {},
@@ -1068,6 +1070,8 @@ export function useBoard(userId: string | null) {
           avatar_url: merged.avatarUrl,
           preferred_name: merged.preferredName,
           birth_date: merged.birthDate,
+          notify_phone: merged.notifyPhone,
+          timezone: merged.timezone,
         })
         .then(({ error }) => {
           if (error) console.error("updateSettings", error);

@@ -409,8 +409,10 @@ export type Database = {
           birth_date: string | null
           daily_budget_hours: number
           feature_flags: Json
+          notify_phone: string | null
           preferred_name: string | null
           tag_colors: Json
+          timezone: string | null
           updated_at: string
           user_id: string
           water_goal_ml: number
@@ -420,8 +422,10 @@ export type Database = {
           birth_date?: string | null
           daily_budget_hours?: number
           feature_flags?: Json
+          notify_phone?: string | null
           preferred_name?: string | null
           tag_colors?: Json
+          timezone?: string | null
           updated_at?: string
           user_id: string
           water_goal_ml?: number
@@ -431,8 +435,10 @@ export type Database = {
           birth_date?: string | null
           daily_budget_hours?: number
           feature_flags?: Json
+          notify_phone?: string | null
           preferred_name?: string | null
           tag_colors?: Json
+          timezone?: string | null
           updated_at?: string
           user_id?: string
           water_goal_ml?: number

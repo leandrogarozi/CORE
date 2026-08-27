@@ -1,9 +1,27 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { UserIcon } from "./icons";
 import type { UseBoard } from "@/lib/board/use-board";
+
+const FALLBACK_TIMEZONES = [
+  "America/Noronha",
+  "America/Sao_Paulo",
+  "America/Manaus",
+  "America/Rio_Branco",
+  "UTC",
+];
+
+function useTimezoneOptions(): string[] {
+  return useMemo(() => {
+    try {
+      return Intl.supportedValuesOf("timeZone");
+    } catch {
+      return FALLBACK_TIMEZONES;
+    }
+  }, []);
+}
 
 export function AvatarUploader({ avatarUrl, board }: { avatarUrl: string | null; board: UseBoard }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -48,6 +66,8 @@ export function AvatarUploader({ avatarUrl, board }: { avatarUrl: string | null;
 
 export function ProfileFields({ board }: { board: UseBoard }) {
   const [nameInput, setNameInput] = useState<string | null>(null);
+  const [phoneInput, setPhoneInput] = useState<string | null>(null);
+  const timezones = useTimezoneOptions();
 
   return (
     <>
@@ -83,6 +103,46 @@ export function ProfileFields({ board }: { board: UseBoard }) {
       </div>
       <div className="settings-toggle-hint" style={{ marginTop: 6 }}>
         Usado pra deixar o app (e o FARO, no futuro) mais pessoal — chamar você pelo nome certo.
+      </div>
+
+      <div className="settings-rows" style={{ marginTop: 16 }}>
+        <div className="settings-row-standalone">
+          <span className="settings-label">WhatsApp/telefone</span>
+          <input
+            type="tel"
+            placeholder="+55 11 91234-5678"
+            className="budget-input profile-name-input"
+            value={phoneInput ?? board.state.settings.notifyPhone ?? ""}
+            onChange={(e) => setPhoneInput(e.target.value)}
+            onBlur={() => {
+              if (phoneInput === null) return;
+              const trimmed = phoneInput.trim();
+              if (trimmed !== (board.state.settings.notifyPhone ?? "")) {
+                board.updateSettings({ notifyPhone: trimmed || null });
+              }
+              setPhoneInput(null);
+            }}
+          />
+        </div>
+        <div className="settings-row-standalone">
+          <span className="settings-label">Fuso horário</span>
+          <select
+            className="budget-input profile-name-input"
+            value={board.state.settings.timezone ?? ""}
+            onChange={(e) => board.updateSettings({ timezone: e.target.value || null })}
+          >
+            <option value="">Detectar do navegador</option>
+            {timezones.map((tz) => (
+              <option key={tz} value={tz}>
+                {tz}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <div className="settings-toggle-hint" style={{ marginTop: 6 }}>
+        Pra onde mandar notificações no futuro (WhatsApp) e pra lembretes/remédios dispararem na hora certa se
+        você viajar. Ainda não está conectado a nenhuma notificação de verdade.
       </div>
     </>
   );
