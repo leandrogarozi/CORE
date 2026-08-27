@@ -385,11 +385,38 @@ de feature flags que já existe pra água/dieta/sono/humor
 - [x] Lista de medicação — implementado (tela própria pelo menu
       lateral); falta só o bloco/atalho na home e a notificação via
       WhatsApp (dependência futura, ver spec acima)
-- [ ] Checklist de viagem — ideia do Leandro (27/08), ainda sem spec de
-      implementação. Ajudar a organizar mala/o que levar antes de
-      viajar — provavelmente um checklist reutilizável (itens marcáveis
-      que resetam a cada viagem nova, ou modelos/templates por tipo de
-      viagem). Definir formato quando for a vez.
+- [x] Checklists — implementado (27/08), tela própria no menu lateral
+      ("Checklists"), generalizado além de só viagem depois que o
+      Leandro pediu "colocar tbm tipo de check list, pode ser trabalho,
+      viagens..." no meio da implementação.
+      - **Estrutura**: cada checklist é um registro próprio (`title` +
+        `type` livre, ex.: "Viagem praia" / "viagem", "Reunião cliente
+        X" / "trabalho") com sua lista de itens (texto + marcado/
+        desmarcado). Não é um checklist único reciclado — cada viagem/
+        evento fica com seu próprio histórico, visível na lista (dá
+        pra olhar checklists antigos depois).
+      - **Duplicar**: botão "Duplicar" copia título, tipo e todos os
+        itens de um checklist existente pra um novo (itens vêm
+        desmarcados) — é o fluxo principal pra reaproveitar uma lista
+        de viagem/trabalho anterior editando só o que muda.
+      - **Enviar pro WhatsApp**: monta a lista como texto (✅/⬜ por
+        item) e abre `https://wa.me/?text=...` — usa o link universal
+        do WhatsApp (sem número fixo, sem depender de nenhuma API paga
+        nem do campo de telefone do Perfil), o usuário escolhe pra quem
+        mandar na hora. Diferente da notificação automática ainda
+        pendente (essa aqui já funciona hoje, é só compartilhar).
+      - **Tipo**: campo de texto livre com sugestão via `<datalist>`
+        dos tipos já usados antes (reaproveita "viagem"/"trabalho" sem
+        forçar uma lista fixa de categorias).
+      - Tabela `checklists` no Supabase: `title`, `type`, `items`
+        (jsonb, array de `{id, text, checked}`) — itens guardados como
+        JSON aninhado no registro (mesmo padrão já usado em
+        `daily_logs`/`fixed_blocks.note_options`), não uma tabela à
+        parte, porque toda edição (marcar item, adicionar, excluir,
+        duplicar) sempre reescreve a lista inteira de uma vez.
+      - Ícone da seção: `ChecklistIcon`, novo, do pack
+        (`Edit/List_Checklist.svg`). Ícone de enviar: `SendIcon`, novo,
+        do pack (`Communication/Paper_Plane.svg`).
 - [x] Perfil do usuário — implementado (27/08) em Configurações, nova
       caixa "Perfil" no topo, antes de "Tags da tarefa". Três campos,
       exatamente o que foi pedido, sem inventar mais nenhum:
@@ -446,6 +473,12 @@ de feature flags que já existe pra água/dieta/sono/humor
           continuarem disparando na hora certa se o Leandro viajar —
           mas hoje isso também é só o dado guardado, nenhum horário
           no app ainda lê esse campo pra ajustar o fuso de verdade.
+          **Ajuste (27/08)**: a lista completa do IANA (400+ fusos)
+          ficou difícil de achar o Brasil no meio — o Leandro reclamou
+          ("teria que pesquisar para achar fácil"). Corrigido com dois
+          `<optgroup>`: "Brasil" primeiro (os ~16 fusos oficiais do
+          país, ex. São Paulo, Manaus, Fernando de Noronha...) e
+          "Outros fusos" depois com o resto da lista do IANA.
         - Quando chegar a vez de configurar a **sincronização com o
           Google Agenda** (🔴 abaixo), as opções de sync entram dentro
           do Perfil, no mesmo lugar — não criar uma tela separada só

@@ -16,6 +16,7 @@ import { SettingsView } from "./SettingsView";
 import { BooksView } from "./BooksView";
 import { RemindersView, RemindersButton } from "./RemindersView";
 import { MedicationsView } from "./MedicationsView";
+import { ChecklistsView } from "./ChecklistsView";
 import { ScopeModal } from "./ScopeModal";
 import { FaroMascot } from "./FaroMascot";
 import { ActiveTimerBadge } from "./TimerButton";
@@ -135,6 +136,8 @@ function BoardShell() {
         <RemindersView onBack={() => setViewMode("day")} />
       ) : viewMode === "medications" ? (
         <MedicationsView onBack={() => setViewMode("day")} />
+      ) : viewMode === "checklists" ? (
+        <ChecklistsView onBack={() => setViewMode("day")} />
       ) : viewMode === "calendar" ? (
         <CalendarView onBack={() => setViewMode("day")} onSelectWeek={() => setViewMode("week")} onSelectDay={goToDate} />
       ) : (

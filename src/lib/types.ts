@@ -192,6 +192,20 @@ export interface Medication {
   active: boolean;
 }
 
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  checked: boolean;
+}
+
+export interface Checklist {
+  id: string;
+  title: string;
+  type: string; // livre, ex.: "viagem", "trabalho"
+  items: ChecklistItem[];
+  createdAt: string; // ISO date
+}
+
 export interface BoardState {
   tasks: Task[];
   habits: RecurringItem[];
@@ -202,6 +216,7 @@ export interface BoardState {
   reminders: Reminder[];
   medications: Medication[];
   medicationGroups: MedicationGroup[];
+  checklists: Checklist[];
   settings: Settings;
   activeTimer: ActiveTimer | null;
   dailyLogs: Record<string, DailyLog>; // iso date -> log

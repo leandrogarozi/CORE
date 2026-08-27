@@ -5,21 +5,38 @@ import { useMemo, useRef, useState } from "react";
 import { UserIcon } from "./icons";
 import type { UseBoard } from "@/lib/board/use-board";
 
-const FALLBACK_TIMEZONES = [
-  "America/Noronha",
+const BRAZIL_TIMEZONES = [
   "America/Sao_Paulo",
   "America/Manaus",
+  "America/Bahia",
+  "America/Fortaleza",
+  "America/Recife",
+  "America/Belem",
+  "America/Campo_Grande",
+  "America/Cuiaba",
+  "America/Boa_Vista",
+  "America/Porto_Velho",
   "America/Rio_Branco",
-  "UTC",
+  "America/Maceio",
+  "America/Araguaina",
+  "America/Santarem",
+  "America/Eirunepe",
+  "America/Noronha",
 ];
 
-function useTimezoneOptions(): string[] {
+function useTimezoneOptions(): { brazil: string[]; others: string[] } {
   return useMemo(() => {
+    let all: string[];
     try {
-      return Intl.supportedValuesOf("timeZone");
+      all = Intl.supportedValuesOf("timeZone");
     } catch {
-      return FALLBACK_TIMEZONES;
+      all = [...BRAZIL_TIMEZONES, "UTC"];
     }
+    const brazilSet = new Set(BRAZIL_TIMEZONES);
+    return {
+      brazil: BRAZIL_TIMEZONES.filter((tz) => all.includes(tz)),
+      others: all.filter((tz) => !brazilSet.has(tz)),
+    };
   }, []);
 }
 
@@ -67,7 +84,7 @@ export function AvatarUploader({ avatarUrl, board }: { avatarUrl: string | null;
 export function ProfileFields({ board }: { board: UseBoard }) {
   const [nameInput, setNameInput] = useState<string | null>(null);
   const [phoneInput, setPhoneInput] = useState<string | null>(null);
-  const timezones = useTimezoneOptions();
+  const { brazil: brazilTimezones, others: otherTimezones } = useTimezoneOptions();
 
   return (
     <>
@@ -132,11 +149,20 @@ export function ProfileFields({ board }: { board: UseBoard }) {
             onChange={(e) => board.updateSettings({ timezone: e.target.value || null })}
           >
             <option value="">Detectar do navegador</option>
-            {timezones.map((tz) => (
-              <option key={tz} value={tz}>
-                {tz}
-              </option>
-            ))}
+            <optgroup label="Brasil">
+              {brazilTimezones.map((tz) => (
+                <option key={tz} value={tz}>
+                  {tz.replace("America/", "").replaceAll("_", " ")}
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Outros fusos">
+              {otherTimezones.map((tz) => (
+                <option key={tz} value={tz}>
+                  {tz}
+                </option>
+              ))}
+            </optgroup>
           </select>
         </div>
       </div>

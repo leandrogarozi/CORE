@@ -1,9 +1,11 @@
-import type { Tables, TablesInsert, TablesUpdate } from "@/lib/database.types";
+import type { Json, Tables, TablesInsert, TablesUpdate } from "@/lib/database.types";
 import type {
   ActiveTimer,
   Book,
   BookStatus,
   Category,
+  Checklist,
+  ChecklistItem,
   DailyLog,
   DayLog,
   Medication,
@@ -36,6 +38,7 @@ type BookRow = Tables<"books">;
 type ReminderRow = Tables<"reminders">;
 type MedicationRow = Tables<"medications">;
 type MedicationGroupRow = Tables<"medication_groups">;
+type ChecklistRow = Tables<"checklists">;
 
 export function rowToTask(row: TaskRow): Task {
   return {
@@ -381,5 +384,33 @@ export function medicationGroupToUpdateRow(g: Partial<MedicationGroup>): TablesU
   if (g.startDate !== undefined) row.start_date = g.startDate;
   if (g.durationDays !== undefined) row.duration_days = g.durationDays;
   if (g.active !== undefined) row.active = g.active;
+  return row;
+}
+
+export function rowToChecklist(row: ChecklistRow): Checklist {
+  return {
+    id: row.id,
+    title: row.title,
+    type: row.type,
+    items: ((row.items as unknown as ChecklistItem[] | null) ?? []),
+    createdAt: row.created_at.slice(0, 10),
+  };
+}
+
+export function checklistToInsertRow(c: Checklist, userId: string): TablesInsert<"checklists"> {
+  return {
+    id: c.id,
+    user_id: userId,
+    title: c.title,
+    type: c.type,
+    items: c.items as unknown as Json,
+  };
+}
+
+export function checklistToUpdateRow(c: Partial<Checklist>): TablesUpdate<"checklists"> {
+  const row: TablesUpdate<"checklists"> = {};
+  if (c.title !== undefined) row.title = c.title;
+  if (c.type !== undefined) row.type = c.type;
+  if (c.items !== undefined) row.items = c.items as unknown as Json;
   return row;
 }

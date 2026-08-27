@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { BellIcon, BookIcon, ChartIcon, HomeIcon, PillIcon, SettingsIcon, WeekIcon } from "./icons";
+import { BellIcon, BookIcon, ChartIcon, ChecklistIcon, HomeIcon, PillIcon, SettingsIcon, WeekIcon } from "./icons";
 
 export type ViewMode =
   | "day"
@@ -12,7 +12,8 @@ export type ViewMode =
   | "books"
   | "calendar"
   | "reminders"
-  | "medications";
+  | "medications"
+  | "checklists";
 
 export function Sidebar({
   open,
@@ -85,6 +86,13 @@ export function Sidebar({
             onClick={() => onSelect("medications")}
           >
             <PillIcon /> Medicamentos
+          </button>
+          <button
+            type="button"
+            className={"sidebar-item" + (viewMode === "checklists" ? " active" : "")}
+            onClick={() => onSelect("checklists")}
+          >
+            <ChecklistIcon /> Checklists
           </button>
         </div>
 

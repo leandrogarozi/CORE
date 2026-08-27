@@ -6,6 +6,8 @@ import {
   bookToInsertRow,
   bookToUpdateRow,
   buildRecurring,
+  checklistToInsertRow,
+  checklistToUpdateRow,
   medicationGroupToInsertRow,
   medicationGroupToUpdateRow,
   medicationToInsertRow,
@@ -14,6 +16,7 @@ import {
   reminderToUpdateRow,
   rowToActiveTimer,
   rowToBook,
+  rowToChecklist,
   rowToDailyLog,
   rowToMedication,
   rowToMedicationGroup,
@@ -35,6 +38,8 @@ import type {
   Book,
   BoardState,
   Category,
+  Checklist,
+  ChecklistItem,
   DailyLog,
   DayLog,
   DayLogEntry,
@@ -63,6 +68,7 @@ const EMPTY_STATE: BoardState = {
   reminders: [],
   medications: [],
   medicationGroups: [],
+  checklists: [],
   settings: {
     tagColors: DEFAULT_TAG_COLORS,
     dailyBudgetHours: 12,
@@ -126,6 +132,7 @@ export function useBoard(userId: string | null) {
       remindersRes,
       medicationsRes,
       medicationGroupsRes,
+      checklistsRes,
       settingsRes,
       timerRes,
       dailyLogsRes,
@@ -142,6 +149,7 @@ export function useBoard(userId: string | null) {
       supabase.from("reminders").select("*").order("created_at"),
       supabase.from("medications").select("*").order("created_at"),
       supabase.from("medication_groups").select("*").order("created_at"),
+      supabase.from("checklists").select("*").order("created_at"),
       supabase.from("settings").select("*").maybeSingle(),
       supabase.from("active_timer").select("*").maybeSingle(),
       supabase.from("daily_logs").select("*"),
@@ -162,6 +170,7 @@ export function useBoard(userId: string | null) {
       reminders: (remindersRes.data ?? []).map(rowToReminder),
       medications: (medicationsRes.data ?? []).map(rowToMedication),
       medicationGroups: (medicationGroupsRes.data ?? []).map(rowToMedicationGroup),
+      checklists: (checklistsRes.data ?? []).map(rowToChecklist),
       settings: rowToSettings(settingsRes.data ?? null),
       activeTimer: rowToActiveTimer(timerRes.data ?? null),
       dailyLogs,
@@ -777,6 +786,65 @@ export function useBoard(userId: string | null) {
     [apply, supabase]
   );
 
+  // ---------- checklists ----------
+  const addChecklist = useCallback(
+    (title: string, type: string) => {
+      if (!userId || !title.trim()) return;
+      const c: Checklist = {
+        id: uid(),
+        title: title.trim(),
+        type: type.trim() || "viagem",
+        items: [],
+        createdAt: todayISO(),
+      };
+      apply((s) => ({ ...s, checklists: [...s.checklists, c] }));
+      supabase.from("checklists").insert(checklistToInsertRow(c, userId)).then(({ error }) => {
+        if (error) console.error("addChecklist", error);
+      });
+    },
+    [apply, supabase, userId]
+  );
+
+  const updateChecklist = useCallback(
+    (id: string, patch: Partial<Pick<Checklist, "title" | "type" | "items">>) => {
+      apply((s) => ({ ...s, checklists: s.checklists.map((c) => (c.id === id ? { ...c, ...patch } : c)) }));
+      supabase.from("checklists").update(checklistToUpdateRow(patch)).eq("id", id).then(({ error }) => {
+        if (error) console.error("updateChecklist", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  const deleteChecklist = useCallback(
+    (id: string) => {
+      apply((s) => ({ ...s, checklists: s.checklists.filter((c) => c.id !== id) }));
+      supabase.from("checklists").delete().eq("id", id).then(({ error }) => {
+        if (error) console.error("deleteChecklist", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  const duplicateChecklist = useCallback(
+    (id: string) => {
+      if (!userId) return;
+      const src = stateRef.current.checklists.find((c) => c.id === id);
+      if (!src) return;
+      const copy: Checklist = {
+        id: uid(),
+        title: src.title,
+        type: src.type,
+        items: src.items.map((i): ChecklistItem => ({ id: uid(), text: i.text, checked: false })),
+        createdAt: todayISO(),
+      };
+      apply((s) => ({ ...s, checklists: [...s.checklists, copy] }));
+      supabase.from("checklists").insert(checklistToInsertRow(copy, userId)).then(({ error }) => {
+        if (error) console.error("duplicateChecklist", error);
+      });
+    },
+    [apply, supabase, userId]
+  );
+
   // ---------- recurring (habits / fixed blocks) ----------
   const tableFor = (kind: "habit" | "block") => (kind === "habit" ? "habits" : "fixed_blocks");
   const listKeyFor = (kind: "habit" | "block"): "habits" | "fixedBlocks" =>
@@ -1166,6 +1234,10 @@ export function useBoard(userId: string | null) {
     addMedicationGroup,
     updateMedicationGroup,
     deleteMedicationGroup,
+    addChecklist,
+    updateChecklist,
+    deleteChecklist,
+    duplicateChecklist,
     addRecurring,
     updateRecurring,
     updateRecurringNoteOptions,
