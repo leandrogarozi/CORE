@@ -9,10 +9,21 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
 - [ ] **Lembretes** — Leandro confirmou seguir com o spec já capturado
       abaixo (com/sem data, com/sem repetição; sync com Google Agenda
       fica pra depois, item 🔴 separado). Pode começar a implementar.
-- [ ] **Pacote de ícones do Leandro** — ele vai baixar um pack de ícones
-      (biblioteca conhecida ou SVGs próprios) e passar pra mim, pra
-      deixar os ícones do app mais padronizados/no estilo dele. Trocar
-      os ícones em `src/components/board/icons.tsx` quando ele mandar.
+- [x] **Pacote de ícones do Leandro** — recebido (442 SVGs do Figma,
+      organizados em 14 pastas por categoria) e já aplicado. Guardado
+      em `design/icon-pack/` no repo (fora do build, só como fonte pra
+      próximos ícones). Todos os ~20 ícones do app foram trocados pelos
+      equivalentes do pack (mesmo padrão de sempre: `stroke="currentColor"`,
+      cor herdada de fora, não fixa no SVG). Duas exceções:
+      - `PillIcon` (Medicamentos, ainda desabilitado no menu) ficou
+        customizado — o pack não tem ícone de comprimido/medicação.
+      - O ícone do grupo "Livros" (antes um retângulo sólido,
+        `BookSolidIcon`) virou `BookOpenIcon` — um livro aberto em
+        contorno (`Book_Open.svg` do pack), já que o pack é todo em
+        estilo linha (sem preenchido). `BookIcon` (livro fechado, usado
+        no menu lateral) continua separado.
+      - Ponto de rollback se algo não ficar bom: commit `d1dbfcd`
+        (estado anterior à troca de ícones).
 
 ## Mascote FARO (assistente de IA do app)
 

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
-import { BookSolidIcon, ChevronIcon, CommentIcon, TrashIcon, WeekIcon } from "./icons";
+import { BookOpenIcon, ChevronIcon, CommentIcon, TrashIcon, WeekIcon } from "./icons";
 import { dateFromISO, MONTH_NAMES } from "@/lib/date-utils";
 import {
   BOOK_GROUP_LABEL,
@@ -307,7 +307,7 @@ export function BooksView({ onBack }: { onBack: () => void }) {
                     className="book-group-icon"
                     style={{ "--group-color": BOOK_STATUS_COLOR[status] } as React.CSSProperties}
                   >
-                    <BookSolidIcon />
+                    <BookOpenIcon />
                   </span>
                   <span className="book-group-name">{BOOK_GROUP_LABEL[status]}</span>
                   <span className="book-group-count">{books.length}</span>
