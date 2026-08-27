@@ -425,6 +425,27 @@ de feature flags que já existe pra água/dieta/sono/humor
         dois lugares). Combinado com o Leandro: "mais adiante podemos
         melhorar lá com outras opções e ir enriquecendo" — ou seja,
         essa tela de Perfil é o lugar certo pra crescer no futuro.
+      - **Próximos campos já combinados (27/08), ainda não implementados**
+        — discutido o que apps costumam ter em Perfil e falta aqui; o
+        Leandro confirmou dois como prioridade real (os outros —
+        usuário/handle, bio pública, localização — ficam de fora, não
+        fazem sentido num app de uso pessoal só):
+        - **Para onde mandar notificação** (telefone/WhatsApp, e-mail
+          se fizer sentido): campo(s) no Perfil pra guardar o destino
+          das notificações — é o que falta pra sair do papel a
+          notificação via WhatsApp já combinada em Lembretes/
+          Medicamentos (ver 🔴 "Notificações push de lembretes"
+          abaixo). Sem isso, aquela integração não tem pra onde
+          mandar mensagem.
+        - **Fuso horário**: pra lembretes/remédios continuarem
+          disparando na hora certa se o Leandro viajar.
+        - Quando chegar a vez de configurar a **sincronização com o
+          Google Agenda** (🔴 abaixo), colocar as opções de sync
+          também dentro do Perfil, no mesmo lugar — não criar uma
+          tela separada só pra isso.
+        - Também ficou combinado: mover o botão "Sair" (hoje meio
+          perdido no rodapé do app) pra dentro do Perfil, é o lugar
+          mais lógico pra ele.
 - [x] Livros lidos + insights — feito; falta só a parte de virar
       "conteúdo de inspiração" em outro lugar do painel (ver acima)
 - [x] Cadastro de tipos de lazer — cada bloco fixo tem uma lista própria de
@@ -453,7 +474,10 @@ de feature flags que já existe pra água/dieta/sono/humor
 - [ ] IA de distribuição de tarefas
 - [ ] IA de recomendação do próximo livro — cruza livros/insights/humor/
       objetivos do momento pra sugerir o que ler a seguir
-- [ ] Sincronização com Google Agenda (inclui sync de lembretes, ver acima)
+- [ ] Sincronização com Google Agenda (inclui sync de lembretes, ver
+      acima) — quando for implementar, as opções de sync entram dentro
+      do Perfil (ver seção Perfil acima, "próximos campos já
+      combinados"), não numa tela separada.
 - [ ] Notificações push de lembretes — **confirmado pelo Leandro,
       implementar depois** (não é próximo passo agora). Alerta de
       verdade na hora marcada (som/notificação do navegador). Precisa
@@ -461,11 +485,13 @@ de feature flags que já existe pra água/dieta/sono/humor
       no servidor. Distinto da sync com Google Agenda. Ideal, se der:
       lembrete chegando também por **WhatsApp** (precisaria de API
       própria pra isso, ex. WhatsApp Business API/Twilio — integração
-      separada da notificação do navegador). **Sonho do Leandro**:
-      ligação de verdade via WhatsApp (telefone toca na hora do
-      lembrete) — confirmado que é possível via WhatsApp Business
-      Calling API, mas exige conta Business verificada, aprovação da
-      Meta e tem custo por minuto; não começar sem ele confirmar.
+      separada da notificação do navegador; depende do campo de
+      telefone/WhatsApp no Perfil, ver acima — é pra onde a mensagem
+      vai). **Sonho do Leandro**: ligação de verdade via WhatsApp
+      (telefone toca na hora do lembrete) — confirmado que é possível
+      via WhatsApp Business Calling API, mas exige conta Business
+      verificada, aprovação da Meta e tem custo por minuto; não começar
+      sem ele confirmar.
 - [ ] Ferramentas / Roda da Vida
 - [ ] Relatório cruzando dados (tarefas × hábitos × humor × sono etc.)
 - [ ] Observação do humor no dashboard alimentada por IA (rotina agendada
