@@ -121,7 +121,8 @@ export function Dashboard() {
     });
 
     const moodDays = days.map((iso) => ({ iso, mood: s.dailyLogs[iso]?.mood ?? null }));
-    const moodValues = moodDays.map((d) => d.mood).filter((v): v is number => v !== null);
+    // "Doente" (v:0) é um estado físico, não um nível de humor — fica fora da média.
+    const moodValues = moodDays.map((d) => d.mood).filter((v): v is number => v !== null && v !== 0);
     const moodAvg = moodValues.length ? moodValues.reduce((a, b) => a + b, 0) / moodValues.length : null;
 
     return {
@@ -277,8 +278,8 @@ export function Dashboard() {
                     <span
                       key={d.iso}
                       className="mood-thermo-day"
-                      title={`${d.iso}${d.mood ? " — " + moodByValue(d.mood)?.label : ""}`}
-                      style={{ background: d.mood ? moodByValue(d.mood)?.color : "var(--surface-2)" }}
+                      title={`${d.iso}${d.mood !== null ? " — " + moodByValue(d.mood)?.label : ""}`}
+                      style={{ background: d.mood !== null ? moodByValue(d.mood)?.color : "var(--surface-2)" }}
                     />
                   ))}
                 </div>

@@ -18,6 +18,11 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
 
 - Escala 1–5 com emoji (Péssimo/Ruim/Neutro/Bom/Ótimo), rótulo discreto
   embaixo de cada carinha.
+- **Carinha "Doente" (🤒)**: opção extra além da escala 1-5, pra não
+  precisar escolher "Ruim/Péssimo" e explicar na nota que é doença
+  física, não humor. Fica de fora da média/gráfico do dashboard (não é
+  um nível de humor, é um estado físico à parte) mas aparece com cor
+  própria na faixa de dias do termômetro. `v: 0` em `src/lib/mood.ts`.
 - Ao selecionar uma carinha, um ícone de comentário aparece **sobre o
   cantinho da carinha selecionada** (estilo notificação de celular) —
   "Quer comentar por que está se sentindo assim?".
