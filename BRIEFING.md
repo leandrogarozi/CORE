@@ -242,6 +242,17 @@ de feature flags que já existe pra água/dieta/sono/humor
     do lembrete. Anotado como parte do mesmo item de backlog, mas é
     tecnicamente outra peça (fora do que o navegador consegue fazer
     sozinho).
+  - **Sonho do Leandro (favorito dele)**: em vez de só mensagem, o
+    **telefone tocar de verdade** — uma ligação via WhatsApp na hora
+    do lembrete. Ele mesmo não sabe se dá pra fazer; verificamos:
+    **dá, sim** — existe a WhatsApp Business Calling API, que permite
+    a um número de WhatsApp Business iniciar chamada de voz pro
+    usuário. É bem mais avançado que mandar mensagem: precisa de conta
+    WhatsApp Business verificada, aprovação da Meta pra usar chamadas,
+    e tem custo por minuto de ligação (diferente de mensagem, que tem
+    janela gratuita). Fica marcado como o item mais ambicioso dentro
+    de "Notificações de lembrete" — não começar sem confirmação
+    explícita do Leandro, até pelo custo envolvido.
 
 ## Decisões de design (visual)
 
@@ -310,7 +321,11 @@ de feature flags que já existe pra água/dieta/sono/humor
       no servidor. Distinto da sync com Google Agenda. Ideal, se der:
       lembrete chegando também por **WhatsApp** (precisaria de API
       própria pra isso, ex. WhatsApp Business API/Twilio — integração
-      separada da notificação do navegador).
+      separada da notificação do navegador). **Sonho do Leandro**:
+      ligação de verdade via WhatsApp (telefone toca na hora do
+      lembrete) — confirmado que é possível via WhatsApp Business
+      Calling API, mas exige conta Business verificada, aprovação da
+      Meta e tem custo por minuto; não começar sem ele confirmar.
 - [ ] Ferramentas / Roda da Vida
 - [ ] Relatório cruzando dados (tarefas × hábitos × humor × sono etc.)
 - [ ] Observação do humor no dashboard alimentada por IA (rotina agendada
