@@ -276,24 +276,34 @@ de feature flags que já existe pra água/dieta/sono/humor
   espaço pro botão de Lembretes, mas o Leandro preferiu do jeito
   original. Revisitar se a barra de botões do topo ficar apertada
   conforme mais coisas forem entrando ali.
-- **Revisão das cores amarelas do app (em andamento)**: Leandro quer
-  trocar o amarelo usado em vários pontos (aviso "falta registrar",
-  chip "Rápidas primeiro" ativo, badge de velocidade de execução,
-  ícone de alerta, decoração de estrela) — vai mandar 2 referências de
-  amarelo pra gente aplicar (ainda não chegou, pedido de novo).
-  Primeiro passo já feito, com uma volta no meio do caminho: o badge
-  "+++" de velocidade de execução da tarefa (coluna "Vel.Ex") virou
-  **3 ícones clicáveis** (contorno vazio, preenchidos até o clicado —
-  não cicla mais + → ++ → +++, clica direto no Nº ícone pra setar, ou
-  no mesmo pra zerar). Passou primeiro por estrelas (`StarIcon`, do
-  pack) e depois virou **raio** (`BoltIcon` em `icons.tsx`,
-  `QuickBolts` em `TaskRow.tsx`) — o pack não tem nenhum ícone de raio/
-  lightning (conferido nos 442 arquivos), então esse é desenhado à mão
-  como exceção à regra fixa, igual o `PillIcon`. A cor de preenchimento
-  usa `var(--book-yellow)`, o mesmo token já usado em Livros/hábitos —
-  quando vier a referência de amarelo, trocar esse token já atualiza
-  aqui junto. Ponto de rollback se não ficar bom: commit `2a29a67`
-  (estado anterior a essa mudança, antes até das estrelas).
+- **Revisão das cores amarelas do app**: Leandro queria trocar o
+  amarelo usado em vários pontos (aviso "falta registrar", chip
+  "Rápidas primeiro" ativo, badge de velocidade de execução).
+  - Badge "+++" de velocidade (coluna "Vel.Ex") virou **3 ícones
+    clicáveis** (contorno vazio, preenchidos até o clicado — não cicla
+    mais + → ++ → +++, clica direto no Nº ícone pra setar, ou no mesmo
+    pra zerar). Passou primeiro por estrelas (`StarIcon`, do pack) e
+    depois virou **raio** (`BoltIcon` em `icons.tsx`, `QuickBolts` em
+    `TaskRow.tsx`) — o pack não tem nenhum ícone de raio/lightning
+    (conferido nos 442 arquivos), então esse é desenhado à mão como
+    exceção à regra fixa, igual o `PillIcon`.
+  - **Cor**: Leandro mandou um ícone de referência (triângulo de
+    aviso) com o tom de amarelo/dourado que queria. Sem acesso ao
+    arquivo exato (só viu a imagem no chat, sem conseguir extrair o
+    pixel), aplicado por estimativa visual: `--book-yellow` mudou de
+    `#C99A0A` (claro) / `#E8C547` (escuro) pra `#F2B93F` (claro) /
+    `#F5C968` (escuro) — um dourado mais vivo/quente. Se o tom não
+    bater exatamente com a referência, é só ajustar esse único token.
+  - **Unificação**: as 3 caixas de aviso amarelas (`.dl-reminder` —
+    "Ainda falta registrar hoje", `.hp-note` — nota de horas,
+    `.quicksort-btn.active` — chip "Rápidas primeiro") tinham cada uma
+    seu próprio trio de hex fixo duplicado (`#8A6412`/`#FCEFD8`/
+    `#E8C077`). Trocado por `color-mix()` derivado de `--book-yellow`
+    — daqui pra frente, mudar esse token muda as três juntas. Criada
+    `--warn-text-mix` (preto no tema claro, branco no escuro) pra a
+    mistura do texto continuar legível nos dois temas.
+  - Ponto de rollback se não ficar bom: commit `2a29a67` (estado
+    anterior a toda essa revisão de amarelo, antes até das estrelas).
 
 ## Backlog
 
