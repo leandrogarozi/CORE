@@ -241,6 +241,19 @@ de feature flags que já existe pra água/dieta/sono/humor
   - Ainda sem bloco/atalho na home (diferente de Lembretes) — só a
     tela própria por enquanto. Notificação via WhatsApp segue como
     dependência futura (ver acima).
+  - **Dias da semana (27/08)**: pedido do Leandro — "tenho um remédio
+    que vou tomar somente 4x na semana", ou seja, nem todo remédio é
+    diário. Cada remédio (`medications.week_days`, `integer[]` novo no
+    banco) ganhou um seletor de dias no mesmo popover de horário —
+    botões redondos D/S/T/Q/Q/S/S, clica pra marcar os dias em que
+    toma. Vazio (nenhum marcado) ou todos os 7 marcados = mesmo
+    comportamento de antes, remédio diário (não guarda restrição). Só
+    ficou disponível no nível do remédio individual (`MedicationRow`),
+    não no horário do grupo/tratamento inteiro — não fazia sentido pra
+    tratamento curto tipo antibiótico. Ainda não afeta a desativação
+    automática nem gera lembrete de verdade (mesma dependência de
+    WhatsApp de sempre) — por enquanto é só informativo, mostra os dias
+    junto do horário no rótulo do botão (ex.: "08:00 · SEG,QUA,SEX").
 
 ### Lembretes
 

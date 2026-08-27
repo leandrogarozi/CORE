@@ -332,6 +332,7 @@ export type Database = {
           notes: string | null
           start_date: string | null
           user_id: string
+          week_days: number[] | null
         }
         Insert: {
           active?: boolean
@@ -344,6 +345,7 @@ export type Database = {
           notes?: string | null
           start_date?: string | null
           user_id: string
+          week_days?: number[] | null
         }
         Update: {
           active?: boolean
@@ -356,6 +358,7 @@ export type Database = {
           notes?: string | null
           start_date?: string | null
           user_id?: string
+          week_days?: number[] | null
         }
         Relationships: [
           {

@@ -307,6 +307,7 @@ export function rowToMedication(row: MedicationRow): Medication {
     notes: row.notes,
     startDate: row.start_date,
     durationDays: row.duration_days,
+    weekDays: row.week_days,
     active: row.active,
   };
 }
@@ -321,6 +322,7 @@ export function medicationToInsertRow(m: Medication, userId: string): TablesInse
     notes: m.notes,
     start_date: m.startDate,
     duration_days: m.durationDays,
+    week_days: m.weekDays,
     active: m.active,
   };
 }
@@ -333,6 +335,7 @@ export function medicationToUpdateRow(m: Partial<Medication>): TablesUpdate<"med
   if (m.notes !== undefined) row.notes = m.notes;
   if (m.startDate !== undefined) row.start_date = m.startDate;
   if (m.durationDays !== undefined) row.duration_days = m.durationDays;
+  if (m.weekDays !== undefined) row.week_days = m.weekDays;
   if (m.active !== undefined) row.active = m.active;
   return row;
 }

@@ -687,6 +687,7 @@ export function useBoard(userId: string | null) {
         notes: null,
         startDate: null,
         durationDays: null,
+        weekDays: null,
         active: true,
       };
       apply((s) => ({ ...s, medications: [...s.medications, m] }));
@@ -698,7 +699,7 @@ export function useBoard(userId: string | null) {
   );
 
   const updateMedication = useCallback(
-    (id: string, patch: Partial<Pick<Medication, "name" | "time" | "notes" | "startDate" | "durationDays" | "active">>) => {
+    (id: string, patch: Partial<Pick<Medication, "name" | "time" | "notes" | "startDate" | "durationDays" | "weekDays" | "active">>) => {
       apply((s) => ({ ...s, medications: s.medications.map((m) => (m.id === id ? { ...m, ...patch } : m)) }));
       supabase.from("medications").update(medicationToUpdateRow(patch)).eq("id", id).then(({ error }) => {
         if (error) console.error("updateMedication", error);

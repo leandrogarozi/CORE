@@ -6,12 +6,21 @@ import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
 import { ClockIcon, TrashIcon } from "./icons";
 import { ToggleSwitch } from "./ToggleSwitch";
-import { daysBetweenInclusive, fmtShortDate, isoAddDays, todayISO } from "@/lib/date-utils";
+import { DAY_NAMES, daysBetweenInclusive, fmtShortDate, isoAddDays, todayISO } from "@/lib/date-utils";
 import type { Medication, MedicationGroup } from "@/lib/types";
 
-function scheduleLabel(time: string | null, showTime: boolean, startDate: string | null, durationDays: number | null): string | null {
+function scheduleLabel(
+  time: string | null,
+  showTime: boolean,
+  startDate: string | null,
+  durationDays: number | null,
+  weekDays: number[] | null
+): string | null {
   const parts: string[] = [];
   if (showTime && time) parts.push(time);
+  if (weekDays && weekDays.length > 0 && weekDays.length < 7) {
+    parts.push([...weekDays].sort((a, b) => a - b).map((d) => DAY_NAMES[d]).join(","));
+  }
   if (startDate && durationDays) {
     const endISO = isoAddDays(startDate, durationDays - 1);
     parts.push(todayISO() <= endISO ? `até ${fmtShortDate(endISO)}` : "encerrado");
@@ -24,6 +33,8 @@ function ScheduleButton({
   showTime,
   startDate,
   durationDays,
+  weekDays,
+  showWeekDays,
   title,
   onSave,
 }: {
@@ -31,13 +42,21 @@ function ScheduleButton({
   showTime: boolean;
   startDate: string | null;
   durationDays: number | null;
+  weekDays?: number[] | null;
+  showWeekDays?: boolean;
   title: string;
-  onSave: (patch: { time?: string | null; startDate: string | null; durationDays: number | null }) => void;
+  onSave: (patch: {
+    time?: string | null;
+    startDate: string | null;
+    durationDays: number | null;
+    weekDays?: number[] | null;
+  }) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [timeDraft, setTimeDraft] = useState(time ?? "");
   const [startDraft, setStartDraft] = useState(startDate ?? "");
   const [endDraft, setEndDraft] = useState(startDate && durationDays ? isoAddDays(startDate, durationDays - 1) : "");
+  const [weekDraft, setWeekDraft] = useState<number[]>(weekDays ?? []);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
@@ -58,6 +77,7 @@ function ScheduleButton({
       setTimeDraft(time ?? "");
       setStartDraft(startDate ?? "");
       setEndDraft(startDate && durationDays ? isoAddDays(startDate, durationDays - 1) : "");
+      setWeekDraft(weekDays ?? []);
       if (btnRef.current) {
         const r = btnRef.current.getBoundingClientRect();
         setPos({ top: r.bottom + 4, left: r.left });
@@ -66,17 +86,24 @@ function ScheduleButton({
     setOpen((v) => !v);
   }
 
+  function toggleWeekDay(d: number) {
+    setWeekDraft((cur) => (cur.includes(d) ? cur.filter((x) => x !== d) : [...cur, d]));
+  }
+
   function save() {
     const hasPeriod = !!startDraft && !!endDraft;
     onSave({
       ...(showTime ? { time: timeDraft || null } : {}),
       startDate: hasPeriod ? startDraft : null,
       durationDays: hasPeriod ? Math.max(1, daysBetweenInclusive(startDraft, endDraft)) : null,
+      ...(showWeekDays
+        ? { weekDays: weekDraft.length > 0 && weekDraft.length < 7 ? [...weekDraft].sort((a, b) => a - b) : null }
+        : {}),
     });
     setOpen(false);
   }
 
-  const label = scheduleLabel(time, showTime, startDate, durationDays);
+  const label = scheduleLabel(time, showTime, startDate, durationDays, weekDays ?? null);
 
   return (
     <>
@@ -102,6 +129,24 @@ function ScheduleButton({
                 onChange={(e) => setTimeDraft(e.target.value)}
                 onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
               />
+            )}
+            {showWeekDays && (
+              <div className="edit-field">
+                <span className="edit-field-label">Dias da semana (vazio = todo dia)</span>
+                <div className="weekday-picker">
+                  {DAY_NAMES.map((label, d) => (
+                    <button
+                      key={d}
+                      type="button"
+                      className={"weekday-btn" + (weekDraft.includes(d) ? " active" : "")}
+                      title={label}
+                      onClick={() => toggleWeekDay(d)}
+                    >
+                      {label[0]}
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
             <div className="edit-field">
               <span className="edit-field-label">Início (opcional)</span>
@@ -173,6 +218,8 @@ function MedicationRow({ medication, showTime }: { medication: Medication; showT
         showTime={showTime}
         startDate={medication.startDate}
         durationDays={medication.durationDays}
+        weekDays={medication.weekDays}
+        showWeekDays
         title="Horário/duração do remédio"
         onSave={(patch) => board.updateMedication(medication.id, patch)}
       />

@@ -183,6 +183,7 @@ export interface Medication {
   notes: string | null;
   startDate: string | null; // ISO date — duração própria do remédio (opcional, independente do grupo)
   durationDays: number | null;
+  weekDays: number[] | null; // 0=DOM..6=SAB; null/vazio = todos os dias, senão só nesses dias da semana
   active: boolean;
 }
 
