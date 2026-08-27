@@ -370,6 +370,14 @@ de feature flags que já existe pra água/dieta/sono/humor
       viajar — provavelmente um checklist reutilizável (itens marcáveis
       que resetam a cada viagem nova, ou modelos/templates por tipo de
       viagem). Definir formato quando for a vez.
+- [ ] Perfil do usuário — ideia do Leandro (27/08), próximo passo depois
+      de fechar Medicamentos. Uma tela/campo de "Perfil": foto avatar,
+      nome que quer ser chamado ("como quer ser chamado?"), data de
+      nascimento. Motivação principal: dar pro FARO (a IA, fase 2 —
+      ver seção do mascote) o nome certo pra chamar o Leandro, em vez
+      de só "Leandro" fixo no código como é hoje. Ainda sem spec
+      completa (será que precisa de mais campos além desses 3?) —
+      definir quando chegar a vez.
 - [x] Livros lidos + insights — feito; falta só a parte de virar
       "conteúdo de inspiração" em outro lugar do painel (ver acima)
 - [x] Cadastro de tipos de lazer — cada bloco fixo tem uma lista própria de
