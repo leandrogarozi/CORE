@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { useBoard, type UseBoard } from "@/lib/board/use-board";
 import { useColumnWidths, type UseColumnWidths } from "@/lib/board/column-widths";
 import type { ScopeChoice } from "@/lib/types";
@@ -28,6 +28,15 @@ export function BoardProvider({ userId, children }: { userId: string; children: 
   const [sortByQuick, setSortByQuick] = useState(false);
   const [scopeModal, setScopeModal] = useState<ScopeModalState>({ open: false, question: "", onChoose: null });
   const columns = useColumnWidths();
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- lê a preferência salva do navegador uma vez, no mount
+    if (localStorage.getItem("faro-sort-by-quick") === "1") setSortByQuick(true);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("faro-sort-by-quick", sortByQuick ? "1" : "0");
+  }, [sortByQuick]);
 
   const askScope = useCallback((question: string, onChoose: (choice: ScopeChoice) => void) => {
     setScopeModal({ open: true, question, onChoose });
