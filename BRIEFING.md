@@ -276,6 +276,20 @@ de feature flags que já existe pra água/dieta/sono/humor
   espaço pro botão de Lembretes, mas o Leandro preferiu do jeito
   original. Revisitar se a barra de botões do topo ficar apertada
   conforme mais coisas forem entrando ali.
+- **Revisão das cores amarelas do app (em andamento)**: Leandro quer
+  trocar o amarelo usado em vários pontos (aviso "falta registrar",
+  chip "Rápidas primeiro" ativo, badge de velocidade de execução,
+  ícone de alerta, decoração de estrela) — vai mandar 2 referências de
+  amarelo pra gente aplicar. Primeiro passo já feito: o badge "+++"
+  de velocidade de execução da tarefa (coluna "Vel.Ex") virou **3
+  estrelinhas clicáveis** (`QuickStars` em `TaskRow.tsx`, ícone
+  `StarIcon` do pack) — contorno quando vazias, preenchidas até a
+  estrela clicada (não cicla mais + → ++ → +++, agora clica direto na
+  Nª estrela pra setar, ou na mesma estrela pra zerar). A cor de
+  preenchimento usa `var(--book-yellow)`, o mesmo token já usado em
+  Livros/hábitos — quando vier a nova cor de referência, trocar esse
+  token já atualiza aqui junto. Ponto de rollback se não ficar bom:
+  commit `2a29a67` (estado anterior a essa mudança).
 
 ## Backlog
 

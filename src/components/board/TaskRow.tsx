@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { TimerButton } from "./TimerButton";
 import { StatusPicker } from "./StatusPicker";
-import { DuplicateIcon, FlagIcon, RepeatIcon, TrashIcon } from "./icons";
+import { DuplicateIcon, FlagIcon, RepeatIcon, StarIcon, TrashIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
 import { CATEGORY_LABEL, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
 import type { TaskEditFields } from "@/lib/board/use-board";
@@ -27,15 +27,30 @@ function isOverdue(t: Task) {
   return !t.done && t.date && t.date < todayISO();
 }
 
-function quickLabel(val: number) {
-  return val > 0 ? "+".repeat(val) : "+";
+function quickTitle(val: number) {
+  if (val > 0) return `Velocidade ${val}/3 — clique numa estrela pra mudar, ou na mesma pra tirar.`;
+  return "Marcar velocidade de execução (1 a 3 estrelas)";
 }
 
-function quickTitle(val: number) {
-  if (val === 3) return "+++ — bem rápida, dá pra limpar logo. Clique pra tirar a marcação.";
-  if (val === 2) return "++ — rápida. Clique pra virar +++.";
-  if (val === 1) return "+ — mais lenta pra executar. Clique pra virar ++.";
-  return "Marcar velocidade de execução (clique: + → ++ → +++)";
+function QuickStars({ value, onSet }: { value: number; onSet: (v: 0 | 1 | 2 | 3) => void }) {
+  return (
+    <div className="quick-stars" title={quickTitle(value)}>
+      {([1, 2, 3] as const).map((n) => (
+        <button
+          key={n}
+          type="button"
+          className={"quick-star" + (n <= value ? " filled" : "")}
+          aria-label={`Velocidade ${n}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onSet(n === value ? 0 : n);
+          }}
+        >
+          <StarIcon filled={n <= value} />
+        </button>
+      ))}
+    </div>
+  );
 }
 
 export function CategoryChip({ category }: { category: Category }) {
@@ -118,17 +133,7 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
         currentId={t.statusId}
         onSelect={(statusId) => board.setTaskStatus(t.id, statusId)}
       />
-      <button
-        type="button"
-        className={"quick-badge" + ((t.quick || 0) > 0 ? " set" : "")}
-        title={quickTitle(t.quick || 0)}
-        onClick={(e) => {
-          e.stopPropagation();
-          board.cycleQuick(t.id);
-        }}
-      >
-        {quickLabel(t.quick || 0)}
-      </button>
+      <QuickStars value={t.quick || 0} onSet={(v) => board.setQuick(t.id, v)} />
       <div className="row-desc-cell">
         <button type="button" className="row-title" title={t.title} onClick={() => setEditing(true)}>
           {t.title}

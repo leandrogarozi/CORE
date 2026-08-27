@@ -203,14 +203,11 @@ export function useBoard(userId: string | null) {
     [apply, supabase]
   );
 
-  const cycleQuick = useCallback(
-    (id: string) => {
-      const t = stateRef.current.tasks.find((x) => x.id === id);
-      if (!t) return;
-      const quick = (((t.quick || 0) + 1) % 4) as 0 | 1 | 2 | 3;
+  const setQuick = useCallback(
+    (id: string, quick: 0 | 1 | 2 | 3) => {
       apply((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === id ? { ...x, quick } : x)) }));
       supabase.from("tasks").update({ quick }).eq("id", id).then(({ error }) => {
-        if (error) console.error("cycleQuick", error);
+        if (error) console.error("setQuick", error);
       });
     },
     [apply, supabase]
@@ -978,7 +975,7 @@ export function useBoard(userId: string | null) {
     findTrackable,
     addTask,
     setTaskStatus,
-    cycleQuick,
+    setQuick,
     reorderBucket,
     duplicateTask,
     deleteTask,
