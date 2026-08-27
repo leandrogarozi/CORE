@@ -209,14 +209,21 @@ de feature flags que já existe pra água/dieta/sono/humor
   - **Temporários**: cadastra primeiro o **motivo** (`MedicationGroup`,
     tabela `medication_groups` — ex.: "Tratamento sinusite"), depois os
     remédios dentro dele (`medications.group_id` aponta pro grupo). O
-    grupo tem observação geral, duração em dias (desativa o tratamento
-    inteiro sozinho quando expira) e um seletor **Único vs Individual**
-    de horário: "Único" = um horário só, vale pra todos os remédios do
-    grupo (`shared_time`); "Individual" = cada remédio tem seu próprio
-    horário.
+    grupo tem observação geral, período (início/término, ver abaixo —
+    desativa o tratamento inteiro sozinho quando expira) e um seletor
+    **"Mesmo horário" vs "Horário por remédio"**: mesmo horário = um
+    horário só, vale pra todos os remédios do grupo (`shared_time`);
+    por remédio = cada um tem o seu. Rótulos escritos por extenso nos
+    botões (não só no tooltip) depois que o Leandro achou confuso
+    "Único/Individual" sem explicação.
+  - **Período (início/término)**: o popover de horário mostra dois
+    campos de data — "Início" e "Término" — em vez de só "duração em
+    dias" (mudança pedida pelo Leandro; internamente ainda calcula e
+    guarda como `startDate` + `durationDays`, só a UI que virou dois
+    seletores de data). Vale tanto pro grupo quanto pra cada remédio.
   - **Cada remédio** (temporário ou recorrente) tem, além do nome:
     observação própria (dosagem/instruções, via `CommentButton`
-    reaproveitado), e **duração própria em dias** — independente da
+    reaproveitado), e **período próprio** — independente da
     duração do grupo, porque remédios de um mesmo tratamento podem
     parar em dias diferentes (ex.: antibiótico 7 dias + spray nasal 14
     dias dentro do mesmo tratamento de sinusite). Cada remédio também

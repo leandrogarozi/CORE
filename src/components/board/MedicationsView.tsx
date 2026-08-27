@@ -6,7 +6,7 @@ import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
 import { ClockIcon, TrashIcon } from "./icons";
 import { ToggleSwitch } from "./ToggleSwitch";
-import { fmtShortDate, isoAddDays, todayISO } from "@/lib/date-utils";
+import { daysBetweenInclusive, fmtShortDate, isoAddDays, todayISO } from "@/lib/date-utils";
 import type { Medication, MedicationGroup } from "@/lib/types";
 
 function scheduleLabel(time: string | null, showTime: boolean, startDate: string | null, durationDays: number | null): string | null {
@@ -36,7 +36,8 @@ function ScheduleButton({
 }) {
   const [open, setOpen] = useState(false);
   const [timeDraft, setTimeDraft] = useState(time ?? "");
-  const [durationDraft, setDurationDraft] = useState(durationDays?.toString() ?? "");
+  const [startDraft, setStartDraft] = useState(startDate ?? "");
+  const [endDraft, setEndDraft] = useState(startDate && durationDays ? isoAddDays(startDate, durationDays - 1) : "");
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
@@ -55,7 +56,8 @@ function ScheduleButton({
     e.stopPropagation();
     if (!open) {
       setTimeDraft(time ?? "");
-      setDurationDraft(durationDays?.toString() ?? "");
+      setStartDraft(startDate ?? "");
+      setEndDraft(startDate && durationDays ? isoAddDays(startDate, durationDays - 1) : "");
       if (btnRef.current) {
         const r = btnRef.current.getBoundingClientRect();
         setPos({ top: r.bottom + 4, left: r.left });
@@ -65,11 +67,11 @@ function ScheduleButton({
   }
 
   function save() {
-    const duration = durationDraft ? parseInt(durationDraft, 10) || null : null;
+    const hasPeriod = !!startDraft && !!endDraft;
     onSave({
       ...(showTime ? { time: timeDraft || null } : {}),
-      durationDays: duration,
-      startDate: duration ? startDate ?? todayISO() : null,
+      startDate: hasPeriod ? startDraft : null,
+      durationDays: hasPeriod ? Math.max(1, daysBetweenInclusive(startDraft, endDraft)) : null,
     });
     setOpen(false);
   }
@@ -101,14 +103,24 @@ function ScheduleButton({
                 onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
               />
             )}
-            <input
-              type="number"
-              min={1}
-              placeholder="Duração em dias (opcional)"
-              value={durationDraft}
-              onChange={(e) => setDurationDraft(e.target.value)}
-              onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
-            />
+            <div className="edit-field">
+              <span className="edit-field-label">Início (opcional)</span>
+              <input
+                type="date"
+                value={startDraft}
+                onChange={(e) => setStartDraft(e.target.value)}
+                onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
+              />
+            </div>
+            <div className="edit-field">
+              <span className="edit-field-label">Término (opcional)</span>
+              <input
+                type="date"
+                value={endDraft}
+                onChange={(e) => setEndDraft(e.target.value)}
+                onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
+              />
+            </div>
             <div className="edit-actions">
               <button type="button" className="btn btn-ghost" onClick={() => setOpen(false)}>
                 Cancelar
@@ -219,20 +231,23 @@ function MedicationGroupCard({ group, medications }: { group: MedicationGroup; m
           onSave={(text) => board.updateMedicationGroup(group.id, { notes: text || null })}
           ariaLabel="Observação do tratamento"
         />
-        <div className="view-toggle" title="Horário único pro grupo, ou um horário por remédio">
+        <div
+          className="view-toggle"
+          title="Escolhe se todos os remédios desse tratamento tocam no mesmo horário, ou se cada um tem o seu"
+        >
           <button
             type="button"
             className={"view-toggle-btn" + (group.timeMode === "shared" ? " active" : "")}
             onClick={() => board.updateMedicationGroup(group.id, { timeMode: "shared" })}
           >
-            Único
+            Mesmo horário
           </button>
           <button
             type="button"
             className={"view-toggle-btn" + (group.timeMode === "individual" ? " active" : "")}
             onClick={() => board.updateMedicationGroup(group.id, { timeMode: "individual" })}
           >
-            Individual
+            Horário por remédio
           </button>
         </div>
         {group.timeMode === "shared" && (

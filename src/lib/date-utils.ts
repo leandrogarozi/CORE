@@ -49,6 +49,11 @@ export function isoAddDays(iso: string, days: number): string {
   return isoFromDate(d);
 }
 
+export function daysBetweenInclusive(startIso: string, endIso: string): number {
+  const diffMs = dateFromISO(endIso).getTime() - dateFromISO(startIso).getTime();
+  return Math.round(diffMs / 86400000) + 1;
+}
+
 export function isoAddMonths(iso: string, months: number): string {
   const [y, m, day] = iso.split("-").map(Number);
   const lastDay = new Date(y, m - 1 + months + 1, 0).getDate();
