@@ -21,7 +21,7 @@
   --flag-baixa:#9C9CA5;
   --success:#2F9E44;
   --danger:#E5484D;
-  --book-orange:#D9730D;
+  --book-blue:#3B82C4;
   --book-yellow:#C99A0A;
   --shadow:0 1px 2px rgba(20,20,25,0.04), 0 3px 10px rgba(20,20,25,0.04);
 }
@@ -35,7 +35,7 @@
     --cat-saude-text:#86D69B; --cat-pessoal-text:#E8A0BE; --cat-familia-text:#6FD6CC;
     --flag-alta:#F0787C; --flag-media:#6FAEE0; --flag-baixa:#75757F;
     --success:#5FC97C; --danger:#F0787C;
-    --book-orange:#F0954D; --book-yellow:#E8C547;
+    --book-blue:#6FAEE0; --book-yellow:#E8C547;
     --shadow:0 1px 2px rgba(0,0,0,0.35), 0 4px 16px rgba(0,0,0,0.4);
   }
 }
@@ -607,17 +607,27 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 
 /* books */
 .books-container{ max-width:640px; margin:0 auto; }
+.book-group-card{
+  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  box-shadow:var(--shadow); margin-bottom:14px; overflow:hidden;
+}
+.book-group-card:last-child{ margin-bottom:0; }
 .book-group-head{
-  display:flex; align-items:center; gap:6px; width:100%; padding:7px 12px 7px 8px;
-  border-bottom:1px solid var(--border); background:var(--surface); text-align:left;
+  display:flex; align-items:center; gap:8px; width:100%; padding:10px 12px;
+  background:var(--surface); text-align:left;
 }
 .book-group-head:hover{ background:var(--surface-2); }
+.book-group-head.has-rows{ border-bottom:1px solid var(--border); }
 .book-group-head .chevron{ color:var(--text-faint); display:flex; flex:none; transition:transform 0.15s ease; }
 .book-group-head .chevron.collapsed{ transform:rotate(-90deg); }
-.book-group-icon{ display:flex; flex:none; color:var(--group-color); }
-.book-group-icon svg{ width:13px; height:13px; }
-.book-group-name{ font-size:12.5px; font-weight:600; color:var(--text); }
-.book-group-count{ font-size:11px; color:var(--text-faint); }
+.book-group-tag{
+  display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px;
+  background:color-mix(in srgb, var(--group-color) 18%, transparent);
+  color:var(--group-color);
+}
+.book-group-tag svg{ width:13px; height:13px; flex:none; }
+.book-group-name{ font-size:12.5px; font-weight:600; }
+.book-group-count{ font-size:11px; color:var(--text-faint); margin-left:auto; }
 .book-row{
   display:flex; align-items:center; gap:7px; padding:4px 12px 4px 42px;
   border-bottom:1px solid var(--border); background:var(--surface);

@@ -134,7 +134,7 @@ export const BOOK_STATUS_LABEL: Record<BookStatus, string> = {
 };
 
 export const BOOK_STATUS_COLOR: Record<BookStatus, string> = {
-  para_ler: "var(--book-orange)",
+  para_ler: "var(--book-blue)",
   lendo: "var(--book-yellow)",
   finalizado: "var(--success)",
 };

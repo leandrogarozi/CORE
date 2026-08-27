@@ -297,19 +297,24 @@ export function BooksView({ onBack }: { onBack: () => void }) {
           {BOOK_STATUS_ORDER.map((status) => {
             const books = board.state.books.filter((b) => b.status === status);
             const isCollapsed = !!collapsed[status];
+            const hasRows = !isCollapsed && books.length > 0;
             return (
-              <div key={status}>
-                <button type="button" className="book-group-head" onClick={() => toggleGroup(status)}>
+              <div key={status} className="book-group-card">
+                <button
+                  type="button"
+                  className={"book-group-head" + (hasRows ? " has-rows" : "")}
+                  onClick={() => toggleGroup(status)}
+                >
                   <span className={"chevron" + (isCollapsed ? " collapsed" : "")}>
                     <ChevronIcon />
                   </span>
                   <span
-                    className="book-group-icon"
+                    className="book-group-tag"
                     style={{ "--group-color": BOOK_STATUS_COLOR[status] } as React.CSSProperties}
                   >
                     <BookOpenIcon />
+                    <span className="book-group-name">{BOOK_GROUP_LABEL[status]}</span>
                   </span>
-                  <span className="book-group-name">{BOOK_GROUP_LABEL[status]}</span>
                   <span className="book-group-count">{books.length}</span>
                 </button>
                 {!isCollapsed && books.map((b) => <BookRow key={b.id} book={b} />)}
