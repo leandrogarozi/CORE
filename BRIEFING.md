@@ -24,6 +24,12 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
         no menu lateral) continua separado.
       - Ponto de rollback se algo não ficar bom: commit `d1dbfcd`
         (estado anterior à troca de ícones).
+      - **Regra fixa**: daqui pra frente, todo ícone novo do app vem
+        desse pack (`design/icon-pack/`), nunca desenhado do zero.
+        Procurar o SVG mais próximo lá, copiar o `path`, converter pro
+        padrão do projeto (`viewBox="0 0 24 24"`, `stroke="currentColor"`).
+        Só se não existir equivalente no pack (como aconteceu com
+        `PillIcon`) é que se desenha um customizado.
 
 ## Mascote FARO (assistente de IA do app)
 
