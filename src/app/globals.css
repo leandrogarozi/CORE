@@ -234,11 +234,11 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 
 /* day strip */
 .day-strip-wrap{ display:flex; align-items:center; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
-.day-strip{ display:flex; gap:5px; overflow-x:auto; flex:0 1 auto; padding-bottom:2px; }
+.day-strip{ display:flex; justify-content:center; gap:6px; overflow-x:auto; flex:1; padding-bottom:2px; min-width:200px; }
 .day-chip{
-  flex:0 0 40px; width:40px;
-  border:1px solid var(--border); background:var(--surface); border-radius:9px;
-  padding:6px 2px 5px; display:flex; flex-direction:column; align-items:center; gap:2px;
+  flex:0 0 52px; width:52px;
+  border:1px solid var(--border); background:var(--surface); border-radius:10px;
+  padding:7px 4px 6px; display:flex; flex-direction:column; align-items:center; gap:2px;
 }
 .day-chip-name{ font-size:10px; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.04em; }
 .day-chip-num{ font-size:14px; font-weight:600; }
@@ -252,7 +252,7 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .quicksort-btn{ border:1px solid var(--border); background:var(--surface); border-radius:20px; padding:4px 10px; font-size:11px; font-weight:500; color:var(--text-muted); flex:none; white-space:nowrap; }
 .quicksort-btn:hover{ color:var(--text); }
 .quicksort-btn.active{ background:#FCEFD8; color:#8A6412; border-color:#E8C077; }
-.view-toggle{ display:flex; border:1px solid var(--border-strong); border-radius:8px; overflow:hidden; flex:none; margin-left:auto; }
+.view-toggle{ display:flex; border:1px solid var(--border-strong); border-radius:8px; overflow:hidden; flex:none; }
 .view-toggle-btn{ padding:0 12px; height:30px; font-size:12px; font-weight:500; color:var(--text-muted); background:var(--surface); }
 .view-toggle-btn + .view-toggle-btn{ border-left:1px solid var(--border-strong); }
 .view-toggle-btn.active{ background:var(--accent-soft); color:var(--accent); }
@@ -560,7 +560,7 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   background:var(--bg); font-size:9px; color:var(--text-faint);
   display:flex; align-items:center; justify-content:center;
 }
-.habit-cell.done{ background:var(--success); border-color:var(--success); color:#fff; }
+.habit-cell.done{ background:#9BFAB0; border-color:#9BFAB0; color:#1F7A3F; }
 .habit-cell.today{ box-shadow:0 0 0 2px var(--accent) inset; }
 .habit-cell.has-note{ position:relative; }
 .habit-cell.has-note::after{
