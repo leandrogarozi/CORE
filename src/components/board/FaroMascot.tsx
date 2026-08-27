@@ -47,7 +47,14 @@ export function FaroMascot() {
         title="FARO"
         onClick={() => setOpen((v) => !v)}
       >
-        <Image src="/faro-dog.png" alt="" width={294} height={320} priority />
+        <Image
+          src="/faro-dog.png"
+          alt=""
+          fill
+          sizes="64px"
+          priority
+          style={{ objectFit: "cover", objectPosition: "50% 32%" }}
+        />
       </button>
     </div>
   );
