@@ -97,7 +97,7 @@ function ChecklistRow({ checklist, board }: { checklist: Checklist; board: UseBo
         <span className={"checklist-item-text" + (item.checked ? " checked" : "")}>{item.text}</span>
         <button
           type="button"
-          className={"icon-btn" + (item.toBuy ? " active" : "")}
+          className={"checklist-buy-toggle" + (item.toBuy ? " active" : "")}
           title={item.toBuy ? "Marcado para comprar" : "Marcar para comprar"}
           onClick={() => toggleBuy(item.id)}
         >
