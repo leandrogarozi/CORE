@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { BellIcon, CheckIcon, RepeatIcon, TrashIcon, WeekIcon } from "./icons";
 import { fmtShortDate, todayISO } from "@/lib/date-utils";
+import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 import type { Reminder, Repeat } from "@/lib/types";
 
 const REPEATS: { v: Repeat; l: string }[] = [
@@ -25,19 +26,20 @@ const REPEAT_SHORT: Record<Repeat, string> = {
 
 function ReminderDateButton({ reminder }: { reminder: Reminder }) {
   const { board } = useBoardCtx();
-  const [open, setOpen] = useState(false);
+  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
+  const open = anchorRect !== null;
   const [dateDraft, setDateDraft] = useState(reminder.date ?? "");
   const [timeDraft, setTimeDraft] = useState(reminder.time ?? "");
   const [repeatDraft, setRepeatDraft] = useState<Repeat>(reminder.repeat);
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
+  const pos = useClampedPopoverPos(anchorRect, popRef);
 
   useEffect(() => {
     if (!open) return;
     function onDocPointerDown(e: MouseEvent) {
       if (popRef.current?.contains(e.target as Node) || btnRef.current?.contains(e.target as Node)) return;
-      setOpen(false);
+      setAnchorRect(null);
     }
     window.addEventListener("mousedown", onDocPointerDown);
     return () => window.removeEventListener("mousedown", onDocPointerDown);
@@ -45,16 +47,16 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
 
   function toggleOpen(e: React.MouseEvent) {
     e.stopPropagation();
-    if (!open) {
-      setDateDraft(reminder.date ?? "");
-      setTimeDraft(reminder.time ?? "");
-      setRepeatDraft(reminder.repeat);
-      if (btnRef.current) {
-        const r = btnRef.current.getBoundingClientRect();
-        setPos({ top: r.bottom + 4, left: r.left });
-      }
+    if (open) {
+      setAnchorRect(null);
+      return;
     }
-    setOpen((v) => !v);
+    setDateDraft(reminder.date ?? "");
+    setTimeDraft(reminder.time ?? "");
+    setRepeatDraft(reminder.repeat);
+    if (btnRef.current) {
+      setAnchorRect(btnRef.current.getBoundingClientRect());
+    }
   }
 
   function save() {
@@ -64,7 +66,7 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
       time: nextDate ? timeDraft || null : null,
       repeat: nextDate ? repeatDraft : "none",
     });
-    setOpen(false);
+    setAnchorRect(null);
   }
 
   const label = reminder.date
@@ -86,7 +88,6 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
         {label && <span>{label}</span>}
       </button>
       {open &&
-        pos &&
         createPortal(
           <div className="daylog-popover" ref={popRef} style={{ top: pos.top, left: pos.left }}>
             <input
@@ -94,14 +95,14 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
               autoFocus
               value={dateDraft}
               onChange={(e) => setDateDraft(e.target.value)}
-              onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
+              onKeyDown={(e) => e.key === "Escape" && setAnchorRect(null)}
             />
             <input
               type="time"
               value={timeDraft}
               disabled={!dateDraft}
               onChange={(e) => setTimeDraft(e.target.value)}
-              onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
+              onKeyDown={(e) => e.key === "Escape" && setAnchorRect(null)}
             />
             <select
               className="reminder-repeat-select"
@@ -116,7 +117,7 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
               ))}
             </select>
             <div className="edit-actions">
-              <button type="button" className="btn btn-ghost" onClick={() => setOpen(false)}>
+              <button type="button" className="btn btn-ghost" onClick={() => setAnchorRect(null)}>
                 Cancelar
               </button>
               <button type="button" className="btn btn-accent" onClick={save}>

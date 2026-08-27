@@ -7,6 +7,7 @@ import { CommentButton } from "./CommentButton";
 import { ClockIcon, TrashIcon } from "./icons";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { DAY_NAMES, daysBetweenInclusive, fmtShortDate, isoAddDays, todayISO } from "@/lib/date-utils";
+import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 import type { Medication, MedicationGroup } from "@/lib/types";
 
 function scheduleLabel(
@@ -52,20 +53,21 @@ function ScheduleButton({
     weekDays?: number[] | null;
   }) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
+  const open = anchorRect !== null;
   const [timeDraft, setTimeDraft] = useState(time ?? "");
   const [startDraft, setStartDraft] = useState(startDate ?? "");
   const [endDraft, setEndDraft] = useState(startDate && durationDays ? isoAddDays(startDate, durationDays - 1) : "");
   const [weekDraft, setWeekDraft] = useState<number[]>(weekDays ?? []);
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
+  const pos = useClampedPopoverPos(anchorRect, popRef);
 
   useEffect(() => {
     if (!open) return;
     function onDocPointerDown(e: MouseEvent) {
       if (popRef.current?.contains(e.target as Node) || btnRef.current?.contains(e.target as Node)) return;
-      setOpen(false);
+      setAnchorRect(null);
     }
     window.addEventListener("mousedown", onDocPointerDown);
     return () => window.removeEventListener("mousedown", onDocPointerDown);
@@ -73,17 +75,17 @@ function ScheduleButton({
 
   function toggleOpen(e: React.MouseEvent) {
     e.stopPropagation();
-    if (!open) {
-      setTimeDraft(time ?? "");
-      setStartDraft(startDate ?? "");
-      setEndDraft(startDate && durationDays ? isoAddDays(startDate, durationDays - 1) : "");
-      setWeekDraft(weekDays ?? []);
-      if (btnRef.current) {
-        const r = btnRef.current.getBoundingClientRect();
-        setPos({ top: r.bottom + 4, left: r.left });
-      }
+    if (open) {
+      setAnchorRect(null);
+      return;
     }
-    setOpen((v) => !v);
+    setTimeDraft(time ?? "");
+    setStartDraft(startDate ?? "");
+    setEndDraft(startDate && durationDays ? isoAddDays(startDate, durationDays - 1) : "");
+    setWeekDraft(weekDays ?? []);
+    if (btnRef.current) {
+      setAnchorRect(btnRef.current.getBoundingClientRect());
+    }
   }
 
   function toggleWeekDay(d: number) {
@@ -100,7 +102,7 @@ function ScheduleButton({
         ? { weekDays: weekDraft.length > 0 && weekDraft.length < 7 ? [...weekDraft].sort((a, b) => a - b) : null }
         : {}),
     });
-    setOpen(false);
+    setAnchorRect(null);
   }
 
   const label = scheduleLabel(time, showTime, startDate, durationDays, weekDays ?? null);
@@ -118,7 +120,6 @@ function ScheduleButton({
         {label && <span>{label}</span>}
       </button>
       {open &&
-        pos &&
         createPortal(
           <div className="daylog-popover" ref={popRef} style={{ top: pos.top, left: pos.left }}>
             {showTime && (
@@ -127,7 +128,7 @@ function ScheduleButton({
                 autoFocus
                 value={timeDraft}
                 onChange={(e) => setTimeDraft(e.target.value)}
-                onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
+                onKeyDown={(e) => e.key === "Escape" && setAnchorRect(null)}
               />
             )}
             {showWeekDays && (
@@ -154,7 +155,7 @@ function ScheduleButton({
                 type="date"
                 value={startDraft}
                 onChange={(e) => setStartDraft(e.target.value)}
-                onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
+                onKeyDown={(e) => e.key === "Escape" && setAnchorRect(null)}
               />
             </div>
             <div className="edit-field">
@@ -163,11 +164,11 @@ function ScheduleButton({
                 type="date"
                 value={endDraft}
                 onChange={(e) => setEndDraft(e.target.value)}
-                onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
+                onKeyDown={(e) => e.key === "Escape" && setAnchorRect(null)}
               />
             </div>
             <div className="edit-actions">
-              <button type="button" className="btn btn-ghost" onClick={() => setOpen(false)}>
+              <button type="button" className="btn btn-ghost" onClick={() => setAnchorRect(null)}>
                 Cancelar
               </button>
               <button type="button" className="btn btn-accent" onClick={save}>

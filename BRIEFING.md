@@ -375,6 +375,30 @@ de feature flags que já existe pra água/dieta/sono/humor
   - Ponto de rollback se não ficar bom: commit `2a29a67` (estado
     anterior a toda essa revisão de amarelo, antes até das estrelas).
 
+## Correções técnicas
+
+- **Popovers saindo da tela perto da borda (27/08)**: o Leandro mandou
+  print do popover de "Blocos fixos do dia" (editar dia com opções de
+  nota, ex. "Lazer") cortado no canto inferior direito. Causa: todo
+  popover flutuante do app (`.daylog-popover` e primos) sempre abria
+  em `top: âncora.bottom+4, left: âncora.left`, sem checar se cabia na
+  tela — perto de qualquer borda, ficava cortado.
+  - Corrigido com um hook compartilhado
+    (`useClampedPopoverPos`, em `src/lib/board/use-clamped-popover-pos.ts`):
+    mede o próprio popover depois de montado e ajusta a posição — desliza
+    pra esquerda se ultrapassar a direita, abre pra cima do âncora se
+    não couber embaixo.
+  - Aplicado nos 8 popovers do app que tinham o mesmo problema: Blocos
+    fixos/Hábitos (`RecurringSection.tsx`), horário de remédio
+    (`MedicationsView.tsx`), data de lembrete (`RemindersView.tsx`),
+    data/status de livro (`BooksView.tsx`, 2 popovers), observação
+    (`CommentButton.tsx`, reaproveitado em vários lugares), status de
+    tarefa (`StatusPicker.tsx`) e busca de tarefas (`TaskSearch.tsx`).
+  - O popover de atalho de Lembretes na home (`RemindersButton`) não
+    precisou de ajuste — já era ancorado pela direita
+    (`right: janela.innerWidth - âncora.right`) e já tinha
+    `max-height`/scroll próprio, então não sofria do mesmo bug.
+
 ## Backlog
 
 ### 🟡 Médios

@@ -1,39 +1,15 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { TimerButton } from "./TimerButton";
 import { EditIcon, TrashIcon } from "./icons";
 import { fmtDayLabel, fmtHM, isoFromDate, todayISO, weekDatesFrom } from "@/lib/date-utils";
+import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 import type { DayLogEntry, RecurringItem } from "@/lib/types";
 
 type Kind = "habit" | "block";
-
-function useClampedPopoverPos(anchorRect: DOMRect, ref: React.RefObject<HTMLDivElement | null>) {
-  const [pos, setPos] = useState({ top: anchorRect.bottom + 4, left: anchorRect.left });
-
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const margin = 8;
-    const rect = el.getBoundingClientRect();
-    let left = anchorRect.left;
-    let top = anchorRect.bottom + 4;
-
-    if (left + rect.width > window.innerWidth - margin) {
-      left = Math.max(margin, window.innerWidth - margin - rect.width);
-    }
-    if (top + rect.height > window.innerHeight - margin) {
-      const above = anchorRect.top - rect.height - 4;
-      top = above >= margin ? above : Math.max(margin, window.innerHeight - margin - rect.height);
-    }
-    setPos({ top, left });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [anchorRect]);
-
-  return pos;
-}
 
 export function RecurringSection({ kind, weekAnchor }: { kind: Kind; weekAnchor: Date }) {
   const { board } = useBoardCtx();

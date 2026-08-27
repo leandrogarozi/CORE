@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { BookIcon, BookmarkIcon, BookOpenIcon, ChevronIcon, CommentIcon, TrashIcon, WeekIcon } from "./icons";
 import { fmtShortDate } from "@/lib/date-utils";
+import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 import {
   BOOK_GROUP_LABEL,
   BOOK_STATUS_COLOR,
@@ -20,39 +21,70 @@ const BOOK_STATUS_ICON: Record<BookStatus, () => React.JSX.Element> = {
   finalizado: BookIcon,
 };
 
-function BookStartDateButton({ book }: { book: Book }) {
-  const { board } = useBoardCtx();
-  const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState(book.startedAt ?? "");
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
-  const btnRef = useRef<HTMLButtonElement>(null);
-  const popRef = useRef<HTMLDivElement>(null);
+function BookStartDatePopover({
+  anchorRect,
+  initialValue,
+  onSave,
+  onClose,
+}: {
+  anchorRect: DOMRect;
+  initialValue: string;
+  onSave: (value: string) => void;
+  onClose: () => void;
+}) {
+  const [draft, setDraft] = useState(initialValue);
+  const ref = useRef<HTMLDivElement>(null);
+  const pos = useClampedPopoverPos(anchorRect, ref);
 
   useEffect(() => {
-    if (!open) return;
     function onDocPointerDown(e: MouseEvent) {
-      if (popRef.current?.contains(e.target as Node) || btnRef.current?.contains(e.target as Node)) return;
-      setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
     }
     window.addEventListener("mousedown", onDocPointerDown);
     return () => window.removeEventListener("mousedown", onDocPointerDown);
-  }, [open]);
+  }, [onClose]);
+
+  function save() {
+    onSave(draft);
+  }
+
+  return createPortal(
+    <div className="daylog-popover" ref={ref} style={{ top: pos.top, left: pos.left }}>
+      <input
+        type="date"
+        autoFocus
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") save();
+          else if (e.key === "Escape") onClose();
+        }}
+      />
+      <div className="edit-actions">
+        <button type="button" className="btn btn-ghost" onClick={onClose}>
+          Cancelar
+        </button>
+        <button type="button" className="btn btn-accent" onClick={save}>
+          Salvar
+        </button>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+function BookStartDateButton({ book }: { book: Book }) {
+  const { board } = useBoardCtx();
+  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
 
   function toggleOpen(e: React.MouseEvent) {
     e.stopPropagation();
-    if (!open) {
-      setDraft(book.startedAt ?? "");
-      if (btnRef.current) {
-        const r = btnRef.current.getBoundingClientRect();
-        setPos({ top: r.bottom + 4, left: r.left });
-      }
+    if (anchorRect) {
+      setAnchorRect(null);
+    } else if (btnRef.current) {
+      setAnchorRect(btnRef.current.getBoundingClientRect());
     }
-    setOpen((v) => !v);
-  }
-
-  function save() {
-    board.updateBook(book.id, { startedAt: draft || null });
-    setOpen(false);
   }
 
   return (
@@ -67,59 +99,73 @@ function BookStartDateButton({ book }: { book: Book }) {
         <WeekIcon />
         {book.startedAt && <span>{fmtShortDate(book.startedAt)}</span>}
       </button>
-      {open &&
-        pos &&
-        createPortal(
-          <div className="daylog-popover" ref={popRef} style={{ top: pos.top, left: pos.left }}>
-            <input
-              type="date"
-              autoFocus
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") save();
-                else if (e.key === "Escape") setOpen(false);
-              }}
-            />
-            <div className="edit-actions">
-              <button type="button" className="btn btn-ghost" onClick={() => setOpen(false)}>
-                Cancelar
-              </button>
-              <button type="button" className="btn btn-accent" onClick={save}>
-                Salvar
-              </button>
-            </div>
-          </div>,
-          document.body
-        )}
+      {anchorRect && (
+        <BookStartDatePopover
+          anchorRect={anchorRect}
+          initialValue={book.startedAt ?? ""}
+          onSave={(value) => {
+            board.updateBook(book.id, { startedAt: value || null });
+            setAnchorRect(null);
+          }}
+          onClose={() => setAnchorRect(null)}
+        />
+      )}
     </>
+  );
+}
+
+function BookStatusMenu({
+  anchorRect,
+  currentStatus,
+  onSelect,
+  onClose,
+}: {
+  anchorRect: DOMRect;
+  currentStatus: BookStatus;
+  onSelect: (status: BookStatus) => void;
+  onClose: () => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const pos = useClampedPopoverPos(anchorRect, ref);
+
+  useEffect(() => {
+    function onDocPointerDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    }
+    window.addEventListener("mousedown", onDocPointerDown);
+    return () => window.removeEventListener("mousedown", onDocPointerDown);
+  }, [onClose]);
+
+  return createPortal(
+    <div className="status-menu" ref={ref} style={{ top: pos.top, left: pos.left }}>
+      {BOOK_STATUS_ORDER.map((s) => (
+        <button
+          type="button"
+          key={s}
+          className={"status-menu-item" + (s === currentStatus ? " active" : "")}
+          onClick={() => onSelect(s)}
+        >
+          <span className="status-menu-dot" style={{ background: BOOK_STATUS_COLOR[s] }} />
+          {BOOK_STATUS_LABEL[s]}
+        </button>
+      ))}
+    </div>,
+    document.body
   );
 }
 
 function BookStatusPicker({ book }: { book: Book }) {
   const { board } = useBoardCtx();
-  const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function onDocPointerDown(e: MouseEvent) {
-      if (menuRef.current?.contains(e.target as Node) || btnRef.current?.contains(e.target as Node)) return;
-      setOpen(false);
-    }
-    window.addEventListener("mousedown", onDocPointerDown);
-    return () => window.removeEventListener("mousedown", onDocPointerDown);
-  }, [open]);
 
   function toggleOpen(e: React.MouseEvent) {
     e.stopPropagation();
-    if (!open && btnRef.current) {
-      const r = btnRef.current.getBoundingClientRect();
-      setPos({ top: r.bottom + 4, left: r.left });
+    if (anchorRect) {
+      setAnchorRect(null);
+    } else if (btnRef.current) {
+      setAnchorRect(btnRef.current.getBoundingClientRect());
     }
-    setOpen((v) => !v);
   }
 
   return (
@@ -132,27 +178,17 @@ function BookStatusPicker({ book }: { book: Book }) {
         title={BOOK_STATUS_LABEL[book.status]}
         onClick={toggleOpen}
       />
-      {open &&
-        pos &&
-        createPortal(
-          <div className="status-menu" ref={menuRef} style={{ top: pos.top, left: pos.left }}>
-            {BOOK_STATUS_ORDER.map((s) => (
-              <button
-                type="button"
-                key={s}
-                className={"status-menu-item" + (s === book.status ? " active" : "")}
-                onClick={() => {
-                  board.updateBook(book.id, { status: s });
-                  setOpen(false);
-                }}
-              >
-                <span className="status-menu-dot" style={{ background: BOOK_STATUS_COLOR[s] }} />
-                {BOOK_STATUS_LABEL[s]}
-              </button>
-            ))}
-          </div>,
-          document.body
-        )}
+      {anchorRect && (
+        <BookStatusMenu
+          anchorRect={anchorRect}
+          currentStatus={book.status}
+          onSelect={(status) => {
+            board.updateBook(book.id, { status });
+            setAnchorRect(null);
+          }}
+          onClose={() => setAnchorRect(null)}
+        />
+      )}
     </>
   );
 }
