@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
-import { BookOpenIcon, ChevronIcon, CommentIcon, TrashIcon, WeekIcon } from "./icons";
+import { BookIcon, BookmarkIcon, BookOpenIcon, ChevronIcon, CommentIcon, TrashIcon, WeekIcon } from "./icons";
 import { dateFromISO, MONTH_NAMES } from "@/lib/date-utils";
 import {
   BOOK_GROUP_LABEL,
@@ -13,6 +13,12 @@ import {
   type Book,
   type BookStatus,
 } from "@/lib/types";
+
+const BOOK_STATUS_ICON: Record<BookStatus, () => React.JSX.Element> = {
+  para_ler: BookmarkIcon,
+  lendo: BookOpenIcon,
+  finalizado: BookIcon,
+};
 
 function fmtShortDate(iso: string): string {
   const d = dateFromISO(iso);
@@ -299,6 +305,7 @@ export function BooksView({ onBack }: { onBack: () => void }) {
           const books = board.state.books.filter((b) => b.status === status);
           const isCollapsed = !!collapsed[status];
           const hasRows = !isCollapsed && books.length > 0;
+          const GroupIcon = BOOK_STATUS_ICON[status];
           return (
             <div key={status} className="book-group-card">
               <button
@@ -313,7 +320,7 @@ export function BooksView({ onBack }: { onBack: () => void }) {
                   className="book-group-tag"
                   style={{ "--group-color": BOOK_STATUS_COLOR[status] } as React.CSSProperties}
                 >
-                  <BookOpenIcon />
+                  <GroupIcon />
                   <span className="book-group-name">{BOOK_GROUP_LABEL[status]}</span>
                 </span>
                 <span className="book-group-count">{books.length}</span>
