@@ -14,6 +14,7 @@ import { RecurringSection } from "./RecurringSection";
 import { SettingsView } from "./SettingsView";
 import { BooksView } from "./BooksView";
 import { ScopeModal } from "./ScopeModal";
+import { FaroMascot } from "./FaroMascot";
 import { ActiveTimerBadge } from "./TimerButton";
 import { Sidebar, type ViewMode } from "./Sidebar";
 import { MenuIcon, SettingsIcon, WeekIcon } from "./icons";
@@ -244,6 +245,8 @@ function BoardShell() {
           </button>
         </form>
       </div>
+
+      <FaroMascot />
     </div>
   );
 }

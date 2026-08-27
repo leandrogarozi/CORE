@@ -14,6 +14,37 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
       deixar os ícones do app mais padronizados/no estilo dele. Trocar
       os ícones em `src/components/board/icons.tsx` quando ele mandar.
 
+## Mascote FARO (assistente de IA do app)
+
+**Ideia do Leandro**: a IA do app se chama FARO (mesmo nome do app) e
+tem uma identidade visual — um cachorrinho-robô — que fica sempre
+visível no cantinho da tela. Dois níveis, propositalmente separados
+por dificuldade:
+
+- **Fase 1 — mascote + saudações contextuais (implementado)**: avatar
+  fixo no canto inferior direito (`FaroMascot.tsx`), clicável, com um
+  balão de fala. Sem IA nenhuma — é lógica local:
+  - Se o dia estiver marcado como "Doente" (🤒) no humor, a mensagem é
+    de melhoras em vez do "bom dia".
+  - Senão, saudação por horário do dia (bom dia / boa tarde / boa
+    noite).
+  - O balão aparece automaticamente uma vez por dia (guardado em
+    `localStorage`, chave `faro-greeted-<data>`); clicar no avatar
+    reabre/fecha o balão manualmente a qualquer momento.
+  - Avatar hoje é um emoji de cachorro (🐶) como placeholder — trocar
+    pela ilustração de verdade quando o Leandro definir o visual
+    (pode vir do pacote de ícones, ou ser algo à parte).
+- **Fase 2 — conversa de verdade (ainda não implementado)**: clicar no
+  FARO permite perguntar/pedir coisas em linguagem natural, ex.:
+  "Faro, cruza os dados pra mim, como tenho produzido esse mês?" ou
+  "Faro, qual a indicação de livro pra mim agora, de acordo com meu
+  momento?". Isso é a integração com a API da Claude já discutida
+  (ver 🔴 "Relatório cruzando dados" / "IA de recomendação do próximo
+  livro" abaixo) — só que em vez de um relatório fixo, o FARO precisa
+  decidir dinamicamente qual dado buscar conforme a pergunta feita.
+  Depende da chave de API da Anthropic estar configurada; entra como
+  a "cara" (UI) desse assistente de IA maior, não como feature isolada.
+
 ## Humor (check-in diário)
 
 - Escala 1–5 com emoji (Péssimo/Ruim/Neutro/Bom/Ótimo), rótulo discreto
