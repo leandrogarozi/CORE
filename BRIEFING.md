@@ -48,19 +48,25 @@ por dificuldade:
     `localStorage`, chave `faro-greeted-<data>`); clicar no avatar
     reabre/fecha o balão manualmente a qualquer momento.
   - **Visual**: Leandro pediu um cachorro-robô, animado (a ideia é
-    reforçar "isso é IA"). Trocado o emoji placeholder por um SVG
-    próprio (`FaroDogIcon` dentro de `FaroMascot.tsx`). Primeira
-    versão tinha corpo inteiro + rabo; Leandro mandou referências de
-    brinquedos de cachorro-robô (cabeça só, orelhas pontudas tipo
-    antena, olhos grandes e brilhantes) e redesenhamos pra ficar só a
-    **cabeça**: duas orelhas/antenas pontudas com luz piscante na
-    ponta, olhos grandes em âmbar que piscam. Tem animação em CSS:
-    flutua devagar, pisca os olhos de vez em quando, e as luzes das
-    antenas pulsam — tudo só com `@keyframes`, sem depender de imagem/
-    GIF/lib externa (respeita `prefers-reduced-motion`). Ainda é uma
-    ilustração simples feita por código, não arte de verdade — se o
-    Leandro quiser algo mais trabalhado visualmente (ilustração
-    desenhada, animação mais rica), é um passo futuro à parte.
+    reforçar "isso é IA"). Passou por algumas iterações: emoji →
+    SVG próprio com corpo inteiro + rabo → SVG só da cabeça (orelhas
+    pontudas, olhos âmbar) tentando seguir fotos de referência de
+    brinquedos robô que ele mandou. Nenhuma versão desenhada à mão
+    ficou parecida o suficiente com a referência (render 3D metálico
+    fotorrealista é fora do alcance de SVG feito à mão).
+  - **Versão atual**: Leandro gerou o render em outra IA (imagem, não
+    código) e mandou o PNG com fundo transparente
+    (`public/faro-dog.png`, recortado/otimizado de 2000×1750 pra
+    294×320px). `FaroMascot.tsx` agora renderiza essa imagem via
+    `next/image` no lugar do SVG; o círculo colorido de fundo do avatar
+    saiu (a imagem já tem identidade visual própria), só ficou um
+    drop-shadow. **Sem animação por enquanto** ("estático por
+    enquanto", pedido explícito do Leandro) — as antigas animações CSS
+    (flutuar/piscar/pulsar) foram removidas junto com o SVG. Dá pra
+    reativar algo (float sutil, por exemplo) se ele quiser depois.
+  - Envio de imagem: colar direto no chat não gera um arquivo que dá
+    pra usar — só funciona como anexo de verdade (zip, ou Google
+    Drive). Aconteceu nessa sessão: precisou pedir 2x até vir como zip.
 - **Fase 2 — conversa de verdade (ainda não implementado)**: clicar no
   FARO permite perguntar/pedir coisas em linguagem natural, ex.:
   "Faro, cruza os dados pra mim, como tenho produzido esse mês?" ou
