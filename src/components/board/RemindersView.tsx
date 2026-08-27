@@ -177,7 +177,7 @@ export function RemindersButton({ onOpenFull }: { onOpenFull: () => void }) {
   const { board } = useBoardCtx();
   const [open, setOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
 
@@ -202,7 +202,7 @@ export function RemindersButton({ onOpenFull }: { onOpenFull: () => void }) {
     e.stopPropagation();
     if (!open && btnRef.current) {
       const r = btnRef.current.getBoundingClientRect();
-      setPos({ top: r.bottom + 6, left: r.left });
+      setPos({ top: r.bottom + 6, right: window.innerWidth - r.right });
     }
     setOpen((v) => !v);
   }
@@ -226,7 +226,7 @@ export function RemindersButton({ onOpenFull }: { onOpenFull: () => void }) {
       {open &&
         pos &&
         createPortal(
-          <div className="reminders-popover" ref={popRef} style={{ top: pos.top, left: pos.left }}>
+          <div className="reminders-popover" ref={popRef} style={{ top: pos.top, right: pos.right }}>
             <div className="reminders-popover-head">
               <span>Lembretes</span>
               <button
