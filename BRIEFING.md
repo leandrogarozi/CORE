@@ -183,7 +183,31 @@ de feature flags que já existe pra água/dieta/sono/humor
 
 ### Medicamentos
 
-- Ainda sem spec detalhada — definir quando chegar a vez de implementar.
+- **Spec capturada (27/08)**: não é uma lista de remédios qualquer —
+  é focado em **lembrete/rotina de tomar o remédio no horário certo**,
+  não em ficha de medicação.
+  - Cada medicamento: nome, **horário fixo** (mesmo horário todo dia —
+    um horário por cadastro; se precisar de várias doses/dia, cadastra
+    o mesmo remédio mais de uma vez com horários diferentes, por
+    enquanto).
+  - **Ativo/inativo**: toggle manual, tipo liga/desliga.
+  - **Duração opcional**: dá pra cadastrar "por X dias" (ex.:
+    antibiótico por 10 dias) — passado esse prazo a partir da data de
+    início, desativa **sozinho**, sem precisar lembrar de desligar na
+    mão. Sem duração definida = fica ativo até desativar manualmente
+    (remédio de uso contínuo).
+  - **Notificação**: a ideia squeeze é a mensagem chegar no
+    **WhatsApp** na hora certa ("Hora de tomar seu remédio X...") —
+    mesma dependência já registrada no backlog de Lembretes
+    (WhatsApp Business API/Twilio, conta Business verificada,
+    aprovação da Meta). Enquanto isso não existir, o comportamento é
+    igual ao dos Lembretes hoje: visível na tela (lista própria +
+    destaque quando é hora), sem alarme de verdade.
+  - Estrutura pensada pra reaproveitar bastante do que já existe em
+    Lembretes (tela de lista + botão na home + horário + repetição
+    diária), só acrescentando o toggle ativo/inativo e a duração em
+    dias. Ainda não implementado — aguardando Leandro confirmar pra
+    começar.
 
 ### Lembretes
 
