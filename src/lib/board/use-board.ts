@@ -834,7 +834,7 @@ export function useBoard(userId: string | null) {
         id: uid(),
         title: src.title,
         type: src.type,
-        items: src.items.map((i): ChecklistItem => ({ id: uid(), text: i.text, checked: false })),
+        items: src.items.map((i): ChecklistItem => ({ id: uid(), text: i.text, checked: false, toBuy: false })),
         createdAt: todayISO(),
       };
       apply((s) => ({ ...s, checklists: [...s.checklists, copy] }));

@@ -196,6 +196,7 @@ export interface ChecklistItem {
   id: string;
   text: string;
   checked: boolean;
+  toBuy: boolean; // precisa comprar antes (ex.: supermercado) — separa da lista de itens pra levar/arrumar
 }
 
 export interface Checklist {

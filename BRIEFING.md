@@ -409,14 +409,37 @@ de feature flags que já existe pra água/dieta/sono/humor
         dos tipos já usados antes (reaproveita "viagem"/"trabalho" sem
         forçar uma lista fixa de categorias).
       - Tabela `checklists` no Supabase: `title`, `type`, `items`
-        (jsonb, array de `{id, text, checked}`) — itens guardados como
-        JSON aninhado no registro (mesmo padrão já usado em
-        `daily_logs`/`fixed_blocks.note_options`), não uma tabela à
-        parte, porque toda edição (marcar item, adicionar, excluir,
-        duplicar) sempre reescreve a lista inteira de uma vez.
+        (jsonb, array de `{id, text, checked, toBuy}`) — itens
+        guardados como JSON aninhado no registro (mesmo padrão já
+        usado em `daily_logs`/`fixed_blocks.note_options`), não uma
+        tabela à parte, porque toda edição (marcar item, adicionar,
+        excluir, duplicar) sempre reescreve a lista inteira de uma vez.
       - Ícone da seção: `ChecklistIcon`, novo, do pack
         (`Edit/List_Checklist.svg`). Ícone de enviar: `SendIcon`, novo,
         do pack (`Communication/Paper_Plane.svg`).
+      - **"Marcar para comprar" (27/08)**: pedido do Leandro — no
+        checklist de camping, várias coisas (comida, repelente,
+        detergente...) precisam ser compradas antes, diferente do
+        resto que já é só arrumar/levar. Cada item ganhou um botão de
+        carrinho (`CartIcon`, novo, do pack
+        `Interface/Shopping_Cart_01.svg`) que marca/desmarca `toBuy`.
+        Quando pelo menos um item do checklist está marcado, a lista
+        se separa visualmente em duas seções dentro do card — "🛒
+        Comprar" primeiro, "Levar" depois; se nenhum item estiver
+        marcado, continua mostrando tudo direto, sem seção nenhuma
+        (do jeito que já era) — respeitando o que o Leandro pediu:
+        "tem viagem que não precisa ir comprar nada, então é direto".
+        Também ganhou um botão extra "Enviar lista de compras" (só
+        aparece quando há itens marcados) que manda só esses pelo
+        WhatsApp — separado do "Enviar pro WhatsApp" normal, que
+        manda o checklist inteiro (e agora marca 🛒 nos itens de
+        compra dentro dele também).
+      - **Dados de exemplo (27/08)**: Leandro mandou fotos de 2
+        checklists reais (Motocamping Pedra Azul, 51 itens — juntando
+        3 blocos que ele tinha em outro app num só, sem separar por
+        mochila/alforge como no original; e Cursos Febracis Vitória,
+        19 itens) — cadastrados direto no banco via SQL (não pela UI)
+        pra servir de base/ponto de partida.
 - [x] Perfil do usuário — implementado (27/08) em Configurações, nova
       caixa "Perfil" no topo, antes de "Tags da tarefa". Três campos,
       exatamente o que foi pedido, sem inventar mais nenhum:

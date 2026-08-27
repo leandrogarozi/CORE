@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
-import { ChevronIcon, CheckIcon, DuplicateIcon, SendIcon, TrashIcon } from "./icons";
+import { CartIcon, ChevronIcon, CheckIcon, DuplicateIcon, SendIcon, TrashIcon } from "./icons";
 import type { Checklist, ChecklistItem } from "@/lib/types";
 import type { UseBoard } from "@/lib/board/use-board";
 
@@ -12,7 +12,13 @@ function uid(): string {
 
 function shareText(checklist: Checklist): string {
   const lines = [`📋 ${checklist.title} (${checklist.type})`, ""];
-  checklist.items.forEach((i) => lines.push(`${i.checked ? "✅" : "⬜"} ${i.text}`));
+  checklist.items.forEach((i) => lines.push(`${i.toBuy ? "🛒" : i.checked ? "✅" : "⬜"} ${i.text}`));
+  return lines.join("\n");
+}
+
+function shoppingListText(checklist: Checklist, toBuyItems: ChecklistItem[]): string {
+  const lines = [`🛒 Lista de compras — ${checklist.title}`, ""];
+  toBuyItems.forEach((i) => lines.push(`${i.checked ? "✅" : "⬜"} ${i.text}`));
   return lines.join("\n");
 }
 
@@ -33,6 +39,10 @@ function ChecklistRow({ checklist, board }: { checklist: Checklist; board: UseBo
     setItems(checklist.items.map((i) => (i.id === itemId ? { ...i, checked: !i.checked } : i)));
   }
 
+  function toggleBuy(itemId: string) {
+    setItems(checklist.items.map((i) => (i.id === itemId ? { ...i, toBuy: !i.toBuy } : i)));
+  }
+
   function deleteItem(itemId: string) {
     setItems(checklist.items.filter((i) => i.id !== itemId));
   }
@@ -40,7 +50,7 @@ function ChecklistRow({ checklist, board }: { checklist: Checklist; board: UseBo
   function addItem() {
     const text = newItemText.trim();
     if (!text) return;
-    setItems([...checklist.items, { id: uid(), text, checked: false }]);
+    setItems([...checklist.items, { id: uid(), text, checked: false, toBuy: false }]);
     setNewItemText("");
   }
 
@@ -62,6 +72,46 @@ function ChecklistRow({ checklist, board }: { checklist: Checklist; board: UseBo
     e.stopPropagation();
     window.open(`https://wa.me/?text=${encodeURIComponent(shareText(checklist))}`, "_blank", "noopener,noreferrer");
   }
+
+  function sendShoppingList(e: React.MouseEvent) {
+    e.stopPropagation();
+    const toBuyItems = checklist.items.filter((i) => i.toBuy);
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(shoppingListText(checklist, toBuyItems))}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  }
+
+  function renderItem(item: ChecklistItem) {
+    return (
+      <div className="checklist-item-row" key={item.id}>
+        <button
+          type="button"
+          className={"checklist-item-check" + (item.checked ? " checked" : "")}
+          aria-label={item.checked ? "Desmarcar item" : "Marcar item"}
+          onClick={() => toggleItem(item.id)}
+        >
+          {item.checked && <CheckIcon />}
+        </button>
+        <span className={"checklist-item-text" + (item.checked ? " checked" : "")}>{item.text}</span>
+        <button
+          type="button"
+          className={"icon-btn" + (item.toBuy ? " active" : "")}
+          title={item.toBuy ? "Marcado para comprar" : "Marcar para comprar"}
+          onClick={() => toggleBuy(item.id)}
+        >
+          <CartIcon />
+        </button>
+        <button type="button" className="icon-btn danger-hover" title="Excluir item" onClick={() => deleteItem(item.id)}>
+          <TrashIcon />
+        </button>
+      </div>
+    );
+  }
+
+  const toBuyItems = checklist.items.filter((i) => i.toBuy);
+  const packItems = checklist.items.filter((i) => !i.toBuy);
 
   return (
     <div className="checklist-card">
@@ -97,27 +147,16 @@ function ChecklistRow({ checklist, board }: { checklist: Checklist; board: UseBo
       </button>
       {open && (
         <div className="checklist-body">
-          {checklist.items.map((item) => (
-            <div className="checklist-item-row" key={item.id}>
-              <button
-                type="button"
-                className={"checklist-item-check" + (item.checked ? " checked" : "")}
-                aria-label={item.checked ? "Desmarcar item" : "Marcar item"}
-                onClick={() => toggleItem(item.id)}
-              >
-                {item.checked && <CheckIcon />}
-              </button>
-              <span className={"checklist-item-text" + (item.checked ? " checked" : "")}>{item.text}</span>
-              <button
-                type="button"
-                className="icon-btn danger-hover"
-                title="Excluir item"
-                onClick={() => deleteItem(item.id)}
-              >
-                <TrashIcon />
-              </button>
-            </div>
-          ))}
+          {toBuyItems.length > 0 ? (
+            <>
+              <div className="checklist-section-label">🛒 Comprar</div>
+              {toBuyItems.map(renderItem)}
+              <div className="checklist-section-label">Levar</div>
+              {packItems.map(renderItem)}
+            </>
+          ) : (
+            checklist.items.map(renderItem)
+          )}
           <div className="quickadd-row checklist-quickadd-row">
             <span className="quickadd-plus" aria-hidden="true">
               +
@@ -138,6 +177,11 @@ function ChecklistRow({ checklist, board }: { checklist: Checklist; board: UseBo
             <button type="button" className="btn btn-ghost" onClick={sendWhatsApp}>
               <SendIcon /> Enviar pro WhatsApp
             </button>
+            {toBuyItems.length > 0 && (
+              <button type="button" className="btn btn-ghost" onClick={sendShoppingList}>
+                <CartIcon /> Enviar lista de compras
+              </button>
+            )}
             <button
               type="button"
               className="btn btn-ghost danger-hover"

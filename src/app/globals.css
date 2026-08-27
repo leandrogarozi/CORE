@@ -792,6 +792,11 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 }
 .checklist-progress{ font-size:11px; color:var(--text-faint); flex:none; white-space:nowrap; }
 .checklist-body{ padding:8px 12px 12px 34px; background:var(--surface); }
+.checklist-section-label{
+  font-size:9.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-faint);
+  margin:10px 0 2px;
+}
+.checklist-section-label:first-child{ margin-top:0; }
 .checklist-item-row{ display:flex; align-items:center; gap:8px; padding:4px 0; }
 .checklist-item-check{
   width:16px; height:16px; border-radius:5px; flex:none; border:1.5px solid var(--border-strong);
