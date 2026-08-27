@@ -6,6 +6,7 @@ import type {
   Category,
   DailyLog,
   DayLog,
+  Medication,
   Priority,
   Repeat,
   RecurringItem,
@@ -31,6 +32,7 @@ type ActiveTimerRow = Tables<"active_timer">;
 type DailyLogRow = Tables<"daily_logs">;
 type BookRow = Tables<"books">;
 type ReminderRow = Tables<"reminders">;
+type MedicationRow = Tables<"medications">;
 
 export function rowToTask(row: TaskRow): Task {
   return {
@@ -290,5 +292,38 @@ export function reminderToUpdateRow(r: Partial<Reminder>): TablesUpdate<"reminde
   if (r.time !== undefined) row.remind_time = r.time;
   if (r.repeat !== undefined) row.repeat = r.repeat === "none" ? null : r.repeat;
   if (r.done !== undefined) row.done = r.done;
+  return row;
+}
+
+export function rowToMedication(row: MedicationRow): Medication {
+  return {
+    id: row.id,
+    name: row.name,
+    time: row.med_time,
+    startDate: row.start_date,
+    durationDays: row.duration_days,
+    active: row.active,
+  };
+}
+
+export function medicationToInsertRow(m: Medication, userId: string): TablesInsert<"medications"> {
+  return {
+    id: m.id,
+    user_id: userId,
+    name: m.name,
+    med_time: m.time,
+    start_date: m.startDate,
+    duration_days: m.durationDays,
+    active: m.active,
+  };
+}
+
+export function medicationToUpdateRow(m: Partial<Medication>): TablesUpdate<"medications"> {
+  const row: TablesUpdate<"medications"> = {};
+  if (m.name !== undefined) row.name = m.name;
+  if (m.time !== undefined) row.med_time = m.time;
+  if (m.startDate !== undefined) row.start_date = m.startDate;
+  if (m.durationDays !== undefined) row.duration_days = m.durationDays;
+  if (m.active !== undefined) row.active = m.active;
   return row;
 }

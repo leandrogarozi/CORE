@@ -6,11 +6,14 @@ import {
   bookToInsertRow,
   bookToUpdateRow,
   buildRecurring,
+  medicationToInsertRow,
+  medicationToUpdateRow,
   reminderToInsertRow,
   reminderToUpdateRow,
   rowToActiveTimer,
   rowToBook,
   rowToDailyLog,
+  rowToMedication,
   rowToReminder,
   rowToSeries,
   rowToSettings,
@@ -23,7 +26,7 @@ import {
   taskToInsertRow,
   taskToRow,
 } from "@/lib/board/mappers";
-import { occurrenceDates, todayISO } from "@/lib/date-utils";
+import { isoAddDays, occurrenceDates, todayISO } from "@/lib/date-utils";
 import type {
   ActiveTimer,
   Book,
@@ -32,6 +35,7 @@ import type {
   DailyLog,
   DayLog,
   DayLogEntry,
+  Medication,
   Priority,
   Repeat,
   RecurringItem,
@@ -53,6 +57,7 @@ const EMPTY_STATE: BoardState = {
   taskStatuses: [],
   books: [],
   reminders: [],
+  medications: [],
   settings: { tagColors: DEFAULT_TAG_COLORS, dailyBudgetHours: 12, waterGoalMl: 2000, featureFlags: {} },
   activeTimer: null,
   dailyLogs: {},
@@ -104,6 +109,7 @@ export function useBoard(userId: string | null) {
       taskStatusesRes,
       booksRes,
       remindersRes,
+      medicationsRes,
       settingsRes,
       timerRes,
       dailyLogsRes,
@@ -118,6 +124,7 @@ export function useBoard(userId: string | null) {
       supabase.from("task_statuses").select("*").order("sort_order"),
       supabase.from("books").select("*").order("created_at"),
       supabase.from("reminders").select("*").order("created_at"),
+      supabase.from("medications").select("*").order("created_at"),
       supabase.from("settings").select("*").maybeSingle(),
       supabase.from("active_timer").select("*").maybeSingle(),
       supabase.from("daily_logs").select("*"),
@@ -136,10 +143,27 @@ export function useBoard(userId: string | null) {
       taskStatuses: (taskStatusesRes.data ?? []).map(rowToTaskStatus),
       books: (booksRes.data ?? []).map(rowToBook),
       reminders: (remindersRes.data ?? []).map(rowToReminder),
+      medications: (medicationsRes.data ?? []).map(rowToMedication),
       settings: rowToSettings(settingsRes.data ?? null),
       activeTimer: rowToActiveTimer(timerRes.data ?? null),
       dailyLogs,
     };
+
+    const today = todayISO();
+    const expired = next.medications.filter(
+      (m) => m.active && m.startDate && m.durationDays && today >= isoAddDays(m.startDate, m.durationDays)
+    );
+    if (expired.length > 0) {
+      next.medications = next.medications.map((m) =>
+        expired.some((e) => e.id === m.id) ? { ...m, active: false } : m
+      );
+      expired.forEach((m) => {
+        supabase.from("medications").update({ active: false }).eq("id", m.id).then(({ error }) => {
+          if (error) console.error("auto-deactivate medication", error);
+        });
+      });
+    }
+
     stateRef.current = next;
     setState(next);
     setLoading(false);
@@ -630,6 +654,39 @@ export function useBoard(userId: string | null) {
     [apply, supabase]
   );
 
+  // ---------- medications ----------
+  const addMedication = useCallback(
+    (name: string) => {
+      if (!userId || !name.trim()) return;
+      const m: Medication = { id: uid(), name: name.trim(), time: null, startDate: null, durationDays: null, active: true };
+      apply((s) => ({ ...s, medications: [...s.medications, m] }));
+      supabase.from("medications").insert(medicationToInsertRow(m, userId)).then(({ error }) => {
+        if (error) console.error("addMedication", error);
+      });
+    },
+    [apply, supabase, userId]
+  );
+
+  const updateMedication = useCallback(
+    (id: string, patch: Partial<Pick<Medication, "name" | "time" | "startDate" | "durationDays" | "active">>) => {
+      apply((s) => ({ ...s, medications: s.medications.map((m) => (m.id === id ? { ...m, ...patch } : m)) }));
+      supabase.from("medications").update(medicationToUpdateRow(patch)).eq("id", id).then(({ error }) => {
+        if (error) console.error("updateMedication", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  const deleteMedication = useCallback(
+    (id: string) => {
+      apply((s) => ({ ...s, medications: s.medications.filter((m) => m.id !== id) }));
+      supabase.from("medications").delete().eq("id", id).then(({ error }) => {
+        if (error) console.error("deleteMedication", error);
+      });
+    },
+    [apply, supabase]
+  );
+
   // ---------- recurring (habits / fixed blocks) ----------
   const tableFor = (kind: "habit" | "block") => (kind === "habit" ? "habits" : "fixed_blocks");
   const listKeyFor = (kind: "habit" | "block"): "habits" | "fixedBlocks" =>
@@ -991,6 +1048,9 @@ export function useBoard(userId: string | null) {
     addReminder,
     updateReminder,
     deleteReminder,
+    addMedication,
+    updateMedication,
+    deleteMedication,
     addRecurring,
     updateRecurring,
     updateRecurringNoteOptions,

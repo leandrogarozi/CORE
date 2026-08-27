@@ -162,6 +162,15 @@ export interface Reminder {
   done: boolean;
 }
 
+export interface Medication {
+  id: string;
+  name: string;
+  time: string | null; // "HH:MM", mesmo horário todo dia
+  startDate: string | null; // ISO date — quando usada com durationDays
+  durationDays: number | null; // ex.: 10 = antibiótico por 10 dias
+  active: boolean;
+}
+
 export interface BoardState {
   tasks: Task[];
   habits: RecurringItem[];
@@ -170,6 +179,7 @@ export interface BoardState {
   taskStatuses: TaskStatus[];
   books: Book[];
   reminders: Reminder[];
+  medications: Medication[];
   settings: Settings;
   activeTimer: ActiveTimer | null;
   dailyLogs: Record<string, DailyLog>; // iso date -> log

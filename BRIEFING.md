@@ -196,18 +196,33 @@ de feature flags que já existe pra água/dieta/sono/humor
     início, desativa **sozinho**, sem precisar lembrar de desligar na
     mão. Sem duração definida = fica ativo até desativar manualmente
     (remédio de uso contínuo).
-  - **Notificação**: a ideia squeeze é a mensagem chegar no
-    **WhatsApp** na hora certa ("Hora de tomar seu remédio X...") —
-    mesma dependência já registrada no backlog de Lembretes
-    (WhatsApp Business API/Twilio, conta Business verificada,
-    aprovação da Meta). Enquanto isso não existir, o comportamento é
-    igual ao dos Lembretes hoje: visível na tela (lista própria +
-    destaque quando é hora), sem alarme de verdade.
-  - Estrutura pensada pra reaproveitar bastante do que já existe em
-    Lembretes (tela de lista + botão na home + horário + repetição
-    diária), só acrescentando o toggle ativo/inativo e a duração em
-    dias. Ainda não implementado — aguardando Leandro confirmar pra
-    começar.
+  - **Notificação**: a ideia é a mensagem chegar no **WhatsApp** na
+    hora certa ("Hora de tomar seu remédio X...") — mesma dependência
+    já registrada no backlog de Lembretes (WhatsApp Business API/
+    Twilio, conta Business verificada, aprovação da Meta). Enquanto
+    isso não existir, o comportamento é igual ao dos Lembretes hoje:
+    visível na tela, sem alarme de verdade.
+- **Implementado (27/08)**: `MedicationsView.tsx`, tabela `medications`
+  (RLS por user_id). Acessível pelo menu lateral, junto de Livros/
+  Lembretes. Reaproveita os mesmos componentes visuais de Lembretes
+  (`.narrow-list`/`.list-quickadd-card`/`.list-card`, popover de
+  horário no padrão `.daylog-popover`).
+  - Cada linha: `ToggleSwitch` ativo/inativo (mais rápido que abrir o
+    popover — ação principal do dia a dia), nome editável, botão de
+    horário (`ClockIcon`, novo — do pack, `Calendar/Clock.svg`) que
+    abre horário + duração em dias, excluir.
+  - Ativos e inativos ficam em cards separados (inativos embaixo).
+  - **Desativação automática**: calculada no carregamento do board
+    (`use-board.ts`, dentro de `load()`) — se tem `startDate` +
+    `durationDays` e hoje já passou do prazo (`startDate + duration`
+    dias), desativa sozinho (grava `active:false` no banco, não é só
+    visual). Sem duração cadastrada, fica ativo até desativar na mão.
+  - Botão de horário mostra o horário e, se tiver duração, "até DD
+    mmm" (ou "encerrado" se já passou — cobre o instante entre expirar
+    e a próxima sincronização automática).
+  - Ainda sem bloco/atalho na home (diferente de Lembretes) — só a
+    tela própria por enquanto. Notificação via WhatsApp segue como
+    dependência futura (ver acima).
 
 ### Lembretes
 
@@ -336,9 +351,9 @@ de feature flags que já existe pra água/dieta/sono/humor
 - [x] Status de tarefa customizável
 - [x] Lista de lembretes — specs acima, implementado (tela própria +
       bloco no Painel do dia)
-- [ ] Lista de medicação — spec capturada acima (lembrete de horário,
-      ativo/inativo, duração em dias), aguardando confirmação pra
-      começar a implementar
+- [x] Lista de medicação — implementado (tela própria pelo menu
+      lateral); falta só o bloco/atalho na home e a notificação via
+      WhatsApp (dependência futura, ver spec acima)
 - [ ] Checklist de viagem — ideia do Leandro (27/08), ainda sem spec de
       implementação. Ajudar a organizar mala/o que levar antes de
       viajar — provavelmente um checklist reutilizável (itens marcáveis
