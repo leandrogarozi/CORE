@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { TimerButton } from "./TimerButton";
 import { StatusPicker } from "./StatusPicker";
-import { DuplicateIcon, FlagIcon, RepeatIcon, StarIcon, TrashIcon } from "./icons";
+import { BoltIcon, DuplicateIcon, FlagIcon, RepeatIcon, TrashIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
 import { CATEGORY_LABEL, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
 import type { TaskEditFields } from "@/lib/board/use-board";
@@ -28,25 +28,25 @@ function isOverdue(t: Task) {
 }
 
 function quickTitle(val: number) {
-  if (val > 0) return `Velocidade ${val}/3 — clique numa estrela pra mudar, ou na mesma pra tirar.`;
-  return "Marcar velocidade de execução (1 a 3 estrelas)";
+  if (val > 0) return `Velocidade ${val}/3 — clique num raio pra mudar, ou no mesmo pra tirar.`;
+  return "Marcar velocidade de execução (1 a 3 raios)";
 }
 
-function QuickStars({ value, onSet }: { value: number; onSet: (v: 0 | 1 | 2 | 3) => void }) {
+function QuickBolts({ value, onSet }: { value: number; onSet: (v: 0 | 1 | 2 | 3) => void }) {
   return (
-    <div className="quick-stars" title={quickTitle(value)}>
+    <div className="quick-bolts" title={quickTitle(value)}>
       {([1, 2, 3] as const).map((n) => (
         <button
           key={n}
           type="button"
-          className={"quick-star" + (n <= value ? " filled" : "")}
+          className={"quick-bolt" + (n <= value ? " filled" : "")}
           aria-label={`Velocidade ${n}`}
           onClick={(e) => {
             e.stopPropagation();
             onSet(n === value ? 0 : n);
           }}
         >
-          <StarIcon filled={n <= value} />
+          <BoltIcon filled={n <= value} />
         </button>
       ))}
     </div>
@@ -133,7 +133,7 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
         currentId={t.statusId}
         onSelect={(statusId) => board.setTaskStatus(t.id, statusId)}
       />
-      <QuickStars value={t.quick || 0} onSet={(v) => board.setQuick(t.id, v)} />
+      <QuickBolts value={t.quick || 0} onSet={(v) => board.setQuick(t.id, v)} />
       <div className="row-desc-cell">
         <button type="button" className="row-title" title={t.title} onClick={() => setEditing(true)}>
           {t.title}

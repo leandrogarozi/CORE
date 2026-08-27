@@ -280,16 +280,20 @@ de feature flags que já existe pra água/dieta/sono/humor
   trocar o amarelo usado em vários pontos (aviso "falta registrar",
   chip "Rápidas primeiro" ativo, badge de velocidade de execução,
   ícone de alerta, decoração de estrela) — vai mandar 2 referências de
-  amarelo pra gente aplicar. Primeiro passo já feito: o badge "+++"
-  de velocidade de execução da tarefa (coluna "Vel.Ex") virou **3
-  estrelinhas clicáveis** (`QuickStars` em `TaskRow.tsx`, ícone
-  `StarIcon` do pack) — contorno quando vazias, preenchidas até a
-  estrela clicada (não cicla mais + → ++ → +++, agora clica direto na
-  Nª estrela pra setar, ou na mesma estrela pra zerar). A cor de
-  preenchimento usa `var(--book-yellow)`, o mesmo token já usado em
-  Livros/hábitos — quando vier a nova cor de referência, trocar esse
-  token já atualiza aqui junto. Ponto de rollback se não ficar bom:
-  commit `2a29a67` (estado anterior a essa mudança).
+  amarelo pra gente aplicar (ainda não chegou, pedido de novo).
+  Primeiro passo já feito, com uma volta no meio do caminho: o badge
+  "+++" de velocidade de execução da tarefa (coluna "Vel.Ex") virou
+  **3 ícones clicáveis** (contorno vazio, preenchidos até o clicado —
+  não cicla mais + → ++ → +++, clica direto no Nº ícone pra setar, ou
+  no mesmo pra zerar). Passou primeiro por estrelas (`StarIcon`, do
+  pack) e depois virou **raio** (`BoltIcon` em `icons.tsx`,
+  `QuickBolts` em `TaskRow.tsx`) — o pack não tem nenhum ícone de raio/
+  lightning (conferido nos 442 arquivos), então esse é desenhado à mão
+  como exceção à regra fixa, igual o `PillIcon`. A cor de preenchimento
+  usa `var(--book-yellow)`, o mesmo token já usado em Livros/hábitos —
+  quando vier a referência de amarelo, trocar esse token já atualiza
+  aqui junto. Ponto de rollback se não ficar bom: commit `2a29a67`
+  (estado anterior a essa mudança, antes até das estrelas).
 
 ## Backlog
 
