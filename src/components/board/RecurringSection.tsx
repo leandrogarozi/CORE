@@ -157,6 +157,51 @@ function DayLogPopover({
   );
 }
 
+function DayViewPopover({
+  anchorRect,
+  minutes,
+  note,
+  onEdit,
+  onClear,
+  onClose,
+}: {
+  anchorRect: DOMRect;
+  minutes: number;
+  note: string;
+  onEdit: () => void;
+  onClear: () => void;
+  onClose: () => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const pos = useClampedPopoverPos(anchorRect, ref);
+
+  useEffect(() => {
+    function onDocPointerDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    }
+    window.addEventListener("mousedown", onDocPointerDown);
+    return () => window.removeEventListener("mousedown", onDocPointerDown);
+  }, [onClose]);
+
+  return createPortal(
+    <div className="daylog-popover day-view-popover" ref={ref} style={{ top: pos.top, left: pos.left }}>
+      <div className="day-view-value">
+        <span className="day-view-time">{fmtHM(minutes)}</span>
+        {note && <span className="day-view-note">{note}</span>}
+      </div>
+      <div className="edit-actions">
+        <button type="button" className="icon-btn danger-hover" title="Desmarcar" onClick={onClear}>
+          <TrashIcon />
+        </button>
+        <button type="button" className="btn btn-ghost" onClick={onEdit}>
+          <EditIcon /> Editar
+        </button>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 function DayEntriesPopover({
   anchorRect,
   entries,
@@ -252,6 +297,7 @@ function RecurringRow({ kind, item, weekAnchor }: { kind: Kind; item: RecurringI
   const { board } = useBoardCtx();
   const [editing, setEditing] = useState(false);
   const [dayEditor, setDayEditor] = useState<{ iso: string; rect: DOMRect } | null>(null);
+  const [dayView, setDayView] = useState<{ iso: string; rect: DOMRect } | null>(null);
   const today = todayISO();
   const weekDates = weekDatesFrom(weekAnchor);
 
@@ -311,7 +357,7 @@ function RecurringRow({ kind, item, weekAnchor }: { kind: Kind; item: RecurringI
                 if (entriesMode) {
                   openDayEditor(iso, e.currentTarget.getBoundingClientRect());
                 } else if (done) {
-                  board.clearRecurringDay(kind, item.id, iso);
+                  setDayView({ iso, rect: e.currentTarget.getBoundingClientRect() });
                 } else {
                   openDayEditor(iso, e.currentTarget.getBoundingClientRect());
                 }
@@ -330,6 +376,22 @@ function RecurringRow({ kind, item, weekAnchor }: { kind: Kind; item: RecurringI
           onAdd={(note, minutes) => board.addBlockLogEntry(item.id, dayEditor.iso, note, minutes)}
           onRemove={(entryId) => board.deleteBlockLogEntry(item.id, dayEditor.iso, entryId)}
           onClose={() => setDayEditor(null)}
+        />
+      )}
+      {dayView && !entriesMode && (
+        <DayViewPopover
+          anchorRect={dayView.rect}
+          minutes={item.logs[dayView.iso] ? Math.round(item.logs[dayView.iso].trackedSeconds / 60) : 0}
+          note={item.logs[dayView.iso]?.note || ""}
+          onEdit={() => {
+            setDayEditor({ iso: dayView.iso, rect: dayView.rect });
+            setDayView(null);
+          }}
+          onClear={() => {
+            board.clearRecurringDay(kind, item.id, dayView.iso);
+            setDayView(null);
+          }}
+          onClose={() => setDayView(null)}
         />
       )}
       {dayEditor && !entriesMode && (

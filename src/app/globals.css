@@ -634,6 +634,10 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 }
 .daylog-popover select:disabled, .daylog-popover input:disabled{ opacity:0.5; }
 .daylog-popover .edit-actions{ margin-top:2px; }
+.day-view-popover{ min-width:140px; }
+.day-view-value{ display:flex; flex-direction:column; gap:2px; }
+.day-view-time{ font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; }
+.day-view-note{ font-size:11.5px; color:var(--text-faint); }
 .weekday-picker{ display:flex; gap:4px; }
 .weekday-btn{
   width:26px; height:26px; border-radius:50%; border:1px solid var(--border-strong);

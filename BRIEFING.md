@@ -137,6 +137,23 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Blocos fixos: clicar num dia já marcado não apaga mais (28/08)
+
+- **Bug relatado pelo Leandro**: marcou o horário de almoço pelo play,
+  depois clicou de novo no bloquinho verde só pra ver quanto tempo
+  tinha gastado — e isso **desmarcava** o dia na hora (`RecurringRow`
+  em `RecurringSection.tsx`: clicar numa célula já `done`, sem opções
+  de nota, chamava `board.clearRecurringDay` direto no clique).
+- **Correção**: clicar numa célula já marcada agora abre um popover de
+  **visualização** (`DayViewPopover`) mostrando o tempo registrado (e a
+  nota, se tiver) — não mexe em nada sozinho. De lá, dois botões
+  explícitos: lápis **Editar** (abre o popover de edição já existente,
+  pré-preenchido, pra ajustar o valor) ou lixeira **Desmarcar** (aí sim
+  limpa o dia, mas é uma ação deliberada, não um efeito colateral do
+  clique). Blocos com opções de nota (`entriesMode`, ex.: múltiplas
+  entradas por dia) não foram afetados — já abriam um popover de lista
+  em vez de limpar direto.
+
 ## Iniciar reunião / avisos de timer (28/08)
 
 - **Motivação**: o Leandro quer que o FARO monitore o tempo de verdade
