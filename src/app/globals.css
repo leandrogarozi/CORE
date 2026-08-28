@@ -263,7 +263,7 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   box-shadow:var(--shadow); padding:14px; margin-bottom:14px; display:flex; flex-direction:column; gap:8px;
 }
 .diet-plan-input{
-  width:100%; resize:vertical; background:var(--bg); border:1px solid var(--border-strong);
+  width:100%; resize:vertical; background:transparent; border:1px solid var(--border);
   border-radius:7px; padding:8px 10px; font-size:12.5px; color:var(--text); font-family:inherit; line-height:1.4;
 }
 .diet-meals-list{ display:flex; flex-direction:column; gap:8px; }
@@ -274,18 +274,20 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .diet-meal-card.inactive{ opacity:0.55; }
 .diet-meal-head{ display:flex; align-items:center; gap:8px; }
 .diet-meal-name{
-  flex:1; min-width:0; background:var(--surface); border:1px solid var(--border-strong); border-radius:7px;
+  flex:1; min-width:0; background:none; border:none; border-radius:7px;
   padding:6px 8px; font-size:13px; color:var(--text);
 }
+.diet-meal-head input[type="time"]{ background:none; border:none; color:var(--text); font-size:12.5px; }
 .diet-meal-message{
-  width:100%; resize:vertical; background:var(--bg); border:1px solid var(--border-strong);
+  width:100%; resize:vertical; background:transparent; border:1px solid var(--border);
   border-radius:7px; padding:6px 8px; font-size:12px; color:var(--text); font-family:inherit; line-height:1.4;
 }
 .diet-meal-add{ display:flex; gap:8px; margin-top:12px; }
 .diet-meal-add input[type="text"]{
-  flex:1; background:var(--surface); border:1px solid var(--border-strong); border-radius:7px;
+  flex:1; background:none; border:none; border-radius:7px;
   padding:6px 8px; font-size:13px; color:var(--text);
 }
+.diet-meal-add input[type="time"]{ background:none; border:none; color:var(--text); font-size:12.5px; }
 .diet-channel-options{ display:flex; flex-wrap:wrap; gap:16px; margin-top:8px; }
 .diet-channel-option{
   display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--text-muted); cursor:pointer;
@@ -294,7 +296,7 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .diet-channel-option svg{ width:14px; height:14px; flex:none; }
 .diet-whatsapp-phone-row{ display:flex; flex-direction:column; gap:6px; margin-top:12px; }
 .diet-whatsapp-phone-row input{
-  background:var(--bg); border:1px solid var(--border-strong); border-radius:7px;
+  background:transparent; border:1px solid var(--border); border-radius:7px;
   padding:6px 8px; font-size:13px; color:var(--text);
 }
 .diet-phone-confirm-row{ display:flex; gap:8px; }
@@ -329,12 +331,12 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .day-strip-wrap{ display:flex; align-items:center; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
 .day-strip{ display:flex; gap:6px; overflow-x:auto; flex:1; padding-bottom:2px; min-width:200px; }
 .day-chip{
-  flex:1 1 0; min-width:42px;
-  border:1px solid var(--border); background:var(--surface); border-radius:10px;
-  padding:7px 4px 6px; display:flex; flex-direction:column; align-items:center; gap:2px;
+  flex:1 1 0; min-width:34px;
+  border:1px solid color-mix(in srgb, var(--border) 45%, transparent); background:var(--surface); border-radius:8px;
+  padding:6px 3px 5px; display:flex; flex-direction:column; align-items:center; gap:2px;
 }
-.day-chip-name{ font-size:10px; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.04em; }
-.day-chip-num{ font-size:14px; font-weight:600; }
+.day-chip-name{ font-size:8px; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.04em; }
+.day-chip-num{ font-size:11px; font-weight:600; }
 .day-chip.is-today .day-chip-name{ color:var(--accent); }
 .day-chip.selected{ background:var(--accent); border-color:var(--accent); }
 .day-chip.selected .day-chip-name, .day-chip.selected .day-chip-num{ color:var(--accent-contrast); }

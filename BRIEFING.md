@@ -137,6 +137,29 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Limpeza visual: caixas de input sem contorno na Dieta, dias da semana menores (28/08)
+
+- Pedido do Leandro, com prints comparando: **"retira os contornos das
+  caixas, deixar mais limpo... anexo tbm mandei exemplo das caixa sem
+  contornos que já fizemos ou com o contorno com bastante
+  transparência"** e **"as marcações dos dias deixa eles menores uns
+  20% — pode ficar pequeno não tem problema"**.
+- Campos de texto/hora dentro dos cards de refeição da Dieta (nome,
+  horário, "+ nome da refeição") perderam a caixa própria — mesmo
+  padrão já usado em `.book-title-input`/`.reminder-title-input`/
+  `.quickadd-input` (sem borda, sem fundo, o texto flutua direto no
+  card).
+- Textareas (plano da dieta, mensagem da refeição) e o campo de
+  telefone do WhatsApp mantiveram uma borda, mas trocada pra
+  `var(--border)` bem mais clara em vez de `var(--border-strong)`, e
+  fundo transparente em vez de cinza — a opção "contorno com bastante
+  transparência" que o Leandro ofereceu como alternativa pros campos
+  que precisam ficar identificáveis como caixa de texto.
+- Os chips de dia da semana no topo (SEG 24, TER 25...) ficaram ~20%
+  menores (largura mínima 42px→34px, texto 10px→8px e 14px→11px,
+  padding e raio proporcionalmente reduzidos) e a borda também ficou
+  bem mais transparente.
+
 ## Dieta: canais de lembrete mais simples e balão de observação flutuante (28/08)
 
 - Duas correções pedidas pelo Leandro depois de ver a tela funcionando:
