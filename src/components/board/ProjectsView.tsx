@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { TaskRow } from "./TaskRow";
+import { ClockIcon } from "./icons";
+import { fmtHM } from "@/lib/date-utils";
 import type { Project } from "@/lib/types";
 
 function projectProgress(projectId: string, tasks: { projectId: string | null; done: boolean }[]) {
@@ -113,6 +115,7 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
     .sort((a, b) => (a.order || 0) - (b.order || 0));
   const doneCount = steps.filter((t) => t.done).length;
   const pct = steps.length > 0 ? Math.round((doneCount / steps.length) * 100) : 0;
+  const totalTrackedMin = Math.round(steps.reduce((sum, t) => sum + (t.trackedSeconds || 0), 0) / 60);
 
   function commitName() {
     if (nameDraft === null) return;
@@ -125,6 +128,11 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
     if (descDraft === null) return;
     if (descDraft !== project.description) board.updateProject(project.id, { description: descDraft });
     setDescDraft(null);
+  }
+
+  function saveEdits() {
+    commitName();
+    commitDesc();
   }
 
   function addStep() {
@@ -186,9 +194,16 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
               </span>
             </div>
           )}
+          <div className="project-time-row">
+            <ClockIcon />
+            Tempo gasto no projeto (soma das tarefas): <span className="mono">{fmtHM(totalTrackedMin)}</span>
+          </div>
           <div className="edit-actions">
             <button type="button" className="btn btn-ghost danger-hover" onClick={handleDelete}>
               Excluir projeto
+            </button>
+            <button type="button" className="btn btn-accent" onClick={saveEdits}>
+              Salvar projeto
             </button>
             <button
               type="button"

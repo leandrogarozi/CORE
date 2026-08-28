@@ -214,6 +214,22 @@ function reminderStatus(reminder: Reminder, overdue: boolean, dueToday: boolean)
   return { label: "Pendente", cls: "status-pending" };
 }
 
+// Grid fixo (sem drag-to-resize), reaproveitando o mesmo visual da tabela de tarefas.
+const REMINDER_GRID = "84px minmax(140px,1fr) 96px 176px 34px 46px";
+
+function ReminderTableHeader() {
+  return (
+    <div className="task-list-header" style={{ gridTemplateColumns: REMINDER_GRID }}>
+      <span className="tlh-cell">Status</span>
+      <span className="tlh-cell">Descrição</span>
+      <span className="tlh-cell">Tipo</span>
+      <span className="tlh-cell">Data</span>
+      <span className="tlh-cell tlh-center">Obs</span>
+      <span className="tlh-cell tlh-center">Excluir</span>
+    </div>
+  );
+}
+
 export function ReminderRow({ reminder }: { reminder: Reminder }) {
   const { board } = useBoardCtx();
   const [titleDraft, setTitleDraft] = useState<string | null>(null);
@@ -234,50 +250,105 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
   return (
     <div
       className={
-        "reminder-card" +
+        "reminder-table-row" +
         (reminder.done ? " done" : "") +
         (overdue ? " overdue" : "") +
         (dueToday ? " due-today" : "")
       }
+      style={{ gridTemplateColumns: REMINDER_GRID }}
     >
-      <div className="reminder-card-top">
-        <button
-          type="button"
-          className={"reminder-status-chip " + status.cls}
-          title={reminder.done ? "Marcar como não concluído" : "Marcar como concluído"}
-          onClick={() => board.updateReminder(reminder.id, { done: !reminder.done })}
-        >
-          {reminder.done && <CheckIcon />}
-          {status.label}
-        </button>
-        <span className={"chip" + (isRecurring ? " chip-recurring" : " chip-oneoff")}>
-          {isRecurring && <RepeatIcon />} {isRecurring ? "Recorrente" : "Pontual"}
-        </span>
-        <span className="reminder-card-spacer" />
-        <CommentButton
-          value={reminder.note}
-          placeholder="Observação — cole um texto ou escreva algo..."
-          ariaLabel="Observação do lembrete"
-          onSave={(text) => board.updateReminder(reminder.id, { note: text || null })}
-        />
-        <ReminderDateButton reminder={reminder} />
-        <button
-          className="icon-btn danger-hover"
-          type="button"
-          title="Excluir"
-          onClick={() => board.deleteReminder(reminder.id)}
-        >
-          <TrashIcon />
-        </button>
-      </div>
+      <button
+        type="button"
+        className={"reminder-status-chip " + status.cls}
+        title={reminder.done ? "Marcar como não concluído" : "Marcar como concluído"}
+        onClick={() => board.updateReminder(reminder.id, { done: !reminder.done })}
+      >
+        {reminder.done && <CheckIcon />}
+        {status.label}
+      </button>
       <input
         type="text"
-        className="reminder-title-input reminder-card-title"
+        className="reminder-title-input"
         value={titleDraft ?? reminder.title}
         onChange={(e) => setTitleDraft(e.target.value)}
         onBlur={commitTitle}
         onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
       />
+      <span className={"chip" + (isRecurring ? " chip-recurring" : " chip-oneoff")}>
+        {isRecurring && <RepeatIcon />} {isRecurring ? "Recorrente" : "Pontual"}
+      </span>
+      <ReminderDateButton reminder={reminder} />
+      <CommentButton
+        value={reminder.note}
+        placeholder="Observação — cole um texto ou escreva algo..."
+        ariaLabel="Observação do lembrete"
+        onSave={(text) => board.updateReminder(reminder.id, { note: text || null })}
+      />
+      <button
+        className="icon-btn danger-hover"
+        type="button"
+        title="Excluir"
+        onClick={() => board.deleteReminder(reminder.id)}
+      >
+        <TrashIcon />
+      </button>
+    </div>
+  );
+}
+
+// Versão compacta (linha única, sem grid) pro popover estreito do sininho.
+function ReminderCompactRow({ reminder }: { reminder: Reminder }) {
+  const { board } = useBoardCtx();
+  const [titleDraft, setTitleDraft] = useState<string | null>(null);
+
+  function commitTitle() {
+    if (titleDraft === null) return;
+    const trimmed = titleDraft.trim();
+    if (trimmed && trimmed !== reminder.title) board.updateReminder(reminder.id, { title: trimmed });
+    setTitleDraft(null);
+  }
+
+  const today = todayISO();
+  const overdue = isReminderOverdue(reminder);
+  const dueToday = !reminder.done && !overdue && reminder.date === today;
+  const isRecurring = reminder.repeat !== "none" || (reminder.weekDays?.length ?? 0) > 0;
+
+  return (
+    <div
+      className={
+        "reminder-row" + (reminder.done ? " done" : "") + (overdue ? " overdue" : "") + (dueToday ? " due-today" : "")
+      }
+    >
+      <button
+        type="button"
+        className={"reminder-check" + (reminder.done ? " done" : "")}
+        title={reminder.done ? "Marcar como não concluído" : "Marcar como concluído"}
+        onClick={() => board.updateReminder(reminder.id, { done: !reminder.done })}
+      >
+        {reminder.done && <CheckIcon />}
+      </button>
+      <input
+        type="text"
+        className="reminder-title-input"
+        value={titleDraft ?? reminder.title}
+        onChange={(e) => setTitleDraft(e.target.value)}
+        onBlur={commitTitle}
+        onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+      />
+      {isRecurring && (
+        <span className="chip chip-recurring">
+          <RepeatIcon />
+        </span>
+      )}
+      <ReminderDateButton reminder={reminder} />
+      <button
+        className="icon-btn danger-hover"
+        type="button"
+        title="Excluir"
+        onClick={() => board.deleteReminder(reminder.id)}
+      >
+        <TrashIcon />
+      </button>
     </div>
   );
 }
@@ -373,7 +444,7 @@ export function RemindersButton({ onOpenFull }: { onOpenFull: () => void }) {
             ) : (
               <div className="reminders-popover-list">
                 {pending.map((r) => (
-                  <ReminderRow key={r.id} reminder={r} />
+                  <ReminderCompactRow key={r.id} reminder={r} />
                 ))}
               </div>
             )}
@@ -432,9 +503,12 @@ export function RemindersView({ onBack }: { onBack: () => void }) {
             <div className="list-card-section-label overdue-label">
               <WarningIcon /> Vencidos
             </div>
-            {overdue.map((r) => (
-              <ReminderRow key={r.id} reminder={r} />
-            ))}
+            <div className="task-table-scroll">
+              <ReminderTableHeader />
+              {overdue.map((r) => (
+                <ReminderRow key={r.id} reminder={r} />
+              ))}
+            </div>
           </div>
         )}
 
@@ -443,16 +517,24 @@ export function RemindersView({ onBack }: { onBack: () => void }) {
             {pending.length === 0 ? (
               <div className="hp-empty">Nenhum lembrete pendente.</div>
             ) : (
-              pending.map((r) => <ReminderRow key={r.id} reminder={r} />)
+              <div className="task-table-scroll">
+                <ReminderTableHeader />
+                {pending.map((r) => (
+                  <ReminderRow key={r.id} reminder={r} />
+                ))}
+              </div>
             )}
           </div>
         )}
 
         {done.length > 0 && (
           <div className="list-card">
-            {done.map((r) => (
-              <ReminderRow key={r.id} reminder={r} />
-            ))}
+            <div className="task-table-scroll">
+              <ReminderTableHeader />
+              {done.map((r) => (
+                <ReminderRow key={r.id} reminder={r} />
+              ))}
+            </div>
           </div>
         )}
       </div>

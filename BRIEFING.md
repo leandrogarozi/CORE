@@ -137,6 +137,46 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Lembretes viram tabela de verdade (igual à de tarefas) + botão Salvar em Projetos (28/08)
+
+- Correção de rota: a tentativa de cartão (seção logo abaixo) não
+  funcionou. Feedback direto, com print da tabela de tarefas:
+  **"em lembretes não ficou bom... era para funcionar igual a
+  task...tipo assim: uma faixa em cima escrevo — status, descrição...
+  e o que mais tiver e organizar para baixo igual as task, esse
+  formato já funciona muito bem."**
+- `ReminderRow` virou uma linha de grid de verdade, com um cabeçalho
+  fixo em cima (`Status | Descrição | Tipo | Data | Obs | Excluir`),
+  reaproveitando as mesmas classes CSS da tabela de tarefas
+  (`.task-list-header`, `.tlh-cell`, `.task-table-scroll`) pra manter
+  a mesma cara — só que com colunas de largura fixa, sem
+  arrastar/redimensionar (a tabela de tarefas usa um hook específico
+  pra isso, não valia a pena generalizar só pra essa segunda tabela).
+- O popover estreito do sininho (barra de topo) não cabia numa tabela
+  de 6 colunas, então ganhou uma linha compacta própria
+  (`ReminderCompactRow`), voltando ao formato de linha única de antes
+  do cartão (check redondo + título + data + excluir) — reaproveita
+  CSS que já existia (`.reminder-row`, `.reminder-check`) e nunca foi
+  removido, porque também é usado pela tela de Medicamentos.
+- O cálculo de status (Pendente/Hoje/Vencido/Concluído) continua o
+  mesmo de antes, só mudou a forma como é exibido.
+- Junto, **Projetos** ganhou o botão explícito **"Salvar projeto"**
+  (pedido no mesmo print: "em projetos tem que ter um botão — Salvar
+  projeto") — antes só salvava ao sair do campo (blur), sem
+  confirmação visível. O blur continua funcionando também, o botão é
+  só o caminho garantido e descobrível.
+- E também a pedido do Leandro, a aba do projeto ganhou um contador
+  de tempo (**"seria importante ter um contador de tempo que mostra a
+  soma de todas as task envolvidas... tempo gasto no projeto, tempo
+  gasto nas tasks, para gerar o relatório sempre correto"**): soma o
+  `trackedSeconds` de todas as etapas vinculadas e mostra
+  "Tempo gasto no projeto" formatado (Xh Ymin). Não fica "vivo"
+  segundo a segundo enquanto um cronômetro de etapa está rodando —
+  mesmo comportamento do resto do app (Dashboard etc.), atualiza
+  quando o cronômetro é pausado. Como usa direto o `trackedSeconds`
+  de cada tarefa (não um número guardado à parte), fica sempre
+  consistente pra virar relatório depois.
+
 ## Lembretes viram cartão (Status / descrição / tipo / data) (28/08)
 
 - Retomando o pedido de mais cedo: **"não estou gostando desses
