@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { BellIcon, CheckIcon, RepeatIcon, TrashIcon, WeekIcon } from "./icons";
-import { fmtShortDate, todayISO } from "@/lib/date-utils";
+import { DAY_NAMES, fmtShortDate, todayISO } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 import { REMINDER_ALERT_PRESETS } from "@/lib/board/reminder-alerts";
 import type { Reminder, Repeat } from "@/lib/types";
@@ -32,6 +32,7 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
   const [dateDraft, setDateDraft] = useState(reminder.date ?? "");
   const [timeDraft, setTimeDraft] = useState(reminder.time ?? "");
   const [repeatDraft, setRepeatDraft] = useState<Repeat>(reminder.repeat);
+  const [weekDraft, setWeekDraft] = useState<number[]>(reminder.weekDays ?? []);
   const [alertDraft, setAlertDraft] = useState<number | null>(reminder.alertMinutesBefore);
   const btnRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
@@ -56,10 +57,15 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
     setDateDraft(reminder.date ?? "");
     setTimeDraft(reminder.time ?? "");
     setRepeatDraft(reminder.repeat);
+    setWeekDraft(reminder.weekDays ?? []);
     setAlertDraft(reminder.alertMinutesBefore);
     if (btnRef.current) {
       setAnchorRect(btnRef.current.getBoundingClientRect());
     }
+  }
+
+  function toggleWeekDay(d: number) {
+    setWeekDraft((cur) => (cur.includes(d) ? cur.filter((x) => x !== d) : [...cur, d]));
   }
 
   function save() {
@@ -68,17 +74,27 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
       date: nextDate,
       time: nextDate ? timeDraft || null : null,
       repeat: nextDate ? repeatDraft : "none",
+      weekDays: weekDraft.length > 0 && weekDraft.length < 7 ? [...weekDraft].sort((a, b) => a - b) : null,
       alertMinutesBefore: nextDate ? alertDraft : null,
     });
     setAnchorRect(null);
   }
 
   const alertLabel = REMINDER_ALERT_PRESETS.find((p) => p.v === reminder.alertMinutesBefore)?.l;
-  const label = reminder.date
-    ? fmtShortDate(reminder.date) +
-      (reminder.time ? ` às ${reminder.time}` : "") +
-      (reminder.repeat !== "none" ? ` · ${REPEAT_SHORT[reminder.repeat]}` : "") +
-      (reminder.alertMinutesBefore ? ` · aviso ${alertLabel}` : "")
+  const weekLabel =
+    reminder.weekDays && reminder.weekDays.length > 0 && reminder.weekDays.length < 7
+      ? [...reminder.weekDays].sort((a, b) => a - b).map((d) => DAY_NAMES[d]).join(",")
+      : null;
+  const hasSchedule = !!reminder.date || !!weekLabel;
+  const label = hasSchedule
+    ? [
+        reminder.date ? fmtShortDate(reminder.date) + (reminder.time ? ` às ${reminder.time}` : "") : null,
+        weekLabel,
+        reminder.repeat !== "none" ? REPEAT_SHORT[reminder.repeat] : null,
+        reminder.alertMinutesBefore ? `aviso ${alertLabel}` : null,
+      ]
+        .filter(Boolean)
+        .join(" · ")
     : null;
 
   return (
@@ -86,8 +102,8 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
       <button
         ref={btnRef}
         type="button"
-        className={"reminder-date-btn" + (reminder.date ? " has-date" : "")}
-        title={reminder.date ? `Data: ${fmtShortDate(reminder.date)}` : "Definir data"}
+        className={"reminder-date-btn" + (hasSchedule ? " has-date" : "")}
+        title={label ?? "Definir data"}
         onClick={toggleOpen}
       >
         <WeekIcon />
@@ -110,6 +126,22 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
               onChange={(e) => setTimeDraft(e.target.value)}
               onKeyDown={(e) => e.key === "Escape" && setAnchorRect(null)}
             />
+            <div className="edit-field">
+              <span className="edit-field-label">Repete nesses dias da semana (opcional)</span>
+              <div className="weekday-picker">
+                {DAY_NAMES.map((label, d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    className={"weekday-btn" + (weekDraft.includes(d) ? " active" : "")}
+                    title={label}
+                    onClick={() => toggleWeekDay(d)}
+                  >
+                    {label[0]}
+                  </button>
+                ))}
+              </div>
+            </div>
             <select
               className="reminder-repeat-select"
               value={repeatDraft}
@@ -163,6 +195,7 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
   const today = todayISO();
   const overdue = !reminder.done && !!reminder.date && reminder.date < today;
   const dueToday = !reminder.done && reminder.date === today;
+  const isRecurring = reminder.repeat !== "none" || (reminder.weekDays?.length ?? 0) > 0;
 
   return (
     <div
@@ -189,9 +222,9 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
         onBlur={commitTitle}
         onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
       />
-      {reminder.repeat !== "none" && (
-        <span className="reminder-repeat-flag" title={`Repete: ${REPEAT_SHORT[reminder.repeat]}`}>
-          <RepeatIcon />
+      {isRecurring && (
+        <span className="chip chip-recurring" title="Lembrete recorrente">
+          <RepeatIcon /> Recorrente
         </span>
       )}
       <ReminderDateButton reminder={reminder} />

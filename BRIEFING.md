@@ -137,6 +137,34 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Lembretes: repetição por dia da semana + tag "Recorrente" (28/08)
+
+- **Pedido do Leandro**: campo de repetição por dia da semana nos
+  Lembretes (bolinhas/quadradinhos D S T Q Q S S), motivado por um caso
+  real — "trocar filtro piscina" acontece 2x por semana, não faz
+  sentido só uma data fixa ou "toda semana" genérico.
+- Novo campo `Reminder.weekDays: number[] | null` (0=dom..6=sáb),
+  **mesmo padrão já usado em Medicamentos** — reaproveitado o
+  componente visual `.weekday-picker`/`.weekday-btn` que já existia.
+  Fica no mesmo popover de data/hora do lembrete, funciona
+  independente de ter uma data marcada (dá pra só marcar os dias, sem
+  data fixa nenhuma).
+- **Tag "Recorrente"**: qualquer lembrete com `repeat !== "none"` OU
+  `weekDays` marcado agora mostra um chip "Recorrente" na lista (era só
+  um ícone pequeno antes, específico de `repeat`) — pedido explícito do
+  Leandro pra conseguir olhar uma lista cheia e diferenciar o que é
+  recorrente do que é pontual.
+- **Limitação importante, não escondida**: assim como em Medicamentos,
+  isso é **informativo por enquanto** — marcar `weekDays` não faz o
+  lembrete recriar sozinho toda semana nem reseta automaticamente
+  quando chega o próximo dia marcado. O campo `done` continua sendo um
+  boolean único (concluído ou não), sem histórico por dia. Pra virar
+  de verdade um lembrete que "volta sozinho" a cada Ter/Qui (resetando
+  o check a cada ocorrência), precisaria de um sistema de
+  acompanhamento por data como o dos Hábitos/Blocos fixos (`DayLog` por
+  dia) — não implementado ainda, é a evolução natural se o Leandro
+  sentir falta na prática.
+
 ## Cronômetro mostrava só a sessão atual, parecia "esquecer" tempo anterior (28/08)
 
 - **Relato do Leandro**: deu play numa tarefa ("Tratar piscina"), pausou,

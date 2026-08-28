@@ -748,6 +748,7 @@ export function useBoard(userId: string | null) {
         date: null,
         time: null,
         repeat: "none",
+        weekDays: null,
         alertMinutesBefore: null,
         done: false,
       };
@@ -760,7 +761,10 @@ export function useBoard(userId: string | null) {
   );
 
   const updateReminder = useCallback(
-    (id: string, patch: Partial<Pick<Reminder, "title" | "date" | "time" | "repeat" | "alertMinutesBefore" | "done">>) => {
+    (
+      id: string,
+      patch: Partial<Pick<Reminder, "title" | "date" | "time" | "repeat" | "weekDays" | "alertMinutesBefore" | "done">>
+    ) => {
       apply((s) => ({ ...s, reminders: s.reminders.map((r) => (r.id === id ? { ...r, ...patch } : r)) }));
       supabase.from("reminders").update(reminderToUpdateRow(patch)).eq("id", id).then(({ error }) => {
         if (error) console.error("updateReminder", error);

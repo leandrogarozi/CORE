@@ -408,6 +408,7 @@ export type Database = {
           repeat: string | null
           title: string
           user_id: string
+          week_days: number[] | null
         }
         Insert: {
           alert_minutes_before?: number | null
@@ -419,6 +420,7 @@ export type Database = {
           repeat?: string | null
           title: string
           user_id: string
+          week_days?: number[] | null
         }
         Update: {
           alert_minutes_before?: number | null
@@ -430,6 +432,7 @@ export type Database = {
           repeat?: string | null
           title?: string
           user_id?: string
+          week_days?: number[] | null
         }
         Relationships: []
       }
