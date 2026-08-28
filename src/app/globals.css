@@ -711,6 +711,20 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   box-shadow:var(--shadow); margin-bottom:14px; overflow:hidden;
 }
 .list-card:last-child{ margin-bottom:0; }
+.trash-toolbar{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  box-shadow:var(--shadow); padding:10px 14px; margin-bottom:14px; font-size:12.5px; color:var(--text-muted);
+}
+.trash-row{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:10px 14px; border-bottom:1px solid var(--border);
+}
+.trash-row:last-child{ border-bottom:none; }
+.trash-row-info{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+.trash-row-title{ font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.trash-row-date{ font-size:11px; color:var(--text-faint); }
+.trash-row-actions{ display:flex; align-items:center; gap:6px; flex:none; }
 
 /* medications */
 .med-group-card{ padding-bottom:2px; }

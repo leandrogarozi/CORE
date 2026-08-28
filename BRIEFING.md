@@ -224,6 +224,15 @@ por dificuldade:
     abre em qualquer foco no campo de busca, com o seletor de escopo
     sempre visível; sem query e fora da Lixeira mostra só "Digite pra
     buscar...".
+  - **Item próprio no menu lateral**: o Leandro pediu um jeito mais
+    direto de chegar na Lixeira do que só pela busca — novo item
+    "Lixeira" no rodapé do menu lateral (junto de Configurações),
+    abrindo uma tela dedicada (`TrashView.tsx`) que já lista tudo que
+    foi excluído (sem precisar digitar nada), com Restaurar por item e
+    um botão **"Esvaziar lixeira"** no topo que apaga tudo de vez (com
+    confirmação, mostrando quantos itens). O escopo "Lixeira" na busca
+    continua existindo também, útil pra achar um item específico pelo
+    nome rapidinho.
 
 ## Ajustes no botão Reunião + confirmação de exclusão (28/08)
 

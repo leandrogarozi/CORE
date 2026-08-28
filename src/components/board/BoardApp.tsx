@@ -17,6 +17,7 @@ import { BooksView } from "./BooksView";
 import { RemindersView, RemindersButton } from "./RemindersView";
 import { MedicationsView } from "./MedicationsView";
 import { ChecklistsView } from "./ChecklistsView";
+import { TrashView } from "./TrashView";
 import { ScopeModal } from "./ScopeModal";
 import { ConfirmModal } from "./ConfirmModal";
 import { FaroMascot } from "./FaroMascot";
@@ -150,6 +151,8 @@ function BoardShell() {
         <MedicationsView onBack={() => setViewMode("day")} />
       ) : viewMode === "checklists" ? (
         <ChecklistsView onBack={() => setViewMode("day")} />
+      ) : viewMode === "trash" ? (
+        <TrashView onBack={() => setViewMode("day")} />
       ) : viewMode === "calendar" ? (
         <CalendarView onBack={() => setViewMode("day")} onSelectWeek={() => setViewMode("week")} onSelectDay={goToDate} />
       ) : (
