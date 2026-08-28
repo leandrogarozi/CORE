@@ -2,19 +2,22 @@
 
 import { useState, type ReactNode } from "react";
 import { useBoardCtx } from "./board-context";
-import { ChevronIcon, TrashIcon } from "./icons";
+import { ChevronIcon, ClockIcon, FlagIcon, HomeIcon, TagIcon, TrashIcon } from "./icons";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { CATEGORY_LABEL, OPTIONAL_FEATURES, isFeatureEnabled, type Category, type TaskStatus } from "@/lib/types";
 import type { UseBoard } from "@/lib/board/use-board";
 
 const CATEGORIES = Object.keys(CATEGORY_LABEL) as Category[];
 
-function CollapsibleBox({ title, children }: { title: string; children: ReactNode }) {
+function CollapsibleBox({ title, icon, children }: { title: string; icon?: ReactNode; children: ReactNode }) {
   const [open, setOpen] = useState(true);
   return (
     <div className="dash-box">
       <button type="button" className="dash-box-toggle" onClick={() => setOpen((v) => !v)}>
-        <span className="dash-box-title">{title}</span>
+        <span className="dash-box-title">
+          {icon && <span className="dash-box-icon">{icon}</span>}
+          {title}
+        </span>
         <span className={"chevron" + (open ? " open" : "")}>
           <ChevronIcon />
         </span>
@@ -134,7 +137,7 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
         <span style={{ width: 30 }} />
       </div>
 
-      <CollapsibleBox title="Tags da tarefa">
+      <CollapsibleBox title="Tags da tarefa" icon={<TagIcon />}>
         <div className="settings-rows">
           {CATEGORIES.map((cat) => {
             const cfg = tagColors[cat];
@@ -169,7 +172,7 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
         </div>
       </CollapsibleBox>
 
-      <CollapsibleBox title="Status de tarefa">
+      <CollapsibleBox title="Status de tarefa" icon={<FlagIcon color="currentColor" />}>
         <div className="status-rows">
           {statuses.map((s, i) => (
             <StatusRow
@@ -197,7 +200,7 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
         </div>
       </CollapsibleBox>
 
-      <CollapsibleBox title="Painel de horas">
+      <CollapsibleBox title="Painel de horas" icon={<ClockIcon />}>
         <div className="settings-row-standalone">
           <span className="settings-label">Teto diário de horas</span>
           <input
@@ -217,7 +220,7 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
         </div>
       </CollapsibleBox>
 
-      <CollapsibleBox title="Painel do dia">
+      <CollapsibleBox title="Painel do dia" icon={<HomeIcon />}>
         <div className="settings-rows">
           {OPTIONAL_FEATURES.map((f) => (
             <div className="settings-toggle-row" key={f.key}>

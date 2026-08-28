@@ -145,6 +145,7 @@ export type Database = {
           meal_time: string
           message: string
           name: string
+          notify_whatsapp: boolean
           user_id: string
         }
         Insert: {
@@ -154,6 +155,7 @@ export type Database = {
           meal_time: string
           message?: string
           name: string
+          notify_whatsapp?: boolean
           user_id: string
         }
         Update: {
@@ -163,6 +165,7 @@ export type Database = {
           meal_time?: string
           message?: string
           name?: string
+          notify_whatsapp?: boolean
           user_id?: string
         }
         Relationships: []
@@ -475,6 +478,7 @@ export type Database = {
           birth_date: string | null
           daily_budget_hours: number
           diet_plan: string | null
+          diet_whatsapp_opt_in: boolean
           feature_flags: Json
           notify_phone: string | null
           preferred_name: string | null
@@ -489,6 +493,7 @@ export type Database = {
           birth_date?: string | null
           daily_budget_hours?: number
           diet_plan?: string | null
+          diet_whatsapp_opt_in?: boolean
           feature_flags?: Json
           notify_phone?: string | null
           preferred_name?: string | null
@@ -503,6 +508,7 @@ export type Database = {
           birth_date?: string | null
           daily_budget_hours?: number
           diet_plan?: string | null
+          diet_whatsapp_opt_in?: boolean
           feature_flags?: Json
           notify_phone?: string | null
           preferred_name?: string | null

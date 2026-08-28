@@ -145,24 +145,19 @@ export function TimerNudges() {
                 {m.message ? `: ${m.message}` : ""}
               </span>
               <div className="timer-nudge-actions">
-                <button
-                  type="button"
-                  className="btn btn-accent"
-                  onClick={() => board.toggleDietMealChecked(today, m.id)}
-                >
-                  <CheckIcon /> Marquei
-                </button>
-                <button
-                  type="button"
-                  className="icon-btn"
-                  title="Enviar por WhatsApp"
-                  onClick={() => {
-                    const text = m.message.trim() || `${m.name} — hora da refeição!`;
-                    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
-                  }}
-                >
-                  <SendIcon />
-                </button>
+                {board.state.settings.dietWhatsappOptIn && m.notifyWhatsapp && (
+                  <button
+                    type="button"
+                    className="icon-btn"
+                    title="Enviar por WhatsApp"
+                    onClick={() => {
+                      const text = m.message.trim() || `${m.name} — hora da refeição!`;
+                      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+                    }}
+                  >
+                    <SendIcon />
+                  </button>
+                )}
                 <button
                   type="button"
                   className="icon-btn timer-nudge-close"

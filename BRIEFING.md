@@ -137,6 +137,43 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Ajustes finos na Dieta + ícones em Configurações (28/08)
+
+- **Checklist de refeições mais compacto**: o Leandro pediu pra tirar
+  os chips de "não pulei" de baixo, num bloco próprio, e colocar do
+  lado do campo de % de fidelidade. Agora é uma linha só, flex-wrap:
+  `[% input] [%] [💬] [0/4] [chip][chip][chip][chip]`.
+- **Removido o botão "Marquei" do aviso "Foco na dieta"**: marcar a
+  refeição como feita passa a acontecer só pelos chips do painel do
+  dia — o aviso flutuante (`TimerNudges.tsx`) não precisa mais
+  duplicar essa ação.
+- **WhatsApp vira opt-in de verdade, não botão solto**: antes, o aviso
+  de cada refeição sempre tinha um ícone de "enviar por WhatsApp"
+  manual. O Leandro corrigiu o fluxo: agora tem uma pergunta explícita
+  na tela de Dieta — "Quer ser avisado no seu WhatsApp sobre sua
+  dieta?" (`Settings.dietWhatsappOptIn`). Se sim, aparece o campo pra
+  confirmar o número (reaproveita `Settings.notifyPhone`, já existia
+  pro Perfil) — e só depois disso cada refeição ganha um ícone de
+  WhatsApp clicável pra marcar quais devem avisar por lá
+  (`DietMeal.notifyWhatsapp`). O aviso "Foco na dieta" só mostra o
+  botão de enviar quando as duas condições batem (opt-in geral E
+  aquela refeição marcada).
+  - **Limitação que continua valendo**: isso ainda é envio manual via
+    link `wa.me` (o Leandro precisa clicar) — não é notificação
+    automática de verdade. Não dá pra abrir o WhatsApp sozinho quando
+    o app não está aberto/em foco (bloqueio de pop-up do navegador
+    pra chamadas fora de um clique direto, e não existe integração
+    com WhatsApp Business API ainda — esse é o item grande já
+    registrado no backlog). O que mudou aqui foi só a
+    **configuração de quais refeições participam**, não o mecanismo
+    de envio em si.
+- **Ícones nas caixas de Configurações**: as caixas colapsáveis
+  (Tags da tarefa, Status de tarefa, Painel de horas, Painel do dia)
+  ganharam um ícone pequeno ao lado do título, no mesmo espírito visual
+  do menu lateral. Novo `TagIcon` (do pack, `Interface/Tag.svg`);
+  Status de tarefa reaproveita `FlagIcon`; Painel de horas reaproveita
+  `ClockIcon`; Painel do dia reaproveita `HomeIcon`.
+
 ## Dieta ganha item próprio no menu lateral (28/08)
 
 - O Leandro pediu pra Dieta ter entrada própria no menu lateral, igual

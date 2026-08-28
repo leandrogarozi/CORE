@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
-import { TrashIcon } from "./icons";
+import { SendIcon, TrashIcon } from "./icons";
 import { ToggleSwitch } from "./ToggleSwitch";
 import type { DietMeal } from "@/lib/types";
 import type { UseBoard } from "@/lib/board/use-board";
 
-function DietMealRow({ meal, board }: { meal: DietMeal; board: UseBoard }) {
+function DietMealRow({ meal, board, whatsappOptIn }: { meal: DietMeal; board: UseBoard; whatsappOptIn: boolean }) {
   const [nameDraft, setNameDraft] = useState<string | null>(null);
   const [messageDraft, setMessageDraft] = useState<string | null>(null);
 
@@ -45,6 +45,16 @@ function DietMealRow({ meal, board }: { meal: DietMeal; board: UseBoard }) {
           onChange={(v) => board.updateDietMeal(meal.id, { active: v })}
           ariaLabel="Refeição ativa"
         />
+        {whatsappOptIn && (
+          <button
+            type="button"
+            className={"icon-btn diet-meal-whatsapp" + (meal.notifyWhatsapp ? " active" : "")}
+            title={meal.notifyWhatsapp ? "Avisar essa refeição por WhatsApp — clique pra tirar" : "Avisar essa refeição por WhatsApp"}
+            onClick={() => board.updateDietMeal(meal.id, { notifyWhatsapp: !meal.notifyWhatsapp })}
+          >
+            <SendIcon />
+          </button>
+        )}
         <button
           type="button"
           className="icon-btn danger-hover"
@@ -71,8 +81,10 @@ export function DietView({ onBack }: { onBack: () => void }) {
   const [dietPlanInput, setDietPlanInput] = useState<string | null>(null);
   const [newMealName, setNewMealName] = useState("");
   const [newMealTime, setNewMealTime] = useState("");
+  const [phoneInput, setPhoneInput] = useState<string | null>(null);
 
   const dietMeals = [...board.state.dietMeals].sort((a, b) => a.time.localeCompare(b.time));
+  const whatsappOptIn = board.state.settings.dietWhatsappOptIn;
 
   function addMeal() {
     const name = newMealName.trim();
@@ -110,11 +122,41 @@ export function DietView({ onBack }: { onBack: () => void }) {
         </div>
 
         <div className="diet-page-card">
+          <div className="diet-whatsapp-toggle-row">
+            <span className="settings-label">Quer ser avisado no seu WhatsApp sobre sua dieta?</span>
+            <ToggleSwitch
+              checked={whatsappOptIn}
+              onChange={(v) => board.updateSettings({ dietWhatsappOptIn: v })}
+              ariaLabel="Avisos de dieta por WhatsApp"
+            />
+          </div>
+          {whatsappOptIn && (
+            <div className="diet-whatsapp-phone-row">
+              <span className="settings-toggle-hint">Confirme o número (com DDD) que vai receber os avisos:</span>
+              <input
+                type="text"
+                placeholder="ex.: 11 91234-5678"
+                value={phoneInput ?? board.state.settings.notifyPhone ?? ""}
+                onChange={(e) => setPhoneInput(e.target.value)}
+                onBlur={() => {
+                  if (phoneInput === null) return;
+                  board.updateSettings({ notifyPhone: phoneInput.trim() || null });
+                  setPhoneInput(null);
+                }}
+              />
+              <span className="settings-toggle-hint">
+                Depois, marque o ícone de WhatsApp em cada refeição que quiser avisar por lá.
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="diet-page-card">
           <span className="settings-label">Lembretes de refeição</span>
           <div className="diet-meals-list">
             {dietMeals.length === 0 && <div className="hp-empty">Nenhuma refeição configurada ainda.</div>}
             {dietMeals.map((m) => (
-              <DietMealRow key={m.id} meal={m} board={board} />
+              <DietMealRow key={m.id} meal={m} board={board} whatsappOptIn={whatsappOptIn} />
             ))}
           </div>
           <div className="diet-meal-add">

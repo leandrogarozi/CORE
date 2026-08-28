@@ -86,6 +86,7 @@ const EMPTY_STATE: BoardState = {
     notifyPhone: null,
     timezone: null,
     dietPlan: null,
+    dietWhatsappOptIn: false,
   },
   activeTimer: null,
   dailyLogs: {},
@@ -1306,6 +1307,7 @@ export function useBoard(userId: string | null) {
           notify_phone: merged.notifyPhone,
           timezone: merged.timezone,
           diet_plan: merged.dietPlan,
+          diet_whatsapp_opt_in: merged.dietWhatsappOptIn,
         })
         .then(({ error }) => {
           if (error) console.error("updateSettings", error);
@@ -1384,7 +1386,7 @@ export function useBoard(userId: string | null) {
   const addDietMeal = useCallback(
     (name: string, time: string) => {
       if (!userId || !name.trim()) return;
-      const m: DietMeal = { id: uid(), name: name.trim(), time, message: "", active: true };
+      const m: DietMeal = { id: uid(), name: name.trim(), time, message: "", active: true, notifyWhatsapp: false };
       apply((s) => ({ ...s, dietMeals: [...s.dietMeals, m].sort((a, b) => a.time.localeCompare(b.time)) }));
       supabase.from("diet_meals").insert(dietMealToInsertRow(m, userId)).then(({ error }) => {
         if (error) console.error("addDietMeal", error);
@@ -1394,7 +1396,7 @@ export function useBoard(userId: string | null) {
   );
 
   const updateDietMeal = useCallback(
-    (id: string, patch: Partial<Pick<DietMeal, "name" | "time" | "message" | "active">>) => {
+    (id: string, patch: Partial<Pick<DietMeal, "name" | "time" | "message" | "active" | "notifyWhatsapp">>) => {
       apply((s) => ({
         ...s,
         dietMeals: s.dietMeals

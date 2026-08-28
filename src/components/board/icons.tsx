@@ -341,6 +341,27 @@ export function PillIcon() {
   );
 }
 
+export function TagIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none">
+      <path
+        d="M4.75 7.65L4.42 11.29C4.37 11.83 4.34 12.1 4.39 12.36C4.43 12.59 4.51 12.81 4.62 13.01C4.76 13.24 4.95 13.44 5.34 13.82L10.51 19C11.3 19.78 11.69 20.18 12.15 20.33C12.55 20.46 12.98 20.46 13.38 20.33C13.84 20.18 14.24 19.78 15.03 18.99L18.99 15.03C19.78 14.24 20.18 13.84 20.33 13.39C20.46 12.98 20.46 12.55 20.32 12.15C20.18 11.69 19.78 11.3 18.99 10.5L13.83 5.34C13.44 4.95 13.24 4.76 13.01 4.63C12.81 4.51 12.59 4.43 12.36 4.39C12.1 4.34 11.82 4.37 11.27 4.42L7.64 4.75C6.7 4.83 6.23 4.88 5.86 5.08C5.53 5.26 5.26 5.53 5.08 5.86C4.88 6.23 4.83 6.7 4.75 7.63V7.65Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9.71 9.71C10.1 9.32 10.1 8.69 9.71 8.3C9.32 7.91 8.69 7.91 8.3 8.3C7.91 8.69 7.91 9.32 8.3 9.71C8.69 10.1 9.32 10.1 9.71 9.71Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function MealIcon() {
   return (
     <svg viewBox="0 0 24 24" width="14" height="14" fill="none">

@@ -233,6 +233,7 @@ export function rowToSettings(row: SettingsRow | null): Settings {
     notifyPhone: row?.notify_phone ?? null,
     timezone: row?.timezone ?? null,
     dietPlan: row?.diet_plan ?? null,
+    dietWhatsappOptIn: row?.diet_whatsapp_opt_in ?? false,
   };
 }
 
@@ -256,6 +257,7 @@ export function rowToDietMeal(row: DietMealRow): DietMeal {
     time: row.meal_time,
     message: row.message,
     active: row.active,
+    notifyWhatsapp: row.notify_whatsapp,
   };
 }
 
@@ -267,6 +269,7 @@ export function dietMealToInsertRow(m: DietMeal, userId: string): TablesInsert<"
     meal_time: m.time,
     message: m.message,
     active: m.active,
+    notify_whatsapp: m.notifyWhatsapp,
   };
 }
 
@@ -276,6 +279,7 @@ export function dietMealToUpdateRow(m: Partial<DietMeal>): TablesUpdate<"diet_me
   if (m.time !== undefined) row.meal_time = m.time;
   if (m.message !== undefined) row.message = m.message;
   if (m.active !== undefined) row.active = m.active;
+  if (m.notifyWhatsapp !== undefined) row.notify_whatsapp = m.notifyWhatsapp;
   return row;
 }
 

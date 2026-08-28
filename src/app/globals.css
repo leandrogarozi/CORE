@@ -286,6 +286,15 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   flex:1; background:var(--surface); border:1px solid var(--border-strong); border-radius:7px;
   padding:6px 8px; font-size:13px; color:var(--text);
 }
+.diet-whatsapp-toggle-row{ display:flex; align-items:center; justify-content:space-between; gap:14px; }
+.diet-whatsapp-phone-row{ display:flex; flex-direction:column; gap:6px; margin-top:12px; }
+.diet-whatsapp-phone-row input{
+  background:var(--bg); border:1px solid var(--border-strong); border-radius:7px;
+  padding:6px 8px; font-size:13px; color:var(--text);
+}
+.diet-meal-whatsapp{ color:var(--text-faint); }
+.diet-meal-whatsapp.active{ color:var(--success); }
+.diet-meal-whatsapp svg{ width:13px; height:13px; }
 .profile-avatar-row{ display:flex; align-items:center; gap:14px; }
 .profile-avatar-btn{
   position:relative; flex:none; width:72px; height:72px; border-radius:50%; overflow:hidden;
@@ -405,18 +414,18 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .dl-of{ font-weight:500; color:var(--text-faint); }
 .dl-water-actions{ display:flex; gap:6px; margin-top:8px; }
 .dl-water-btn{ font-size:11.5px; padding:4px 9px; }
-.dl-diet-input{ display:flex; align-items:center; gap:4px; }
+.dl-diet-input{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
 .dl-pct-input{
   width:64px; background:var(--surface); border:1px solid var(--border-strong); border-radius:7px;
   padding:6px 8px; font-size:13px; color:var(--text);
 }
 .dl-pct-sign{ font-size:12.5px; color:var(--text-faint); }
-.dl-diet-meals{ margin-top:10px; }
-.dl-diet-meals-count{ font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:6px; }
-.dl-diet-meals-chips{ display:flex; flex-wrap:wrap; gap:6px; }
+.dl-diet-meals-count{
+  font-size:10.5px; color:var(--text-faint); flex:none; margin-left:6px; padding-right:8px; border-right:1px solid var(--border);
+}
 .dl-diet-meal-chip{
-  font-size:12px; padding:4px 9px; border-radius:20px; border:1px solid var(--border-strong);
-  color:var(--text-muted); background:var(--surface);
+  font-size:11.5px; padding:3px 8px; border-radius:20px; border:1px solid var(--border-strong);
+  color:var(--text-muted); background:var(--surface); flex:none;
 }
 .dl-diet-meal-chip:hover{ border-color:var(--success); }
 .dl-diet-meal-chip.checked{ border-color:var(--success); color:var(--success); background:color-mix(in srgb, var(--success) 10%, var(--surface)); }
@@ -468,7 +477,12 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   background:var(--surface); border:1px solid var(--border); border-radius:12px;
   box-shadow:var(--shadow); padding:12px 14px; margin-bottom:14px;
 }
-.dash-box-title{ font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-faint); margin-bottom:4px; }
+.dash-box-title{
+  font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-faint); margin-bottom:4px;
+  display:flex; align-items:center; gap:6px;
+}
+.dash-box-icon{ display:flex; flex:none; color:var(--text-faint); }
+.dash-box-icon svg{ width:12px; height:12px; }
 .dash-box-toggle{
   display:flex; align-items:center; justify-content:space-between; width:100%;
   background:none; border:none; padding:0; margin-bottom:0; cursor:pointer; text-align:left; color:inherit; font:inherit;

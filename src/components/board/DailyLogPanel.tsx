@@ -121,13 +121,11 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
                 ariaLabel="Observação da dieta"
                 onSave={(text) => board.updateDailyLog(selectedDate, { dietNote: text || null })}
               />
-            </div>
-            {activeMeals.length > 0 && (
-              <div className="dl-diet-meals">
-                <span className="dl-diet-meals-count">
-                  {dietMealsChecked.length}/{activeMeals.length} refeições feitas
-                </span>
-                <div className="dl-diet-meals-chips">
+              {activeMeals.length > 0 && (
+                <>
+                  <span className="dl-diet-meals-count">
+                    {dietMealsChecked.length}/{activeMeals.length}
+                  </span>
                   {activeMeals.map((m) => {
                     const checked = dietMealsChecked.includes(m.id);
                     return (
@@ -141,9 +139,9 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
                       </button>
                     );
                   })}
-                </div>
-              </div>
-            )}
+                </>
+              )}
+            </div>
           </div>
         )}
 

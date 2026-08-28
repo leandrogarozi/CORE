@@ -98,6 +98,7 @@ export interface Settings {
   notifyPhone: string | null; // WhatsApp/telefone — pra onde mandar notificações (dependência futura)
   timezone: string | null; // IANA tz, ex. "America/Sao_Paulo"; null = detectar do navegador
   dietPlan: string | null; // cadastro livre da dieta (plano, receitas, divisão de macros...)
+  dietWhatsappOptIn: boolean; // usuário confirmou que quer avisos de refeição também pelo WhatsApp (notifyPhone)
 }
 
 // Funcionalidades opcionais que podem ser ligadas/desligadas em Configurações.
@@ -223,6 +224,7 @@ export interface DietMeal {
   time: string; // "HH:MM"
   message: string; // texto livre do lembrete — o usuário escolhe se é só o horário ou o cardápio/calorias completos
   active: boolean;
+  notifyWhatsapp: boolean; // avisar essa refeição também por WhatsApp — só relevante se Settings.dietWhatsappOptIn
 }
 
 export interface BoardState {
