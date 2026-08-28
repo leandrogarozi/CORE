@@ -15,11 +15,17 @@ function durationLabel(min: number) {
   return rest ? `${h}h${rest}` : `${h}h`;
 }
 
+function minutesToHHMM(min: number): string {
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
 export function MeetingButton() {
   const { board } = useBoardCtx();
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const [title, setTitle] = useState("");
-  const [duration, setDuration] = useState(30);
+  const [duration, setDuration] = useState<number | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
   const pos = useClampedPopoverPos(anchorRect, popRef);
@@ -42,12 +48,12 @@ export function MeetingButton() {
       return;
     }
     setTitle("");
-    setDuration(30);
+    setDuration(null);
     if (btnRef.current) setAnchorRect(btnRef.current.getBoundingClientRect());
   }
 
   function start() {
-    board.startMeeting(title.trim() || "Reunião", duration);
+    board.startMeeting(title.trim() || "Reunião", duration ?? 30);
     setAnchorRect(null);
   }
 
@@ -74,15 +80,18 @@ export function MeetingButton() {
                   </button>
                 ))}
                 <input
-                  type="number"
-                  min={1}
-                  step={5}
+                  type="time"
+                  step={60}
                   className="meeting-duration-input"
-                  placeholder="outro (min)"
-                  value={DURATIONS.includes(duration) ? "" : duration}
+                  value={duration != null ? minutesToHHMM(duration) : ""}
                   onChange={(e) => {
-                    const v = e.target.value ? parseInt(e.target.value, 10) : 0;
-                    if (v > 0) setDuration(v);
+                    const v = e.target.value;
+                    if (!v) {
+                      setDuration(null);
+                      return;
+                    }
+                    const [h, m] = v.split(":").map(Number);
+                    setDuration(h * 60 + m);
                   }}
                 />
               </div>

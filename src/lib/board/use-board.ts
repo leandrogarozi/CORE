@@ -60,6 +60,7 @@ import { DEFAULT_TAG_COLORS } from "@/lib/types";
 
 const EMPTY_STATE: BoardState = {
   tasks: [],
+  trashedTasks: [],
   habits: [],
   fixedBlocks: [],
   taskSeries: [],
@@ -87,6 +88,7 @@ const EMPTY_STATE: BoardState = {
 export interface TaskEditFields {
   title: string;
   category: Category;
+  category2: Category | null;
   priority: Priority;
   date: string | null;
   time: string;
@@ -121,6 +123,7 @@ export function useBoard(userId: string | null) {
     setLoading(true);
     const [
       tasksRes,
+      trashedTasksRes,
       habitsRes,
       blocksRes,
       habitLogsRes,
@@ -137,7 +140,8 @@ export function useBoard(userId: string | null) {
       timerRes,
       dailyLogsRes,
     ] = await Promise.all([
-      supabase.from("tasks").select("*").order("sort_order"),
+      supabase.from("tasks").select("*").is("deleted_at", null).order("sort_order"),
+      supabase.from("tasks").select("*").not("deleted_at", "is", null),
       supabase.from("habits").select("*").order("sort_order"),
       supabase.from("fixed_blocks").select("*").order("sort_order"),
       supabase.from("habit_logs").select("*"),
@@ -162,6 +166,7 @@ export function useBoard(userId: string | null) {
 
     const next: BoardState = {
       tasks: (tasksRes.data ?? []).map(rowToTask),
+      trashedTasks: (trashedTasksRes.data ?? []).map(rowToTask),
       habits: buildRecurring(habitsRes.data ?? [], habitLogsRes.data ?? [], "habit_id"),
       fixedBlocks: buildRecurring(blocksRes.data ?? [], blockLogsRes.data ?? [], "block_id", blockLogEntriesRes.data ?? []),
       taskSeries: (seriesRes.data ?? []).map(rowToSeries),
@@ -234,6 +239,7 @@ export function useBoard(userId: string | null) {
         id: uid(),
         title: title.trim(),
         category: "trabalho",
+        category2: null,
         priority: "media",
         date: bucketKey || null,
         time: "",
@@ -246,6 +252,7 @@ export function useBoard(userId: string | null) {
         trackedSeconds: 0,
         quick: 0,
         statusId: defaultStatusId(),
+        deletedAt: null,
       };
       apply((s) => ({ ...s, tasks: [...s.tasks, t] }));
       supabase.from("tasks").insert(taskToInsertRow(t, userId)).then(({ error }) => {
@@ -325,6 +332,7 @@ export function useBoard(userId: string | null) {
         trackedSeconds: 0,
         seriesId: null,
         statusId: defaultStatusId(),
+        deletedAt: null,
       };
       apply((s) => ({ ...s, tasks: [...bumped, clone] }));
       bumped
@@ -349,9 +357,15 @@ export function useBoard(userId: string | null) {
         supabase.from("active_timer").delete().eq("user_id", userId!).then(() => {});
       }
 
+      const nowIso = new Date().toISOString();
+
       if (!t.seriesId || scope === "esta" || !scope) {
-        apply((s) => ({ ...s, tasks: s.tasks.filter((x) => x.id !== id) }));
-        supabase.from("tasks").delete().eq("id", id).then(({ error }) => {
+        apply((s) => ({
+          ...s,
+          tasks: s.tasks.filter((x) => x.id !== id),
+          trashedTasks: [...s.trashedTasks, { ...t, deletedAt: nowIso }],
+        }));
+        supabase.from("tasks").update({ deleted_at: nowIso }).eq("id", id).then(({ error }) => {
           if (error) console.error("deleteTask", error);
         });
         if (t.seriesId) {
@@ -376,18 +390,22 @@ export function useBoard(userId: string | null) {
 
       const today = todayISO();
       const seriesId = t.seriesId;
-      const toDeleteIds = stateRef.current.tasks
+      const toDelete = stateRef.current.tasks
         .filter((x) => x.seriesId === seriesId && !x.done)
         .filter((x) => {
           if (x.id === id) return true;
           if (scope === "todas") return true;
           if (scope === "proximas" && x.date && x.date > today) return true;
           return false;
-        })
-        .map((x) => x.id);
+        });
+      const toDeleteIds = toDelete.map((x) => x.id);
 
-      apply((s) => ({ ...s, tasks: s.tasks.filter((x) => !toDeleteIds.includes(x.id)) }));
-      supabase.from("tasks").delete().in("id", toDeleteIds).then(({ error }) => {
+      apply((s) => ({
+        ...s,
+        tasks: s.tasks.filter((x) => !toDeleteIds.includes(x.id)),
+        trashedTasks: [...s.trashedTasks, ...toDelete.map((x) => ({ ...x, deletedAt: nowIso }))],
+      }));
+      supabase.from("tasks").update({ deleted_at: nowIso }).in("id", toDeleteIds).then(({ error }) => {
         if (error) console.error("deleteTask bulk", error);
       });
       apply((s) => ({
@@ -399,6 +417,32 @@ export function useBoard(userId: string | null) {
       });
     },
     [apply, supabase, userId]
+  );
+
+  const restoreTask = useCallback(
+    (id: string) => {
+      const t = stateRef.current.trashedTasks.find((x) => x.id === id);
+      if (!t) return;
+      apply((s) => ({
+        ...s,
+        trashedTasks: s.trashedTasks.filter((x) => x.id !== id),
+        tasks: [...s.tasks, { ...t, deletedAt: null }],
+      }));
+      supabase.from("tasks").update({ deleted_at: null }).eq("id", id).then(({ error }) => {
+        if (error) console.error("restoreTask", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  const purgeTask = useCallback(
+    (id: string) => {
+      apply((s) => ({ ...s, trashedTasks: s.trashedTasks.filter((x) => x.id !== id) }));
+      supabase.from("tasks").delete().eq("id", id).then(({ error }) => {
+        if (error) console.error("purgeTask", error);
+      });
+    },
+    [apply, supabase]
   );
 
   const saveTaskEdit = useCallback(
@@ -415,6 +459,7 @@ export function useBoard(userId: string | null) {
           ...t,
           title: vals.title,
           category: vals.category,
+          category2: vals.category2,
           priority: vals.priority,
           date: vals.date,
           time: vals.time,
@@ -428,6 +473,7 @@ export function useBoard(userId: string | null) {
             id: uid(),
             title: vals.title,
             category: vals.category,
+            category2: vals.category2,
             priority: vals.priority,
             note: vals.note,
             time: vals.time,
@@ -462,6 +508,7 @@ export function useBoard(userId: string | null) {
         ...t,
         title: vals.title,
         category: vals.category,
+        category2: vals.category2,
         priority: vals.priority,
         date: vals.date,
         time: vals.time,
@@ -484,6 +531,7 @@ export function useBoard(userId: string | null) {
       const seriesPatch = {
         title: vals.title,
         category: vals.category,
+        category2: vals.category2,
         priority: vals.priority,
         note: vals.note,
         time: vals.time,
@@ -505,13 +553,28 @@ export function useBoard(userId: string | null) {
           if (x.seriesId !== seriesId || x.id === id || x.done) return x;
           if (scope === "proximas" && !(x.date && x.date > today)) return x;
           siblingIds.push(x.id);
-          return { ...x, title: vals.title, category: vals.category, priority: vals.priority, time: vals.time, note: vals.note };
+          return {
+            ...x,
+            title: vals.title,
+            category: vals.category,
+            category2: vals.category2,
+            priority: vals.priority,
+            time: vals.time,
+            note: vals.note,
+          };
         }),
       }));
       siblingIds.forEach((sid) => {
         supabase
           .from("tasks")
-          .update({ title: vals.title, category: vals.category, priority: vals.priority, time: vals.time || null, note: vals.note })
+          .update({
+            title: vals.title,
+            category: vals.category,
+            category2: vals.category2,
+            priority: vals.priority,
+            time: vals.time || null,
+            note: vals.note,
+          })
           .eq("id", sid)
           .then(({ error }) => {
             if (error) console.error("saveTaskEdit sibling", error);
@@ -536,6 +599,7 @@ export function useBoard(userId: string | null) {
             id: uid(),
             title: series.title,
             category: series.category,
+            category2: series.category2,
             priority: series.priority,
             date: iso,
             time: series.time || "",
@@ -548,6 +612,7 @@ export function useBoard(userId: string | null) {
             trackedSeconds: 0,
             quick: 0,
             statusId: defaultStatusId(),
+            deletedAt: null,
           });
         });
       });
@@ -1152,7 +1217,8 @@ export function useBoard(userId: string | null) {
       const t: Task = {
         id: uid(),
         title: title.trim(),
-        category: "reuniao",
+        category: "trabalho",
+        category2: "reuniao",
         priority: "media",
         date: today,
         time,
@@ -1165,6 +1231,7 @@ export function useBoard(userId: string | null) {
         trackedSeconds: 0,
         quick: 0,
         statusId: defaultStatusId(),
+        deletedAt: null,
       };
       const at: ActiveTimer = { kind: "task", itemId: t.id, logDate: today, startedAt: Date.now() };
       apply((s) => ({ ...s, tasks: [...s.tasks, t], activeTimer: at }));
@@ -1302,6 +1369,8 @@ export function useBoard(userId: string | null) {
     reorderBucket,
     duplicateTask,
     deleteTask,
+    restoreTask,
+    purgeTask,
     saveTaskEdit,
     ensureOccurrencesInView,
     addTaskStatus,

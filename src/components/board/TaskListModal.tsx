@@ -24,6 +24,7 @@ export function TaskListModal({ title, tasks, onClose }: { title: string; tasks:
               <span className="task-list-modal-date mono">{fmtShortDate(t.date)}</span>
               <span className="task-list-modal-title">{t.title}</span>
               <CategoryChip category={t.category} />
+              {t.category2 && <CategoryChip category={t.category2} />}
             </div>
           ))}
         </div>

@@ -478,6 +478,7 @@ export type Database = {
       task_series: {
         Row: {
           category: string
+          category2: string | null
           created_at: string
           id: string
           note: string | null
@@ -492,6 +493,7 @@ export type Database = {
         }
         Insert: {
           category: string
+          category2?: string | null
           created_at?: string
           id?: string
           note?: string | null
@@ -506,6 +508,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          category2?: string | null
           created_at?: string
           id?: string
           note?: string | null
@@ -553,8 +556,10 @@ export type Database = {
       tasks: {
         Row: {
           category: string
+          category2: string | null
           created_at: string
           date: string | null
+          deleted_at: string | null
           done: boolean
           duration_minutes: number | null
           expected_duration_min: number | null
@@ -573,8 +578,10 @@ export type Database = {
         }
         Insert: {
           category: string
+          category2?: string | null
           created_at?: string
           date?: string | null
+          deleted_at?: string | null
           done?: boolean
           duration_minutes?: number | null
           expected_duration_min?: number | null
@@ -593,8 +600,10 @@ export type Database = {
         }
         Update: {
           category?: string
+          category2?: string | null
           created_at?: string
           date?: string | null
+          deleted_at?: string | null
           done?: boolean
           duration_minutes?: number | null
           expected_duration_min?: number | null

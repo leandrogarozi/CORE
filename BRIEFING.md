@@ -179,6 +179,44 @@ por dificuldade:
   5min automaticamente, sem precisar que o Leandro cadastre a tarefa
   manualmente antes.
 
+## Segunda tag, duração --:--, e Lixeira de verdade (28/08)
+
+- **Segunda tag em vez de categoria "Reunião" sozinha**: o Leandro
+  percebeu que trocar a categoria pra "Reunião" fazia o tempo sumir do
+  relatório de Trabalho (categoria é campo único, mutuamente exclusivo,
+  usado pro "Tempo por categoria" do Dashboard). Pensamos junto e a
+  solução foi: `Task.category2` — uma segunda tag **opcional**, que
+  não mexe no relatório (o gráfico de pizza continua somando só por
+  `category`, então não tem contagem dupla). O botão Reunião agora cria
+  a tarefa com `category: "trabalho"` + `category2: "reuniao"` — os
+  dois chips aparecem juntos na linha. Também dá pra adicionar a
+  segunda tag à mão em qualquer tarefa (editar → "+ segunda tag").
+  Categoria continua sendo a única coisa que entra no relatório —
+  de propósito, pra não "roubar" o Trabalho quando também é reunião.
+  - Novo campo em `TaskSeries.category2` também, pra tarefas recorrentes
+    manterem a segunda tag nas próximas ocorrências.
+- **Duração no estilo "--:--"**: o popover do botão Reunião trocou o
+  campo numérico solto por um `<input type="time">` nativo (mostra
+  "--:--" vazio, dá pra digitar ou usar as setinhas/scroll de cada
+  parte) — interpretado como duração HH:MM em vez de horário do
+  relógio. Os chips (15/30/40min, 1h/1h30/2h) continuam ao lado pra
+  atalho rápido; escolher um chip também preenche o input.
+- **Lixeira de verdade**: excluir uma tarefa agora é "soft delete" —
+  marca `deleted_at` no banco em vez de apagar a linha, e ela sai das
+  telas normais mas não desaparece de vez. Pra recuperar: no campo de
+  busca da topbar, seletor de escopo → **Lixeira** (mostra tudo que
+  foi excluído, com o campo de busca filtrando por título se digitar
+  algo). Cada item tem **Restaurar** (volta pra lista normal) ou o
+  ícone de lixeira pra **excluir de vez** (aí sim é definitivo, com
+  confirmação via `askConfirm`).
+  - `board.state.trashedTasks` é carregado à parte na inicialização
+    (`deleted_at is null` pras tarefas normais, `not null` pra
+    lixeira) — todo o resto do app (dia, semana, dashboard, busca
+    normal) nunca vê tarefa excluída, sem precisar filtrar em cada
+    tela.
+  - **Só em Tarefas por enquanto** — mesma ressalva de antes, dá pra
+    estender Lembretes/Checklists/etc. se precisar.
+
 ## Ajustes no botão Reunião + confirmação de exclusão (28/08)
 
 - **Feedback do Leandro testando o botão Reunião**: gostou, mas pediu

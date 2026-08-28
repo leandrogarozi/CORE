@@ -45,6 +45,7 @@ export function rowToTask(row: TaskRow): Task {
     id: row.id,
     title: row.title,
     category: row.category as Category,
+    category2: row.category2 as Category | null,
     priority: row.priority as Priority,
     date: row.date,
     time: row.time ?? "",
@@ -57,6 +58,7 @@ export function rowToTask(row: TaskRow): Task {
     trackedSeconds: row.tracked_seconds,
     quick: row.quick,
     statusId: row.status_id,
+    deletedAt: row.deleted_at,
   };
 }
 
@@ -64,6 +66,7 @@ export function taskToRow(t: Partial<Task> & { id: string }, userId: string): Ta
   const row: TablesUpdate<"tasks"> = { user_id: userId };
   if (t.title !== undefined) row.title = t.title;
   if (t.category !== undefined) row.category = t.category;
+  if (t.category2 !== undefined) row.category2 = t.category2;
   if (t.priority !== undefined) row.priority = t.priority;
   if (t.date !== undefined) row.date = t.date;
   if (t.time !== undefined) row.time = t.time || null;
@@ -76,6 +79,7 @@ export function taskToRow(t: Partial<Task> & { id: string }, userId: string): Ta
   if (t.trackedSeconds !== undefined) row.tracked_seconds = t.trackedSeconds;
   if (t.quick !== undefined) row.quick = t.quick;
   if (t.statusId !== undefined) row.status_id = t.statusId;
+  if (t.deletedAt !== undefined) row.deleted_at = t.deletedAt;
   return row;
 }
 
@@ -85,6 +89,7 @@ export function taskToInsertRow(t: Task, userId: string): TablesInsert<"tasks"> 
     user_id: userId,
     title: t.title,
     category: t.category,
+    category2: t.category2,
     priority: t.priority,
     date: t.date,
     time: t.time || null,
@@ -97,6 +102,7 @@ export function taskToInsertRow(t: Task, userId: string): TablesInsert<"tasks"> 
     tracked_seconds: t.trackedSeconds,
     quick: t.quick,
     status_id: t.statusId,
+    deleted_at: t.deletedAt,
   };
 }
 
@@ -135,6 +141,7 @@ export function rowToSeries(row: SeriesRow): TaskSeries {
     id: row.id,
     title: row.title,
     category: row.category as Category,
+    category2: row.category2 as Category | null,
     priority: row.priority as Priority,
     note: row.note ?? "",
     time: row.time ?? "",
@@ -150,6 +157,7 @@ export function seriesToInsertRow(s: TaskSeries, userId: string): TablesInsert<"
     user_id: userId,
     title: s.title,
     category: s.category,
+    category2: s.category2,
     priority: s.priority,
     note: s.note,
     time: s.time || null,
@@ -163,6 +171,7 @@ export function seriesToUpdateRow(s: Partial<TaskSeries>): TablesUpdate<"task_se
   const row: TablesUpdate<"task_series"> = {};
   if (s.title !== undefined) row.title = s.title;
   if (s.category !== undefined) row.category = s.category;
+  if (s.category2 !== undefined) row.category2 = s.category2;
   if (s.priority !== undefined) row.priority = s.priority;
   if (s.note !== undefined) row.note = s.note;
   if (s.time !== undefined) row.time = s.time || null;

@@ -157,6 +157,7 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
           </span>
         )}
         <CategoryChip category={t.category} />
+        {t.category2 && <CategoryChip category={t.category2} />}
       </div>
       <button
         type="button"
@@ -194,6 +195,7 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
   const [vals, setVals] = useState<TaskEditFields>({
     title: t.title,
     category: t.category,
+    category2: t.category2,
     priority: t.priority,
     date: t.date,
     time: t.time,
@@ -225,8 +227,25 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
           onChange={(e) => setVals((v) => ({ ...v, title: e.target.value }))}
           onKeyDown={(e) => e.key === "Enter" && save()}
         />
-        <select value={vals.category} onChange={(e) => setVals((v) => ({ ...v, category: e.target.value as Category }))}>
+        <select
+          value={vals.category}
+          onChange={(e) => {
+            const category = e.target.value as Category;
+            setVals((v) => ({ ...v, category, category2: v.category2 === category ? null : v.category2 }));
+          }}
+        >
           {CATEGORIES.map((c) => (
+            <option key={c} value={c}>
+              {CATEGORY_LABEL[c]}
+            </option>
+          ))}
+        </select>
+        <select
+          value={vals.category2 ?? ""}
+          onChange={(e) => setVals((v) => ({ ...v, category2: (e.target.value || null) as Category | null }))}
+        >
+          <option value="">+ segunda tag</option>
+          {CATEGORIES.filter((c) => c !== vals.category).map((c) => (
             <option key={c} value={c}>
               {CATEGORY_LABEL[c]}
             </option>

@@ -65,7 +65,7 @@ function BoardShell() {
   function handleSearchNavigate(result: SearchResult) {
     if (result.kind === "task") goToTask(result.task);
     else if (result.kind === "reminder") setViewMode("reminders");
-    else setViewMode("books");
+    else if (result.kind === "book") setViewMode("books");
   }
 
   const weekDatesISO = useMemo(() => {

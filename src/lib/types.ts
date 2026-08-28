@@ -28,6 +28,7 @@ export interface Task {
   id: string;
   title: string;
   category: Category;
+  category2: Category | null; // segunda tag opcional (ex.: Trabalho + Reunião), não conta pro relatório em dobro sozinha
   priority: Priority;
   date: string | null; // ISO date, null = backlog
   time: string; // "HH:MM" or ""
@@ -40,6 +41,7 @@ export interface Task {
   trackedSeconds: number;
   quick: number; // 0-3
   statusId: string | null;
+  deletedAt: string | null; // ISO datetime — soft delete, tarefa vai pra Lixeira em vez de sumir na hora
 }
 
 export interface TaskStatus {
@@ -54,6 +56,7 @@ export interface TaskSeries {
   id: string;
   title: string;
   category: Category;
+  category2: Category | null;
   priority: Priority;
   note: string;
   time: string;
@@ -213,6 +216,7 @@ export interface Checklist {
 
 export interface BoardState {
   tasks: Task[];
+  trashedTasks: Task[]; // tarefas excluídas (soft delete) — Lixeira
   habits: RecurringItem[];
   fixedBlocks: RecurringItem[];
   taskSeries: TaskSeries[];
