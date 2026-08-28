@@ -338,9 +338,17 @@ de feature flags que já existe pra água/dieta/sono/humor
     explícita do Leandro, até pelo custo envolvido.
 - **Sininho colorido em vez de bolinha (28/08)**: no atalho "Lembretes"
   da home, o aviso de pendência não é mais uma bolinha na frente do
-  texto — agora o próprio ícone de sino muda de cor: amarelo
-  (`--book-yellow`) se tem lembrete pra hoje, vermelho (`--danger`) se
-  tem algo atrasado. Pedido do Leandro, mais direto visualmente.
+  texto — agora o próprio ícone de sino fica dentro de um círculo
+  preenchido: amarelo (`--book-yellow`) se tem lembrete pra hoje,
+  vermelho (`--danger`) se tem algo atrasado (mesma prioridade visual
+  de antes — atrasado "ganha" de pendente hoje). Pedido do Leandro,
+  mais direto visualmente.
+  - **Ajuste (28/08)**: o Leandro pediu além do preenchimento, um
+    número pequeno em cima do sino com a quantidade de lembretes —
+    "como se fosse número de notificações". Badge vermelho no canto
+    (`.reminders-btn-count`), mostra a contagem (atrasados, se houver
+    algum; senão os de hoje), com "9+" acima de 9 pra não estourar o
+    tamanho do badge.
 
 ## Decisões de design (visual)
 

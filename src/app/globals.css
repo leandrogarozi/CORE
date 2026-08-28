@@ -301,9 +301,18 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 }
 .reminders-btn svg{ width:13px; height:13px; }
 .reminders-btn:hover{ color:var(--text); }
-.reminders-btn-bell{ display:flex; flex:none; }
-.reminders-btn-bell.due-today{ color:var(--book-yellow); }
-.reminders-btn-bell.overdue{ color:var(--danger); }
+.reminders-btn-bell{
+  position:relative; display:flex; align-items:center; justify-content:center; flex:none;
+  width:19px; height:19px; border-radius:50%; color:inherit;
+}
+.reminders-btn-bell.due-today{ background:var(--book-yellow); color:#fff; }
+.reminders-btn-bell.overdue{ background:var(--danger); color:#fff; }
+.reminders-btn-count{
+  position:absolute; top:-4px; right:-4px; min-width:13px; height:13px; padding:0 3px;
+  border-radius:999px; background:var(--danger); color:#fff; font-size:8.5px; font-weight:700;
+  display:flex; align-items:center; justify-content:center; line-height:1;
+  border:1.5px solid var(--surface);
+}
 .reminders-popover{
   position:fixed; z-index:50; width:min(340px, 92vw); max-height:75vh; overflow-y:auto;
   background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow);

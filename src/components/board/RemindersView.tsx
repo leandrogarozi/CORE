@@ -214,8 +214,11 @@ export function RemindersButton({ onOpenFull }: { onOpenFull: () => void }) {
   const pending = [...board.state.reminders]
     .filter((r) => !r.done)
     .sort((a, b) => (a.date ?? "9999-99-99").localeCompare(b.date ?? "9999-99-99"));
-  const hasOverdue = pending.some((r) => r.date && r.date < today);
-  const hasDueToday = pending.some((r) => r.date === today);
+  const overdueCount = pending.filter((r) => r.date && r.date < today).length;
+  const dueTodayCount = pending.filter((r) => r.date === today).length;
+  const hasOverdue = overdueCount > 0;
+  const hasDueToday = dueTodayCount > 0;
+  const badgeCount = hasOverdue ? overdueCount : dueTodayCount;
 
   function toggleOpen(e: React.MouseEvent) {
     e.stopPropagation();
@@ -238,6 +241,7 @@ export function RemindersButton({ onOpenFull }: { onOpenFull: () => void }) {
       <button ref={btnRef} type="button" className="reminders-btn" onClick={toggleOpen}>
         <span className={"reminders-btn-bell" + (hasOverdue ? " overdue" : hasDueToday ? " due-today" : "")}>
           <BellIcon />
+          {badgeCount > 0 && <span className="reminders-btn-count">{badgeCount > 9 ? "9+" : badgeCount}</span>}
         </span>
         Lembretes
       </button>
