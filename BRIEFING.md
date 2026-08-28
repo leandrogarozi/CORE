@@ -137,6 +137,21 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Dieta ganha item próprio no menu lateral (28/08)
+
+- O Leandro pediu pra Dieta ter entrada própria no menu lateral, igual
+  Livros/Lembretes/Medicamentos/Checklists, em vez de ficar só dentro
+  de Configurações. Movido: a caixa "Dieta" (plano + refeições) saiu
+  de `SettingsView.tsx` e virou tela própria `DietView.tsx`, com o
+  mesmo padrão de cabeçalho/voltar das outras (RemindersView etc.).
+  Configurações mantém só o toggle liga/desliga do widget de
+  fidelidade no painel do dia (isso é cross-cutting, faz sentido ficar
+  lá — a configuração do conteúdo da dieta em si, não).
+- **Novo ícone `MealIcon`** (garfo + faca) — exceção desenhada à mão,
+  documentada aqui porque o pack de ícones (`design/icon-pack/`) não
+  tem nada de comida/refeição/nutrição em nenhuma categoria (conferido
+  em todas as pastas).
+
 ## Dieta: refeições configuráveis, aviso "Foco na dieta" e check diário (28/08)
 
 - **Motivação (conversa longa com o Leandro)**: ele descreveu a
