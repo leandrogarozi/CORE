@@ -216,6 +216,14 @@ por dificuldade:
     tela.
   - **Só em Tarefas por enquanto** — mesma ressalva de antes, dá pra
     estender Lembretes/Checklists/etc. se precisar.
+  - **Bug corrigido no mesmo dia**: o popover de busca só abria se
+    tivesse texto digitado (`onFocus` só chamava `updatePos()` quando
+    `query.trim()`) — como o seletor de escopo (onde fica "Lixeira")
+    mora dentro desse popover, não tinha como abrir "Lixeira" sem
+    digitar algo antes, ficava inacessível. Corrigido: o popover agora
+    abre em qualquer foco no campo de busca, com o seletor de escopo
+    sempre visível; sem query e fora da Lixeira mostra só "Digite pra
+    buscar...".
 
 ## Ajustes no botão Reunião + confirmação de exclusão (28/08)
 

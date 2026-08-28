@@ -144,16 +144,13 @@ export function TaskSearch({ onNavigate }: { onNavigate: (result: SearchResult) 
           setQuery(e.target.value);
           updatePos();
         }}
-        onFocus={() => {
-          if (query.trim() || scope === "lixeira") updatePos();
-        }}
+        onFocus={updatePos}
         onKeyDown={(e) => {
           if (e.key === "Escape") setAnchorRect(null);
           else if (e.key === "Enter" && limitedResults[0] && limitedResults[0].kind !== "trash") select(limitedResults[0]);
         }}
       />
       {open &&
-        showResults &&
         createPortal(
           <div
             className="search-popover"
@@ -167,7 +164,8 @@ export function TaskSearch({ onNavigate }: { onNavigate: (result: SearchResult) 
                 </option>
               ))}
             </select>
-            {limitedResults.length === 0 && (
+            {!showResults && <div className="search-empty">Digite pra buscar...</div>}
+            {showResults && limitedResults.length === 0 && (
               <div className="search-empty">{scope === "lixeira" ? "Lixeira vazia." : "Nada encontrado."}</div>
             )}
             {limitedResults.map((r) => {
