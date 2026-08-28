@@ -147,6 +147,7 @@ export type Database = {
           name: string
           notify_whatsapp: boolean
           user_id: string
+          week_days: number[] | null
         }
         Insert: {
           active?: boolean
@@ -157,6 +158,7 @@ export type Database = {
           name: string
           notify_whatsapp?: boolean
           user_id: string
+          week_days?: number[] | null
         }
         Update: {
           active?: boolean
@@ -167,6 +169,7 @@ export type Database = {
           name?: string
           notify_whatsapp?: boolean
           user_id?: string
+          week_days?: number[] | null
         }
         Relationships: []
       }

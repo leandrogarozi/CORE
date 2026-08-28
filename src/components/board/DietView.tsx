@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { SendIcon, TrashIcon } from "./icons";
 import { ToggleSwitch } from "./ToggleSwitch";
+import { DAY_NAMES } from "@/lib/date-utils";
 import type { DietMeal } from "@/lib/types";
 import type { UseBoard } from "@/lib/board/use-board";
 
@@ -22,6 +23,12 @@ function DietMealRow({ meal, board, whatsappOptIn }: { meal: DietMeal; board: Us
     if (messageDraft === null) return;
     if (messageDraft !== meal.message) board.updateDietMeal(meal.id, { message: messageDraft });
     setMessageDraft(null);
+  }
+
+  function toggleWeekDay(d: number) {
+    const cur = meal.weekDays ?? [];
+    const next = cur.includes(d) ? cur.filter((x) => x !== d) : [...cur, d].sort((a, b) => a - b);
+    board.updateDietMeal(meal.id, { weekDays: next.length > 0 && next.length < 7 ? next : null });
   }
 
   return (
@@ -72,6 +79,22 @@ function DietMealRow({ meal, board, whatsappOptIn }: { meal: DietMeal; board: Us
         onBlur={commitMessage}
         rows={2}
       />
+      <div className="edit-field">
+        <span className="edit-field-label">Lembrar nesses dias da semana (vazio = todo dia)</span>
+        <div className="weekday-picker">
+          {DAY_NAMES.map((label, d) => (
+            <button
+              key={d}
+              type="button"
+              className={"weekday-btn" + ((meal.weekDays ?? []).includes(d) ? " active" : "")}
+              title={label}
+              onClick={() => toggleWeekDay(d)}
+            >
+              {label[0]}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

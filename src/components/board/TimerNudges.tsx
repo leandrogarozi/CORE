@@ -127,15 +127,22 @@ export function TimerNudges() {
 
   const dietMealsChecked = board.state.dailyLogs[today]?.dietMealsChecked ?? [];
   let nowHM: string | null = null;
+  let nowWeekDay: number | null = null;
   if (nowMs !== null) {
     const now = new Date(nowMs);
     nowHM = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+    nowWeekDay = now.getDay();
   }
   const dietBanners =
     nowHM !== null
       ? board.state.dietMeals
           .filter(
-            (m) => m.active && nowHM! >= m.time && !dietMealsChecked.includes(m.id) && !dismissedDietMeals.has(m.id)
+            (m) =>
+              m.active &&
+              nowHM! >= m.time &&
+              (!m.weekDays || m.weekDays.length === 0 || m.weekDays.includes(nowWeekDay!)) &&
+              !dietMealsChecked.includes(m.id) &&
+              !dismissedDietMeals.has(m.id)
           )
           .map((m) => (
             <div className="timer-nudge" key={`diet-${m.id}`}>

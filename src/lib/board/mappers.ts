@@ -258,6 +258,7 @@ export function rowToDietMeal(row: DietMealRow): DietMeal {
     message: row.message,
     active: row.active,
     notifyWhatsapp: row.notify_whatsapp,
+    weekDays: row.week_days,
   };
 }
 
@@ -270,6 +271,7 @@ export function dietMealToInsertRow(m: DietMeal, userId: string): TablesInsert<"
     message: m.message,
     active: m.active,
     notify_whatsapp: m.notifyWhatsapp,
+    week_days: m.weekDays,
   };
 }
 
@@ -280,6 +282,7 @@ export function dietMealToUpdateRow(m: Partial<DietMeal>): TablesUpdate<"diet_me
   if (m.message !== undefined) row.message = m.message;
   if (m.active !== undefined) row.active = m.active;
   if (m.notifyWhatsapp !== undefined) row.notify_whatsapp = m.notifyWhatsapp;
+  if (m.weekDays !== undefined) row.week_days = m.weekDays;
   return row;
 }
 

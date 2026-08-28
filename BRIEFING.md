@@ -137,6 +137,26 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Dieta: dias da semana nos lembretes de refeição (28/08)
+
+- Pedido do Leandro: **"colocar tbm nos lembretes da dieta os dias
+  para marcar DSTQQSS — as vezes a pessoa nao quer fazer no domingo
+  ou nao ser lembrada no domingo entao é interessante termos essa
+  opção tbm né?"** — mesma ideia já usada em Lembretes e Medicamentos.
+- `DietMeal` ganhou `weekDays: number[] | null` (0=dom..6=sáb; `null`/
+  vazio = todo dia). Nova coluna `week_days` em `diet_meals` (migração
+  `add_week_days_to_diet_meals`).
+- Cada card de refeição em Dieta agora mostra o mesmo seletor
+  `weekday-picker` (D S T Q Q S S) usado em Lembretes/Medicamentos,
+  logo abaixo do campo de mensagem.
+- O aviso flutuante "🎯 Foco na dieta" (`TimerNudges.tsx`) só aparece
+  nos dias marcados pra aquela refeição — não incomoda mais em dias
+  excluídos (ex.: domingo).
+- O checklist "não pulei" do painel do dia (`DailyLogPanel.tsx`) só
+  lista as refeições válidas pro dia selecionado, pelo mesmo motivo —
+  não faz sentido mostrar (e poder marcar) uma refeição que nem devia
+  acontecer naquele dia da semana.
+
 ## Ajustes finos na Dieta + ícones em Configurações (28/08)
 
 - **Checklist de refeições mais compacto**: o Leandro pediu pra tirar

@@ -1386,7 +1386,15 @@ export function useBoard(userId: string | null) {
   const addDietMeal = useCallback(
     (name: string, time: string) => {
       if (!userId || !name.trim()) return;
-      const m: DietMeal = { id: uid(), name: name.trim(), time, message: "", active: true, notifyWhatsapp: false };
+      const m: DietMeal = {
+        id: uid(),
+        name: name.trim(),
+        time,
+        message: "",
+        active: true,
+        notifyWhatsapp: false,
+        weekDays: null,
+      };
       apply((s) => ({ ...s, dietMeals: [...s.dietMeals, m].sort((a, b) => a.time.localeCompare(b.time)) }));
       supabase.from("diet_meals").insert(dietMealToInsertRow(m, userId)).then(({ error }) => {
         if (error) console.error("addDietMeal", error);
@@ -1396,7 +1404,10 @@ export function useBoard(userId: string | null) {
   );
 
   const updateDietMeal = useCallback(
-    (id: string, patch: Partial<Pick<DietMeal, "name" | "time" | "message" | "active" | "notifyWhatsapp">>) => {
+    (
+      id: string,
+      patch: Partial<Pick<DietMeal, "name" | "time" | "message" | "active" | "notifyWhatsapp" | "weekDays">>
+    ) => {
       apply((s) => ({
         ...s,
         dietMeals: s.dietMeals

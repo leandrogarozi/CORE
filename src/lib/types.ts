@@ -225,6 +225,7 @@ export interface DietMeal {
   message: string; // texto livre do lembrete — o usuário escolhe se é só o horário ou o cardápio/calorias completos
   active: boolean;
   notifyWhatsapp: boolean; // avisar essa refeição também por WhatsApp — só relevante se Settings.dietWhatsappOptIn
+  weekDays: number[] | null; // 0=dom..6=sáb; null/vazio = todo dia, senão só nesses dias da semana
 }
 
 export interface BoardState {

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
 import { BellIcon } from "./icons";
-import { todayISO } from "@/lib/date-utils";
+import { dateFromISO, todayISO } from "@/lib/date-utils";
 import { isFeatureEnabled } from "@/lib/types";
 import { MOODS } from "@/lib/mood";
 
@@ -22,7 +22,10 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
   const dietPct = log?.dietPct ?? null;
   const dietNote = log?.dietNote ?? null;
   const dietMealsChecked = log?.dietMealsChecked ?? [];
-  const activeMeals = [...board.state.dietMeals].filter((m) => m.active).sort((a, b) => a.time.localeCompare(b.time));
+  const selectedWeekDay = dateFromISO(selectedDate).getDay();
+  const activeMeals = [...board.state.dietMeals]
+    .filter((m) => m.active && (!m.weekDays || m.weekDays.length === 0 || m.weekDays.includes(selectedWeekDay)))
+    .sort((a, b) => a.time.localeCompare(b.time));
   const sleptAt = log?.sleptAt ?? "";
   const wokeAt = log?.wokeAt ?? "";
   const mood = log?.mood ?? null;
