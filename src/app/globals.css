@@ -258,6 +258,32 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   padding:6px 8px; font-size:13px; color:var(--text);
 }
 .profile-name-input{ width:auto; flex:1; max-width:220px; }
+.diet-plan-row{ flex-direction:column; align-items:stretch; gap:6px; margin-top:0; }
+.diet-plan-input{
+  width:100%; resize:vertical; background:var(--surface); border:1px solid var(--border-strong);
+  border-radius:7px; padding:8px 10px; font-size:12.5px; color:var(--text); font-family:inherit; line-height:1.4;
+}
+.diet-meals-label{ margin-top:16px; margin-bottom:6px; }
+.diet-meals-list{ display:flex; flex-direction:column; gap:8px; }
+.diet-meal-card{
+  border:1px solid var(--border); border-radius:8px; padding:8px 10px; background:var(--surface);
+  display:flex; flex-direction:column; gap:6px;
+}
+.diet-meal-card.inactive{ opacity:0.55; }
+.diet-meal-head{ display:flex; align-items:center; gap:8px; }
+.diet-meal-name{
+  flex:1; min-width:0; background:var(--surface); border:1px solid var(--border-strong); border-radius:7px;
+  padding:6px 8px; font-size:13px; color:var(--text);
+}
+.diet-meal-message{
+  width:100%; resize:vertical; background:var(--bg); border:1px solid var(--border-strong);
+  border-radius:7px; padding:6px 8px; font-size:12px; color:var(--text); font-family:inherit; line-height:1.4;
+}
+.diet-meal-add{ display:flex; gap:8px; margin-top:12px; }
+.diet-meal-add input[type="text"]{
+  flex:1; background:var(--surface); border:1px solid var(--border-strong); border-radius:7px;
+  padding:6px 8px; font-size:13px; color:var(--text);
+}
 .profile-avatar-row{ display:flex; align-items:center; gap:14px; }
 .profile-avatar-btn{
   position:relative; flex:none; width:72px; height:72px; border-radius:50%; overflow:hidden;
@@ -383,6 +409,15 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   padding:6px 8px; font-size:13px; color:var(--text);
 }
 .dl-pct-sign{ font-size:12.5px; color:var(--text-faint); }
+.dl-diet-meals{ margin-top:10px; }
+.dl-diet-meals-count{ font-size:10.5px; color:var(--text-faint); display:block; margin-bottom:6px; }
+.dl-diet-meals-chips{ display:flex; flex-wrap:wrap; gap:6px; }
+.dl-diet-meal-chip{
+  font-size:12px; padding:4px 9px; border-radius:20px; border:1px solid var(--border-strong);
+  color:var(--text-muted); background:var(--surface);
+}
+.dl-diet-meal-chip:hover{ border-color:var(--success); }
+.dl-diet-meal-chip.checked{ border-color:var(--success); color:var(--success); background:color-mix(in srgb, var(--success) 10%, var(--surface)); }
 .dl-mood-options{ display:flex; gap:6px; }
 .dl-mood-item{ position:relative; flex:1; }
 .dl-mood-btn{

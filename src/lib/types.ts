@@ -97,6 +97,7 @@ export interface Settings {
   birthDate: string | null; // ISO date
   notifyPhone: string | null; // WhatsApp/telefone — pra onde mandar notificações (dependência futura)
   timezone: string | null; // IANA tz, ex. "America/Sao_Paulo"; null = detectar do navegador
+  dietPlan: string | null; // cadastro livre da dieta (plano, receitas, divisão de macros...)
 }
 
 // Funcionalidades opcionais que podem ser ligadas/desligadas em Configurações.
@@ -117,6 +118,7 @@ export interface DailyLog {
   waterMl: number;
   dietPct: number | null;
   dietNote: string | null;
+  dietMealsChecked: string[]; // ids das refeições marcadas como "não pulei" hoje — não mede fidelidade, só presença
   sleptAt: string | null; // "HH:MM"
   wokeAt: string | null; // "HH:MM"
   mood: number | null; // 1-5
@@ -215,11 +217,20 @@ export interface Checklist {
   createdAt: string; // ISO date
 }
 
+export interface DietMeal {
+  id: string;
+  name: string; // ex.: "Café da manhã"
+  time: string; // "HH:MM"
+  message: string; // texto livre do lembrete — o usuário escolhe se é só o horário ou o cardápio/calorias completos
+  active: boolean;
+}
+
 export interface BoardState {
   tasks: Task[];
   trashedTasks: Task[]; // tarefas excluídas (soft delete) — Lixeira
   habits: RecurringItem[];
   fixedBlocks: RecurringItem[];
+  dietMeals: DietMeal[];
   taskSeries: TaskSeries[];
   taskStatuses: TaskStatus[];
   books: Book[];

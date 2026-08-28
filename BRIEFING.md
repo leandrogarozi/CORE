@@ -137,6 +137,54 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Dieta: refeições configuráveis, aviso "Foco na dieta" e check diário (28/08)
+
+- **Motivação (conversa longa com o Leandro)**: ele descreveu a
+  realidade — 3 refeições fixas na dieta (café da manhã, café da
+  tarde/whey, jantar), cada uma com horário e conteúdo próprios que
+  precisam de lembrete personalizado, e o desejo de acompanhar isso de
+  forma simples no painel.
+- **Cadastro do plano** (Configurações → caixa "Dieta"): campo de texto
+  livre (`Settings.dietPlan`) pra colar o plano/receitas/divisão de
+  macros — sem estrutura, só guardar o texto.
+- **Refeições configuráveis** (nova tabela `diet_meals`, mesmo modelo
+  de Medicamentos): cada refeição tem nome, horário e uma **mensagem
+  livre** — o campo tem a dica exata que o Leandro pediu: "Escreva
+  aqui como quer receber o texto do seu lembrete — pode ser só o
+  título, as calorias, a divisão da dieta ou a refeição descrita para
+  esse horário." Não existe um toggle separado "cardápio vs. só
+  horário" — o próprio conteúdo do campo decide isso (vazio = só o
+  nome da refeição no aviso; preenchido = aparece o texto inteiro).
+  Cada refeição tem ativo/inativo, igual Medicamentos.
+- **Aviso "🎯 Foco na dieta"** (`TimerNudges.tsx`, mesmo mecanismo dos
+  avisos de reunião/lembrete): quando o horário da refeição chega,
+  aparece um card no canto com o nome + mensagem da refeição, e 3
+  ações — **Marquei** (marca "não pulei" no dia), **enviar por
+  WhatsApp** (ícone de enviar, abre `wa.me` com o texto da refeição —
+  sempre manual, nunca automático, mesmo padrão já usado em
+  Checklists) e dispensar. Fica visível até ser marcado ou dispensado
+  (sem expirar sozinho).
+- **Check "não pulei" ≠ fidelidade** — correção importante que o
+  Leandro fez durante a conversa: marcar a refeição só confirma que
+  ela aconteceu (não foi pulada), **não** que foi seguida certinho
+  (podia ter comido mais, menos ou algo fora do combinado). Por isso:
+  - Novo campo `DailyLog.dietMealsChecked: string[]` (ids das
+    refeições marcadas no dia) alimenta só um contador visual
+    "X/Y refeições feitas" no painel do dia, ao lado do campo de
+    fidelidade.
+  - O campo de **fidelidade (%)** continua exatamente como antes —
+    manual, avaliado pelo Leandro, **sem** o app tentar calculá-lo a
+    partir dos checks. As duas coisas ficam lado a lado mas
+    independentes de propósito.
+- **Limitação, não escondida**: mesma ressalva de Lembretes/Medicamentos
+  — os avisos são só dentro do app (aba aberta), não notificação
+  push real. "Enviar por WhatsApp" é sempre uma ação manual do
+  Leandro (escolhe o destino na hora via `wa.me`), nunca automático —
+  decisão explícita dele pra não virar "200 mil coisas" por dia.
+  Categorias de lembrete liga/desliga (Medicamentos, Dieta, Lembretes
+  gerais) ficaram combinadas na conversa mas **não implementadas
+  ainda** — próximo passo se sentir necessidade na prática.
+
 ## Lembretes: repetição por dia da semana + tag "Recorrente" (28/08)
 
 - **Pedido do Leandro**: campo de repetição por dia da semana nos

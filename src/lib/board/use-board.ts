@@ -8,6 +8,8 @@ import {
   buildRecurring,
   checklistToInsertRow,
   checklistToUpdateRow,
+  dietMealToInsertRow,
+  dietMealToUpdateRow,
   medicationGroupToInsertRow,
   medicationGroupToUpdateRow,
   medicationToInsertRow,
@@ -18,6 +20,7 @@ import {
   rowToBook,
   rowToChecklist,
   rowToDailyLog,
+  rowToDietMeal,
   rowToMedication,
   rowToMedicationGroup,
   rowToReminder,
@@ -43,6 +46,7 @@ import type {
   DailyLog,
   DayLog,
   DayLogEntry,
+  DietMeal,
   Medication,
   MedicationGroup,
   Priority,
@@ -63,6 +67,7 @@ const EMPTY_STATE: BoardState = {
   trashedTasks: [],
   habits: [],
   fixedBlocks: [],
+  dietMeals: [],
   taskSeries: [],
   taskStatuses: [],
   books: [],
@@ -80,6 +85,7 @@ const EMPTY_STATE: BoardState = {
     birthDate: null,
     notifyPhone: null,
     timezone: null,
+    dietPlan: null,
   },
   activeTimer: null,
   dailyLogs: {},
@@ -136,6 +142,7 @@ export function useBoard(userId: string | null) {
       medicationsRes,
       medicationGroupsRes,
       checklistsRes,
+      dietMealsRes,
       settingsRes,
       timerRes,
       dailyLogsRes,
@@ -154,6 +161,7 @@ export function useBoard(userId: string | null) {
       supabase.from("medications").select("*").order("created_at"),
       supabase.from("medication_groups").select("*").order("created_at"),
       supabase.from("checklists").select("*").order("created_at"),
+      supabase.from("diet_meals").select("*").order("meal_time"),
       supabase.from("settings").select("*").maybeSingle(),
       supabase.from("active_timer").select("*").maybeSingle(),
       supabase.from("daily_logs").select("*"),
@@ -176,6 +184,7 @@ export function useBoard(userId: string | null) {
       medications: (medicationsRes.data ?? []).map(rowToMedication),
       medicationGroups: (medicationGroupsRes.data ?? []).map(rowToMedicationGroup),
       checklists: (checklistsRes.data ?? []).map(rowToChecklist),
+      dietMeals: (dietMealsRes.data ?? []).map(rowToDietMeal),
       settings: rowToSettings(settingsRes.data ?? null),
       activeTimer: rowToActiveTimer(timerRes.data ?? null),
       dailyLogs,
@@ -1296,6 +1305,7 @@ export function useBoard(userId: string | null) {
           birth_date: merged.birthDate,
           notify_phone: merged.notifyPhone,
           timezone: merged.timezone,
+          diet_plan: merged.dietPlan,
         })
         .then(({ error }) => {
           if (error) console.error("updateSettings", error);
@@ -1329,6 +1339,7 @@ export function useBoard(userId: string | null) {
         waterMl: 0,
         dietPct: null,
         dietNote: null,
+        dietMealsChecked: [],
         sleptAt: null,
         wokeAt: null,
         mood: null,
@@ -1345,6 +1356,7 @@ export function useBoard(userId: string | null) {
             water_ml: merged.waterMl,
             diet_pct: merged.dietPct,
             diet_note: merged.dietNote,
+            diet_meals_checked: merged.dietMealsChecked,
             slept_at: merged.sleptAt,
             woke_at: merged.wokeAt,
             mood: merged.mood,
@@ -1357,6 +1369,53 @@ export function useBoard(userId: string | null) {
         });
     },
     [apply, supabase, userId]
+  );
+
+  const toggleDietMealChecked = useCallback(
+    (logDate: string, mealId: string) => {
+      const current = stateRef.current.dailyLogs[logDate]?.dietMealsChecked ?? [];
+      const next = current.includes(mealId) ? current.filter((id) => id !== mealId) : [...current, mealId];
+      updateDailyLog(logDate, { dietMealsChecked: next });
+    },
+    [updateDailyLog]
+  );
+
+  // ---------- refeições da dieta ----------
+  const addDietMeal = useCallback(
+    (name: string, time: string) => {
+      if (!userId || !name.trim()) return;
+      const m: DietMeal = { id: uid(), name: name.trim(), time, message: "", active: true };
+      apply((s) => ({ ...s, dietMeals: [...s.dietMeals, m].sort((a, b) => a.time.localeCompare(b.time)) }));
+      supabase.from("diet_meals").insert(dietMealToInsertRow(m, userId)).then(({ error }) => {
+        if (error) console.error("addDietMeal", error);
+      });
+    },
+    [apply, supabase, userId]
+  );
+
+  const updateDietMeal = useCallback(
+    (id: string, patch: Partial<Pick<DietMeal, "name" | "time" | "message" | "active">>) => {
+      apply((s) => ({
+        ...s,
+        dietMeals: s.dietMeals
+          .map((m) => (m.id === id ? { ...m, ...patch } : m))
+          .sort((a, b) => a.time.localeCompare(b.time)),
+      }));
+      supabase.from("diet_meals").update(dietMealToUpdateRow(patch)).eq("id", id).then(({ error }) => {
+        if (error) console.error("updateDietMeal", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  const deleteDietMeal = useCallback(
+    (id: string) => {
+      apply((s) => ({ ...s, dietMeals: s.dietMeals.filter((m) => m.id !== id) }));
+      supabase.from("diet_meals").delete().eq("id", id).then(({ error }) => {
+        if (error) console.error("deleteDietMeal", error);
+      });
+    },
+    [apply, supabase]
   );
 
   return {
@@ -1412,6 +1471,10 @@ export function useBoard(userId: string | null) {
     updateSettings,
     uploadAvatar,
     updateDailyLog,
+    toggleDietMealChecked,
+    addDietMeal,
+    updateDietMeal,
+    deleteDietMeal,
   };
 }
 

@@ -97,6 +97,7 @@ export type Database = {
       }
       daily_logs: {
         Row: {
+          diet_meals_checked: string[]
           diet_note: string | null
           diet_pct: number | null
           log_date: string
@@ -109,6 +110,7 @@ export type Database = {
           woke_at: string | null
         }
         Insert: {
+          diet_meals_checked?: string[]
           diet_note?: string | null
           diet_pct?: number | null
           log_date: string
@@ -121,6 +123,7 @@ export type Database = {
           woke_at?: string | null
         }
         Update: {
+          diet_meals_checked?: string[]
           diet_note?: string | null
           diet_pct?: number | null
           log_date?: string
@@ -131,6 +134,36 @@ export type Database = {
           user_id?: string
           water_ml?: number
           woke_at?: string | null
+        }
+        Relationships: []
+      }
+      diet_meals: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          meal_time: string
+          message: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          meal_time: string
+          message?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          meal_time?: string
+          message?: string
+          name?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -441,6 +474,7 @@ export type Database = {
           avatar_url: string | null
           birth_date: string | null
           daily_budget_hours: number
+          diet_plan: string | null
           feature_flags: Json
           notify_phone: string | null
           preferred_name: string | null
@@ -454,6 +488,7 @@ export type Database = {
           avatar_url?: string | null
           birth_date?: string | null
           daily_budget_hours?: number
+          diet_plan?: string | null
           feature_flags?: Json
           notify_phone?: string | null
           preferred_name?: string | null
@@ -467,6 +502,7 @@ export type Database = {
           avatar_url?: string | null
           birth_date?: string | null
           daily_budget_hours?: number
+          diet_plan?: string | null
           feature_flags?: Json
           notify_phone?: string | null
           preferred_name?: string | null

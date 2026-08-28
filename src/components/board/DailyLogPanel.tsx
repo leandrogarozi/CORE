@@ -21,6 +21,8 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
   const waterMl = log?.waterMl ?? 0;
   const dietPct = log?.dietPct ?? null;
   const dietNote = log?.dietNote ?? null;
+  const dietMealsChecked = log?.dietMealsChecked ?? [];
+  const activeMeals = [...board.state.dietMeals].filter((m) => m.active).sort((a, b) => a.time.localeCompare(b.time));
   const sleptAt = log?.sleptAt ?? "";
   const wokeAt = log?.wokeAt ?? "";
   const mood = log?.mood ?? null;
@@ -120,6 +122,28 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
                 onSave={(text) => board.updateDailyLog(selectedDate, { dietNote: text || null })}
               />
             </div>
+            {activeMeals.length > 0 && (
+              <div className="dl-diet-meals">
+                <span className="dl-diet-meals-count">
+                  {dietMealsChecked.length}/{activeMeals.length} refeições feitas
+                </span>
+                <div className="dl-diet-meals-chips">
+                  {activeMeals.map((m) => {
+                    const checked = dietMealsChecked.includes(m.id);
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        className={"dl-diet-meal-chip" + (checked ? " checked" : "")}
+                        onClick={() => board.toggleDietMealChecked(selectedDate, m.id)}
+                      >
+                        {checked ? "☑" : "☐"} {m.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

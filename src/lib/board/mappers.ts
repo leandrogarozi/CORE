@@ -8,6 +8,7 @@ import type {
   ChecklistItem,
   DailyLog,
   DayLog,
+  DietMeal,
   Medication,
   MedicationGroup,
   MedicationTimeMode,
@@ -39,6 +40,7 @@ type ReminderRow = Tables<"reminders">;
 type MedicationRow = Tables<"medications">;
 type MedicationGroupRow = Tables<"medication_groups">;
 type ChecklistRow = Tables<"checklists">;
+type DietMealRow = Tables<"diet_meals">;
 
 export function rowToTask(row: TaskRow): Task {
   return {
@@ -230,6 +232,7 @@ export function rowToSettings(row: SettingsRow | null): Settings {
     birthDate: row?.birth_date ?? null,
     notifyPhone: row?.notify_phone ?? null,
     timezone: row?.timezone ?? null,
+    dietPlan: row?.diet_plan ?? null,
   };
 }
 
@@ -238,11 +241,42 @@ export function rowToDailyLog(row: DailyLogRow): DailyLog {
     waterMl: row.water_ml,
     dietPct: row.diet_pct,
     dietNote: row.diet_note,
+    dietMealsChecked: row.diet_meals_checked ?? [],
     sleptAt: row.slept_at ? row.slept_at.slice(0, 5) : null,
     wokeAt: row.woke_at ? row.woke_at.slice(0, 5) : null,
     mood: row.mood,
     moodNote: row.mood_note,
   };
+}
+
+export function rowToDietMeal(row: DietMealRow): DietMeal {
+  return {
+    id: row.id,
+    name: row.name,
+    time: row.meal_time,
+    message: row.message,
+    active: row.active,
+  };
+}
+
+export function dietMealToInsertRow(m: DietMeal, userId: string): TablesInsert<"diet_meals"> {
+  return {
+    id: m.id,
+    user_id: userId,
+    name: m.name,
+    meal_time: m.time,
+    message: m.message,
+    active: m.active,
+  };
+}
+
+export function dietMealToUpdateRow(m: Partial<DietMeal>): TablesUpdate<"diet_meals"> {
+  const row: TablesUpdate<"diet_meals"> = {};
+  if (m.name !== undefined) row.name = m.name;
+  if (m.time !== undefined) row.meal_time = m.time;
+  if (m.message !== undefined) row.message = m.message;
+  if (m.active !== undefined) row.active = m.active;
+  return row;
 }
 
 export function rowToActiveTimer(row: ActiveTimerRow | null): ActiveTimer | null {

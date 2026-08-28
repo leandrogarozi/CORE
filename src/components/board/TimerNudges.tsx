@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useBoardCtx } from "./board-context";
-import { BellIcon, CheckIcon, PlayIcon } from "./icons";
+import { BellIcon, CheckIcon, PlayIcon, SendIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
 import { isReminderAlerting } from "@/lib/board/reminder-alerts";
 
@@ -12,6 +12,7 @@ export function TimerNudges() {
   const [dismissedOverdueId, setDismissedOverdueId] = useState<string | null>(null);
   const [dismissedUpcoming, setDismissedUpcoming] = useState<Set<string>>(new Set());
   const [dismissedReminders, setDismissedReminders] = useState<Set<string>>(new Set());
+  const [dismissedDietMeals, setDismissedDietMeals] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const tick = () => setNowMs(Date.now());
@@ -124,13 +125,65 @@ export function TimerNudges() {
           ))
       : [];
 
-  if (!overdueBanner && !upcomingBanner && reminderBanners.length === 0) return null;
+  const dietMealsChecked = board.state.dailyLogs[today]?.dietMealsChecked ?? [];
+  let nowHM: string | null = null;
+  if (nowMs !== null) {
+    const now = new Date(nowMs);
+    nowHM = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  }
+  const dietBanners =
+    nowHM !== null
+      ? board.state.dietMeals
+          .filter(
+            (m) => m.active && nowHM! >= m.time && !dietMealsChecked.includes(m.id) && !dismissedDietMeals.has(m.id)
+          )
+          .map((m) => (
+            <div className="timer-nudge" key={`diet-${m.id}`}>
+              <span className="timer-nudge-text">
+                <BellIcon filled />
+                🎯 Foco na dieta — {m.name}
+                {m.message ? `: ${m.message}` : ""}
+              </span>
+              <div className="timer-nudge-actions">
+                <button
+                  type="button"
+                  className="btn btn-accent"
+                  onClick={() => board.toggleDietMealChecked(today, m.id)}
+                >
+                  <CheckIcon /> Marquei
+                </button>
+                <button
+                  type="button"
+                  className="icon-btn"
+                  title="Enviar por WhatsApp"
+                  onClick={() => {
+                    const text = m.message.trim() || `${m.name} — hora da refeição!`;
+                    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+                  }}
+                >
+                  <SendIcon />
+                </button>
+                <button
+                  type="button"
+                  className="icon-btn timer-nudge-close"
+                  onClick={() => setDismissedDietMeals((s) => new Set(s).add(m.id))}
+                  aria-label="Dispensar"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          ))
+      : [];
+
+  if (!overdueBanner && !upcomingBanner && reminderBanners.length === 0 && dietBanners.length === 0) return null;
 
   return (
     <div className="timer-nudge-stack">
       {overdueBanner}
       {upcomingBanner}
       {reminderBanners}
+      {dietBanners}
     </div>
   );
 }
