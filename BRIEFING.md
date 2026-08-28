@@ -137,6 +137,25 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Cronômetro mostrava só a sessão atual, parecia "esquecer" tempo anterior (28/08)
+
+- **Relato do Leandro**: deu play numa tarefa ("Tratar piscina"), pausou,
+  depois deu play de novo — esperava ver o tempo somando (sessão 1 +
+  sessão 2), mas o relógio parecia mostrar só a última sessão do zero.
+- **Investigação**: conferi os dados no banco — `stopActiveTimer` (em
+  `use-board.ts`) já soma corretamente (`t.trackedSeconds + elapsed`) e
+  persiste o total sempre que o play é pausado, então o dado acumulado
+  em si não estava se perdendo. O problema era só de **exibição**: o
+  relógio ao vivo no botão de play (`TimerButton.tsx`,
+  `useElapsedSeconds`) mostrava apenas o tempo decorrido *desde o
+  início da sessão atual* — ao apertar play de novo, ele reiniciava
+  visualmente do zero, dando a impressão de que o tempo anterior tinha
+  sumido, mesmo que fosse continuar somando certinho ao pausar.
+- **Correção**: `TimerButton` e `ActiveTimerBadge` agora somam o tempo
+  já acumulado do item (`trackedSeconds` da tarefa, ou do log do dia
+  pra hábito/bloco) com o tempo da sessão atual — o relógio ao vivo
+  sempre mostra o **total acumulado**, não reinicia do zero a cada play.
+
 ## Blocos fixos: clicar num dia já marcado não apaga mais (28/08)
 
 - **Bug relatado pelo Leandro**: marcou o horário de almoço pelo play,
