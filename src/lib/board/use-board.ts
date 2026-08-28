@@ -1152,7 +1152,7 @@ export function useBoard(userId: string | null) {
       const t: Task = {
         id: uid(),
         title: title.trim(),
-        category: "trabalho",
+        category: "reuniao",
         priority: "media",
         date: today,
         time,

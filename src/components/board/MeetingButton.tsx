@@ -6,10 +6,13 @@ import { useBoardCtx } from "./board-context";
 import { PlayIcon } from "./icons";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 
-const DURATIONS = [15, 30, 40, 60];
+const DURATIONS = [15, 30, 40, 60, 90, 120];
 
 function durationLabel(min: number) {
-  return min < 60 ? `${min}min` : "1h";
+  if (min < 60) return `${min}min`;
+  const h = Math.floor(min / 60);
+  const rest = min % 60;
+  return rest ? `${h}h${rest}` : `${h}h`;
 }
 
 export function MeetingButton() {
@@ -70,6 +73,18 @@ export function MeetingButton() {
                     {durationLabel(d)}
                   </button>
                 ))}
+                <input
+                  type="number"
+                  min={1}
+                  step={5}
+                  className="meeting-duration-input"
+                  placeholder="outro (min)"
+                  value={DURATIONS.includes(duration) ? "" : duration}
+                  onChange={(e) => {
+                    const v = e.target.value ? parseInt(e.target.value, 10) : 0;
+                    if (v > 0) setDuration(v);
+                  }}
+                />
               </div>
             </div>
             <div className="edit-field">

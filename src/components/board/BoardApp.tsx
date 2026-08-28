@@ -18,6 +18,7 @@ import { RemindersView, RemindersButton } from "./RemindersView";
 import { MedicationsView } from "./MedicationsView";
 import { ChecklistsView } from "./ChecklistsView";
 import { ScopeModal } from "./ScopeModal";
+import { ConfirmModal } from "./ConfirmModal";
 import { FaroMascot } from "./FaroMascot";
 import { ActiveTimerBadge } from "./TimerButton";
 import { ProfileView } from "./ProfileView";
@@ -134,6 +135,7 @@ function BoardShell() {
       </div>
 
       <ScopeModal />
+      <ConfirmModal />
       <TimerNudges />
 
       {viewMode === "settings" ? (

@@ -1,4 +1,4 @@
-export type Category = "trabalho" | "estudo" | "dev" | "saude" | "pessoal" | "familia";
+export type Category = "trabalho" | "estudo" | "dev" | "saude" | "pessoal" | "familia" | "reuniao";
 export type Priority = "alta" | "media" | "baixa";
 export type Repeat = "none" | "daily" | "weekly" | "monthly" | "yearly";
 export type TimerKind = "task" | "habit" | "block";
@@ -11,6 +11,7 @@ export const CATEGORY_LABEL: Record<Category, string> = {
   saude: "Saúde",
   pessoal: "Pessoal",
   familia: "Família",
+  reuniao: "Reunião",
 };
 
 export const DEFAULT_TAG_COLORS: Record<Category, { hex: string; alpha: number }> = {
@@ -20,6 +21,7 @@ export const DEFAULT_TAG_COLORS: Record<Category, { hex: string; alpha: number }
   saude: { hex: "#277644", alpha: 0.5 },
   pessoal: { hex: "#A23E68", alpha: 0.5 },
   familia: { hex: "#1B7F79", alpha: 0.5 },
+  reuniao: { hex: "#4A5FC1", alpha: 0.5 },
 };
 
 export interface Task {

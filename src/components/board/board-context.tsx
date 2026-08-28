@@ -11,6 +11,12 @@ interface ScopeModalState {
   onChoose: ((choice: ScopeChoice) => void) | null;
 }
 
+interface ConfirmModalState {
+  open: boolean;
+  question: string;
+  onConfirm: (() => void) | null;
+}
+
 interface BoardCtxValue {
   board: UseBoard;
   sortByQuick: boolean;
@@ -18,6 +24,9 @@ interface BoardCtxValue {
   askScope: (question: string, onChoose: (choice: ScopeChoice) => void) => void;
   scopeModal: ScopeModalState;
   closeScopeModal: () => void;
+  askConfirm: (question: string, onConfirm: () => void) => void;
+  confirmModal: ConfirmModalState;
+  closeConfirmModal: () => void;
   columns: UseColumnWidths;
 }
 
@@ -27,6 +36,7 @@ export function BoardProvider({ userId, children }: { userId: string; children: 
   const board = useBoard(userId);
   const [sortByQuick, setSortByQuick] = useState(false);
   const [scopeModal, setScopeModal] = useState<ScopeModalState>({ open: false, question: "", onChoose: null });
+  const [confirmModal, setConfirmModal] = useState<ConfirmModalState>({ open: false, question: "", onConfirm: null });
   const columns = useColumnWidths();
 
   useEffect(() => {
@@ -46,9 +56,28 @@ export function BoardProvider({ userId, children }: { userId: string; children: 
     setScopeModal({ open: false, question: "", onChoose: null });
   }, []);
 
+  const askConfirm = useCallback((question: string, onConfirm: () => void) => {
+    setConfirmModal({ open: true, question, onConfirm });
+  }, []);
+
+  const closeConfirmModal = useCallback(() => {
+    setConfirmModal({ open: false, question: "", onConfirm: null });
+  }, []);
+
   return (
     <BoardCtx.Provider
-      value={{ board, sortByQuick, setSortByQuick, askScope, scopeModal, closeScopeModal, columns }}
+      value={{
+        board,
+        sortByQuick,
+        setSortByQuick,
+        askScope,
+        scopeModal,
+        closeScopeModal,
+        askConfirm,
+        confirmModal,
+        closeConfirmModal,
+        columns,
+      }}
     >
       {children}
     </BoardCtx.Provider>

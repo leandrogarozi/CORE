@@ -98,7 +98,7 @@ interface TaskRowProps {
 }
 
 export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop, dragging, gridTemplate }: TaskRowProps) {
-  const { board, askScope } = useBoardCtx();
+  const { board, askScope, askConfirm } = useBoardCtx();
   const [editing, setEditing] = useState(false);
 
   if (editing) {
@@ -113,7 +113,7 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
     if (t.seriesId) {
       askScope("Essa tarefa faz parte de uma repetição. Apagar:", doDelete);
     } else {
-      doDelete(null);
+      askConfirm(`Excluir a tarefa "${t.title}"? Essa ação não pode ser desfeita.`, () => doDelete(null));
     }
   }
 

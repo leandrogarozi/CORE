@@ -591,6 +591,9 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .btn-accent:hover{ filter:brightness(1.07); }
 .btn-ghost{ background:transparent; border:1px solid var(--border); color:var(--text-muted); }
 .btn-ghost:hover{ color:var(--text); border-color:var(--border-strong); }
+.btn-danger{ background:var(--danger); color:#fff; }
+.btn-danger:hover{ filter:brightness(1.07); }
+.confirm-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:14px; }
 
 /* habits / blocks */
 .habit-strip{
@@ -670,6 +673,10 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .note-chip.removable{ padding:4px 6px 4px 11px; }
 .note-chip.removable button{ color:var(--text-faint); font-size:14px; line-height:1; padding:0 2px; }
 .note-chip.removable button:hover{ color:var(--danger); }
+.meeting-duration-input{
+  width:84px; border:1px solid var(--border-strong); border-radius:20px;
+  padding:5px 10px; font-size:12px; background:var(--surface); color:var(--text);
+}
 .note-options-editor{ display:flex; flex-direction:column; gap:6px; margin-bottom:6px; }
 .note-options-add{ display:flex; gap:6px; }
 .note-options-add input{

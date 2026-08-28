@@ -179,6 +179,33 @@ por dificuldade:
   5min automaticamente, sem precisar que o Leandro cadastre a tarefa
   manualmente antes.
 
+## Ajustes no botão Reunião + confirmação de exclusão (28/08)
+
+- **Feedback do Leandro testando o botão Reunião**: gostou, mas pediu
+  3 ajustes.
+  1. **Tag "Reunião"**: nova categoria `reuniao` (junto de
+     Trabalho/Estudo/Dev/Saúde/Pessoal/Família), com cor própria e chip
+     igual às outras. `startMeeting` já cria a tarefa com essa
+     categoria — fica visível na tabela mesmo sem escrever "reunião" na
+     descrição. Como qualquer categoria, também pode ser escolhida à
+     mão em qualquer tarefa (editar tarefa → categoria), e a cor é
+     customizável em Configurações como as outras.
+  2. **Duração maior que 1h**: chips do popover de Reunião ganharam
+     1h30 e 2h, e um campo numérico ao lado ("outro (min)") pra digitar
+     qualquer valor — antes só ia até 1h fixo.
+  3. **Confirmação antes de excluir tarefa**: o Leandro apagou uma
+     tarefa sem querer clicando na lixeira sem querer. Antes, deletar
+     uma tarefa avulsa (sem repetição) era instantâneo, sem
+     confirmação — só tarefas de série passavam pelo modal de escopo.
+     Agora qualquer exclusão de tarefa avulsa abre um modal "Excluir a
+     tarefa '...'? Essa ação não pode ser desfeita." com
+     Cancelar/Excluir, reaproveitando a mesma estrutura de modal do
+     `ScopeModal` (`ConfirmModal.tsx`, `askConfirm` no board-context).
+     **Só foi aplicado em Tarefas por enquanto** — os outros botões de
+     lixeira do app (Lembretes, Checklists, Medicamentos, Hábitos/
+     Blocos) continuam sem confirmação; dá pra estender o mesmo
+     `askConfirm` pra eles rapidinho se o Leandro quiser.
+
 ## Aviso antecipado em Lembretes (28/08)
 
 - **Pedido do Leandro**: campo "adicionar aviso" no lembrete, pra poder
