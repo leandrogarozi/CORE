@@ -137,6 +137,46 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Lembretes vencidos ganham categoria própria, separada dos demais (28/08)
+
+- Pedido do Leandro, olhando a lista de Lembretes: **"sabe essa linha
+  amarela - é de um lembrete vencido. Quando for assim, acho que
+  devemos subir ele para uma categoria vencido, ficar separado dos
+  outros."**
+- Bug de raiz encontrado no caminho: um lembrete com hora marcada (ex.:
+  hoje às 13:30) só virava "vencido" (vermelho) depois que o DIA
+  inteiro passasse — a comparação só olhava a data, não a hora. Por
+  isso aquele lembrete de hoje às 13:30, já com o horário passado,
+  ainda aparecia amarelo ("hoje") em vez de vermelho ("vencido").
+  Nova função `isReminderOverdue` (`reminder-alerts.ts`) agora
+  considera a hora também: sem hora marcada, vence só depois das
+  23:59 (igual antes); com hora marcada, vence assim que aquele
+  horário passa, mesmo no mesmo dia.
+- A tela de Lembretes agora separa os vencidos num bloco próprio no
+  topo ("Vencidos", com destaque vermelho), antes da lista normal de
+  pendentes — em vez de só pintar a linha por dentro da mesma lista.
+  O contador do sino (atalho da home) também usa a mesma regra.
+
+## Seletor de horário: visual mais limpo + estendido pra campos de duração (28/08)
+
+- Feedback do Leandro depois de ver o `TimePicker` novo funcionando:
+  **"ficou bem melhor assim... porém eu deixaria somente uma linha
+  separando os 2, não precisa ter essa marcação cinza de rolagem pros
+  2 — somente uma linha no meio. E você colocou só no horário — deve
+  ser inserido também em todos os campos TEMPO, horas e marcação de
+  tempo, em todos os lugares."**
+- Visual: tirada a barra de rolagem visível das duas colunas
+  (hora/minuto) — sobra só uma linha fina separando as colunas, sem a
+  "caixinha" de cada lado.
+- Novo `MinutesPicker` (mesmo arquivo `TimePicker.tsx`): mesmo
+  seletor de duas colunas, mas pra duração (quantidade de tempo, ex.:
+  90min = 01:30) em vez de horário do relógio — converte de/pra
+  minutos totais. Substituiu todo campo de duração que ainda era um
+  número cru: duração da tarefa, duração ao criar/editar hábito e
+  bloco fixo, minutos no popover de registrar o dia (hábitos/blocos,
+  inclusive o modo de múltiplas entradas), e a duração da reunião
+  (que já usava esse padrão, só reaproveitado).
+
 ## Seletor de horário próprio, padronizado em todo o app (28/08)
 
 - Pedido do Leandro, com print do seletor nativo de horário (o

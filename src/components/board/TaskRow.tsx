@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { TimerButton } from "./TimerButton";
 import { StatusPicker } from "./StatusPicker";
-import { TimePicker } from "./TimePicker";
+import { MinutesPicker, TimePicker } from "./TimePicker";
 import { BoltIcon, DuplicateIcon, FlagIcon, RepeatIcon, TrashIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
 import { CATEGORY_LABEL, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
@@ -265,14 +265,10 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
           <TimePicker value={vals.time} onChange={(v) => setVals((s) => ({ ...s, time: v }))} />
         </label>
         <label className="edit-field">
-          <span className="edit-field-label">Duração (min)</span>
-          <input
-            type="number"
-            min={0}
-            step={5}
-            value={vals.durationMin ?? ""}
-            placeholder="min"
-            onChange={(e) => setVals((v) => ({ ...v, durationMin: e.target.value ? parseInt(e.target.value, 10) : null }))}
+          <span className="edit-field-label">Duração</span>
+          <MinutesPicker
+            minutes={vals.durationMin}
+            onChange={(m) => setVals((v) => ({ ...v, durationMin: m }))}
           />
         </label>
         <label className="edit-field">

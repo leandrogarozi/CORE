@@ -3,11 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
-import { BellIcon, CheckIcon, RepeatIcon, TrashIcon, WeekIcon } from "./icons";
+import { BellIcon, CheckIcon, RepeatIcon, TrashIcon, WarningIcon, WeekIcon } from "./icons";
 import { TimePicker } from "./TimePicker";
 import { DAY_NAMES, fmtShortDate, todayISO } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
-import { REMINDER_ALERT_PRESETS } from "@/lib/board/reminder-alerts";
+import { REMINDER_ALERT_PRESETS, isReminderOverdue } from "@/lib/board/reminder-alerts";
 import type { Reminder, Repeat } from "@/lib/types";
 
 const REPEATS: { v: Repeat; l: string }[] = [
@@ -191,8 +191,8 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
   }
 
   const today = todayISO();
-  const overdue = !reminder.done && !!reminder.date && reminder.date < today;
-  const dueToday = !reminder.done && reminder.date === today;
+  const overdue = isReminderOverdue(reminder);
+  const dueToday = !reminder.done && !overdue && reminder.date === today;
   const isRecurring = reminder.repeat !== "none" || (reminder.weekDays?.length ?? 0) > 0;
 
   return (
@@ -263,8 +263,8 @@ export function RemindersButton({ onOpenFull }: { onOpenFull: () => void }) {
   const pending = [...board.state.reminders]
     .filter((r) => !r.done)
     .sort((a, b) => (a.date ?? "9999-99-99").localeCompare(b.date ?? "9999-99-99"));
-  const overdueCount = pending.filter((r) => r.date && r.date < today).length;
-  const dueTodayCount = pending.filter((r) => r.date === today).length;
+  const overdueCount = pending.filter((r) => isReminderOverdue(r)).length;
+  const dueTodayCount = pending.filter((r) => r.date === today && !isReminderOverdue(r)).length;
   const hasOverdue = overdueCount > 0;
   const hasDueToday = dueTodayCount > 0;
   const badgeCount = hasOverdue ? overdueCount : dueTodayCount;
@@ -351,7 +351,9 @@ export function RemindersView({ onBack }: { onBack: () => void }) {
     setNewTitle("");
   }
 
-  const pending = board.state.reminders.filter((r) => !r.done);
+  const notDone = board.state.reminders.filter((r) => !r.done);
+  const overdue = notDone.filter((r) => isReminderOverdue(r));
+  const pending = notDone.filter((r) => !isReminderOverdue(r));
   const done = board.state.reminders.filter((r) => r.done);
 
   return (
@@ -381,13 +383,26 @@ export function RemindersView({ onBack }: { onBack: () => void }) {
           </div>
         </div>
 
-        <div className="list-card">
-          {pending.length === 0 ? (
-            <div className="hp-empty">Nenhum lembrete pendente.</div>
-          ) : (
-            pending.map((r) => <ReminderRow key={r.id} reminder={r} />)
-          )}
-        </div>
+        {overdue.length > 0 && (
+          <div className="list-card">
+            <div className="list-card-section-label overdue-label">
+              <WarningIcon /> Vencidos
+            </div>
+            {overdue.map((r) => (
+              <ReminderRow key={r.id} reminder={r} />
+            ))}
+          </div>
+        )}
+
+        {(pending.length > 0 || overdue.length === 0) && (
+          <div className="list-card">
+            {pending.length === 0 ? (
+              <div className="hp-empty">Nenhum lembrete pendente.</div>
+            ) : (
+              pending.map((r) => <ReminderRow key={r.id} reminder={r} />)
+            )}
+          </div>
+        )}
 
         {done.length > 0 && (
           <div className="list-card">

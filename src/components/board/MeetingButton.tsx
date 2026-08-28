@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { PlayIcon } from "./icons";
-import { TimePicker } from "./TimePicker";
+import { MinutesPicker } from "./TimePicker";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 
 const DURATIONS = [15, 30, 40, 60, 90, 120];
@@ -14,12 +14,6 @@ function durationLabel(min: number) {
   const h = Math.floor(min / 60);
   const rest = min % 60;
   return rest ? `${h}h${rest}` : `${h}h`;
-}
-
-function minutesToHHMM(min: number): string {
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
 export function MeetingButton() {
@@ -81,14 +75,7 @@ export function MeetingButton() {
                     {durationLabel(d)}
                   </button>
                 ))}
-                <TimePicker
-                  className="meeting-duration-input"
-                  value={duration != null ? minutesToHHMM(duration) : ""}
-                  onChange={(v) => {
-                    const [h, m] = v.split(":").map(Number);
-                    setDuration(h * 60 + m);
-                  }}
-                />
+                <MinutesPicker className="meeting-duration-input" minutes={duration} onChange={setDuration} />
               </div>
             </div>
             <div className="edit-field">

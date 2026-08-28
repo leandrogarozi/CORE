@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { TimerButton } from "./TimerButton";
+import { MinutesPicker } from "./TimePicker";
 import { EditIcon, TrashIcon } from "./icons";
 import { fmtDayLabel, fmtHM, isoFromDate, todayISO, weekDatesFrom } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
@@ -15,15 +16,15 @@ export function RecurringSection({ kind, weekAnchor }: { kind: Kind; weekAnchor:
   const { board } = useBoardCtx();
   const list = kind === "habit" ? board.state.habits : board.state.fixedBlocks;
   const [newName, setNewName] = useState("");
-  const [newDuration, setNewDuration] = useState("");
+  const [newDuration, setNewDuration] = useState<number | null>(null);
   const sorted = [...list].sort((a, b) => a.order - b.order);
 
   function handleAdd() {
     const name = newName.trim();
     if (!name) return;
-    board.addRecurring(kind, name, newDuration ? parseInt(newDuration, 10) || 0 : null);
+    board.addRecurring(kind, name, newDuration);
     setNewName("");
-    setNewDuration("");
+    setNewDuration(null);
   }
 
   return (
@@ -41,15 +42,7 @@ export function RecurringSection({ kind, weekAnchor }: { kind: Kind; weekAnchor:
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleAdd()}
         />
-        <input
-          type="number"
-          min={0}
-          step={5}
-          placeholder="min"
-          className="block-duration-input"
-          value={newDuration}
-          onChange={(e) => setNewDuration(e.target.value)}
-        />
+        <MinutesPicker className="block-duration-input" minutes={newDuration} onChange={setNewDuration} />
         <button type="button" className="btn btn-ghost" onClick={handleAdd}>
           Add
         </button>
@@ -75,42 +68,30 @@ function DayLogPopover({
   onSave: (minutes: number, note: string) => void;
   onCancel: () => void;
 }) {
-  const [minutes, setMinutes] = useState(String(initialMinutes));
+  const [minutes, setMinutes] = useState(initialMinutes);
   const [note, setNote] = useState(initialNote);
   const ref = useRef<HTMLDivElement>(null);
   const pos = useClampedPopoverPos(anchorRect, ref);
 
   useEffect(() => {
     function onDocPointerDown(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) onCancel();
+      if (ref.current?.contains(e.target as Node)) return;
+      if ((e.target as HTMLElement).closest?.(".time-picker-pop")) return;
+      onCancel();
     }
     window.addEventListener("mousedown", onDocPointerDown);
     return () => window.removeEventListener("mousedown", onDocPointerDown);
   }, [onCancel]);
 
   function commit() {
-    let m = parseInt(minutes, 10);
-    if (isNaN(m) || m < 0) m = 0;
-    onSave(m, note);
+    onSave(minutes, note);
   }
 
   return createPortal(
     <div className="daylog-popover" ref={ref} style={{ top: pos.top, left: pos.left }}>
       <label className="edit-field">
         <span className="edit-field-label">Minutos</span>
-        <input
-          type="number"
-          min={0}
-          step={5}
-          autoFocus
-          value={minutes}
-          onFocus={(e) => e.target.select()}
-          onChange={(e) => setMinutes(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") commit();
-            else if (e.key === "Escape") onCancel();
-          }}
-        />
+        <MinutesPicker minutes={minutes} onChange={setMinutes} autoFocus />
       </label>
       {showNote && noteOptions.length > 0 && (
         <label className="edit-field">
@@ -218,24 +199,25 @@ function DayEntriesPopover({
   onClose: () => void;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
-  const [minutes, setMinutes] = useState("");
+  const [minutes, setMinutes] = useState<number | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const pos = useClampedPopoverPos(anchorRect, ref);
 
   useEffect(() => {
     function onDocPointerDown(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+      if (ref.current?.contains(e.target as Node)) return;
+      if ((e.target as HTMLElement).closest?.(".time-picker-pop")) return;
+      onClose();
     }
     window.addEventListener("mousedown", onDocPointerDown);
     return () => window.removeEventListener("mousedown", onDocPointerDown);
   }, [onClose]);
 
   function handleAdd() {
-    const m = parseInt(minutes, 10);
-    if (!selected || isNaN(m) || m <= 0) return;
-    onAdd(selected, m);
+    if (!selected || !minutes || minutes <= 0) return;
+    onAdd(selected, minutes);
     setSelected(null);
-    setMinutes("");
+    setMinutes(null);
   }
 
   return createPortal(
@@ -270,15 +252,7 @@ function DayEntriesPopover({
       </label>
       <label className="edit-field">
         <span className="edit-field-label">Minutos</span>
-        <input
-          type="number"
-          min={0}
-          step={5}
-          autoFocus
-          value={minutes}
-          onChange={(e) => setMinutes(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-        />
+        <MinutesPicker minutes={minutes} onChange={setMinutes} autoFocus />
       </label>
       <div className="edit-actions">
         <button type="button" className="btn btn-ghost" onClick={onClose}>
@@ -417,13 +391,13 @@ function RecurringRow({ kind, item, weekAnchor }: { kind: Kind; item: RecurringI
 function RecurringEditRow({ kind, item, onDone }: { kind: Kind; item: RecurringItem; onDone: () => void }) {
   const { board } = useBoardCtx();
   const [name, setName] = useState(item.name);
-  const [duration, setDuration] = useState(item.durationMin != null ? String(item.durationMin) : "");
+  const [duration, setDuration] = useState<number | null>(item.durationMin);
   const [options, setOptions] = useState<string[]>(item.noteOptions ?? []);
   const [newOption, setNewOption] = useState("");
 
   function save() {
     onDone();
-    board.updateRecurring(kind, item.id, name.trim() || item.name, duration ? parseInt(duration, 10) || 0 : null);
+    board.updateRecurring(kind, item.id, name.trim() || item.name, duration);
     board.updateRecurringNoteOptions(kind, item.id, options);
   }
 
@@ -444,7 +418,7 @@ function RecurringEditRow({ kind, item, onDone }: { kind: Kind; item: RecurringI
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && save()}
         />
-        <input type="number" min={0} step={5} value={duration} onChange={(e) => setDuration(e.target.value)} />
+        <MinutesPicker minutes={duration} onChange={setDuration} />
       </div>
       <div className="note-options-editor">
         <span className="edit-field-label">Opções de nota (marcar em vez de escrever)</span>

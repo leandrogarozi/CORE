@@ -116,3 +116,35 @@ export function TimePicker({
     </>
   );
 }
+
+// Mesmo seletor de horas/minutos, mas pra duração (quantidade de tempo, ex.: 90min = 01:30)
+// em vez de horário do relógio — converte de/pra minutos totais.
+export function MinutesPicker({
+  minutes,
+  onChange,
+  disabled,
+  placeholder,
+  className,
+  autoFocus,
+}: {
+  minutes: number | null;
+  onChange: (minutes: number) => void;
+  disabled?: boolean;
+  placeholder?: string;
+  className?: string;
+  autoFocus?: boolean;
+}) {
+  return (
+    <TimePicker
+      value={minutes != null ? `${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}` : ""}
+      onChange={(v) => {
+        const [h, m] = v.split(":").map(Number);
+        onChange(h * 60 + m);
+      }}
+      disabled={disabled}
+      placeholder={placeholder}
+      className={className}
+      autoFocus={autoFocus}
+    />
+  );
+}
