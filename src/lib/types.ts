@@ -165,6 +165,7 @@ export interface Reminder {
   date: string | null; // ISO date, null = sem data
   time: string | null; // "HH:MM", só faz sentido com date definido
   repeat: Repeat; // só faz sentido com date definido
+  alertMinutesBefore: number | null; // aviso antecipado (minutos antes de date+time), null = sem aviso
   done: boolean;
 }
 

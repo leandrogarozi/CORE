@@ -179,6 +179,29 @@ por dificuldade:
   5min automaticamente, sem precisar que o Leandro cadastre a tarefa
   manualmente antes.
 
+## Aviso antecipado em Lembretes (28/08)
+
+- **Pedido do Leandro**: campo "adicionar aviso" no lembrete, pra poder
+  marcar minutos ou dias antes da data/hora do lembrete.
+- Novo campo `Reminder.alertMinutesBefore` (`alert_minutes_before` no
+  banco, minutos) — opcional, só aparece quando o lembrete tem data.
+  Selecionado por presets no popover de data (mesmo popover onde já dá
+  pra escolher data/hora/repetição): Sem aviso, 10min, 30min, 1h, 1 dia,
+  2 dias ou 1 semana antes.
+- **Entrega do aviso**: reaproveita o mesmo mecanismo de card no canto
+  inferior direito do `TimerNudges.tsx` (mesmo componente dos avisos de
+  reunião) — quando o horário calculado (data+hora do lembrete menos o
+  aviso escolhido) chega, aparece um card com o título do lembrete e
+  botão **Concluir** (marca o lembrete como feito) ou dispensar.
+  - Lógica de janela em `src/lib/board/reminder-alerts.ts`
+    (`isReminderAlerting`): considera o lembrete "avisando" desde
+    `data+hora - aviso` até `data+hora` (lembrete sem hora usa 23:59 do
+    dia como alvo, então o aviso cobre o dia inteiro até o fim dele).
+  - Mesma limitação já documentada acima pro aviso de reunião: é um
+    aviso *dentro do app*, não notificação push real — precisa da aba
+    aberta. O ícone de sino/badge na topbar continua baseado só na data
+    (hoje/atrasado), não foi alterado por esse aviso antecipado.
+
 Decisão: sair de pills soltas no topo (Hoje/Semana/Dashboard/Configurações)
 para um menu lateral (ícone de hambúrguer no topbar → gaveta que desliza
 da esquerda). Motivo: muita coisa nova vai entrar como seção própria (ver

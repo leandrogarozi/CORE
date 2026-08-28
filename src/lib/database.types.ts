@@ -399,6 +399,7 @@ export type Database = {
       }
       reminders: {
         Row: {
+          alert_minutes_before: number | null
           created_at: string
           done: boolean
           id: string
@@ -409,6 +410,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          alert_minutes_before?: number | null
           created_at?: string
           done?: boolean
           id?: string
@@ -419,6 +421,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          alert_minutes_before?: number | null
           created_at?: string
           done?: boolean
           id?: string

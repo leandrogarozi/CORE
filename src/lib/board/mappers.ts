@@ -283,6 +283,7 @@ export function rowToReminder(row: ReminderRow): Reminder {
     date: row.remind_date,
     time: row.remind_time,
     repeat: (row.repeat as Repeat) ?? "none",
+    alertMinutesBefore: row.alert_minutes_before,
     done: row.done,
   };
 }
@@ -295,6 +296,7 @@ export function reminderToInsertRow(r: Reminder, userId: string): TablesInsert<"
     remind_date: r.date,
     remind_time: r.time,
     repeat: r.repeat === "none" ? null : r.repeat,
+    alert_minutes_before: r.alertMinutesBefore,
     done: r.done,
   };
 }
@@ -305,6 +307,7 @@ export function reminderToUpdateRow(r: Partial<Reminder>): TablesUpdate<"reminde
   if (r.date !== undefined) row.remind_date = r.date;
   if (r.time !== undefined) row.remind_time = r.time;
   if (r.repeat !== undefined) row.repeat = r.repeat === "none" ? null : r.repeat;
+  if (r.alertMinutesBefore !== undefined) row.alert_minutes_before = r.alertMinutesBefore;
   if (r.done !== undefined) row.done = r.done;
   return row;
 }

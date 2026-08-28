@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { BellIcon, CheckIcon, PlayIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
+import { isReminderAlerting } from "@/lib/board/reminder-alerts";
 
 export function TimerNudges() {
   const { board } = useBoardCtx();
   const [nowMs, setNowMs] = useState<number | null>(null);
   const [dismissedOverdueId, setDismissedOverdueId] = useState<string | null>(null);
   const [dismissedUpcoming, setDismissedUpcoming] = useState<Set<string>>(new Set());
+  const [dismissedReminders, setDismissedReminders] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const tick = () => setNowMs(Date.now());
@@ -89,12 +91,46 @@ export function TimerNudges() {
     </div>
   ) : null;
 
-  if (!overdueBanner && !upcomingBanner) return null;
+  const reminderBanners =
+    nowMs !== null
+      ? board.state.reminders
+          .filter((r) => !dismissedReminders.has(r.id) && isReminderAlerting(r, nowMs))
+          .map((r) => (
+            <div className="timer-nudge" key={`reminder-${r.id}`}>
+              <span className="timer-nudge-text">
+                <BellIcon filled />
+                Lembrete: &ldquo;{r.title}&rdquo;
+                {r.date ? ` — ${r.date.split("-").reverse().join("/")}` : ""}
+                {r.time ? ` às ${r.time}` : ""}
+              </span>
+              <div className="timer-nudge-actions">
+                <button
+                  type="button"
+                  className="btn btn-accent"
+                  onClick={() => board.updateReminder(r.id, { done: true })}
+                >
+                  <CheckIcon /> Concluir
+                </button>
+                <button
+                  type="button"
+                  className="icon-btn timer-nudge-close"
+                  onClick={() => setDismissedReminders((s) => new Set(s).add(r.id))}
+                  aria-label="Dispensar"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          ))
+      : [];
+
+  if (!overdueBanner && !upcomingBanner && reminderBanners.length === 0) return null;
 
   return (
     <div className="timer-nudge-stack">
       {overdueBanner}
       {upcomingBanner}
+      {reminderBanners}
     </div>
   );
 }

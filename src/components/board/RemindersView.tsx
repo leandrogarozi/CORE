@@ -6,6 +6,7 @@ import { useBoardCtx } from "./board-context";
 import { BellIcon, CheckIcon, RepeatIcon, TrashIcon, WeekIcon } from "./icons";
 import { fmtShortDate, todayISO } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
+import { REMINDER_ALERT_PRESETS } from "@/lib/board/reminder-alerts";
 import type { Reminder, Repeat } from "@/lib/types";
 
 const REPEATS: { v: Repeat; l: string }[] = [
@@ -31,6 +32,7 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
   const [dateDraft, setDateDraft] = useState(reminder.date ?? "");
   const [timeDraft, setTimeDraft] = useState(reminder.time ?? "");
   const [repeatDraft, setRepeatDraft] = useState<Repeat>(reminder.repeat);
+  const [alertDraft, setAlertDraft] = useState<number | null>(reminder.alertMinutesBefore);
   const btnRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
   const pos = useClampedPopoverPos(anchorRect, popRef);
@@ -54,6 +56,7 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
     setDateDraft(reminder.date ?? "");
     setTimeDraft(reminder.time ?? "");
     setRepeatDraft(reminder.repeat);
+    setAlertDraft(reminder.alertMinutesBefore);
     if (btnRef.current) {
       setAnchorRect(btnRef.current.getBoundingClientRect());
     }
@@ -65,14 +68,17 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
       date: nextDate,
       time: nextDate ? timeDraft || null : null,
       repeat: nextDate ? repeatDraft : "none",
+      alertMinutesBefore: nextDate ? alertDraft : null,
     });
     setAnchorRect(null);
   }
 
+  const alertLabel = REMINDER_ALERT_PRESETS.find((p) => p.v === reminder.alertMinutesBefore)?.l;
   const label = reminder.date
     ? fmtShortDate(reminder.date) +
       (reminder.time ? ` às ${reminder.time}` : "") +
-      (reminder.repeat !== "none" ? ` · ${REPEAT_SHORT[reminder.repeat]}` : "")
+      (reminder.repeat !== "none" ? ` · ${REPEAT_SHORT[reminder.repeat]}` : "") +
+      (reminder.alertMinutesBefore ? ` · aviso ${alertLabel}` : "")
     : null;
 
   return (
@@ -113,6 +119,18 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
               {REPEATS.map((r) => (
                 <option key={r.v} value={r.v}>
                   {r.l}
+                </option>
+              ))}
+            </select>
+            <select
+              className="reminder-repeat-select"
+              value={alertDraft ?? ""}
+              disabled={!dateDraft}
+              onChange={(e) => setAlertDraft(e.target.value ? Number(e.target.value) : null)}
+            >
+              {REMINDER_ALERT_PRESETS.map((p) => (
+                <option key={p.l} value={p.v ?? ""}>
+                  {p.l}
                 </option>
               ))}
             </select>
