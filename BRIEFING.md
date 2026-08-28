@@ -788,6 +788,13 @@ de feature flags que já existe pra água/dieta/sono/humor
       via WhatsApp Business Calling API, mas exige conta Business
       verificada, aprovação da Meta e tem custo por minuto; não começar
       sem ele confirmar.
+- [ ] **Layout mobile desconfigurado** — confirmado pelo Leandro
+      (28/08): "o app no mobile ainda fica todo desconfigurado".
+      Explicitamente adiado por ele — "isso corrigimos mais pra frente
+      depois de implementar as coisas mais importantes", só registrar
+      por ora. Precisa de uma revisão de responsividade completa (não
+      um ajuste pontual) quando chegar a vez: layout geral, popovers,
+      tabelas/grids, menu lateral etc. em telas pequenas.
 - [ ] Ferramentas / Roda da Vida
 - [ ] Relatório cruzando dados (tarefas × hábitos × humor × sono etc.)
 - [ ] Observação do humor no dashboard alimentada por IA (rotina agendada
