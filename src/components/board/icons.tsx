@@ -466,3 +466,18 @@ export function SettingsIcon() {
     </svg>
   );
 }
+
+export function EraserIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
+      <path
+        d="M4 16L14 4L20 10L11 20H7L4 16Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M7 20H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}

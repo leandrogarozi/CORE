@@ -137,6 +137,49 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Leva "AJUSTES FARO APP": itens fáceis da lista (28/08)
+
+- O Leandro colou uma lista grande de próximos passos ("AJUSTES FARO
+  APP"), pedindo pra executar pelos mais fáceis primeiro. Itens feitos
+  nesta leva:
+  - **TimePicker não rolava**: bug real de flexbox — a coluna
+    (`.time-picker-col`) tinha `overflow-y:auto` mas sem altura
+    definida nem `min-height:0`, então o navegador simplesmente
+    esticava a caixa em vez de rolar (clássico bug de flex item com
+    overflow). `.time-picker-pop` ganhou altura fixa (`height:190px`)
+    e as colunas `min-height:0` — junto com `-webkit-overflow-
+    scrolling:touch` e `touch-action:pan-y` pra rolagem por toque
+    funcionar bem em iOS. Também um indicador visual (⋮) discreto na
+    linha divisória, pro Leandro perceber que dá pra rolar ali —
+    pedido: *"colocar uma bolinha ou ícone de arrasta na linha no
+    meio... não precisa ter essa marcação cinza de rolagem pros 2 —
+    somente uma linha no meio."*
+  - **Lembretes: ordenar pelos mais próximos**: pedido *"organizar os
+    lembretes por datas pros mais próximos não ficar bagunçado."* A
+    lista (tanto vencidos quanto pendentes) agora ordena por data+hora
+    mais próxima primeiro; sem data marcada fica sempre por último.
+  - **Botão "Limpar" vira ícone de borrachinha**: pedido *"trocar o
+    botão limpar com um ícone de borrachinha."* Novo `EraserIcon`
+    (desenhado à mão — o pack não tem ícone de borracha) no lugar do
+    botão de texto.
+- **Itens da mesma lista NÃO feitos ainda** (registrados aqui pra não
+  perder, com o motivo):
+  - **Observação nos Lembretes**: já estava pedido de novo na lista,
+    mas já tinha sido implementado numa leva anterior deste mesmo dia
+    — nada a fazer.
+  - **Vincular tarefas entre si / "PDA" (Plano de Ação) pra projetos
+    como um app financeiro**: o próprio Leandro pediu explicitamente
+    pra **discutir antes** de implementar — ainda não discutido.
+  - **Sinalizar visualmente tarefas com observação**: mesma coisa, o
+    Leandro pediu **"vamos discutir isso?"** — ainda não discutido.
+  - **Filtro em Lembretes** (recorrentes / dia / semana / atrasados) e
+    **redesenho do lembrete recorrente** (virar um cartão com
+    Status/descrição/tipo/data, parecido com a tabela de tarefas) —
+    maiores, ainda não iniciados.
+  - **Lembretes dentro de Tarefas** (poder marcar uma tarefa de fim de
+    semana pra também gerar um lembrete) — feature nova, ainda não
+    iniciada.
+
 ## Lembretes excluídos vão pra Lixeira + botão Limpar data/hora (28/08)
 
 - Dois bugs/pedidos do Leandro: **"lembretes excluídos não estão indo

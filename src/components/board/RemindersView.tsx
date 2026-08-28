@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
-import { BellIcon, CheckIcon, RepeatIcon, TrashIcon, WarningIcon, WeekIcon } from "./icons";
+import { BellIcon, CheckIcon, EraserIcon, RepeatIcon, TrashIcon, WarningIcon, WeekIcon } from "./icons";
 import { TimePicker } from "./TimePicker";
 import { DAY_NAMES, fmtShortDate, todayISO } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
-import { REMINDER_ALERT_PRESETS, isReminderOverdue } from "@/lib/board/reminder-alerts";
+import { REMINDER_ALERT_PRESETS, isReminderOverdue, reminderTargetMs } from "@/lib/board/reminder-alerts";
 import type { Reminder, Repeat } from "@/lib/types";
 
 const REPEATS: { v: Repeat; l: string }[] = [
@@ -26,6 +26,19 @@ const REPEAT_SHORT: Record<Repeat, string> = {
   monthly: "mensal",
   yearly: "anual",
 };
+
+// Ordena pelos mais próximos primeiro (vencidos: o que venceu há mais tempo primeiro);
+// sem data marcada fica sempre por último.
+function sortByClosestDate(list: Reminder[]): Reminder[] {
+  return [...list].sort((a, b) => {
+    const ta = reminderTargetMs(a);
+    const tb = reminderTargetMs(b);
+    if (ta === null && tb === null) return 0;
+    if (ta === null) return 1;
+    if (tb === null) return -1;
+    return ta - tb;
+  });
+}
 
 function ReminderDateButton({ reminder }: { reminder: Reminder }) {
   const { board } = useBoardCtx();
@@ -127,7 +140,7 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
               <TimePicker value={timeDraft} disabled={!dateDraft} onChange={setTimeDraft} />
               <button
                 type="button"
-                className="btn btn-ghost reminder-clear-btn"
+                className="icon-btn reminder-clear-btn"
                 disabled={!dateDraft && !timeDraft}
                 title="Limpar data e hora"
                 onClick={() => {
@@ -135,7 +148,7 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
                   setTimeDraft("");
                 }}
               >
-                Limpar
+                <EraserIcon />
               </button>
             </div>
             <div className="edit-field">
@@ -373,8 +386,8 @@ export function RemindersView({ onBack }: { onBack: () => void }) {
   }
 
   const notDone = board.state.reminders.filter((r) => !r.done);
-  const overdue = notDone.filter((r) => isReminderOverdue(r));
-  const pending = notDone.filter((r) => !isReminderOverdue(r));
+  const overdue = sortByClosestDate(notDone.filter((r) => isReminderOverdue(r)));
+  const pending = sortByClosestDate(notDone.filter((r) => !isReminderOverdue(r)));
   const done = board.state.reminders.filter((r) => r.done);
 
   return (
