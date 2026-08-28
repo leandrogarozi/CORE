@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { TimerButton } from "./TimerButton";
 import { StatusPicker } from "./StatusPicker";
+import { TimePicker } from "./TimePicker";
 import { BoltIcon, DuplicateIcon, FlagIcon, RepeatIcon, TrashIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
 import { CATEGORY_LABEL, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
@@ -261,7 +262,7 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
         <input type="date" value={vals.date || ""} onChange={(e) => setVals((v) => ({ ...v, date: e.target.value || null }))} />
         <label className="edit-field">
           <span className="edit-field-label">Hora</span>
-          <input type="time" value={vals.time} onChange={(e) => setVals((v) => ({ ...v, time: e.target.value }))} />
+          <TimePicker value={vals.time} onChange={(v) => setVals((s) => ({ ...s, time: v }))} />
         </label>
         <label className="edit-field">
           <span className="edit-field-label">Duração (min)</span>

@@ -6,6 +6,7 @@ import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
 import { ClockIcon, TrashIcon } from "./icons";
 import { ToggleSwitch } from "./ToggleSwitch";
+import { TimePicker } from "./TimePicker";
 import { DAY_NAMES, daysBetweenInclusive, fmtShortDate, isoAddDays, todayISO } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 import type { Medication, MedicationGroup } from "@/lib/types";
@@ -67,6 +68,7 @@ function ScheduleButton({
     if (!open) return;
     function onDocPointerDown(e: MouseEvent) {
       if (popRef.current?.contains(e.target as Node) || btnRef.current?.contains(e.target as Node)) return;
+      if ((e.target as HTMLElement).closest?.(".time-picker-pop")) return;
       setAnchorRect(null);
     }
     window.addEventListener("mousedown", onDocPointerDown);
@@ -122,15 +124,7 @@ function ScheduleButton({
       {open &&
         createPortal(
           <div className="daylog-popover" ref={popRef} style={{ top: pos.top, left: pos.left }}>
-            {showTime && (
-              <input
-                type="time"
-                autoFocus
-                value={timeDraft}
-                onChange={(e) => setTimeDraft(e.target.value)}
-                onKeyDown={(e) => e.key === "Escape" && setAnchorRect(null)}
-              />
-            )}
+            {showTime && <TimePicker value={timeDraft} onChange={setTimeDraft} autoFocus />}
             {showWeekDays && (
               <div className="edit-field">
                 <span className="edit-field-label">Dias da semana (vazio = todo dia)</span>

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { PlayIcon } from "./icons";
+import { TimePicker } from "./TimePicker";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 
 const DURATIONS = [15, 30, 40, 60, 90, 120];
@@ -35,6 +36,7 @@ export function MeetingButton() {
     if (!open) return;
     function onDocPointerDown(e: MouseEvent) {
       if (popRef.current?.contains(e.target as Node) || btnRef.current?.contains(e.target as Node)) return;
+      if ((e.target as HTMLElement).closest?.(".time-picker-pop")) return;
       setAnchorRect(null);
     }
     window.addEventListener("mousedown", onDocPointerDown);
@@ -79,17 +81,10 @@ export function MeetingButton() {
                     {durationLabel(d)}
                   </button>
                 ))}
-                <input
-                  type="time"
-                  step={60}
+                <TimePicker
                   className="meeting-duration-input"
                   value={duration != null ? minutesToHHMM(duration) : ""}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    if (!v) {
-                      setDuration(null);
-                      return;
-                    }
+                  onChange={(v) => {
                     const [h, m] = v.split(":").map(Number);
                     setDuration(h * 60 + m);
                   }}

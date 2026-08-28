@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { BellIcon, TrashIcon, WhatsAppIcon } from "./icons";
+import { TimePicker } from "./TimePicker";
 import { DAY_NAMES } from "@/lib/date-utils";
 import type { DietMeal } from "@/lib/types";
 import type { UseBoard } from "@/lib/board/use-board";
@@ -51,11 +52,7 @@ function DietMealRow({
           onBlur={commitName}
           onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
         />
-        <input
-          type="time"
-          value={meal.time}
-          onChange={(e) => board.updateDietMeal(meal.id, { time: e.target.value })}
-        />
+        <TimePicker value={meal.time} onChange={(v) => board.updateDietMeal(meal.id, { time: v })} />
         <button
           type="button"
           className={"icon-btn diet-meal-app-toggle" + (meal.active ? " active" : "")}
@@ -243,7 +240,7 @@ export function DietView({ onBack }: { onBack: () => void }) {
               onChange={(e) => setNewMealName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addMeal()}
             />
-            <input type="time" value={newMealTime} onChange={(e) => setNewMealTime(e.target.value)} />
+            <TimePicker value={newMealTime} onChange={setNewMealTime} />
             <button type="button" className="btn btn-ghost" onClick={addMeal}>
               Adicionar
             </button>

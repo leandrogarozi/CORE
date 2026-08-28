@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { BellIcon, CheckIcon, RepeatIcon, TrashIcon, WeekIcon } from "./icons";
+import { TimePicker } from "./TimePicker";
 import { DAY_NAMES, fmtShortDate, todayISO } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 import { REMINDER_ALERT_PRESETS } from "@/lib/board/reminder-alerts";
@@ -42,6 +43,7 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
     if (!open) return;
     function onDocPointerDown(e: MouseEvent) {
       if (popRef.current?.contains(e.target as Node) || btnRef.current?.contains(e.target as Node)) return;
+      if ((e.target as HTMLElement).closest?.(".time-picker-pop")) return;
       setAnchorRect(null);
     }
     window.addEventListener("mousedown", onDocPointerDown);
@@ -120,13 +122,7 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
               onChange={(e) => setDateDraft(e.target.value)}
               onKeyDown={(e) => e.key === "Escape" && setAnchorRect(null)}
             />
-            <input
-              type="time"
-              value={timeDraft}
-              disabled={!dateDraft}
-              onChange={(e) => setTimeDraft(e.target.value)}
-              onKeyDown={(e) => e.key === "Escape" && setAnchorRect(null)}
-            />
+            <TimePicker value={timeDraft} disabled={!dateDraft} onChange={setTimeDraft} />
             <div className="edit-field">
               <span className="edit-field-label">Repete nesses dias da semana (opcional)</span>
               <div className="weekday-picker">

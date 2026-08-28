@@ -137,6 +137,42 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Seletor de horário próprio, padronizado em todo o app (28/08)
+
+- Pedido do Leandro, com print do seletor nativo de horário (o
+  relógio do sistema, com os números 17/36 destacados em azul forte):
+  **"nos horários de todas as task vamos deixar assim tbm... só
+  gostaria que esses blocos com números ficassem menores - mais
+  discreto, esse azul tbm pode ser mais suave... a ideia é padronizar
+  e mudar em tudo"** — anexando como referência de "discreto" a
+  própria tag roxa que o app já usa (`.section-pill.accent`), pedindo
+  pra adaptar pro azul.
+- O seletor nativo do navegador (`<input type="time">`) não dá pra
+  restilizar — cada sistema operacional desenha o próprio, sem
+  controle nenhum via CSS (é por isso que aparecia grande/destacado
+  daquele jeito). Único jeito de padronizar de verdade era construir
+  um seletor próprio.
+- Novo componente `TimePicker` (`src/components/board/TimePicker.tsx`):
+  botão mostrando "HH:MM" que abre um popover com duas colunas
+  roláveis (horas e minutos), no mesmo padrão de popover do resto do
+  app (portal + `useClampedPopoverPos`). O número selecionado fica
+  destacado num "chip" pequeno e discreto.
+- Cor nova: `--info` / `--info-soft` (variáveis CSS, claro e escuro),
+  um azul discreto reaproveitando o tom que já existia em
+  `--book-blue`/`--flag-media`, com o mesmo fundo suave (soft) que a
+  tag roxa (`--accent-soft`) já usava — só trocando a cor.
+- Trocado em TODOS os lugares que tinham `<input type="time">`:
+  horário da tarefa (editor da tarefa), refeições da Dieta (linha e
+  "+ adicionar"), horário de lembrete, horário de remédio, duração da
+  reunião (o campo `--:--`), e os horários de "Acordou"/"Dormiu" do
+  sono. Um componente só, mesmo visual em todo lugar.
+- **Cuidado técnico**: como o `TimePicker` abre seu próprio popover
+  via portal (fora da árvore DOM do popover que o contém), os
+  popovers de Lembretes/Medicamentos/Reunião que já tinham lógica de
+  "fechar ao clicar fora" precisaram aprender a ignorar cliques dentro
+  do popover do `TimePicker` (checando `.closest(".time-picker-pop")`),
+  senão o popover de fora fechava sozinho ao escolher a hora.
+
 ## Vários cronômetros rodando ao mesmo tempo (28/08)
 
 - Pedido do Leandro: **"precisamos tbm deixar mais de 1 task contando

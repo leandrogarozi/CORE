@@ -10,6 +10,8 @@
   --accent:#4A47D5;
   --accent-contrast:#FFFFFF;
   --accent-soft:#EEEDFC;
+  --info:#3B82C4;
+  --info-soft:#E8F1FA;
   --cat-trabalho-text:#8A4A18;
   --cat-estudo-text:#1D5C86;
   --cat-dev-text:#5B3B87;
@@ -32,6 +34,7 @@
     --border:#333333; --border-strong:#444444;
     --text:#EEEEF1; --text-muted:#A4A4AE; --text-faint:#75757F;
     --accent:#8583F0; --accent-contrast:#111114; --accent-soft:#26254A;
+    --info:#6FAEE0; --info-soft:#1C2C3A;
     --cat-trabalho-text:#F0AE72; --cat-estudo-text:#7FC0EC; --cat-dev-text:#C9A6EE;
     --cat-saude-text:#86D69B; --cat-pessoal-text:#E8A0BE; --cat-familia-text:#6FD6CC;
     --flag-alta:#F0787C; --flag-media:#6FAEE0; --flag-baixa:#5FC97C;
@@ -286,7 +289,7 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   flex:1; min-width:0; background:none; border:none; border-radius:7px;
   padding:6px 8px; font-size:13px; color:var(--text);
 }
-.diet-meal-head input[type="time"]{ background:none; border:none; color:var(--text); font-size:12.5px; }
+.diet-meal-head .time-picker-btn{ background:none; border:none; color:var(--text); font-size:12.5px; padding:6px 4px; }
 .diet-meal-message{
   width:100%; resize:vertical; background:transparent; border:1px solid var(--border);
   border-radius:7px; padding:6px 8px; font-size:12px; color:var(--text); font-family:inherit; line-height:1.4;
@@ -296,7 +299,7 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   flex:1; background:none; border:none; border-radius:7px;
   padding:6px 8px; font-size:13px; color:var(--text);
 }
-.diet-meal-add input[type="time"]{ background:none; border:none; color:var(--text); font-size:12.5px; }
+.diet-meal-add .time-picker-btn{ background:none; border:none; color:var(--text); font-size:12.5px; padding:6px 4px; }
 .diet-channel-options{ display:flex; flex-wrap:wrap; gap:16px; margin-top:8px; }
 .diet-channel-option{
   display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--text-muted); cursor:pointer;
@@ -724,6 +727,26 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .day-view-value{ display:flex; flex-direction:column; gap:2px; }
 .day-view-time{ font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; }
 .day-view-note{ font-size:11.5px; color:var(--text-faint); }
+.time-picker-btn{
+  background:var(--bg); border:1px solid var(--border-strong); border-radius:7px;
+  padding:6px 8px; font-size:12.5px; color:var(--text); font-variant-numeric:tabular-nums;
+}
+.time-picker-btn:hover{ border-color:var(--accent); }
+.time-picker-btn:disabled{ opacity:0.5; cursor:not-allowed; }
+.time-picker-pop{
+  position:fixed; z-index:60; display:flex; gap:4px;
+  background:var(--surface); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow);
+  padding:6px; max-height:190px;
+}
+.time-picker-col{
+  display:flex; flex-direction:column; gap:1px; overflow-y:auto; width:36px; scrollbar-width:thin;
+}
+.time-picker-num{
+  flex:none; padding:5px 0; border-radius:6px; font-size:11.5px; font-variant-numeric:tabular-nums;
+  color:var(--text-muted); text-align:center;
+}
+.time-picker-num:hover{ background:var(--surface-2); color:var(--text); }
+.time-picker-num.selected{ background:var(--info-soft); color:var(--info); font-weight:700; }
 .weekday-picker{ display:flex; gap:4px; }
 .weekday-btn{
   width:26px; height:26px; border-radius:50%; border:1px solid var(--border-strong);

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
 import { BellIcon, WarningIcon } from "./icons";
+import { TimePicker } from "./TimePicker";
 import { dateFromISO, todayISO } from "@/lib/date-utils";
 import { isFeatureEnabled } from "@/lib/types";
 import { MOODS } from "@/lib/mood";
@@ -173,18 +174,16 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
             <div className="dl-sleep-inputs">
               <label className="dl-sleep-field">
                 <span>Acordou</span>
-                <input
-                  type="time"
+                <TimePicker
                   value={wokeAt}
-                  onChange={(e) => board.updateDailyLog(selectedDate, { wokeAt: e.target.value || null })}
+                  onChange={(v) => board.updateDailyLog(selectedDate, { wokeAt: v || null })}
                 />
               </label>
               <label className="dl-sleep-field">
                 <span>Dormiu</span>
-                <input
-                  type="time"
+                <TimePicker
                   value={sleptAt}
-                  onChange={(e) => board.updateDailyLog(selectedDate, { sleptAt: e.target.value || null })}
+                  onChange={(v) => board.updateDailyLog(selectedDate, { sleptAt: v || null })}
                 />
               </label>
             </div>
