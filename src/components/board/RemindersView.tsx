@@ -207,6 +207,13 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
   );
 }
 
+function reminderStatus(reminder: Reminder, overdue: boolean, dueToday: boolean) {
+  if (reminder.done) return { label: "Concluído", cls: "status-done" };
+  if (overdue) return { label: "Vencido", cls: "status-overdue" };
+  if (dueToday) return { label: "Hoje", cls: "status-today" };
+  return { label: "Pendente", cls: "status-pending" };
+}
+
 export function ReminderRow({ reminder }: { reminder: Reminder }) {
   const { board } = useBoardCtx();
   const [titleDraft, setTitleDraft] = useState<string | null>(null);
@@ -222,52 +229,55 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
   const overdue = isReminderOverdue(reminder);
   const dueToday = !reminder.done && !overdue && reminder.date === today;
   const isRecurring = reminder.repeat !== "none" || (reminder.weekDays?.length ?? 0) > 0;
+  const status = reminderStatus(reminder, overdue, dueToday);
 
   return (
     <div
       className={
-        "reminder-row" +
+        "reminder-card" +
         (reminder.done ? " done" : "") +
         (overdue ? " overdue" : "") +
         (dueToday ? " due-today" : "")
       }
     >
-      <button
-        type="button"
-        className={"reminder-check" + (reminder.done ? " done" : "")}
-        aria-label={reminder.done ? "Marcar como não concluído" : "Marcar como concluído"}
-        onClick={() => board.updateReminder(reminder.id, { done: !reminder.done })}
-      >
-        {reminder.done && <CheckIcon />}
-      </button>
+      <div className="reminder-card-top">
+        <button
+          type="button"
+          className={"reminder-status-chip " + status.cls}
+          title={reminder.done ? "Marcar como não concluído" : "Marcar como concluído"}
+          onClick={() => board.updateReminder(reminder.id, { done: !reminder.done })}
+        >
+          {reminder.done && <CheckIcon />}
+          {status.label}
+        </button>
+        <span className={"chip" + (isRecurring ? " chip-recurring" : " chip-oneoff")}>
+          {isRecurring && <RepeatIcon />} {isRecurring ? "Recorrente" : "Pontual"}
+        </span>
+        <span className="reminder-card-spacer" />
+        <CommentButton
+          value={reminder.note}
+          placeholder="Observação — cole um texto ou escreva algo..."
+          ariaLabel="Observação do lembrete"
+          onSave={(text) => board.updateReminder(reminder.id, { note: text || null })}
+        />
+        <ReminderDateButton reminder={reminder} />
+        <button
+          className="icon-btn danger-hover"
+          type="button"
+          title="Excluir"
+          onClick={() => board.deleteReminder(reminder.id)}
+        >
+          <TrashIcon />
+        </button>
+      </div>
       <input
         type="text"
-        className="reminder-title-input"
+        className="reminder-title-input reminder-card-title"
         value={titleDraft ?? reminder.title}
         onChange={(e) => setTitleDraft(e.target.value)}
         onBlur={commitTitle}
         onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
       />
-      {isRecurring && (
-        <span className="chip chip-recurring" title="Lembrete recorrente">
-          <RepeatIcon /> Recorrente
-        </span>
-      )}
-      <CommentButton
-        value={reminder.note}
-        placeholder="Observação — cole um texto ou escreva algo..."
-        ariaLabel="Observação do lembrete"
-        onSave={(text) => board.updateReminder(reminder.id, { note: text || null })}
-      />
-      <ReminderDateButton reminder={reminder} />
-      <button
-        className="icon-btn danger-hover"
-        type="button"
-        title="Excluir"
-        onClick={() => board.deleteReminder(reminder.id)}
-      >
-        <TrashIcon />
-      </button>
     </div>
   );
 }

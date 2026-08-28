@@ -970,6 +970,30 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .reminder-date-btn.has-date{ color:var(--text-muted); }
 .reminder-row .icon-btn{ padding:2px; }
 .reminder-row .icon-btn svg{ width:11px; height:11px; }
+.reminder-card{
+  display:flex; flex-direction:column; gap:5px; padding:8px 12px;
+  border-bottom:1px solid var(--border); background:var(--surface);
+}
+.reminder-card:last-child{ border-bottom:none; }
+.reminder-card.done{ opacity:0.6; }
+.reminder-card.done .reminder-card-title{ color:var(--text-faint); text-decoration:line-through; }
+.reminder-card.overdue{ background:color-mix(in srgb, var(--danger) 6%, var(--surface)); }
+.reminder-card.due-today{ background:color-mix(in srgb, var(--book-yellow) 8%, var(--surface)); }
+.reminder-card-top{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.reminder-card-spacer{ flex:1; min-width:4px; }
+.reminder-card .icon-btn{ padding:2px; }
+.reminder-card .icon-btn svg{ width:11px; height:11px; }
+.reminder-card-title{ font-size:13px; padding:0; }
+.reminder-status-chip{
+  display:inline-flex; align-items:center; gap:4px; flex:none;
+  font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.03em;
+  padding:3px 9px; border-radius:20px; background:var(--surface-2); color:var(--text-muted);
+}
+.reminder-status-chip svg{ width:9px; height:9px; }
+.reminder-status-chip.status-today{ background:color-mix(in srgb, var(--book-yellow) 22%, var(--surface)); color:var(--book-yellow); }
+.reminder-status-chip.status-overdue{ background:color-mix(in srgb, var(--danger) 16%, var(--surface)); color:var(--danger); }
+.reminder-status-chip.status-done{ background:color-mix(in srgb, var(--success) 16%, var(--surface)); color:var(--success); }
+.chip-oneoff{ background:var(--surface-2); color:var(--text-faint); }
 
 /* checklists */
 .checklist-card{ border-bottom:1px solid var(--border); }

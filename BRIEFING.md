@@ -137,6 +137,25 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Lembretes viram cartão (Status / descrição / tipo / data) (28/08)
+
+- Retomando o pedido de mais cedo: **"não estou gostando desses
+  recorrentes perdidos aí no meio — talvez marcar fazer uma marcação
+  como tag, porém em cima ter a descrição: Status / descrição / tipo /
+  data — meio parecido com as task, porém aqui no lembrete."**
+- `ReminderRow` virou um cartão de duas linhas: em cima, um chip de
+  **status** colorido (Pendente/Hoje/Vencido/Concluído — clicável,
+  substitui o check redondo antigo), um chip de **tipo**
+  (Recorrente/Pontual), e à direita observação/data/excluir; embaixo,
+  a **descrição** (título) numa linha só pra si, mais legível. Não
+  criei uma tabela de status configurável separada (como a dos
+  status de tarefa) — os 4 estados são calculados a partir do que já
+  existe (`done`, vencido, hoje), pra não duplicar conceito nem
+  precisar de mais uma tela de configuração.
+- Isso deixa os recorrentes no mesmo formato de cartão dos outros —
+  já não ficam mais "perdidos" porque toda linha agora tem a mesma
+  estrutura, só muda o chip de tipo.
+
 ## Projetos (PDA — Plano de Ação): tarefas vinculadas como etapas (28/08)
 
 - Conversa longa com o Leandro sobre o item "vincular tarefas" da
