@@ -1342,6 +1342,7 @@ export function useBoard(userId: string | null) {
         dietPct: null,
         dietNote: null,
         dietMealsChecked: [],
+        dietMealNotes: {},
         sleptAt: null,
         wokeAt: null,
         mood: null,
@@ -1359,6 +1360,7 @@ export function useBoard(userId: string | null) {
             diet_pct: merged.dietPct,
             diet_note: merged.dietNote,
             diet_meals_checked: merged.dietMealsChecked,
+            diet_meal_notes: merged.dietMealNotes,
             slept_at: merged.sleptAt,
             woke_at: merged.wokeAt,
             mood: merged.mood,
@@ -1378,6 +1380,17 @@ export function useBoard(userId: string | null) {
       const current = stateRef.current.dailyLogs[logDate]?.dietMealsChecked ?? [];
       const next = current.includes(mealId) ? current.filter((id) => id !== mealId) : [...current, mealId];
       updateDailyLog(logDate, { dietMealsChecked: next });
+    },
+    [updateDailyLog]
+  );
+
+  const setDietMealNote = useCallback(
+    (logDate: string, mealId: string, note: string) => {
+      const current = stateRef.current.dailyLogs[logDate]?.dietMealNotes ?? {};
+      const next = { ...current };
+      if (note.trim()) next[mealId] = note.trim();
+      else delete next[mealId];
+      updateDailyLog(logDate, { dietMealNotes: next });
     },
     [updateDailyLog]
   );
@@ -1485,6 +1498,7 @@ export function useBoard(userId: string | null) {
     uploadAvatar,
     updateDailyLog,
     toggleDietMealChecked,
+    setDietMealNote,
     addDietMeal,
     updateDietMeal,
     deleteDietMeal,

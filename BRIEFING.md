@@ -137,6 +137,28 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Dieta: observação por refeição no check diário (28/08)
+
+- Pedido do Leandro: um "balãozinho" de observação em cima de cada
+  refeição (café da manhã, almoço, lanche, jantar...) no check diário
+  — **"peguei nisso, comi mais disso...", "acho que valoriza tbm na
+  hora de pedir a IA para fazer um resumo, ver onde está errando mais
+  ou saindo do combinado"** — pedindo pra manter compacto, "igual está
+  o balão da porcentagem".
+- Reaproveitado o `CommentButton` que já existe pro campo de % (mesmo
+  ícone/popover compacto, sem inventar componente novo): cada chip de
+  refeição no painel do dia ganhou um `CommentButton` colado ao lado.
+  Só ocupa espaço quando aberto; quando tem observação salva, o ícone
+  fica marcado com um pontinho — mesmo padrão visual já usado no % e
+  no humor.
+- Dado novo: `DailyLog.dietMealNotes: Record<mealId, string>` — texto
+  livre por refeição, por dia (nova coluna jsonb `diet_meal_notes` em
+  `daily_logs`, migração `add_diet_meal_notes_to_daily_logs`). Leve:
+  só grava quando o Leandro escreve algo, sem estrutura extra.
+- Serve de matéria-prima pra quando a IA (FARO fase 2) puder resumir
+  padrões e desvios da dieta — ainda não implementado, só o dado fica
+  guardado desde já.
+
 ## Dieta: dias da semana nos lembretes de refeição (28/08)
 
 - Pedido do Leandro: **"colocar tbm nos lembretes da dieta os dias

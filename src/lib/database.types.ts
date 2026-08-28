@@ -97,6 +97,7 @@ export type Database = {
       }
       daily_logs: {
         Row: {
+          diet_meal_notes: Json
           diet_meals_checked: string[]
           diet_note: string | null
           diet_pct: number | null
@@ -110,6 +111,7 @@ export type Database = {
           woke_at: string | null
         }
         Insert: {
+          diet_meal_notes?: Json
           diet_meals_checked?: string[]
           diet_note?: string | null
           diet_pct?: number | null
@@ -123,6 +125,7 @@ export type Database = {
           woke_at?: string | null
         }
         Update: {
+          diet_meal_notes?: Json
           diet_meals_checked?: string[]
           diet_note?: string | null
           diet_pct?: number | null

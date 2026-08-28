@@ -120,6 +120,7 @@ export interface DailyLog {
   dietPct: number | null;
   dietNote: string | null;
   dietMealsChecked: string[]; // ids das refeições marcadas como "não pulei" hoje — não mede fidelidade, só presença
+  dietMealNotes: Record<string, string>; // mealId -> observação daquele dia (ex.: "pequei nisso, comi mais disso...")
   sleptAt: string | null; // "HH:MM"
   wokeAt: string | null; // "HH:MM"
   mood: number | null; // 1-5

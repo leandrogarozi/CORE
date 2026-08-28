@@ -429,6 +429,9 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 }
 .dl-diet-meal-chip:hover{ border-color:var(--success); }
 .dl-diet-meal-chip.checked{ border-color:var(--success); color:var(--success); background:color-mix(in srgb, var(--success) 10%, var(--surface)); }
+.dl-diet-meal-group{ display:inline-flex; align-items:center; gap:1px; flex:none; }
+.dl-diet-meal-group .comment-btn{ padding:2px; }
+.dl-diet-meal-group .comment-btn svg{ width:12px; height:12px; }
 .dl-mood-options{ display:flex; gap:6px; }
 .dl-mood-item{ position:relative; flex:1; }
 .dl-mood-btn{

@@ -22,6 +22,7 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
   const dietPct = log?.dietPct ?? null;
   const dietNote = log?.dietNote ?? null;
   const dietMealsChecked = log?.dietMealsChecked ?? [];
+  const dietMealNotes = log?.dietMealNotes ?? {};
   const selectedWeekDay = dateFromISO(selectedDate).getDay();
   const activeMeals = [...board.state.dietMeals]
     .filter((m) => m.active && (!m.weekDays || m.weekDays.length === 0 || m.weekDays.includes(selectedWeekDay)))
@@ -132,14 +133,21 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
                   {activeMeals.map((m) => {
                     const checked = dietMealsChecked.includes(m.id);
                     return (
-                      <button
-                        key={m.id}
-                        type="button"
-                        className={"dl-diet-meal-chip" + (checked ? " checked" : "")}
-                        onClick={() => board.toggleDietMealChecked(selectedDate, m.id)}
-                      >
-                        {checked ? "☑" : "☐"} {m.name}
-                      </button>
+                      <span key={m.id} className="dl-diet-meal-group">
+                        <button
+                          type="button"
+                          className={"dl-diet-meal-chip" + (checked ? " checked" : "")}
+                          onClick={() => board.toggleDietMealChecked(selectedDate, m.id)}
+                        >
+                          {checked ? "☑" : "☐"} {m.name}
+                        </button>
+                        <CommentButton
+                          value={dietMealNotes[m.id] ?? null}
+                          placeholder="peguei nisso, comi mais disso..."
+                          ariaLabel={`Observação — ${m.name}`}
+                          onSave={(text) => board.setDietMealNote(selectedDate, m.id, text)}
+                        />
+                      </span>
                     );
                   })}
                 </>

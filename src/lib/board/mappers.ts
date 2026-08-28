@@ -243,6 +243,7 @@ export function rowToDailyLog(row: DailyLogRow): DailyLog {
     dietPct: row.diet_pct,
     dietNote: row.diet_note,
     dietMealsChecked: row.diet_meals_checked ?? [],
+    dietMealNotes: (row.diet_meal_notes as Record<string, string> | null) ?? {},
     sleptAt: row.slept_at ? row.slept_at.slice(0, 5) : null,
     wokeAt: row.woke_at ? row.woke_at.slice(0, 5) : null,
     mood: row.mood,
