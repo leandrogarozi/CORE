@@ -134,6 +134,7 @@ export interface DailyLog {
 }
 
 export interface ActiveTimer {
+  id: string;
   kind: TimerKind;
   itemId: string;
   logDate: string;
@@ -245,6 +246,6 @@ export interface BoardState {
   medicationGroups: MedicationGroup[];
   checklists: Checklist[];
   settings: Settings;
-  activeTimer: ActiveTimer | null;
+  activeTimers: ActiveTimer[];
   dailyLogs: Record<string, DailyLog>; // iso date -> log
 }

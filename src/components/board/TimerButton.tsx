@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { PauseIcon, PlayIcon } from "./icons";
 import { fmtClock } from "@/lib/date-utils";
-import type { RecurringItem, Task, TimerKind } from "@/lib/types";
+import type { ActiveTimer, RecurringItem, Task, TimerKind } from "@/lib/types";
 
 function useElapsedSeconds(startedAt: number | undefined) {
   const [elapsed, setElapsed] = useState(0);
@@ -33,9 +33,10 @@ function baseTrackedSeconds(
 
 export function TimerButton({ kind, id, logDate }: { kind: TimerKind; id: string; logDate: string }) {
   const { board } = useBoardCtx();
-  const running = board.isTimerRunning(kind, id);
+  const at = board.state.activeTimers.find((t) => t.kind === kind && t.itemId === id);
+  const running = !!at;
   const item = board.findTrackable(kind, id);
-  const sessionElapsed = useElapsedSeconds(running ? board.state.activeTimer?.startedAt : undefined);
+  const sessionElapsed = useElapsedSeconds(at?.startedAt);
   const totalElapsed = baseTrackedSeconds(item, kind, logDate) + sessionElapsed;
 
   return (
@@ -56,12 +57,9 @@ export function TimerButton({ kind, id, logDate }: { kind: TimerKind; id: string
   );
 }
 
-export function ActiveTimerBadge() {
+function ActiveTimerBadgeItem({ at }: { at: ActiveTimer }) {
   const { board } = useBoardCtx();
-  const at = board.state.activeTimer;
-  const sessionElapsed = useElapsedSeconds(at?.startedAt);
-
-  if (!at) return null;
+  const sessionElapsed = useElapsedSeconds(at.startedAt);
   const item = board.findTrackable(at.kind, at.itemId);
   const label = item ? ("title" in item ? item.title : item.name) : at.kind === "task" ? "Tarefa" : at.kind === "habit" ? "Hábito" : "Bloco fixo";
   const totalElapsed = baseTrackedSeconds(item, at.kind, at.logDate) + sessionElapsed;
@@ -73,6 +71,21 @@ export function ActiveTimerBadge() {
       <button type="button" title="Pausar" onClick={() => board.toggleTimer(at.kind, at.itemId, at.logDate)}>
         <PauseIcon />
       </button>
+    </div>
+  );
+}
+
+export function ActiveTimerBadge() {
+  const { board } = useBoardCtx();
+  const activeTimers = board.state.activeTimers;
+
+  if (activeTimers.length === 0) return null;
+
+  return (
+    <div className="active-timer-badges">
+      {activeTimers.map((at) => (
+        <ActiveTimerBadgeItem key={at.id} at={at} />
+      ))}
     </div>
   );
 }

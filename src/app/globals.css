@@ -159,6 +159,7 @@ a{ color:inherit; }
 .profile-avatar-nav-btn:hover{ border-color:var(--accent); color:var(--accent); }
 .profile-avatar-nav-btn.active{ border-color:var(--accent); color:var(--accent); }
 .profile-avatar-nav-img{ object-fit:cover; }
+.active-timer-badges{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
 .active-timer-badge{
   display:flex; align-items:center; gap:7px;
   background:var(--accent-soft); color:var(--accent);

@@ -9,7 +9,7 @@ import { isReminderAlerting } from "@/lib/board/reminder-alerts";
 export function TimerNudges() {
   const { board } = useBoardCtx();
   const [nowMs, setNowMs] = useState<number | null>(null);
-  const [dismissedOverdueId, setDismissedOverdueId] = useState<string | null>(null);
+  const [dismissedOverdue, setDismissedOverdue] = useState<Set<string>>(new Set());
   const [dismissedUpcoming, setDismissedUpcoming] = useState<Set<string>>(new Set());
   const [dismissedReminders, setDismissedReminders] = useState<Set<string>>(new Set());
   const [dismissedDietMeals, setDismissedDietMeals] = useState<Set<string>>(new Set());
@@ -21,39 +21,41 @@ export function TimerNudges() {
     return () => clearInterval(h);
   }, []);
 
-  const at = board.state.activeTimer;
-  const activeTask = at?.kind === "task" ? board.state.tasks.find((t) => t.id === at.itemId) : null;
+  const activeTaskTimers =
+    nowMs !== null
+      ? board.state.activeTimers.filter((at) => at.kind === "task").flatMap((at) => {
+          const task = board.state.tasks.find((t) => t.id === at.itemId);
+          if (!task || !task.expectedDurationMin || dismissedOverdue.has(task.id)) return [];
+          const elapsedMin = Math.floor((nowMs! - at.startedAt) / 60000);
+          if (elapsedMin < task.expectedDurationMin) return [];
+          return [{ at, task }];
+        })
+      : [];
 
-  let overdueBanner: React.ReactNode = null;
-  if (nowMs !== null && at && activeTask && activeTask.expectedDurationMin && dismissedOverdueId !== activeTask.id) {
-    const elapsedMin = Math.floor((nowMs - at.startedAt) / 60000);
-    if (elapsedMin >= activeTask.expectedDurationMin) {
-      overdueBanner = (
-        <div className="timer-nudge" key="overdue">
-          <span className="timer-nudge-text">
-            <BellIcon filled />
-            &ldquo;{activeTask.title}&rdquo; já passou dos {activeTask.expectedDurationMin}min previstos. Terminou?
-          </span>
-          <div className="timer-nudge-actions">
-            <button type="button" className="btn btn-accent" onClick={() => board.concludeMeeting(activeTask.id)}>
-              <CheckIcon /> Concluir
-            </button>
-            <button type="button" className="btn btn-ghost" onClick={() => board.bumpExpectedDuration(activeTask.id, 15)}>
-              +15min
-            </button>
-            <button
-              type="button"
-              className="icon-btn timer-nudge-close"
-              onClick={() => setDismissedOverdueId(activeTask.id)}
-              aria-label="Dispensar"
-            >
-              ×
-            </button>
-          </div>
-        </div>
-      );
-    }
-  }
+  const overdueBanners = activeTaskTimers.map(({ task }) => (
+    <div className="timer-nudge" key={`overdue-${task.id}`}>
+      <span className="timer-nudge-text">
+        <BellIcon filled />
+        &ldquo;{task.title}&rdquo; já passou dos {task.expectedDurationMin}min previstos. Terminou?
+      </span>
+      <div className="timer-nudge-actions">
+        <button type="button" className="btn btn-accent" onClick={() => board.concludeMeeting(task.id)}>
+          <CheckIcon /> Concluir
+        </button>
+        <button type="button" className="btn btn-ghost" onClick={() => board.bumpExpectedDuration(task.id, 15)}>
+          +15min
+        </button>
+        <button
+          type="button"
+          className="icon-btn timer-nudge-close"
+          onClick={() => setDismissedOverdue((s) => new Set(s).add(task.id))}
+          aria-label="Dispensar"
+        >
+          ×
+        </button>
+      </div>
+    </div>
+  ));
 
   const today = todayISO();
   let upcoming: (typeof board.state.tasks)[number] | undefined;
@@ -63,7 +65,7 @@ export function TimerNudges() {
     upcoming = board.state.tasks.find((t) => {
       if (t.date !== today || !t.time || t.done) return false;
       if (dismissedUpcoming.has(t.id)) return false;
-      if (at?.kind === "task" && at.itemId === t.id) return false;
+      if (board.state.activeTimers.some((at) => at.kind === "task" && at.itemId === t.id)) return false;
       const [hh, mm] = t.time.split(":").map(Number);
       const taskMin = hh * 60 + mm;
       return nowMin >= taskMin - 5 && nowMin < taskMin;
@@ -178,11 +180,13 @@ export function TimerNudges() {
           ))
       : [];
 
-  if (!overdueBanner && !upcomingBanner && reminderBanners.length === 0 && dietBanners.length === 0) return null;
+  if (overdueBanners.length === 0 && !upcomingBanner && reminderBanners.length === 0 && dietBanners.length === 0) {
+    return null;
+  }
 
   return (
     <div className="timer-nudge-stack">
-      {overdueBanner}
+      {overdueBanners}
       {upcomingBanner}
       {reminderBanners}
       {dietBanners}

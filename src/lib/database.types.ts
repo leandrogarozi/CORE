@@ -16,24 +16,27 @@ export type Database = {
     Tables: {
       active_timer: {
         Row: {
-          item_id: string | null
-          kind: string | null
-          log_date: string | null
-          started_at: string | null
+          id: string
+          item_id: string
+          kind: string
+          log_date: string
+          started_at: string
           user_id: string
         }
         Insert: {
-          item_id?: string | null
-          kind?: string | null
-          log_date?: string | null
-          started_at?: string | null
+          id?: string
+          item_id: string
+          kind: string
+          log_date: string
+          started_at: string
           user_id: string
         }
         Update: {
-          item_id?: string | null
-          kind?: string | null
-          log_date?: string | null
-          started_at?: string | null
+          id?: string
+          item_id?: string
+          kind?: string
+          log_date?: string
+          started_at?: string
           user_id?: string
         }
         Relationships: []

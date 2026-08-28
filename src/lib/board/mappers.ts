@@ -289,12 +289,12 @@ export function dietMealToUpdateRow(m: Partial<DietMeal>): TablesUpdate<"diet_me
   return row;
 }
 
-export function rowToActiveTimer(row: ActiveTimerRow | null): ActiveTimer | null {
-  if (!row || !row.kind || !row.item_id || !row.started_at) return null;
+export function rowToActiveTimer(row: ActiveTimerRow): ActiveTimer {
   return {
+    id: row.id,
     kind: row.kind as TimerKind,
     itemId: row.item_id,
-    logDate: row.log_date ?? "",
+    logDate: row.log_date,
     startedAt: new Date(row.started_at).getTime(),
   };
 }

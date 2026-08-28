@@ -137,6 +137,41 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Vários cronômetros rodando ao mesmo tempo (28/08)
+
+- Pedido do Leandro: **"precisamos tbm deixar mais de 1 task contando
+  tempo - por exemplo enquanto eu vou pedindo pra vc me ajudar aqui eu
+  estou realizando outras tarefas tbm."**
+- Até aqui o app só permitia UM cronômetro ativo por vez: dar play em
+  outra tarefa pausava automaticamente a anterior (`activeTimer:
+  ActiveTimer | null`, e a tabela `active_timer` tinha `user_id` como
+  chave primária — só cabia uma linha por usuário).
+- Reestruturado pra permitir quantos cronômetros o Leandro quiser ao
+  mesmo tempo:
+  - Migração `allow_multiple_active_timers`: a tabela `active_timer`
+    ganha uma chave própria (`id uuid`), a antiga PK em `user_id` sai,
+    e as colunas viram `NOT NULL` (deixaram de precisar representar
+    "vazio" via linha ausente virando `null`).
+  - `BoardState.activeTimer` (um só) virou `activeTimers: ActiveTimer[]`
+    (lista) em todo o app — `use-board.ts`, `TimerButton.tsx`,
+    `TimerNudges.tsx`.
+  - Dar play numa tarefa/hábito/bloco NÃO pausa mais os outros
+    cronômetros em andamento — cada um roda e acumula tempo
+    independente.
+  - O badge do cronômetro ativo na topbar (antes um só) agora lista
+    todos os que estão rodando, cada um com seu próprio relógio e
+    botão de pausar.
+  - O aviso "passou do tempo previsto" (reuniões) também passou a
+    poder mostrar mais de um card ao mesmo tempo, um por tarefa
+    estourada, caso o Leandro tenha mais de uma reunião/tarefa
+    cronometrada passando do previsto simultaneamente.
+- **Limitação que continua valendo**: o relatório de horas e os
+  totais por categoria já somavam por item independente do timer estar
+  ativo ou não (cada tarefa/bloco guarda seu próprio `trackedSeconds`),
+  então nenhuma mudança foi necessária ali — múltiplos cronômetros
+  simultâneos só significam múltiplas linhas acumulando tempo ao mesmo
+  tempo, sem risco de um "roubar" o tempo do outro.
+
 ## Ícone do WhatsApp preenchido quando ativo + estratégias pra beber água (28/08)
 
 - Pedido do Leandro: **"os icons do zap quando ativado deixa eles

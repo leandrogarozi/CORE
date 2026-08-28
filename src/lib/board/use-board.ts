@@ -90,7 +90,7 @@ const EMPTY_STATE: BoardState = {
     dietAppOptIn: true,
     dietWhatsappOptIn: false,
   },
-  activeTimer: null,
+  activeTimers: [],
   dailyLogs: {},
 };
 
@@ -166,7 +166,7 @@ export function useBoard(userId: string | null) {
       supabase.from("checklists").select("*").order("created_at"),
       supabase.from("diet_meals").select("*").order("meal_time"),
       supabase.from("settings").select("*").maybeSingle(),
-      supabase.from("active_timer").select("*").maybeSingle(),
+      supabase.from("active_timer").select("*"),
       supabase.from("daily_logs").select("*"),
     ]);
 
@@ -189,7 +189,7 @@ export function useBoard(userId: string | null) {
       checklists: (checklistsRes.data ?? []).map(rowToChecklist),
       dietMeals: (dietMealsRes.data ?? []).map(rowToDietMeal),
       settings: rowToSettings(settingsRes.data ?? null),
-      activeTimer: rowToActiveTimer(timerRes.data ?? null),
+      activeTimers: (timerRes.data ?? []).map(rowToActiveTimer),
       dailyLogs,
     };
 
@@ -364,9 +364,10 @@ export function useBoard(userId: string | null) {
       const t = stateRef.current.tasks.find((x) => x.id === id);
       if (!t) return;
 
-      if (stateRef.current.activeTimer?.kind === "task" && stateRef.current.activeTimer.itemId === id) {
-        apply((s) => ({ ...s, activeTimer: null }));
-        supabase.from("active_timer").delete().eq("user_id", userId!).then(() => {});
+      const runningTimer = stateRef.current.activeTimers.find((at) => at.kind === "task" && at.itemId === id);
+      if (runningTimer) {
+        apply((s) => ({ ...s, activeTimers: s.activeTimers.filter((at) => at.id !== runningTimer.id) }));
+        supabase.from("active_timer").delete().eq("id", runningTimer.id).then(() => {});
       }
 
       const nowIso = new Date().toISOString();
@@ -428,7 +429,7 @@ export function useBoard(userId: string | null) {
         if (error) console.error("deleteTask stop series", error);
       });
     },
-    [apply, supabase, userId]
+    [apply, supabase]
   );
 
   const restoreTask = useCallback(
@@ -1009,16 +1010,17 @@ export function useBoard(userId: string | null) {
   const deleteRecurringItem = useCallback(
     (kind: "habit" | "block", id: string) => {
       const listKey = listKeyFor(kind);
-      if (stateRef.current.activeTimer?.kind === kind && stateRef.current.activeTimer.itemId === id) {
-        apply((s) => ({ ...s, activeTimer: null }));
-        supabase.from("active_timer").delete().eq("user_id", userId!).then(() => {});
+      const runningTimer = stateRef.current.activeTimers.find((at) => at.kind === kind && at.itemId === id);
+      if (runningTimer) {
+        apply((s) => ({ ...s, activeTimers: s.activeTimers.filter((at) => at.id !== runningTimer.id) }));
+        supabase.from("active_timer").delete().eq("id", runningTimer.id).then(() => {});
       }
       apply((s) => ({ ...s, [listKey]: s[listKey].filter((x) => x.id !== id) }));
       supabase.from(tableFor(kind)).delete().eq("id", id).then(({ error }) => {
         if (error) console.error("deleteRecurringItem", error);
       });
     },
-    [apply, supabase, userId]
+    [apply, supabase]
   );
 
   const deleteRecurringLog = useCallback(
@@ -1161,72 +1163,73 @@ export function useBoard(userId: string | null) {
     return list.find((x) => x.id === id);
   }, []);
 
-  const stopActiveTimer = useCallback(() => {
-    const at = stateRef.current.activeTimer;
-    if (!at || !userId) return;
-    const elapsed = Math.max(0, Math.floor((Date.now() - at.startedAt) / 1000));
-    if (at.kind === "task") {
-      const t = stateRef.current.tasks.find((x) => x.id === at.itemId);
-      if (t) {
-        const trackedSeconds = t.trackedSeconds + elapsed;
-        const durationMin = Math.round(trackedSeconds / 60);
+  const stopTimer = useCallback(
+    (at: ActiveTimer) => {
+      if (!userId) return;
+      const elapsed = Math.max(0, Math.floor((Date.now() - at.startedAt) / 1000));
+      if (at.kind === "task") {
+        const t = stateRef.current.tasks.find((x) => x.id === at.itemId);
+        if (t) {
+          const trackedSeconds = t.trackedSeconds + elapsed;
+          const durationMin = Math.round(trackedSeconds / 60);
+          apply((s) => ({
+            ...s,
+            tasks: s.tasks.map((x) => (x.id === at.itemId ? { ...x, trackedSeconds, durationMin } : x)),
+          }));
+          supabase
+            .from("tasks")
+            .update({ tracked_seconds: trackedSeconds, duration_minutes: durationMin })
+            .eq("id", at.itemId)
+            .then(({ error }) => {
+              if (error) console.error("stopTimer task", error);
+            });
+        }
+      } else {
+        const kind = at.kind;
+        const listKey = listKeyFor(kind);
+        const item = stateRef.current[listKey].find((x) => x.id === at.itemId);
+        const prevSeconds = item?.logs[at.logDate]?.trackedSeconds || 0;
+        const trackedSeconds = prevSeconds + elapsed;
         apply((s) => ({
           ...s,
-          tasks: s.tasks.map((x) => (x.id === at.itemId ? { ...x, trackedSeconds, durationMin } : x)),
+          [listKey]: s[listKey].map((x) =>
+            x.id === at.itemId
+              ? { ...x, logs: { ...x.logs, [at.logDate]: { ...x.logs[at.logDate], checked: true, trackedSeconds } } }
+              : x
+          ),
         }));
-        supabase
-          .from("tasks")
-          .update({ tracked_seconds: trackedSeconds, duration_minutes: durationMin })
-          .eq("id", at.itemId)
-          .then(({ error }) => {
-            if (error) console.error("stopActiveTimer task", error);
-          });
+        upsertRecurringLog(kind, at.itemId, at.logDate, trackedSeconds, userId);
       }
-    } else {
-      const kind = at.kind;
-      const listKey = listKeyFor(kind);
-      const item = stateRef.current[listKey].find((x) => x.id === at.itemId);
-      const prevSeconds = item?.logs[at.logDate]?.trackedSeconds || 0;
-      const trackedSeconds = prevSeconds + elapsed;
-      apply((s) => ({
-        ...s,
-        [listKey]: s[listKey].map((x) =>
-          x.id === at.itemId
-            ? { ...x, logs: { ...x.logs, [at.logDate]: { ...x.logs[at.logDate], checked: true, trackedSeconds } } }
-            : x
-        ),
-      }));
-      upsertRecurringLog(kind, at.itemId, at.logDate, trackedSeconds, userId);
-    }
-  }, [apply, supabase, upsertRecurringLog, userId]);
+    },
+    [apply, supabase, upsertRecurringLog, userId]
+  );
 
   const toggleTimer = useCallback(
     (kind: TimerKind, id: string, logDate: string) => {
       if (!userId) return;
-      const already = stateRef.current.activeTimer?.kind === kind && stateRef.current.activeTimer.itemId === id;
-      stopActiveTimer();
-      if (already) {
-        apply((s) => ({ ...s, activeTimer: null }));
-        supabase.from("active_timer").delete().eq("user_id", userId).then(() => {});
+      const running = stateRef.current.activeTimers.find((at) => at.kind === kind && at.itemId === id);
+      if (running) {
+        stopTimer(running);
+        apply((s) => ({ ...s, activeTimers: s.activeTimers.filter((at) => at.id !== running.id) }));
+        supabase.from("active_timer").delete().eq("id", running.id).then(() => {});
         return;
       }
-      const at: ActiveTimer = { kind, itemId: id, logDate, startedAt: Date.now() };
-      apply((s) => ({ ...s, activeTimer: at }));
+      const at: ActiveTimer = { id: uid(), kind, itemId: id, logDate, startedAt: Date.now() };
+      apply((s) => ({ ...s, activeTimers: [...s.activeTimers, at] }));
       supabase
         .from("active_timer")
-        .upsert({ user_id: userId, kind, item_id: id, log_date: logDate, started_at: new Date(at.startedAt).toISOString() })
+        .insert({ id: at.id, user_id: userId, kind, item_id: id, log_date: logDate, started_at: new Date(at.startedAt).toISOString() })
         .then(({ error }) => {
           if (error) console.error("toggleTimer", error);
         });
     },
-    [apply, stopActiveTimer, supabase, userId]
+    [apply, stopTimer, supabase, userId]
   );
 
   // ---------- reuniões rápidas ----------
   const startMeeting = useCallback(
     (title: string, expectedDurationMin: number) => {
       if (!userId || !title.trim()) return;
-      stopActiveTimer();
       const today = todayISO();
       const now = new Date();
       const time = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
@@ -1249,19 +1252,19 @@ export function useBoard(userId: string | null) {
         statusId: defaultStatusId(),
         deletedAt: null,
       };
-      const at: ActiveTimer = { kind: "task", itemId: t.id, logDate: today, startedAt: Date.now() };
-      apply((s) => ({ ...s, tasks: [...s.tasks, t], activeTimer: at }));
+      const at: ActiveTimer = { id: uid(), kind: "task", itemId: t.id, logDate: today, startedAt: Date.now() };
+      apply((s) => ({ ...s, tasks: [...s.tasks, t], activeTimers: [...s.activeTimers, at] }));
       supabase.from("tasks").insert(taskToInsertRow(t, userId)).then(({ error }) => {
         if (error) console.error("startMeeting task", error);
       });
       supabase
         .from("active_timer")
-        .upsert({ user_id: userId, kind: "task", item_id: t.id, log_date: today, started_at: new Date(at.startedAt).toISOString() })
+        .insert({ id: at.id, user_id: userId, kind: "task", item_id: t.id, log_date: today, started_at: new Date(at.startedAt).toISOString() })
         .then(({ error }) => {
           if (error) console.error("startMeeting timer", error);
         });
     },
-    [apply, defaultStatusId, nextOrder, stopActiveTimer, supabase, userId]
+    [apply, defaultStatusId, nextOrder, supabase, userId]
   );
 
   const bumpExpectedDuration = useCallback(
@@ -1279,8 +1282,8 @@ export function useBoard(userId: string | null) {
 
   const concludeMeeting = useCallback(
     (taskId: string) => {
-      const at = stateRef.current.activeTimer;
-      if (at?.kind === "task" && at.itemId === taskId) {
+      const at = stateRef.current.activeTimers.find((t) => t.kind === "task" && t.itemId === taskId);
+      if (at) {
         toggleTimer("task", taskId, at.logDate);
       }
       const doneStatus = stateRef.current.taskStatuses.find((s) => s.isDone);
@@ -1453,7 +1456,7 @@ export function useBoard(userId: string | null) {
     loading,
     reload: load,
     isTimerRunning: (kind: TimerKind, id: string) =>
-      state.activeTimer?.kind === kind && state.activeTimer.itemId === id,
+      state.activeTimers.some((at) => at.kind === kind && at.itemId === id),
     findTrackable,
     addTask,
     setTaskStatus,
