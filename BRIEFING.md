@@ -349,6 +349,15 @@ de feature flags que já existe pra água/dieta/sono/humor
     (`.reminders-btn-count`), mostra a contagem (atrasados, se houver
     algum; senão os de hoje), com "9+" acima de 9 pra não estourar o
     tamanho do badge.
+  - **Correção (28/08)**: o círculo colorido em volta do sino não era
+    o que o Leandro queria — ele quis dizer o **ícone do sino em si
+    preenchido/pintado por dentro** (não "envolto numa bola"), vazado
+    (só contorno) quando não tem nada pendente. Como o pack de ícones
+    não tem uma versão sólida do sino (só contorno, igual todo o
+    resto do pack), desenhado um `BellIcon` preenchido como exceção
+    (`filled?: boolean`, mesmo padrão do `BoltIcon`/`PillIcon`) — usa
+    o desenho clássico de sino de notificação preenchido, sem o
+    círculo de fundo. O badge numérico no canto continua.
 
 ## Decisões de design (visual)
 

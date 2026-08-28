@@ -240,7 +240,7 @@ export function RemindersButton({ onOpenFull }: { onOpenFull: () => void }) {
     <>
       <button ref={btnRef} type="button" className="reminders-btn" onClick={toggleOpen}>
         <span className={"reminders-btn-bell" + (hasOverdue ? " overdue" : hasDueToday ? " due-today" : "")}>
-          <BellIcon />
+          <BellIcon filled={hasOverdue || hasDueToday} />
           {badgeCount > 0 && <span className="reminders-btn-count">{badgeCount > 9 ? "9+" : badgeCount}</span>}
         </span>
         Lembretes
