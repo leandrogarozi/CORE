@@ -70,11 +70,12 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
 
   function save() {
     const nextDate = dateDraft || null;
+    const hasWeekDays = weekDraft.length > 0 && weekDraft.length < 7;
     board.updateReminder(reminder.id, {
       date: nextDate,
       time: nextDate ? timeDraft || null : null,
-      repeat: nextDate ? repeatDraft : "none",
-      weekDays: weekDraft.length > 0 && weekDraft.length < 7 ? [...weekDraft].sort((a, b) => a - b) : null,
+      repeat: hasWeekDays ? "none" : nextDate ? repeatDraft : "none",
+      weekDays: hasWeekDays ? [...weekDraft].sort((a, b) => a - b) : null,
       alertMinutesBefore: nextDate ? alertDraft : null,
     });
     setAnchorRect(null);
@@ -144,8 +145,9 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
             </div>
             <select
               className="reminder-repeat-select"
-              value={repeatDraft}
-              disabled={!dateDraft}
+              value={weekDraft.length > 0 ? "none" : repeatDraft}
+              disabled={!dateDraft || weekDraft.length > 0}
+              title={weekDraft.length > 0 ? "Desativado — já repete nos dias da semana marcados acima" : undefined}
               onChange={(e) => setRepeatDraft(e.target.value as Repeat)}
             >
               {REPEATS.map((r) => (
