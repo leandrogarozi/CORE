@@ -134,7 +134,7 @@ export function TimerNudges() {
     nowWeekDay = now.getDay();
   }
   const dietBanners =
-    nowHM !== null
+    nowHM !== null && board.state.settings.dietAppOptIn
       ? board.state.dietMeals
           .filter(
             (m) =>

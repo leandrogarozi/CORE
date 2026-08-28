@@ -483,6 +483,7 @@ export type Database = {
           avatar_url: string | null
           birth_date: string | null
           daily_budget_hours: number
+          diet_app_opt_in: boolean
           diet_plan: string | null
           diet_whatsapp_opt_in: boolean
           feature_flags: Json
@@ -498,6 +499,7 @@ export type Database = {
           avatar_url?: string | null
           birth_date?: string | null
           daily_budget_hours?: number
+          diet_app_opt_in?: boolean
           diet_plan?: string | null
           diet_whatsapp_opt_in?: boolean
           feature_flags?: Json
@@ -513,6 +515,7 @@ export type Database = {
           avatar_url?: string | null
           birth_date?: string | null
           daily_budget_hours?: number
+          diet_app_opt_in?: boolean
           diet_plan?: string | null
           diet_whatsapp_opt_in?: boolean
           feature_flags?: Json

@@ -86,6 +86,7 @@ const EMPTY_STATE: BoardState = {
     notifyPhone: null,
     timezone: null,
     dietPlan: null,
+    dietAppOptIn: true,
     dietWhatsappOptIn: false,
   },
   activeTimer: null,
@@ -1307,6 +1308,7 @@ export function useBoard(userId: string | null) {
           notify_phone: merged.notifyPhone,
           timezone: merged.timezone,
           diet_plan: merged.dietPlan,
+          diet_app_opt_in: merged.dietAppOptIn,
           diet_whatsapp_opt_in: merged.dietWhatsappOptIn,
         })
         .then(({ error }) => {

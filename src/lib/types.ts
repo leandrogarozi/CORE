@@ -98,6 +98,7 @@ export interface Settings {
   notifyPhone: string | null; // WhatsApp/telefone — pra onde mandar notificações (dependência futura)
   timezone: string | null; // IANA tz, ex. "America/Sao_Paulo"; null = detectar do navegador
   dietPlan: string | null; // cadastro livre da dieta (plano, receitas, divisão de macros...)
+  dietAppOptIn: boolean; // quer lembretes de refeição dentro do app (aviso "Foco na dieta")
   dietWhatsappOptIn: boolean; // usuário confirmou que quer avisos de refeição também pelo WhatsApp (notifyPhone)
 }
 

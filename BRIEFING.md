@@ -137,6 +137,56 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Dieta: canais de lembrete mais simples e balão de observação flutuante (28/08)
+
+- Duas correções pedidas pelo Leandro depois de ver a tela funcionando:
+  - **Balão de observação por refeição**: o ícone de comentário ficava
+    solto ao lado do chip, ocupando espaço na linha. Pedido: *"quero
+    esse mesmo sisteminha de balão nas refeições — ele fica no
+    balãozinho branco anexo à tag, quando adicionar obs ele fica
+    marcado a bolinha ou preenchido"* (mesmo visual já usado no chip
+    de humor). Ajustado só no CSS: o `CommentButton` agora fica
+    ancorado no canto do chip (círculo branco, borda e sombra), sem
+    ocupar espaço extra na linha.
+  - **Fluxo de WhatsApp confuso**: o texto *"Depois, marque o ícone de
+    WhatsApp em cada refeição..."* descrevia um comportamento que não
+    ficava claro na tela, e o botão por refeição usava um ícone de
+    "enviar" genérico. Feedback: **"teria que ser mais simples,
+    escolher: Onde quer ser lembrado: notificação dentro do app /
+    notificação via WhatsApp — aí pode marcar onde quer. Se marcar no
+    WhatsApp aí pede o telefone, sempre nas caixas de digitar tem que
+    ter um confirmar pra confirmar que ficou registrado. Depois abaixo,
+    quando cadastra as refeições, aí sim já fica sinalizado um ícone
+    de lembrete no app e no WhatsApp, tipo ativa/desativa: sininho pro
+    app, símbolo zap pro WhatsApp — e um pros dias, marcar os dias ou
+    todos os dias."**
+- Reescrito o topo da tela de Dieta: em vez de um yes/no de WhatsApp,
+  agora é **"Onde quer ser lembrado?"** com duas caixinhas
+  independentes — 🔔 notificação dentro do app (`Settings.dietAppOptIn`,
+  novo campo) e novo ícone de WhatsApp (`Settings.dietWhatsappOptIn`,
+  já existia). Marcando WhatsApp, aparece o campo de telefone — agora
+  com botão **Confirmar** explícito (e Enter confirma também) em vez
+  de só salvar no blur, mostrando "✓ Número salvo" depois de confirmado.
+- Cada refeição cadastrada agora mostra dois ícones de ativa/desativa
+  lado a lado — sino (lembrete no app, `DietMeal.active`) e o mesmo
+  ícone de WhatsApp do topo (`DietMeal.notifyWhatsapp`) — em vez do
+  toggle genérico + botão condicional de antes. Cada um fica
+  desabilitado (acinzentado, com dica) se o canal correspondente
+  estiver desligado lá em cima.
+- Seletor de dias da semana da refeição ganhou um botão **"Todos"**
+  explícito ao lado dos D S T Q Q S S, em vez de depender de deixar
+  tudo vazio (removida a legenda "(vazio = todo dia)", que o Leandro
+  não gostou).
+- O aviso "🎯 Foco na dieta" (TimerNudges) agora respeita o novo
+  `Settings.dietAppOptIn`: se a pessoa desligar notificação dentro do
+  app, nenhum aviso de refeição aparece, independente do que estiver
+  marcado em cada refeição.
+- Ícone de WhatsApp novo (`WhatsAppIcon`, `icons.tsx`) é derivado do
+  pack (mesmo path do `Chat_Circle.svg`, convertido pro padrão do
+  projeto) — não existe um ícone de WhatsApp de verdade no pack, então
+  reaproveitado o de "balão de conversa" mais próximo, sem desenhar
+  do zero.
+
 ## Dieta: observação por refeição no check diário (28/08)
 
 - Pedido do Leandro: um "balãozinho" de observação em cima de cada

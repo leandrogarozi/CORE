@@ -233,6 +233,7 @@ export function rowToSettings(row: SettingsRow | null): Settings {
     notifyPhone: row?.notify_phone ?? null,
     timezone: row?.timezone ?? null,
     dietPlan: row?.diet_plan ?? null,
+    dietAppOptIn: row?.diet_app_opt_in ?? true,
     dietWhatsappOptIn: row?.diet_whatsapp_opt_in ?? false,
   };
 }
