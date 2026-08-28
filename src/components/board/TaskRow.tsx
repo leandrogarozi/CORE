@@ -77,6 +77,16 @@ function priorityColor(p: Priority) {
   return p === "alta" ? "var(--flag-alta)" : p === "media" ? "var(--flag-media)" : "var(--flag-baixa)";
 }
 
+function priorityLabel(p: Priority) {
+  return p === "alta" ? "Alta prioridade" : p === "media" ? "Média prioridade" : "Baixa prioridade";
+}
+
+function nextPriority(p: Priority): Priority {
+  if (p === "media") return "alta";
+  if (p === "alta") return "baixa";
+  return "media";
+}
+
 interface TaskRowProps {
   task: Task;
   draggable: boolean;
@@ -148,12 +158,17 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
         )}
         <CategoryChip category={t.category} />
       </div>
-      <span
-        className="flag"
-        title={t.priority === "alta" ? "Alta prioridade" : t.priority === "media" ? "Média prioridade" : "Baixa prioridade"}
+      <button
+        type="button"
+        className="flag flag-btn"
+        title={`${priorityLabel(t.priority)} — clique pra mudar`}
+        onClick={(e) => {
+          e.stopPropagation();
+          board.setPriority(t.id, nextPriority(t.priority));
+        }}
       >
         <FlagIcon color={priorityColor(t.priority)} />
-      </span>
+      </button>
       <TimerButton kind="task" id={t.id} logDate={todayISO()} />
       <button
         className="icon-btn"

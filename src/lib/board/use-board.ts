@@ -277,6 +277,16 @@ export function useBoard(userId: string | null) {
     [apply, supabase]
   );
 
+  const setPriority = useCallback(
+    (id: string, priority: Priority) => {
+      apply((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === id ? { ...x, priority } : x)) }));
+      supabase.from("tasks").update({ priority }).eq("id", id).then(({ error }) => {
+        if (error) console.error("setPriority", error);
+      });
+    },
+    [apply, supabase]
+  );
+
   const reorderBucket = useCallback(
     (bucketKey: string, orderedIds: string[]) => {
       apply((s) => ({
@@ -1213,6 +1223,7 @@ export function useBoard(userId: string | null) {
     addTask,
     setTaskStatus,
     setQuick,
+    setPriority,
     reorderBucket,
     duplicateTask,
     deleteTask,

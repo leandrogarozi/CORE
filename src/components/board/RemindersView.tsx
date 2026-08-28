@@ -236,11 +236,10 @@ export function RemindersButton({ onOpenFull }: { onOpenFull: () => void }) {
   return (
     <>
       <button ref={btnRef} type="button" className="reminders-btn" onClick={toggleOpen}>
-        <BellIcon />
+        <span className={"reminders-btn-bell" + (hasOverdue ? " overdue" : hasDueToday ? " due-today" : "")}>
+          <BellIcon />
+        </span>
         Lembretes
-        {(hasOverdue || hasDueToday) && (
-          <span className={"reminders-btn-dot" + (hasOverdue ? " overdue" : "")} aria-hidden="true" />
-        )}
       </button>
       {open &&
         pos &&

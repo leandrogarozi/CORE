@@ -107,11 +107,24 @@ por dificuldade:
 
 ## Busca e Calendário (topbar)
 
-- **Busca de tarefas**: campo de busca na topbar, ao lado do nome FARO
-  (`TaskSearch.tsx`). Filtra por título (case-insensitive) em todas as
-  tarefas, mostra até 8 resultados num popover com título + data (ou
-  "Sem data"). Clicar num resultado navega pro dia da tarefa (ou pro
-  Painel do dia, se for backlog sem data).
+- **Busca total (28/08)**: campo de busca na topbar, ao lado do nome
+  FARO (`TaskSearch.tsx`). Virou busca de verdade "em tudo" — pedido
+  do Leandro pra não ficar só em tarefas. Busca por título em Tarefas,
+  Lembretes e Livros, e também pelo texto de observações (nota da
+  tarefa, insights do livro) — se o termo só aparece na observação
+  (não no título), o resultado mostra um trecho da observação como
+  subtítulo em vez da data/status, pra ficar claro por que apareceu.
+  - **Seletor de escopo**: `<select>` no topo do popover de resultados
+    — "Busca total" (padrão, tudo junto), ou filtrar só Tarefas /
+    Lembretes / Livros. Ideia do próprio Leandro ("um menu suspenso
+    pra escolher").
+  - Cada resultado mostra uma etiqueta pequena do tipo (Tarefa/
+    Lembrete/Livro) antes do título, já que a lista agora mistura tipos
+    diferentes. Até 10 resultados.
+  - Clicar num resultado navega: tarefa → pro dia dela (ou Painel do
+    dia, se for backlog sem data, igual antes); lembrete/livro → abre
+    a tela de Lembretes/Livros (ainda não pula pro item específico
+    dentro da lista, só abre a tela certa).
 - **Botão "Hoje" na topbar**: ao lado da data, pula direto pro dia
   atual (mesma lógica do botão "Hoje" que já existia embaixo, na faixa
   de dias — os dois agora compartilham a mesma função `goToday`).
@@ -323,6 +336,11 @@ de feature flags que já existe pra água/dieta/sono/humor
     janela gratuita). Fica marcado como o item mais ambicioso dentro
     de "Notificações de lembrete" — não começar sem confirmação
     explícita do Leandro, até pelo custo envolvido.
+- **Sininho colorido em vez de bolinha (28/08)**: no atalho "Lembretes"
+  da home, o aviso de pendência não é mais uma bolinha na frente do
+  texto — agora o próprio ícone de sino muda de cor: amarelo
+  (`--book-yellow`) se tem lembrete pra hoje, vermelho (`--danger`) se
+  tem algo atrasado. Pedido do Leandro, mais direto visualmente.
 
 ## Decisões de design (visual)
 
@@ -333,6 +351,16 @@ de feature flags que já existe pra água/dieta/sono/humor
 - Bolinhas de status de tarefa: **sempre preenchidas com a cor**, não só
   quando "conclui a tarefa" — mais simples que a referência literal do
   ClickUp; decisão explícita do Leandro ("até prefiro assim").
+- **Bandeira de prioridade clicável (28/08)**: clicar direto na
+  bandeirinha da tabela de tarefas cicla a prioridade sem precisar
+  abrir a tarefa — Média → Alta → Baixa → Média (`setPriority` em
+  `use-board.ts`, direto por linha, sem passar pelo fluxo de edição
+  nem pelo prompt de escopo de recorrência, igual os raios de
+  velocidade já faziam). A cor de "Baixa prioridade" mudou de cinza
+  (`#9C9CA5`) pra verde (mesmo tom de `--success`) — antes tinha só
+  azul/vermelho, cinza parecia "sem prioridade"; agora as 3 cores do
+  ciclo (azul/vermelho/verde) ficam claramente diferentes, do jeito
+  que o Leandro descreveu o ciclo esperado.
 - Campos de comentário/observação (dieta, humor): ficam fechados como um
   ícone de balão; abrir um comentário existente mostra uma bolinha de
   notificação no ícone; salvar fecha de volta. Não deixar caixa de texto

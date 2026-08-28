@@ -7,7 +7,7 @@ import { DayStrip } from "./DayStrip";
 import { TaskListCard } from "./TaskListCard";
 import { WeekView } from "./WeekView";
 import { CalendarView } from "./CalendarView";
-import { TaskSearch } from "./TaskSearch";
+import { TaskSearch, type SearchResult } from "./TaskSearch";
 import { Dashboard } from "./Dashboard";
 import { HoursPanel } from "./HoursPanel";
 import { DailyLogPanel } from "./DailyLogPanel";
@@ -59,6 +59,12 @@ function BoardShell() {
     else setViewMode("day");
   }
 
+  function handleSearchNavigate(result: SearchResult) {
+    if (result.kind === "task") goToTask(result.task);
+    else if (result.kind === "reminder") setViewMode("reminders");
+    else setViewMode("books");
+  }
+
   const weekDatesISO = useMemo(() => {
     const from = new Date(weekAnchor);
     const to = new Date(weekAnchor);
@@ -83,7 +89,7 @@ function BoardShell() {
           <MenuIcon />
         </button>
         <div className="brand">FARO</div>
-        <TaskSearch onNavigate={goToTask} />
+        <TaskSearch onNavigate={handleSearchNavigate} />
         <div className="topbar-right">
           <ActiveTimerBadge />
           <div className="today-date mono">{longLabel(todayISO())}</div>

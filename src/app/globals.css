@@ -18,7 +18,7 @@
   --cat-familia-text:#12615C;
   --flag-alta:#E5484D;
   --flag-media:#3B82C4;
-  --flag-baixa:#9C9CA5;
+  --flag-baixa:#2F9E44;
   --success:#2F9E44;
   --danger:#E5484D;
   --book-blue:#3B82C4;
@@ -34,7 +34,7 @@
     --accent:#8583F0; --accent-contrast:#111114; --accent-soft:#26254A;
     --cat-trabalho-text:#F0AE72; --cat-estudo-text:#7FC0EC; --cat-dev-text:#C9A6EE;
     --cat-saude-text:#86D69B; --cat-pessoal-text:#E8A0BE; --cat-familia-text:#6FD6CC;
-    --flag-alta:#F0787C; --flag-media:#6FAEE0; --flag-baixa:#75757F;
+    --flag-alta:#F0787C; --flag-media:#6FAEE0; --flag-baixa:#5FC97C;
     --success:#5FC97C; --danger:#F0787C;
     --book-blue:#6FAEE0; --book-yellow:#F5C968; --warn-text-mix:white;
     --shadow:0 1px 2px rgba(0,0,0,0.35), 0 4px 16px rgba(0,0,0,0.4);
@@ -93,13 +93,24 @@ a{ color:inherit; }
   background:var(--surface); border:1px solid var(--border); border-radius:9px; box-shadow:var(--shadow);
   padding:4px; display:flex; flex-direction:column; gap:1px;
 }
+.search-scope-select{
+  background:var(--bg); border:1px solid var(--border-strong); border-radius:7px;
+  padding:5px 6px; font-size:11.5px; color:var(--text); margin-bottom:3px;
+}
 .search-result{
   display:flex; align-items:center; justify-content:space-between; gap:10px;
   padding:7px 8px; border-radius:6px; font-size:12.5px; text-align:left;
 }
 .search-result:hover{ background:var(--surface-2); }
+.search-result-kind{
+  flex:none; font-size:9px; font-weight:600; text-transform:uppercase; letter-spacing:0.03em;
+  color:var(--text-faint); background:var(--surface-2); border-radius:4px; padding:2px 5px;
+}
 .search-result-title{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.search-result-date{ font-size:11px; color:var(--text-faint); flex:none; }
+.search-result-date{
+  font-size:11px; color:var(--text-faint); flex:none; max-width:45%;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
 .search-empty{ padding:10px 8px; font-size:12px; color:var(--text-faint); font-style:italic; }
 @media (max-width:640px){
   .today-date{ display:none; }
@@ -290,8 +301,9 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 }
 .reminders-btn svg{ width:13px; height:13px; }
 .reminders-btn:hover{ color:var(--text); }
-.reminders-btn-dot{ width:8px; height:8px; border-radius:50%; flex:none; background:var(--book-yellow); }
-.reminders-btn-dot.overdue{ background:var(--danger); }
+.reminders-btn-bell{ display:flex; flex:none; }
+.reminders-btn-bell.due-today{ color:var(--book-yellow); }
+.reminders-btn-bell.overdue{ color:var(--danger); }
 .reminders-popover{
   position:fixed; z-index:50; width:min(340px, 92vw); max-height:75vh; overflow-y:auto;
   background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow);
@@ -551,6 +563,8 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .row-time{ font-size:10px; color:var(--text-muted); white-space:nowrap; flex:none; }
 .chip{ font-size:9px; font-weight:600; padding:1px 7px; border-radius:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .flag{ width:12px; height:12px; display:flex; align-items:center; justify-self:center; }
+.flag-btn{ padding:0; }
+.flag-btn:hover{ filter:brightness(1.2); }
 .task-row > .icon-btn, .task-row > .timer-wrap{ justify-self:center; }
 .empty-row{ padding:14px 12px; font-size:12.5px; color:var(--text-faint); font-style:italic; }
 
