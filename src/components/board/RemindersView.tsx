@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
+import { CommentButton } from "./CommentButton";
 import { BellIcon, CheckIcon, RepeatIcon, TrashIcon, WarningIcon, WeekIcon } from "./icons";
 import { TimePicker } from "./TimePicker";
 import { DAY_NAMES, fmtShortDate, todayISO } from "@/lib/date-utils";
@@ -225,6 +226,12 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
           <RepeatIcon /> Recorrente
         </span>
       )}
+      <CommentButton
+        value={reminder.note}
+        placeholder="Observação — cole um texto ou escreva algo..."
+        ariaLabel="Observação do lembrete"
+        onSave={(text) => board.updateReminder(reminder.id, { note: text || null })}
+      />
       <ReminderDateButton reminder={reminder} />
       <button
         className="icon-btn danger-hover"

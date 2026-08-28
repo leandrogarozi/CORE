@@ -179,6 +179,7 @@ export interface Reminder {
   repeat: Repeat; // só faz sentido com date definido
   weekDays: number[] | null; // 0=dom..6=sáb — repetição por dia da semana (ex.: trocar filtro 2x/semana)
   alertMinutesBefore: number | null; // aviso antecipado (minutos antes de date+time), null = sem aviso
+  note: string | null; // observação livre — colar um texto, escrever algo
   done: boolean;
 }
 

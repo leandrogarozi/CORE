@@ -137,6 +137,15 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Observação nos Lembretes (28/08)
+
+- Pedido do Leandro: **"seria interessante também ter como adicionar
+  observações nos LEMBRETES — se quiser colar um texto, escrever
+  algo."**
+- Novo campo `Reminder.note` (texto livre), com o mesmo `CommentButton`
+  já usado em Dieta/humor/% — ícone de balão ao lado de cada lembrete,
+  abre um popover pra colar ou escrever qualquer observação.
+
 ## Lembretes vencidos ganham categoria própria, separada dos demais (28/08)
 
 - Pedido do Leandro, olhando a lista de Lembretes: **"sabe essa linha
