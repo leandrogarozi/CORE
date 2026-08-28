@@ -232,6 +232,7 @@ export function rowToSettings(row: SettingsRow | null): Settings {
     birthDate: row?.birth_date ?? null,
     notifyPhone: row?.notify_phone ?? null,
     timezone: row?.timezone ?? null,
+    waterStrategies: row?.water_strategies ?? null,
     dietPlan: row?.diet_plan ?? null,
     dietAppOptIn: row?.diet_app_opt_in ?? true,
     dietWhatsappOptIn: row?.diet_whatsapp_opt_in ?? false,

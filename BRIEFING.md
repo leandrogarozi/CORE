@@ -137,6 +137,30 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Ícone do WhatsApp preenchido quando ativo + estratégias pra beber água (28/08)
+
+- Pedido do Leandro: **"os icons do zap quando ativado deixa eles
+  preenchidos, pintado de verde assim como é o sininho para ficar mais
+  visível"**. `WhatsAppIcon` ganhou uma versão preenchida (mesmo
+  padrão hand-drawn do `BellIcon.filled`, já que o pack só tem
+  contorno) — usada no toggle de WhatsApp por refeição da Dieta.
+- Segundo pedido, sobre o campo Água do painel do dia: **"vamos
+  colocar um ícone de atenção e nas configurações um bloco: ideias
+  para manter o consumo de água... por exemplo garrafa de 1L com
+  borrachinha, cada litro reposiciono a borrachinha — seria legal
+  poder revisitar as estratégias pra não se perder ou quando perder a
+  rota"**.
+  - Novo campo `Settings.waterStrategies` (texto livre), com um bloco
+    dedicado dentro de Configurações → Painel do dia → Água ("Ideias
+    para manter o consumo de água"), só visível quando o widget de
+    Água está ligado.
+  - No painel do dia, o rótulo "💧 Água" ganhou um ícone de atenção
+    (`WarningIcon`, `Warning/Circle_Warning.svg` do pack) que abre o
+    mesmo popover compacto do `CommentButton` — dá pra ler e editar as
+    estratégias sem precisar ir em Configurações. `CommentButton`
+    ganhou um prop `icon` opcional pra permitir essa reutilização com
+    um ícone diferente do balão de comentário padrão.
+
 ## Limpeza visual: caixas de input sem contorno na Dieta, dias da semana menores (28/08)
 
 - Pedido do Leandro, com prints comparando: **"retira os contornos das

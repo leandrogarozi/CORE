@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { CommentIcon } from "./icons";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
@@ -68,11 +68,13 @@ export function CommentButton({
   placeholder,
   onSave,
   ariaLabel,
+  icon,
 }: {
   value: string | null;
   placeholder: string;
   onSave: (text: string) => void;
   ariaLabel: string;
+  icon?: ReactNode;
 }) {
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -96,7 +98,7 @@ export function CommentButton({
         title={value || ariaLabel}
         onClick={toggleOpen}
       >
-        <CommentIcon />
+        {icon ?? <CommentIcon />}
       </button>
       {anchorRect && (
         <CommentPopover

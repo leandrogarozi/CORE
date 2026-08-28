@@ -84,7 +84,7 @@ function DietMealRow({
           }
           onClick={() => whatsappOptIn && board.updateDietMeal(meal.id, { notifyWhatsapp: !meal.notifyWhatsapp })}
         >
-          <WhatsAppIcon />
+          <WhatsAppIcon filled={meal.notifyWhatsapp} />
         </button>
         <button
           type="button"

@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { useBoardCtx } from "./board-context";
-import { ChevronIcon, ClockIcon, FlagIcon, HomeIcon, TagIcon, TrashIcon } from "./icons";
+import { ChevronIcon, ClockIcon, FlagIcon, HomeIcon, TagIcon, TrashIcon, WaterDropIcon } from "./icons";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { CATEGORY_LABEL, OPTIONAL_FEATURES, isFeatureEnabled, type Category, type TaskStatus } from "@/lib/types";
 import type { UseBoard } from "@/lib/board/use-board";
@@ -99,6 +99,7 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
   const { board } = useBoardCtx();
   const [budgetInput, setBudgetInput] = useState<string | null>(null);
   const [waterGoalInput, setWaterGoalInput] = useState<string | null>(null);
+  const [waterStrategiesInput, setWaterStrategiesInput] = useState<string | null>(null);
   const [newStatusLabel, setNewStatusLabel] = useState("");
 
   const tagColors = board.state.settings.tagColors;
@@ -252,6 +253,28 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
                 if (!isNaN(v) && v >= 0) board.updateSettings({ waterGoalMl: v });
                 setWaterGoalInput(null);
               }}
+            />
+          </div>
+        )}
+        {waterEnabled && (
+          <div className="settings-subblock">
+            <span className="settings-label">
+              <WaterDropIcon /> Ideias para manter o consumo de água
+            </span>
+            <span className="settings-toggle-hint">
+              Guarde aqui as estratégias que funcionam pra você — pra poder revisitar sempre que perder a rota.
+            </span>
+            <textarea
+              className="settings-subblock-textarea"
+              placeholder="Ex.: garrafa de 1L com marcador de borracha — a cada litro bebido, reposiciono o marcador na garrafa."
+              value={waterStrategiesInput ?? board.state.settings.waterStrategies ?? ""}
+              onChange={(e) => setWaterStrategiesInput(e.target.value)}
+              onBlur={() => {
+                if (waterStrategiesInput === null) return;
+                board.updateSettings({ waterStrategies: waterStrategiesInput || null });
+                setWaterStrategiesInput(null);
+              }}
+              rows={3}
             />
           </div>
         )}

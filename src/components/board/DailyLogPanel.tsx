@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
-import { BellIcon } from "./icons";
+import { BellIcon, WarningIcon } from "./icons";
 import { dateFromISO, todayISO } from "@/lib/date-utils";
 import { isFeatureEnabled } from "@/lib/types";
 import { MOODS } from "@/lib/mood";
@@ -78,7 +78,16 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
         {waterOn && (
           <div className="dl-row">
             <div className="dl-row-top">
-              <span className="dl-label">💧 Água</span>
+              <span className="dl-label">
+                💧 Água
+                <CommentButton
+                  icon={<WarningIcon />}
+                  value={board.state.settings.waterStrategies}
+                  placeholder="Ex.: garrafa de 1L com marcador de borracha — a cada litro bebido, reposiciono o marcador."
+                  ariaLabel="Estratégias pra manter o consumo de água"
+                  onSave={(text) => board.updateSettings({ waterStrategies: text || null })}
+                />
+              </span>
               <span className="mono dl-value">
                 {waterMl} <span className="dl-of">/ {goalMl} ml</span>
               </span>

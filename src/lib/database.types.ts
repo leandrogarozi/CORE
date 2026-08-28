@@ -486,6 +486,7 @@ export type Database = {
           diet_app_opt_in: boolean
           diet_plan: string | null
           diet_whatsapp_opt_in: boolean
+          water_strategies: string | null
           feature_flags: Json
           notify_phone: string | null
           preferred_name: string | null
@@ -510,6 +511,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           water_goal_ml?: number
+          water_strategies?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -526,6 +528,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           water_goal_ml?: number
+          water_strategies?: string | null
         }
         Relationships: []
       }
