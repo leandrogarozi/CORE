@@ -3,25 +3,32 @@
 import { useBoardCtx } from "./board-context";
 import { TrashIcon } from "./icons";
 import { fmtShortDate } from "@/lib/date-utils";
-import type { Task } from "@/lib/types";
 
-function TrashRow({ task }: { task: Task }) {
-  const { board, askConfirm } = useBoardCtx();
+function TrashRow({
+  title,
+  deletedAt,
+  onRestore,
+  onPurge,
+}: {
+  title: string;
+  deletedAt: string | null;
+  onRestore: () => void;
+  onPurge: () => void;
+}) {
+  const { askConfirm } = useBoardCtx();
 
   function purge() {
-    askConfirm(`Excluir "${task.title}" de vez? Essa ação não pode ser desfeita.`, () => board.purgeTask(task.id));
+    askConfirm(`Excluir "${title}" de vez? Essa ação não pode ser desfeita.`, onPurge);
   }
 
   return (
     <div className="trash-row">
       <div className="trash-row-info">
-        <span className="trash-row-title">{task.title}</span>
-        <span className="trash-row-date">
-          {task.deletedAt ? `excluída em ${fmtShortDate(task.deletedAt.slice(0, 10))}` : ""}
-        </span>
+        <span className="trash-row-title">{title}</span>
+        <span className="trash-row-date">{deletedAt ? `excluído em ${fmtShortDate(deletedAt.slice(0, 10))}` : ""}</span>
       </div>
       <div className="trash-row-actions">
-        <button type="button" className="btn btn-ghost" onClick={() => board.restoreTask(task.id)}>
+        <button type="button" className="btn btn-ghost" onClick={onRestore}>
           Restaurar
         </button>
         <button type="button" className="icon-btn danger-hover" title="Excluir de vez" onClick={purge}>
@@ -34,12 +41,17 @@ function TrashRow({ task }: { task: Task }) {
 
 export function TrashView({ onBack }: { onBack: () => void }) {
   const { board, askConfirm } = useBoardCtx();
-  const items = board.state.trashedTasks;
+  const tasks = board.state.trashedTasks;
+  const reminders = board.state.trashedReminders;
+  const total = tasks.length + reminders.length;
 
   function emptyTrash() {
     askConfirm(
-      `Esvaziar a lixeira? ${items.length} ${items.length === 1 ? "item vai ser excluído" : "itens vão ser excluídos"} de vez, sem volta.`,
-      () => items.forEach((t) => board.purgeTask(t.id))
+      `Esvaziar a lixeira? ${total} ${total === 1 ? "item vai ser excluído" : "itens vão ser excluídos"} de vez, sem volta.`,
+      () => {
+        tasks.forEach((t) => board.purgeTask(t.id));
+        reminders.forEach((r) => board.purgeReminder(r.id));
+      }
     );
   }
 
@@ -54,10 +66,10 @@ export function TrashView({ onBack }: { onBack: () => void }) {
       </div>
 
       <div className="narrow-list">
-        {items.length > 0 && (
+        {total > 0 && (
           <div className="trash-toolbar">
             <span>
-              {items.length} {items.length === 1 ? "item excluído" : "itens excluídos"}
+              {total} {total === 1 ? "item excluído" : "itens excluídos"}
             </span>
             <button type="button" className="btn btn-ghost danger-hover" onClick={emptyTrash}>
               <TrashIcon /> Esvaziar lixeira
@@ -65,10 +77,29 @@ export function TrashView({ onBack }: { onBack: () => void }) {
           </div>
         )}
         <div className="list-card">
-          {items.length === 0 ? (
+          {total === 0 ? (
             <div className="hp-empty">Lixeira vazia.</div>
           ) : (
-            items.map((t) => <TrashRow key={t.id} task={t} />)
+            <>
+              {tasks.map((t) => (
+                <TrashRow
+                  key={`task-${t.id}`}
+                  title={t.title}
+                  deletedAt={t.deletedAt}
+                  onRestore={() => board.restoreTask(t.id)}
+                  onPurge={() => board.purgeTask(t.id)}
+                />
+              ))}
+              {reminders.map((r) => (
+                <TrashRow
+                  key={`reminder-${r.id}`}
+                  title={r.title}
+                  deletedAt={r.deletedAt}
+                  onRestore={() => board.restoreReminder(r.id)}
+                  onPurge={() => board.purgeReminder(r.id)}
+                />
+              ))}
+            </>
           )}
         </div>
       </div>

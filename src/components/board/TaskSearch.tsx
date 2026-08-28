@@ -22,7 +22,7 @@ export type SearchResult =
   | { kind: "task"; task: Task; subtitle: string }
   | { kind: "reminder"; reminder: Reminder; subtitle: string }
   | { kind: "book"; book: Book; subtitle: string }
-  | { kind: "trash"; task: Task; subtitle: string };
+  | { kind: "trash"; itemKind: "task" | "reminder"; id: string; title: string; subtitle: string };
 
 const KIND_LABEL: Record<SearchResult["kind"], string> = {
   task: "Tarefa",
@@ -89,8 +89,20 @@ export function TaskSearch({ onNavigate }: { onNavigate: (result: SearchResult) 
         if (q && !t.title.toLowerCase().includes(q)) continue;
         results.push({
           kind: "trash",
-          task: t,
+          itemKind: "task",
+          id: t.id,
+          title: t.title,
           subtitle: t.deletedAt ? `excluída em ${fmtShortDate(t.deletedAt.slice(0, 10))}` : "",
+        });
+      }
+      for (const r of board.state.trashedReminders) {
+        if (q && !r.title.toLowerCase().includes(q)) continue;
+        results.push({
+          kind: "trash",
+          itemKind: "reminder",
+          id: r.id,
+          title: r.title,
+          subtitle: r.deletedAt ? `excluído em ${fmtShortDate(r.deletedAt.slice(0, 10))}` : "",
         });
       }
     }
@@ -124,12 +136,16 @@ export function TaskSearch({ onNavigate }: { onNavigate: (result: SearchResult) 
     updatePos();
   }
 
-  function restore(task: Task) {
-    board.restoreTask(task.id);
+  function restore(r: Extract<SearchResult, { kind: "trash" }>) {
+    if (r.itemKind === "task") board.restoreTask(r.id);
+    else board.restoreReminder(r.id);
   }
 
-  function purge(task: Task) {
-    askConfirm(`Excluir "${task.title}" de vez? Essa ação não pode ser desfeita.`, () => board.purgeTask(task.id));
+  function purge(r: Extract<SearchResult, { kind: "trash" }>) {
+    askConfirm(`Excluir "${r.title}" de vez? Essa ação não pode ser desfeita.`, () => {
+      if (r.itemKind === "task") board.purgeTask(r.id);
+      else board.purgeReminder(r.id);
+    });
   }
 
   return (
@@ -171,15 +187,15 @@ export function TaskSearch({ onNavigate }: { onNavigate: (result: SearchResult) 
             {limitedResults.map((r) => {
               if (r.kind === "trash") {
                 return (
-                  <div key={`trash-${r.task.id}`} className="search-result search-result-trash">
-                    <span className="search-result-kind">{KIND_LABEL[r.kind]}</span>
-                    <span className="search-result-title">{r.task.title}</span>
+                  <div key={`trash-${r.itemKind}-${r.id}`} className="search-result search-result-trash">
+                    <span className="search-result-kind">{r.itemKind === "task" ? "Excluída" : "Excluído"}</span>
+                    <span className="search-result-title">{r.title}</span>
                     <span className="search-result-date">{r.subtitle}</span>
                     <span className="search-result-trash-actions">
-                      <button type="button" className="btn btn-ghost" onClick={() => restore(r.task)}>
+                      <button type="button" className="btn btn-ghost" onClick={() => restore(r)}>
                         Restaurar
                       </button>
-                      <button type="button" className="icon-btn danger-hover" title="Excluir de vez" onClick={() => purge(r.task)}>
+                      <button type="button" className="icon-btn danger-hover" title="Excluir de vez" onClick={() => purge(r)}>
                         <TrashIcon />
                       </button>
                     </span>

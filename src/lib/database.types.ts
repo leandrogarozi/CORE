@@ -446,6 +446,7 @@ export type Database = {
         Row: {
           alert_minutes_before: number | null
           created_at: string
+          deleted_at: string | null
           done: boolean
           id: string
           note: string | null
@@ -459,6 +460,7 @@ export type Database = {
         Insert: {
           alert_minutes_before?: number | null
           created_at?: string
+          deleted_at?: string | null
           done?: boolean
           id?: string
           note?: string | null
@@ -472,6 +474,7 @@ export type Database = {
         Update: {
           alert_minutes_before?: number | null
           created_at?: string
+          deleted_at?: string | null
           done?: boolean
           id?: string
           note?: string | null

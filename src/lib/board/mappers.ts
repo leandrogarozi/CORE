@@ -340,6 +340,7 @@ export function rowToReminder(row: ReminderRow): Reminder {
     alertMinutesBefore: row.alert_minutes_before,
     note: row.note,
     done: row.done,
+    deletedAt: row.deleted_at,
   };
 }
 
@@ -355,6 +356,7 @@ export function reminderToInsertRow(r: Reminder, userId: string): TablesInsert<"
     alert_minutes_before: r.alertMinutesBefore,
     note: r.note,
     done: r.done,
+    deleted_at: r.deletedAt,
   };
 }
 
@@ -368,6 +370,7 @@ export function reminderToUpdateRow(r: Partial<Reminder>): TablesUpdate<"reminde
   if (r.alertMinutesBefore !== undefined) row.alert_minutes_before = r.alertMinutesBefore;
   if (r.note !== undefined) row.note = r.note;
   if (r.done !== undefined) row.done = r.done;
+  if (r.deletedAt !== undefined) row.deleted_at = r.deletedAt;
   return row;
 }
 

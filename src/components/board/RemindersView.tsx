@@ -116,14 +116,28 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
       {open &&
         createPortal(
           <div className="daylog-popover" ref={popRef} style={{ top: pos.top, left: pos.left }}>
-            <input
-              type="date"
-              autoFocus
-              value={dateDraft}
-              onChange={(e) => setDateDraft(e.target.value)}
-              onKeyDown={(e) => e.key === "Escape" && setAnchorRect(null)}
-            />
-            <TimePicker value={timeDraft} disabled={!dateDraft} onChange={setTimeDraft} />
+            <div className="reminder-datetime-row">
+              <input
+                type="date"
+                autoFocus
+                value={dateDraft}
+                onChange={(e) => setDateDraft(e.target.value)}
+                onKeyDown={(e) => e.key === "Escape" && setAnchorRect(null)}
+              />
+              <TimePicker value={timeDraft} disabled={!dateDraft} onChange={setTimeDraft} />
+              <button
+                type="button"
+                className="btn btn-ghost reminder-clear-btn"
+                disabled={!dateDraft && !timeDraft}
+                title="Limpar data e hora"
+                onClick={() => {
+                  setDateDraft("");
+                  setTimeDraft("");
+                }}
+              >
+                Limpar
+              </button>
+            </div>
             <div className="edit-field">
               <span className="edit-field-label">Repete nesses dias da semana (opcional)</span>
               <div className="weekday-picker">

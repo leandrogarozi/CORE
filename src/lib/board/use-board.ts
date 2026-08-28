@@ -72,6 +72,7 @@ const EMPTY_STATE: BoardState = {
   taskStatuses: [],
   books: [],
   reminders: [],
+  trashedReminders: [],
   medications: [],
   medicationGroups: [],
   checklists: [],
@@ -142,6 +143,7 @@ export function useBoard(userId: string | null) {
       taskStatusesRes,
       booksRes,
       remindersRes,
+      trashedRemindersRes,
       medicationsRes,
       medicationGroupsRes,
       checklistsRes,
@@ -160,7 +162,8 @@ export function useBoard(userId: string | null) {
       supabase.from("task_series").select("*"),
       supabase.from("task_statuses").select("*").order("sort_order"),
       supabase.from("books").select("*").order("created_at"),
-      supabase.from("reminders").select("*").order("created_at"),
+      supabase.from("reminders").select("*").is("deleted_at", null).order("created_at"),
+      supabase.from("reminders").select("*").not("deleted_at", "is", null),
       supabase.from("medications").select("*").order("created_at"),
       supabase.from("medication_groups").select("*").order("created_at"),
       supabase.from("checklists").select("*").order("created_at"),
@@ -184,6 +187,7 @@ export function useBoard(userId: string | null) {
       taskStatuses: (taskStatusesRes.data ?? []).map(rowToTaskStatus),
       books: (booksRes.data ?? []).map(rowToBook),
       reminders: (remindersRes.data ?? []).map(rowToReminder),
+      trashedReminders: (trashedRemindersRes.data ?? []).map(rowToReminder),
       medications: (medicationsRes.data ?? []).map(rowToMedication),
       medicationGroups: (medicationGroupsRes.data ?? []).map(rowToMedicationGroup),
       checklists: (checklistsRes.data ?? []).map(rowToChecklist),
@@ -765,6 +769,7 @@ export function useBoard(userId: string | null) {
         alertMinutesBefore: null,
         note: null,
         done: false,
+        deletedAt: null,
       };
       apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
       supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
@@ -791,9 +796,42 @@ export function useBoard(userId: string | null) {
 
   const deleteReminder = useCallback(
     (id: string) => {
-      apply((s) => ({ ...s, reminders: s.reminders.filter((r) => r.id !== id) }));
-      supabase.from("reminders").delete().eq("id", id).then(({ error }) => {
+      const r = stateRef.current.reminders.find((x) => x.id === id);
+      if (!r) return;
+      const nowIso = new Date().toISOString();
+      apply((s) => ({
+        ...s,
+        reminders: s.reminders.filter((x) => x.id !== id),
+        trashedReminders: [...s.trashedReminders, { ...r, deletedAt: nowIso }],
+      }));
+      supabase.from("reminders").update({ deleted_at: nowIso }).eq("id", id).then(({ error }) => {
         if (error) console.error("deleteReminder", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  const restoreReminder = useCallback(
+    (id: string) => {
+      const r = stateRef.current.trashedReminders.find((x) => x.id === id);
+      if (!r) return;
+      apply((s) => ({
+        ...s,
+        trashedReminders: s.trashedReminders.filter((x) => x.id !== id),
+        reminders: [...s.reminders, { ...r, deletedAt: null }],
+      }));
+      supabase.from("reminders").update({ deleted_at: null }).eq("id", id).then(({ error }) => {
+        if (error) console.error("restoreReminder", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  const purgeReminder = useCallback(
+    (id: string) => {
+      apply((s) => ({ ...s, trashedReminders: s.trashedReminders.filter((x) => x.id !== id) }));
+      supabase.from("reminders").delete().eq("id", id).then(({ error }) => {
+        if (error) console.error("purgeReminder", error);
       });
     },
     [apply, supabase]
@@ -1482,6 +1520,8 @@ export function useBoard(userId: string | null) {
     addReminder,
     updateReminder,
     deleteReminder,
+    restoreReminder,
+    purgeReminder,
     addMedication,
     updateMedication,
     deleteMedication,

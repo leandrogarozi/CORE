@@ -181,6 +181,7 @@ export interface Reminder {
   alertMinutesBefore: number | null; // aviso antecipado (minutos antes de date+time), null = sem aviso
   note: string | null; // observação livre — colar um texto, escrever algo
   done: boolean;
+  deletedAt: string | null; // ISO datetime — soft delete, vai pra Lixeira em vez de sumir na hora
 }
 
 export type MedicationTimeMode = "shared" | "individual";
@@ -243,6 +244,7 @@ export interface BoardState {
   taskStatuses: TaskStatus[];
   books: Book[];
   reminders: Reminder[];
+  trashedReminders: Reminder[]; // lembretes excluídos (soft delete) — Lixeira
   medications: Medication[];
   medicationGroups: MedicationGroup[];
   checklists: Checklist[];

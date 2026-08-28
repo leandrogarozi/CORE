@@ -137,6 +137,22 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Lembretes excluídos vão pra Lixeira + botão Limpar data/hora (28/08)
+
+- Dois bugs/pedidos do Leandro: **"lembretes excluídos não estão indo
+  para lixeira"** e **"quando eu coloco data e horário errado no
+  lembrete não dá para apagar — colocar um botão limpar, hora e data,
+  nos campos lembrete."**
+- Lembretes ganharam o mesmo soft-delete que as tarefas já tinham:
+  `Reminder.deletedAt`, nova coluna `deleted_at` (migração
+  `add_deleted_at_to_reminders`). Excluir um lembrete agora manda ele
+  pra Lixeira em vez de apagar na hora — aparece na tela Lixeira
+  (Restaurar / Excluir de vez) e também no escopo "Lixeira" da busca
+  da topbar, junto com as tarefas excluídas.
+- Popover de data/hora do lembrete ganhou um botão **"Limpar"** ao
+  lado do horário, que zera data e hora de uma vez — antes não tinha
+  como tirar uma data/hora errada sem excluir o lembrete inteiro.
+
 ## Observação nos Lembretes (28/08)
 
 - Pedido do Leandro: **"seria interessante também ter como adicionar
