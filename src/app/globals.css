@@ -842,6 +842,23 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .checklist-actions .btn svg{ width:12px; height:12px; }
 .checklist-type-input{ width:120px; flex:none; }
 
+/* reuniões / avisos de timer */
+.timer-nudge-stack{
+  position:fixed; bottom:16px; right:16px; z-index:70;
+  display:flex; flex-direction:column; gap:8px; width:min(320px, calc(100vw - 32px));
+}
+.timer-nudge{
+  background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow);
+  padding:12px 14px; display:flex; flex-direction:column; gap:8px; font-size:12.5px;
+}
+.timer-nudge-text{ display:flex; align-items:flex-start; gap:6px; color:var(--text); line-height:1.4; }
+.timer-nudge-text svg{ flex:none; width:14px; height:14px; color:var(--book-yellow); margin-top:1px; }
+.timer-nudge-actions{ display:flex; align-items:center; gap:6px; }
+.timer-nudge-actions .btn{ display:inline-flex; align-items:center; gap:5px; font-size:11.5px; padding:6px 10px; }
+.timer-nudge-actions .btn svg{ width:11px; height:11px; }
+.timer-nudge-close{ margin-left:auto; font-size:16px; line-height:1; color:var(--text-faint); }
+.timer-nudge-close:hover{ color:var(--text); }
+
 /* calendar view */
 .cal-toolbar{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
 .cal-month-nav{ display:flex; align-items:center; gap:8px; }

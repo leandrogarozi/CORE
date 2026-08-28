@@ -30,6 +30,7 @@ export interface Task {
   date: string | null; // ISO date, null = backlog
   time: string; // "HH:MM" or ""
   durationMin: number | null;
+  expectedDurationMin: number | null; // previsão de duração (ex.: reunião de 30min) — usada pra avisar quando passar do previsto
   note: string;
   done: boolean;
   order: number;

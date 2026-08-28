@@ -137,6 +137,48 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Iniciar reunião / avisos de timer (28/08)
+
+- **Motivação**: o Leandro quer que o FARO monitore o tempo de verdade
+  — inclusive reuniões que ele não coloca na agenda com antecedência.
+  Ideia dele: registrar o tempo mesmo assim, com o mínimo de fricção.
+- **Botão "Reunião" na topbar** (`MeetingButton.tsx`, ao lado do badge
+  de cronômetro ativo): clica, escolhe uma **previsão de duração**
+  (15/30/40min ou 1h) e digita o nome — cria uma tarefa pra hoje
+  (categoria Trabalho, horário = agora) e já **inicia o cronômetro na
+  hora**, sem passos extras. Reaproveita 100% a infra de timer que já
+  existia pros Blocos fixos/Hábitos (`toggleTimer`/`ActiveTimer`).
+  - Novo campo `Task.expectedDurationMin` (`expected_duration_min` no
+    banco) guarda essa previsão — só usado internamente pro aviso
+    abaixo, não aparece na tabela de tarefas.
+- **Aviso quando passa do previsto** (`TimerNudges.tsx`): enquanto o
+  cronômetro de uma tarefa com previsão de duração está rodando, o
+  app confere a cada 20s se já passou do tempo previsto. Quando passa,
+  aparece um card no canto inferior direito perguntando se a reunião
+  terminou, com 3 ações: **Concluir** (para o cronômetro e marca a
+  tarefa como concluída, usando o primeiro status com "conclui a
+  tarefa" marcado), **+15min** (empurra a previsão pra frente, o aviso
+  some e só volta se passar de novo) ou dispensar (só fecha o card,
+  sem mexer no cronômetro).
+- **Aviso 5min antes de tarefas com horário** — pedido do Leandro:
+  "o que tiver na agenda já registrado, mandar lembrete 5min antes pra
+  iniciar o play". Mesmo componente `TimerNudges.tsx`: confere a cada
+  20s se alguma tarefa de hoje com horário definido (e ainda não
+  concluída, sem cronômetro rodando) está a até 5min de começar —
+  aparece outro card com botão "Iniciar", que já dispara o cronômetro
+  daquela tarefa direto.
+  - **Limitação importante, não escondida**: isso é um aviso *dentro
+    do app*, não uma notificação de verdade do sistema/navegador — só
+    funciona enquanto a aba do FARO está aberta. Notificação real
+    (mesmo com o app fechado) precisa de service worker + permissão do
+    navegador, que é o item 🔴 "Notificações push de lembretes" já
+    registrado no backlog — ainda não implementado, mesma dependência.
+- **Combinado como próximo passo (ainda não implementado)**: quando a
+  sincronização com o Google Agenda existir (🔴 backlog), os eventos
+  de reunião já cadastrados lá poderiam disparar esse mesmo aviso de
+  5min automaticamente, sem precisar que o Leandro cadastre a tarefa
+  manualmente antes.
+
 Decisão: sair de pills soltas no topo (Hoje/Semana/Dashboard/Configurações)
 para um menu lateral (ícone de hambúrguer no topbar → gaveta que desliza
 da esquerda). Motivo: muita coisa nova vai entrar como seção própria (ver

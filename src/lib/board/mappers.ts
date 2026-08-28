@@ -49,6 +49,7 @@ export function rowToTask(row: TaskRow): Task {
     date: row.date,
     time: row.time ?? "",
     durationMin: row.duration_minutes,
+    expectedDurationMin: row.expected_duration_min,
     note: row.note ?? "",
     done: row.done,
     order: row.sort_order,
@@ -67,6 +68,7 @@ export function taskToRow(t: Partial<Task> & { id: string }, userId: string): Ta
   if (t.date !== undefined) row.date = t.date;
   if (t.time !== undefined) row.time = t.time || null;
   if (t.durationMin !== undefined) row.duration_minutes = t.durationMin;
+  if (t.expectedDurationMin !== undefined) row.expected_duration_min = t.expectedDurationMin;
   if (t.note !== undefined) row.note = t.note;
   if (t.done !== undefined) row.done = t.done;
   if (t.order !== undefined) row.sort_order = t.order;
@@ -87,6 +89,7 @@ export function taskToInsertRow(t: Task, userId: string): TablesInsert<"tasks"> 
     date: t.date,
     time: t.time || null,
     duration_minutes: t.durationMin,
+    expected_duration_min: t.expectedDurationMin,
     note: t.note,
     done: t.done,
     sort_order: t.order,

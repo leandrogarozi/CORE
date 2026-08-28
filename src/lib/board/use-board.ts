@@ -238,6 +238,7 @@ export function useBoard(userId: string | null) {
         date: bucketKey || null,
         time: "",
         durationMin: null,
+        expectedDurationMin: null,
         note: "",
         done: false,
         order: nextOrder(bucketKey),
@@ -539,6 +540,7 @@ export function useBoard(userId: string | null) {
             date: iso,
             time: series.time || "",
             durationMin: null,
+            expectedDurationMin: null,
             note: series.note || "",
             done: false,
             order: nextOrder(iso),
@@ -1131,6 +1133,71 @@ export function useBoard(userId: string | null) {
     [apply, stopActiveTimer, supabase, userId]
   );
 
+  // ---------- reuniões rápidas ----------
+  const startMeeting = useCallback(
+    (title: string, expectedDurationMin: number) => {
+      if (!userId || !title.trim()) return;
+      stopActiveTimer();
+      const today = todayISO();
+      const now = new Date();
+      const time = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      const t: Task = {
+        id: uid(),
+        title: title.trim(),
+        category: "trabalho",
+        priority: "media",
+        date: today,
+        time,
+        durationMin: null,
+        expectedDurationMin,
+        note: "",
+        done: false,
+        order: nextOrder(today),
+        seriesId: null,
+        trackedSeconds: 0,
+        quick: 0,
+        statusId: defaultStatusId(),
+      };
+      const at: ActiveTimer = { kind: "task", itemId: t.id, logDate: today, startedAt: Date.now() };
+      apply((s) => ({ ...s, tasks: [...s.tasks, t], activeTimer: at }));
+      supabase.from("tasks").insert(taskToInsertRow(t, userId)).then(({ error }) => {
+        if (error) console.error("startMeeting task", error);
+      });
+      supabase
+        .from("active_timer")
+        .upsert({ user_id: userId, kind: "task", item_id: t.id, log_date: today, started_at: new Date(at.startedAt).toISOString() })
+        .then(({ error }) => {
+          if (error) console.error("startMeeting timer", error);
+        });
+    },
+    [apply, defaultStatusId, nextOrder, stopActiveTimer, supabase, userId]
+  );
+
+  const bumpExpectedDuration = useCallback(
+    (taskId: string, addMin: number) => {
+      const task = stateRef.current.tasks.find((t) => t.id === taskId);
+      if (!task) return;
+      const next = (task.expectedDurationMin ?? 0) + addMin;
+      apply((s) => ({ ...s, tasks: s.tasks.map((t) => (t.id === taskId ? { ...t, expectedDurationMin: next } : t)) }));
+      supabase.from("tasks").update({ expected_duration_min: next }).eq("id", taskId).then(({ error }) => {
+        if (error) console.error("bumpExpectedDuration", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  const concludeMeeting = useCallback(
+    (taskId: string) => {
+      const at = stateRef.current.activeTimer;
+      if (at?.kind === "task" && at.itemId === taskId) {
+        toggleTimer("task", taskId, at.logDate);
+      }
+      const doneStatus = stateRef.current.taskStatuses.find((s) => s.isDone);
+      if (doneStatus) setTaskStatus(taskId, doneStatus.id);
+    },
+    [toggleTimer, setTaskStatus]
+  );
+
   // ---------- settings ----------
   const updateSettings = useCallback(
     (patch: Partial<Settings>) => {
@@ -1258,6 +1325,9 @@ export function useBoard(userId: string | null) {
     addBlockLogEntry,
     deleteBlockLogEntry,
     toggleTimer,
+    startMeeting,
+    bumpExpectedDuration,
+    concludeMeeting,
     updateSettings,
     uploadAvatar,
     updateDailyLog,

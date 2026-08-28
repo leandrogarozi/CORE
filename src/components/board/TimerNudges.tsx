@@ -1,0 +1,100 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useBoardCtx } from "./board-context";
+import { BellIcon, CheckIcon, PlayIcon } from "./icons";
+import { todayISO } from "@/lib/date-utils";
+
+export function TimerNudges() {
+  const { board } = useBoardCtx();
+  const [nowMs, setNowMs] = useState<number | null>(null);
+  const [dismissedOverdueId, setDismissedOverdueId] = useState<string | null>(null);
+  const [dismissedUpcoming, setDismissedUpcoming] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const tick = () => setNowMs(Date.now());
+    tick();
+    const h = setInterval(tick, 20000);
+    return () => clearInterval(h);
+  }, []);
+
+  const at = board.state.activeTimer;
+  const activeTask = at?.kind === "task" ? board.state.tasks.find((t) => t.id === at.itemId) : null;
+
+  let overdueBanner: React.ReactNode = null;
+  if (nowMs !== null && at && activeTask && activeTask.expectedDurationMin && dismissedOverdueId !== activeTask.id) {
+    const elapsedMin = Math.floor((nowMs - at.startedAt) / 60000);
+    if (elapsedMin >= activeTask.expectedDurationMin) {
+      overdueBanner = (
+        <div className="timer-nudge" key="overdue">
+          <span className="timer-nudge-text">
+            <BellIcon filled />
+            &ldquo;{activeTask.title}&rdquo; já passou dos {activeTask.expectedDurationMin}min previstos. Terminou?
+          </span>
+          <div className="timer-nudge-actions">
+            <button type="button" className="btn btn-accent" onClick={() => board.concludeMeeting(activeTask.id)}>
+              <CheckIcon /> Concluir
+            </button>
+            <button type="button" className="btn btn-ghost" onClick={() => board.bumpExpectedDuration(activeTask.id, 15)}>
+              +15min
+            </button>
+            <button
+              type="button"
+              className="icon-btn timer-nudge-close"
+              onClick={() => setDismissedOverdueId(activeTask.id)}
+              aria-label="Dispensar"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  const today = todayISO();
+  let upcoming: (typeof board.state.tasks)[number] | undefined;
+  if (nowMs !== null) {
+    const now = new Date(nowMs);
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    upcoming = board.state.tasks.find((t) => {
+      if (t.date !== today || !t.time || t.done) return false;
+      if (dismissedUpcoming.has(t.id)) return false;
+      if (at?.kind === "task" && at.itemId === t.id) return false;
+      const [hh, mm] = t.time.split(":").map(Number);
+      const taskMin = hh * 60 + mm;
+      return nowMin >= taskMin - 5 && nowMin < taskMin;
+    });
+  }
+
+  const upcomingBanner = upcoming ? (
+    <div className="timer-nudge" key="upcoming">
+      <span className="timer-nudge-text">
+        <BellIcon filled />
+        &ldquo;{upcoming.title}&rdquo; começa às {upcoming.time} — iniciar o cronômetro?
+      </span>
+      <div className="timer-nudge-actions">
+        <button type="button" className="btn btn-accent" onClick={() => board.toggleTimer("task", upcoming.id, today)}>
+          <PlayIcon /> Iniciar
+        </button>
+        <button
+          type="button"
+          className="icon-btn timer-nudge-close"
+          onClick={() => setDismissedUpcoming((s) => new Set(s).add(upcoming.id))}
+          aria-label="Dispensar"
+        >
+          ×
+        </button>
+      </div>
+    </div>
+  ) : null;
+
+  if (!overdueBanner && !upcomingBanner) return null;
+
+  return (
+    <div className="timer-nudge-stack">
+      {overdueBanner}
+      {upcomingBanner}
+    </div>
+  );
+}
