@@ -926,6 +926,25 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .reminder-row.overdue .reminder-date-btn{ color:var(--danger); }
 .reminder-row.due-today{ background:color-mix(in srgb, var(--book-yellow) 8%, var(--surface)); }
 .reminder-row.due-today .reminder-date-btn{ color:var(--book-yellow); font-weight:600; }
+.project-row{
+  display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%;
+  padding:10px 14px; border-bottom:1px solid var(--border); background:var(--surface);
+  text-align:left; font-size:12.5px; color:var(--text);
+}
+.project-row:last-child{ border-bottom:none; }
+.project-row:hover{ background:var(--surface-2); }
+.project-row.done{ opacity:0.6; }
+.project-row.done .project-row-name{ text-decoration:line-through; }
+.project-row-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.project-row-progress{ font-size:11px; color:var(--text-faint); flex:none; }
+.project-name-input{
+  width:100%; background:none; border:none; font-size:15px; font-weight:700; color:var(--text); padding:2px 0;
+}
+.project-progress-row{ display:flex; align-items:center; gap:8px; margin-top:2px; }
+.project-progress-row .hp-bar{ flex:1; }
+.project-progress-label{ font-size:11px; color:var(--text-faint); flex:none; }
+.task-project-link{ color:var(--info); }
+.task-project-link:hover{ color:var(--accent); }
 .reminder-check{
   width:16px; height:16px; border-radius:50%; flex:none;
   border:1.5px solid var(--border-strong);

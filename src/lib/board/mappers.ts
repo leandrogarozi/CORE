@@ -13,6 +13,7 @@ import type {
   MedicationGroup,
   MedicationTimeMode,
   Priority,
+  Project,
   Repeat,
   RecurringItem,
   Reminder,
@@ -41,6 +42,7 @@ type MedicationRow = Tables<"medications">;
 type MedicationGroupRow = Tables<"medication_groups">;
 type ChecklistRow = Tables<"checklists">;
 type DietMealRow = Tables<"diet_meals">;
+type ProjectRow = Tables<"projects">;
 
 export function rowToTask(row: TaskRow): Task {
   return {
@@ -61,6 +63,7 @@ export function rowToTask(row: TaskRow): Task {
     quick: row.quick,
     statusId: row.status_id,
     deletedAt: row.deleted_at,
+    projectId: row.project_id,
   };
 }
 
@@ -82,6 +85,7 @@ export function taskToRow(t: Partial<Task> & { id: string }, userId: string): Ta
   if (t.quick !== undefined) row.quick = t.quick;
   if (t.statusId !== undefined) row.status_id = t.statusId;
   if (t.deletedAt !== undefined) row.deleted_at = t.deletedAt;
+  if (t.projectId !== undefined) row.project_id = t.projectId;
   return row;
 }
 
@@ -105,6 +109,7 @@ export function taskToInsertRow(t: Task, userId: string): TablesInsert<"tasks"> 
     quick: t.quick,
     status_id: t.statusId,
     deleted_at: t.deletedAt,
+    project_id: t.projectId,
   };
 }
 
@@ -480,5 +485,33 @@ export function checklistToUpdateRow(c: Partial<Checklist>): TablesUpdate<"check
   if (c.title !== undefined) row.title = c.title;
   if (c.type !== undefined) row.type = c.type;
   if (c.items !== undefined) row.items = c.items as unknown as Json;
+  return row;
+}
+
+export function rowToProject(row: ProjectRow): Project {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    status: row.status as Project["status"],
+    createdAt: row.created_at.slice(0, 10),
+  };
+}
+
+export function projectToInsertRow(p: Project, userId: string): TablesInsert<"projects"> {
+  return {
+    id: p.id,
+    user_id: userId,
+    name: p.name,
+    description: p.description,
+    status: p.status,
+  };
+}
+
+export function projectToUpdateRow(p: Partial<Project>): TablesUpdate<"projects"> {
+  const row: TablesUpdate<"projects"> = {};
+  if (p.name !== undefined) row.name = p.name;
+  if (p.description !== undefined) row.description = p.description;
+  if (p.status !== undefined) row.status = p.status;
   return row;
 }

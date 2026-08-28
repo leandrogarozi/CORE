@@ -28,6 +28,8 @@ interface BoardCtxValue {
   confirmModal: ConfirmModalState;
   closeConfirmModal: () => void;
   columns: UseColumnWidths;
+  openProject: (id: string) => void;
+  setOpenProjectHandler: (fn: ((id: string) => void) | null) => void;
 }
 
 const BoardCtx = createContext<BoardCtxValue | null>(null);
@@ -64,6 +66,14 @@ export function BoardProvider({ userId, children }: { userId: string; children: 
     setConfirmModal({ open: false, question: "", onConfirm: null });
   }, []);
 
+  const [openProjectHandler, setOpenProjectHandler] = useState<((id: string) => void) | null>(null);
+  const openProject = useCallback(
+    (id: string) => {
+      openProjectHandler?.(id);
+    },
+    [openProjectHandler]
+  );
+
   return (
     <BoardCtx.Provider
       value={{
@@ -77,6 +87,8 @@ export function BoardProvider({ userId, children }: { userId: string; children: 
         confirmModal,
         closeConfirmModal,
         columns,
+        openProject,
+        setOpenProjectHandler,
       }}
     >
       {children}

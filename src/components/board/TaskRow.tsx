@@ -5,7 +5,7 @@ import { useBoardCtx } from "./board-context";
 import { TimerButton } from "./TimerButton";
 import { StatusPicker } from "./StatusPicker";
 import { MinutesPicker, TimePicker } from "./TimePicker";
-import { BoltIcon, DuplicateIcon, FlagIcon, RepeatIcon, TrashIcon } from "./icons";
+import { BoltIcon, DuplicateIcon, FlagIcon, LinkIcon, RepeatIcon, TrashIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
 import { CATEGORY_LABEL, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
 import type { TaskEditFields } from "@/lib/board/use-board";
@@ -99,7 +99,7 @@ interface TaskRowProps {
 }
 
 export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop, dragging, gridTemplate }: TaskRowProps) {
-  const { board, askScope, askConfirm } = useBoardCtx();
+  const { board, askScope, askConfirm, openProject } = useBoardCtx();
   const [editing, setEditing] = useState(false);
 
   if (editing) {
@@ -149,6 +149,19 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
         <button type="button" className="row-title" title={t.title} onClick={() => setEditing(true)}>
           {t.title}
         </button>
+        {t.projectId && (
+          <button
+            type="button"
+            className="icon-btn task-project-link"
+            title="Abrir projeto vinculado"
+            onClick={(e) => {
+              e.stopPropagation();
+              openProject(t.projectId!);
+            }}
+          >
+            <LinkIcon />
+          </button>
+        )}
         {t.time && <span className="row-time mono">{t.time}</span>}
       </div>
       <div className="row-category-cell">
@@ -203,6 +216,7 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
     durationMin: t.durationMin,
     note: t.note,
     repeat: currentSeries ? currentSeries.repeat : "none",
+    projectId: t.projectId,
   });
 
   function save() {
@@ -287,6 +301,20 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
           placeholder="nota (opcional)"
           onChange={(e) => setVals((v) => ({ ...v, note: e.target.value }))}
         />
+        <label className="edit-field">
+          <span className="edit-field-label">Projeto</span>
+          <select
+            value={vals.projectId ?? ""}
+            onChange={(e) => setVals((v) => ({ ...v, projectId: e.target.value || null }))}
+          >
+            <option value="">Sem projeto</option>
+            {board.state.projects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
       <div className="edit-actions">
         <button className="btn btn-ghost" type="button" onClick={onDone}>

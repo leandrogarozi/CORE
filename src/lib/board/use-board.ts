@@ -14,6 +14,8 @@ import {
   medicationGroupToUpdateRow,
   medicationToInsertRow,
   medicationToUpdateRow,
+  projectToInsertRow,
+  projectToUpdateRow,
   reminderToInsertRow,
   reminderToUpdateRow,
   rowToActiveTimer,
@@ -23,6 +25,7 @@ import {
   rowToDietMeal,
   rowToMedication,
   rowToMedicationGroup,
+  rowToProject,
   rowToReminder,
   rowToSeries,
   rowToSettings,
@@ -50,6 +53,7 @@ import type {
   Medication,
   MedicationGroup,
   Priority,
+  Project,
   Repeat,
   RecurringItem,
   Reminder,
@@ -65,6 +69,7 @@ import { DEFAULT_TAG_COLORS } from "@/lib/types";
 const EMPTY_STATE: BoardState = {
   tasks: [],
   trashedTasks: [],
+  projects: [],
   habits: [],
   fixedBlocks: [],
   dietMeals: [],
@@ -105,6 +110,7 @@ export interface TaskEditFields {
   durationMin: number | null;
   note: string;
   repeat: Repeat;
+  projectId: string | null;
 }
 
 function uid(): string {
@@ -134,6 +140,7 @@ export function useBoard(userId: string | null) {
     const [
       tasksRes,
       trashedTasksRes,
+      projectsRes,
       habitsRes,
       blocksRes,
       habitLogsRes,
@@ -154,6 +161,7 @@ export function useBoard(userId: string | null) {
     ] = await Promise.all([
       supabase.from("tasks").select("*").is("deleted_at", null).order("sort_order"),
       supabase.from("tasks").select("*").not("deleted_at", "is", null),
+      supabase.from("projects").select("*").order("created_at"),
       supabase.from("habits").select("*").order("sort_order"),
       supabase.from("fixed_blocks").select("*").order("sort_order"),
       supabase.from("habit_logs").select("*"),
@@ -181,6 +189,7 @@ export function useBoard(userId: string | null) {
     const next: BoardState = {
       tasks: (tasksRes.data ?? []).map(rowToTask),
       trashedTasks: (trashedTasksRes.data ?? []).map(rowToTask),
+      projects: (projectsRes.data ?? []).map(rowToProject),
       habits: buildRecurring(habitsRes.data ?? [], habitLogsRes.data ?? [], "habit_id"),
       fixedBlocks: buildRecurring(blocksRes.data ?? [], blockLogsRes.data ?? [], "block_id", blockLogEntriesRes.data ?? []),
       taskSeries: (seriesRes.data ?? []).map(rowToSeries),
@@ -269,6 +278,7 @@ export function useBoard(userId: string | null) {
         quick: 0,
         statusId: defaultStatusId(),
         deletedAt: null,
+        projectId: null,
       };
       apply((s) => ({ ...s, tasks: [...s.tasks, t] }));
       supabase.from("tasks").insert(taskToInsertRow(t, userId)).then(({ error }) => {
@@ -482,6 +492,7 @@ export function useBoard(userId: string | null) {
           time: vals.time,
           durationMin: vals.durationMin,
           note: vals.note,
+          projectId: vals.projectId,
           order,
         };
 
@@ -531,6 +542,7 @@ export function useBoard(userId: string | null) {
         time: vals.time,
         durationMin: vals.durationMin,
         note: vals.note,
+        projectId: vals.projectId,
         order,
       };
       apply((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === id ? updated : x)) }));
@@ -630,6 +642,7 @@ export function useBoard(userId: string | null) {
             quick: 0,
             statusId: defaultStatusId(),
             deletedAt: null,
+            projectId: null,
           });
         });
       });
@@ -753,6 +766,80 @@ export function useBoard(userId: string | null) {
       });
     },
     [apply, supabase]
+  );
+
+  // ---------- projetos (PDA) ----------
+  const addProject = useCallback(
+    (name: string) => {
+      if (!userId || !name.trim()) return;
+      const p: Project = {
+        id: uid(),
+        name: name.trim(),
+        description: "",
+        status: "active",
+        createdAt: todayISO(),
+      };
+      apply((s) => ({ ...s, projects: [...s.projects, p] }));
+      supabase.from("projects").insert(projectToInsertRow(p, userId)).then(({ error }) => {
+        if (error) console.error("addProject", error);
+      });
+    },
+    [apply, supabase, userId]
+  );
+
+  const updateProject = useCallback(
+    (id: string, patch: Partial<Pick<Project, "name" | "description" | "status">>) => {
+      apply((s) => ({ ...s, projects: s.projects.map((p) => (p.id === id ? { ...p, ...patch } : p)) }));
+      supabase.from("projects").update(projectToUpdateRow(patch)).eq("id", id).then(({ error }) => {
+        if (error) console.error("updateProject", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  const deleteProject = useCallback(
+    (id: string) => {
+      apply((s) => ({
+        ...s,
+        projects: s.projects.filter((p) => p.id !== id),
+        tasks: s.tasks.map((t) => (t.projectId === id ? { ...t, projectId: null } : t)),
+      }));
+      supabase.from("projects").delete().eq("id", id).then(({ error }) => {
+        if (error) console.error("deleteProject", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  const addTaskToProject = useCallback(
+    (projectId: string, title: string) => {
+      if (!userId || !title.trim()) return;
+      const t: Task = {
+        id: uid(),
+        title: title.trim(),
+        category: "trabalho",
+        category2: null,
+        priority: "media",
+        date: null,
+        time: "",
+        durationMin: null,
+        expectedDurationMin: null,
+        note: "",
+        done: false,
+        order: nextOrder(""),
+        seriesId: null,
+        trackedSeconds: 0,
+        quick: 0,
+        statusId: defaultStatusId(),
+        deletedAt: null,
+        projectId,
+      };
+      apply((s) => ({ ...s, tasks: [...s.tasks, t] }));
+      supabase.from("tasks").insert(taskToInsertRow(t, userId)).then(({ error }) => {
+        if (error) console.error("addTaskToProject", error);
+      });
+    },
+    [apply, defaultStatusId, nextOrder, supabase, userId]
   );
 
   // ---------- reminders ----------
@@ -1292,6 +1379,7 @@ export function useBoard(userId: string | null) {
         quick: 0,
         statusId: defaultStatusId(),
         deletedAt: null,
+        projectId: null,
       };
       const at: ActiveTimer = { id: uid(), kind: "task", itemId: t.id, logDate: today, startedAt: Date.now() };
       apply((s) => ({ ...s, tasks: [...s.tasks, t], activeTimers: [...s.activeTimers, at] }));
@@ -1517,6 +1605,10 @@ export function useBoard(userId: string | null) {
     addBook,
     updateBook,
     deleteBook,
+    addProject,
+    updateProject,
+    deleteProject,
+    addTaskToProject,
     addReminder,
     updateReminder,
     deleteReminder,

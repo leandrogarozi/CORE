@@ -42,6 +42,17 @@ export interface Task {
   quick: number; // 0-3
   statusId: string | null;
   deletedAt: string | null; // ISO datetime — soft delete, tarefa vai pra Lixeira em vez de sumir na hora
+  projectId: string | null; // vincula essa tarefa como etapa de um Projeto (PDA)
+}
+
+export type ProjectStatus = "active" | "done";
+
+export interface Project {
+  id: string;
+  name: string;
+  description: string; // objetivo/notas livres
+  status: ProjectStatus;
+  createdAt: string; // ISO date
 }
 
 export interface TaskStatus {
@@ -237,6 +248,7 @@ export interface DietMeal {
 export interface BoardState {
   tasks: Task[];
   trashedTasks: Task[]; // tarefas excluídas (soft delete) — Lixeira
+  projects: Project[]; // PDA — planos de ação com tarefas vinculadas como etapas
   habits: RecurringItem[];
   fixedBlocks: RecurringItem[];
   dietMeals: DietMeal[];

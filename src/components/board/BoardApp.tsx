@@ -18,6 +18,7 @@ import { RemindersView, RemindersButton } from "./RemindersView";
 import { MedicationsView } from "./MedicationsView";
 import { ChecklistsView } from "./ChecklistsView";
 import { DietView } from "./DietView";
+import { ProjectsView } from "./ProjectsView";
 import { TrashView } from "./TrashView";
 import { ScopeModal } from "./ScopeModal";
 import { ConfirmModal } from "./ConfirmModal";
@@ -32,20 +33,32 @@ import { dateFromISO, longLabel, mondayOf, todayISO } from "@/lib/date-utils";
 import type { Task } from "@/lib/types";
 
 function BoardShell() {
-  const { board, sortByQuick, setSortByQuick } = useBoardCtx();
+  const { board, sortByQuick, setSortByQuick, setOpenProjectHandler } = useBoardCtx();
   const [viewMode, setViewMode] = useState<ViewMode>("day");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [weekAnchor, setWeekAnchor] = useState(() => mondayOf(new Date()));
   const [selectedDate, setSelectedDate] = useState(() => todayISO());
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
   function selectView(mode: ViewMode) {
     if (mode === "day") {
       setWeekAnchor(mondayOf(new Date()));
       setSelectedDate(todayISO());
     }
+    if (mode === "projects") setSelectedProjectId(null);
     setViewMode(mode);
     setSidebarOpen(false);
   }
+
+  function goToProject(projectId: string) {
+    setSelectedProjectId(projectId);
+    setViewMode("projects");
+  }
+
+  useEffect(() => {
+    setOpenProjectHandler(() => goToProject);
+    return () => setOpenProjectHandler(null);
+  }, [setOpenProjectHandler]);
 
   function goToday() {
     setWeekAnchor(mondayOf(new Date()));
@@ -156,6 +169,12 @@ function BoardShell() {
         <DietView onBack={() => setViewMode("day")} />
       ) : viewMode === "trash" ? (
         <TrashView onBack={() => setViewMode("day")} />
+      ) : viewMode === "projects" ? (
+        <ProjectsView
+          onBack={() => setViewMode("day")}
+          selectedId={selectedProjectId}
+          onSelect={setSelectedProjectId}
+        />
       ) : viewMode === "calendar" ? (
         <CalendarView onBack={() => setViewMode("day")} onSelectWeek={() => setViewMode("week")} onSelectDay={goToDate} />
       ) : (

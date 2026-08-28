@@ -137,6 +137,41 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Projetos (PDA — Plano de Ação): tarefas vinculadas como etapas (28/08)
+
+- Conversa longa com o Leandro sobre o item "vincular tarefas" da
+  lista de ajustes. Exemplo dele: **"tenho um app financeiro que quero
+  fazer... tenho tarefas para listar para isso — entaão elas estariam
+  relacionadas, é como se fosse um PDA (plano de ação) pra aquela
+  tarefa."** Depois de discutir o modelo (proposto: uma entidade
+  Projeto separada, tarefas apontam pra ela), ele confirmou: **"pode
+  ser assim, e quando uma tarefa for vinculada aparece um ícone de
+  vínculo nela, e sempre leva pro projeto principal pra poder fechar
+  ele também quando concluído."**
+- Nova entidade **Projeto** (`projects`): nome, descrição/objetivo
+  livre, status (`active`/`done`), data de criação. Tarefa ganha
+  `projectId` opcional (`tasks.project_id`, `ON DELETE SET NULL` — se
+  o projeto for excluído, as tarefas continuam existindo soltas).
+- Nova tela **Projetos** no menu lateral: lista de projetos (ativos
+  primeiro, concluídos depois) com progresso "X/Y etapas". Abrindo um
+  projeto: nome e descrição editáveis, barra de progresso, botão
+  Concluir/Reabrir, lista das tarefas vinculadas (reaproveitando o
+  `TaskRow` normal — timer, checkbox, categoria, tudo igual), e um
+  campo pra adicionar uma etapa nova direto ali (já nasce vinculada).
+- Qualquer tarefa (na edição, junto de categoria/prioridade) agora tem
+  um campo "Projeto" pra vincular/desvincular. Uma tarefa vinculada
+  mostra um ícone de link discreto do lado do título, em QUALQUER
+  lista onde ela aparecer (Hoje, Semana, Backlog) — clicar nele leva
+  direto pro projeto, de qualquer lugar do app.
+- Detalhe técnico: como a navegação entre telas é um estado local do
+  componente principal (`BoardApp.tsx`), e o `TaskRow` é usado em
+  vários lugares sem acesso direto a essa navegação, criei um
+  mecanismo de callback registrado no `board-context` (`openProject`)
+  — mesmo princípio já usado pra `askConfirm`.
+- **Ainda não feito**: reordenar/arrastar etapas dentro do projeto
+  (por enquanto usa a ordem padrão das tarefas); marcar percentual de
+  conclusão baseado em pesos por etapa (fica só contagem simples).
+
 ## Leva "AJUSTES FARO APP": itens fáceis da lista (28/08)
 
 - O Leandro colou uma lista grande de próximos passos ("AJUSTES FARO

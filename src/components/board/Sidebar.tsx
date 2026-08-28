@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { BellIcon, BookIcon, ChartIcon, ChecklistIcon, HomeIcon, MealIcon, PillIcon, SettingsIcon, TrashIcon, WeekIcon } from "./icons";
+import { BellIcon, BookIcon, ChartIcon, ChecklistIcon, FolderIcon, HomeIcon, MealIcon, PillIcon, SettingsIcon, TrashIcon, WeekIcon } from "./icons";
 
 export type ViewMode =
   | "day"
@@ -15,6 +15,7 @@ export type ViewMode =
   | "medications"
   | "checklists"
   | "diet"
+  | "projects"
   | "trash";
 
 export function Sidebar({
@@ -102,6 +103,13 @@ export function Sidebar({
             onClick={() => onSelect("diet")}
           >
             <MealIcon /> Dieta
+          </button>
+          <button
+            type="button"
+            className={"sidebar-item" + (viewMode === "projects" ? " active" : "")}
+            onClick={() => onSelect("projects")}
+          >
+            <FolderIcon /> Projetos
           </button>
         </div>
 
