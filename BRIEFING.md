@@ -137,6 +137,55 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Lembrete arrastável, ícone de obs/lembrete na task, lembrete vinculado à tarefa, filtro de Lembretes (29/08)
+
+Retomando o feedback com prints depois da entrega anterior: **"isso aqui não foi
+mudado: Colocar uma bolinha ou ícone de arrasta na linha no meio dos números
+de horário e tempo — não dá para rolar"**, mais três pedidos que ficaram de
+fora (ícone de observação na task, tabela de Lembretes cortando na tela,
+filtro de Lembretes) e um novo (lembrete dentro da tarefa). Antes de
+executar, montei a lista pra aprovação — o Leandro só bateu o martelo na
+decisão do item do lembrete-na-tarefa.
+
+- **TimePicker realmente não rolava** — o CSS de overflow parecia certo no
+  papel, mas sem uma scrollbar visível não tinha nenhuma pista de que dava
+  pra rolar, e rolagem por wheel/touch sozinha não bastava. Resolvido com
+  arrastar de verdade: `pointerdown`/`pointermove`/`pointerup` movendo o
+  `scrollTop` da coluna (funciona com mouse e dedo), e um ícone de grip
+  (`Interface/Drag_Vertical.svg` do pack, 6 bolinhas) centralizado entre as
+  colunas de hora/minuto, no lugar do "⋮" discreto de antes. Corrigido no
+  componente `TimePicker` — vale pra todos os campos que o usam.
+- **Ícone de observação nas tarefas**: `TaskRow` mostra um ícone (balão de
+  comentário) quando a tarefa tem nota preenchida, ao lado do ícone de
+  vínculo com projeto — mesmo espírito do que já existia pra Projetos.
+- **Lembrete dentro da tarefa** (pedido: *"tem tarefa que eu marquei pra
+  final de semana — seria interessante criar lembretes também nelas"*):
+  campo "Lembrete" na edição da tarefa, reaproveitando o mesmo popover de
+  data/hora/repetição/dias/aviso dos Lembretes normais. Decisão confirmada
+  pelo Leandro — *"pode sim ser adicionado automaticamente em lembretes...
+  ela entra como um lembrete mais padrão: Lembrete para executar a tarefa X"*
+  — então ao definir uma data ali, é criado um `Reminder` de verdade
+  (`taskId` apontando pra tarefa), com o título "Lembrete para executar a
+  tarefa: <nome>", que aparece normalmente na tela de Lembretes também —
+  sem duplicar a lógica de vencido/aviso que já existe. Migração
+  `add_task_id_to_reminders` (FK com `on delete cascade` — apagar a tarefa
+  de vez também remove o lembrete vinculado).
+- **Três ícones juntos na linha da tarefa**: onde já estava o ícone de
+  vínculo com projeto, agora podem aparecer até três — 🔗 projeto vinculado,
+  🔔 lembrete (preenchido, mesmo padrão visual do sino de Lembretes), 💬
+  observação — cada um com tooltip explicando o que é ("Tarefa vinculada a
+  um projeto" / "Tarefa com lembrete" / "Observação na tarefa"). Clicar em
+  qualquer um abre a edição da tarefa.
+- **Tabela de Lembretes cortando na tela**: alargado o container só dessa
+  página (classe `reminders-wide` sobre `.narrow-list`, sem mexer nas
+  outras telas que reaproveitam a mesma classe) e reduzidas as larguras das
+  colunas, além de rolagem por toque mais suave (`-webkit-overflow-
+  scrolling:touch`) pra quando ainda precisar rolar num celular bem
+  estreito.
+- **Filtro em Lembretes**: linha de botões (reaproveitando o mesmo visual
+  do toggle Hoje/Semana/Dashboard) — Todos / Recorrentes / Hoje / Semana /
+  Atrasados.
+
 ## Lembretes viram tabela de verdade (igual à de tarefas) + botão Salvar em Projetos (28/08)
 
 - Correção de rota: a tentativa de cartão (seção logo abaixo) não

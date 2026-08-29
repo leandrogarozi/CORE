@@ -3,12 +3,71 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
+import { DragGripIcon } from "./icons";
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = Array.from({ length: 60 }, (_, i) => i);
 
 function pad(n: number) {
   return String(n).padStart(2, "0");
+}
+
+// overflow-y:auto sozinho depende de wheel/touch nativos, que nem sempre respondem
+// bem num popover em portal — arrastar com o ponteiro (mouse ou dedo) vira uma forma
+// extra e mais óbvia de rolar, tipo um seletor de roleta.
+function useDragScroll(ref: React.RefObject<HTMLDivElement | null>) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let dragging = false;
+    let moved = false;
+    let startY = 0;
+    let startScroll = 0;
+
+    function suppressClick(e: MouseEvent) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+
+    function onPointerDown(e: PointerEvent) {
+      dragging = true;
+      moved = false;
+      startY = e.clientY;
+      startScroll = el!.scrollTop;
+      el!.setPointerCapture(e.pointerId);
+      el!.classList.add("dragging");
+    }
+
+    function onPointerMove(e: PointerEvent) {
+      if (!dragging) return;
+      const dy = e.clientY - startY;
+      if (Math.abs(dy) > 3) moved = true;
+      el!.scrollTop = startScroll - dy;
+    }
+
+    function endDrag(e: PointerEvent) {
+      if (!dragging) return;
+      dragging = false;
+      el!.classList.remove("dragging");
+      try {
+        el!.releasePointerCapture(e.pointerId);
+      } catch {
+        // já liberado
+      }
+      if (moved) el!.addEventListener("click", suppressClick, { capture: true, once: true });
+    }
+
+    el.addEventListener("pointerdown", onPointerDown);
+    el.addEventListener("pointermove", onPointerMove);
+    el.addEventListener("pointerup", endDrag);
+    el.addEventListener("pointercancel", endDrag);
+    return () => {
+      el.removeEventListener("pointerdown", onPointerDown);
+      el.removeEventListener("pointermove", onPointerMove);
+      el.removeEventListener("pointerup", endDrag);
+      el.removeEventListener("pointercancel", endDrag);
+    };
+  }, [ref]);
 }
 
 export function TimePicker({
@@ -33,6 +92,8 @@ export function TimePicker({
   const minuteListRef = useRef<HTMLDivElement>(null);
   const pos = useClampedPopoverPos(anchorRect, popRef);
   const open = anchorRect !== null;
+  useDragScroll(hourListRef);
+  useDragScroll(minuteListRef);
 
   const [h, m] = value ? value.split(":").map(Number) : [null, null];
 
@@ -97,6 +158,9 @@ export function TimePicker({
                 </button>
               ))}
             </div>
+            <span className="time-picker-grip" aria-hidden="true">
+              <DragGripIcon />
+            </span>
             <div className="time-picker-col" ref={minuteListRef}>
               {MINUTES.map((mm) => (
                 <button

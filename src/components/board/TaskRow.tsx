@@ -5,7 +5,8 @@ import { useBoardCtx } from "./board-context";
 import { TimerButton } from "./TimerButton";
 import { StatusPicker } from "./StatusPicker";
 import { MinutesPicker, TimePicker } from "./TimePicker";
-import { BoltIcon, DuplicateIcon, FlagIcon, LinkIcon, RepeatIcon, TrashIcon } from "./icons";
+import { ReminderDateButton } from "./RemindersView";
+import { BellIcon, BoltIcon, CommentIcon, DuplicateIcon, FlagIcon, LinkIcon, RepeatIcon, TrashIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
 import { CATEGORY_LABEL, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
 import type { TaskEditFields } from "@/lib/board/use-board";
@@ -101,6 +102,7 @@ interface TaskRowProps {
 export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop, dragging, gridTemplate }: TaskRowProps) {
   const { board, askScope, askConfirm, openProject } = useBoardCtx();
   const [editing, setEditing] = useState(false);
+  const hasReminder = board.state.reminders.some((r) => r.taskId === t.id);
 
   if (editing) {
     return <TaskEditRow task={t} onDone={() => setEditing(false)} />;
@@ -149,18 +151,48 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
         <button type="button" className="row-title" title={t.title} onClick={() => setEditing(true)}>
           {t.title}
         </button>
-        {t.projectId && (
-          <button
-            type="button"
-            className="icon-btn task-project-link"
-            title="Abrir projeto vinculado"
-            onClick={(e) => {
-              e.stopPropagation();
-              openProject(t.projectId!);
-            }}
-          >
-            <LinkIcon />
-          </button>
+        {(t.projectId || hasReminder || t.note.trim()) && (
+          <span className="row-badges">
+            {t.projectId && (
+              <button
+                type="button"
+                className="icon-btn task-badge task-project-link"
+                title="Tarefa vinculada a um projeto"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openProject(t.projectId!);
+                }}
+              >
+                <LinkIcon />
+              </button>
+            )}
+            {hasReminder && (
+              <button
+                type="button"
+                className="icon-btn task-badge task-reminder-badge"
+                title="Tarefa com lembrete"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditing(true);
+                }}
+              >
+                <BellIcon filled />
+              </button>
+            )}
+            {t.note.trim() && (
+              <button
+                type="button"
+                className="icon-btn task-badge task-note-badge"
+                title="Observação na tarefa"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditing(true);
+                }}
+              >
+                <CommentIcon />
+              </button>
+            )}
+          </span>
         )}
         {t.time && <span className="row-time mono">{t.time}</span>}
       </div>
@@ -206,6 +238,7 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
 function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
   const { board, askScope } = useBoardCtx();
   const currentSeries = t.seriesId ? board.state.taskSeries.find((s) => s.id === t.seriesId) : null;
+  const linkedReminder = board.state.reminders.find((r) => r.taskId === t.id) ?? null;
   const [vals, setVals] = useState<TaskEditFields>({
     title: t.title,
     category: t.category,
@@ -314,6 +347,18 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
               </option>
             ))}
           </select>
+        </label>
+        <label className="edit-field">
+          <span className="edit-field-label">Lembrete</span>
+          <ReminderDateButton
+            date={linkedReminder?.date ?? null}
+            time={linkedReminder?.time ?? null}
+            repeat={linkedReminder?.repeat ?? "none"}
+            weekDays={linkedReminder?.weekDays ?? null}
+            alertMinutesBefore={linkedReminder?.alertMinutesBefore ?? null}
+            onSave={(fields) => board.setTaskReminder(t.id, fields)}
+            emptyLabel="Sem lembrete"
+          />
         </label>
       </div>
       <div className="edit-actions">

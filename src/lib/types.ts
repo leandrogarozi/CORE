@@ -193,6 +193,7 @@ export interface Reminder {
   note: string | null; // observação livre — colar um texto, escrever algo
   done: boolean;
   deletedAt: string | null; // ISO datetime — soft delete, vai pra Lixeira em vez de sumir na hora
+  taskId: string | null; // quando o lembrete foi criado a partir de uma tarefa (campo "Lembrete" na edição)
 }
 
 export type MedicationTimeMode = "shared" | "individual";

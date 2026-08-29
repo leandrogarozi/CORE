@@ -464,7 +464,13 @@ export function useBoard(userId: string | null) {
 
   const purgeTask = useCallback(
     (id: string) => {
-      apply((s) => ({ ...s, trashedTasks: s.trashedTasks.filter((x) => x.id !== id) }));
+      // apagar de vez a tarefa também apaga (cascade no banco) o lembrete vinculado a ela, se tiver.
+      apply((s) => ({
+        ...s,
+        trashedTasks: s.trashedTasks.filter((x) => x.id !== id),
+        reminders: s.reminders.filter((r) => r.taskId !== id),
+        trashedReminders: s.trashedReminders.filter((r) => r.taskId !== id),
+      }));
       supabase.from("tasks").delete().eq("id", id).then(({ error }) => {
         if (error) console.error("purgeTask", error);
       });
@@ -857,6 +863,7 @@ export function useBoard(userId: string | null) {
         note: null,
         done: false,
         deletedAt: null,
+        taskId: null,
       };
       apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
       supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
@@ -922,6 +929,53 @@ export function useBoard(userId: string | null) {
       });
     },
     [apply, supabase]
+  );
+
+  // Cria/atualiza/remove o lembrete vinculado a uma tarefa (campo "Lembrete" na edição).
+  // Título padrão "Lembrete para executar a tarefa: <nome>" — reaproveita a mesma estrutura
+  // de Reminder de sempre (data/hora/repetição/dias/aviso), só com taskId apontando de volta.
+  const setTaskReminder = useCallback(
+    (
+      taskId: string,
+      fields: {
+        date: string | null;
+        time: string | null;
+        repeat: Repeat;
+        weekDays: number[] | null;
+        alertMinutesBefore: number | null;
+      }
+    ) => {
+      if (!userId) return;
+      const task = stateRef.current.tasks.find((t) => t.id === taskId);
+      if (!task) return;
+      const existing = stateRef.current.reminders.find((r) => r.taskId === taskId);
+      if (!fields.date) {
+        if (existing) deleteReminder(existing.id);
+        return;
+      }
+      if (existing) {
+        updateReminder(existing.id, fields);
+        return;
+      }
+      const r: Reminder = {
+        id: uid(),
+        title: `Lembrete para executar a tarefa: ${task.title}`,
+        date: fields.date,
+        time: fields.time,
+        repeat: fields.repeat,
+        weekDays: fields.weekDays,
+        alertMinutesBefore: fields.alertMinutesBefore,
+        note: null,
+        done: false,
+        deletedAt: null,
+        taskId,
+      };
+      apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
+      supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
+        if (error) console.error("setTaskReminder", error);
+      });
+    },
+    [apply, deleteReminder, supabase, updateReminder, userId]
   );
 
   // ---------- medications ----------
@@ -1614,6 +1668,7 @@ export function useBoard(userId: string | null) {
     deleteReminder,
     restoreReminder,
     purgeReminder,
+    setTaskReminder,
     addMedication,
     updateMedication,
     deleteMedication,

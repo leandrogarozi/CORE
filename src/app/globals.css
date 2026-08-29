@@ -592,6 +592,7 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 /* task table: header + rows share one resizable grid, like a spreadsheet */
 .task-table-scroll{
   overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none;
+  -webkit-overflow-scrolling:touch;
 }
 .task-table-scroll::-webkit-scrollbar{ display:none; height:0; }
 .task-list-header{
@@ -745,13 +746,16 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .time-picker-col{
   display:flex; flex-direction:column; gap:1px; overflow-y:auto; width:36px; padding:0 6px;
   min-height:0; scrollbar-width:none; -webkit-overflow-scrolling:touch; touch-action:pan-y; overscroll-behavior:contain;
+  cursor:grab; user-select:none;
 }
 .time-picker-col::-webkit-scrollbar{ display:none; }
-.time-picker-col:first-child{ position:relative; border-right:1px solid var(--border); }
-.time-picker-col:first-child::after{
-  content:"⋮"; position:absolute; top:50%; right:-1px; transform:translate(50%, -50%);
-  font-size:11px; line-height:1; color:var(--text-faint); background:var(--surface); padding:3px 0;
-  pointer-events:none;
+.time-picker-col.dragging{ cursor:grabbing; }
+.time-picker-col:first-child{ border-right:1px solid var(--border); }
+.time-picker-grip{
+  position:absolute; left:50%; top:50%; transform:translate(-50%, -50%);
+  display:flex; align-items:center; justify-content:center; pointer-events:none;
+  color:var(--text-faint); background:var(--surface); border-radius:50%; padding:3px;
+  box-shadow:0 0 0 1px var(--border);
 }
 .time-picker-num{
   flex:none; padding:5px 0; border-radius:6px; font-size:11.5px; font-variant-numeric:tabular-nums;
@@ -826,6 +830,7 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 
 /* narrow list views (Livros, Lembretes) */
 .narrow-list{ max-width:640px; margin:0 auto; }
+.narrow-list.reminders-wide{ max-width:820px; }
 .list-quickadd-card{
   background:var(--surface); border:1px solid var(--border); border-radius:12px;
   box-shadow:var(--shadow); margin-bottom:14px; overflow:hidden;
@@ -948,8 +953,15 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   font-size:11.5px; color:var(--text-faint);
 }
 .project-time-row svg{ width:12px; height:12px; }
+.row-badges{ display:inline-flex; align-items:center; gap:2px; flex:none; }
+.task-badge{ padding:2px; }
+.task-badge svg{ width:11px; height:11px; }
 .task-project-link{ color:var(--info); }
 .task-project-link:hover{ color:var(--accent); }
+.task-note-badge{ color:var(--text-faint); }
+.task-note-badge:hover{ color:var(--text-muted); }
+.task-reminder-badge{ color:var(--book-yellow); }
+.task-reminder-badge:hover{ color:var(--accent); }
 .reminder-check{
   width:16px; height:16px; border-radius:50%; flex:none;
   border:1.5px solid var(--border-strong);

@@ -346,6 +346,7 @@ export function rowToReminder(row: ReminderRow): Reminder {
     note: row.note,
     done: row.done,
     deletedAt: row.deleted_at,
+    taskId: row.task_id,
   };
 }
 
@@ -362,6 +363,7 @@ export function reminderToInsertRow(r: Reminder, userId: string): TablesInsert<"
     note: r.note,
     done: r.done,
     deleted_at: r.deletedAt,
+    task_id: r.taskId,
   };
 }
 
@@ -376,6 +378,7 @@ export function reminderToUpdateRow(r: Partial<Reminder>): TablesUpdate<"reminde
   if (r.note !== undefined) row.note = r.note;
   if (r.done !== undefined) row.done = r.done;
   if (r.deletedAt !== undefined) row.deleted_at = r.deletedAt;
+  if (r.taskId !== undefined) row.task_id = r.taskId;
   return row;
 }
 

@@ -453,6 +453,7 @@ export type Database = {
           remind_date: string | null
           remind_time: string | null
           repeat: string | null
+          task_id: string | null
           title: string
           user_id: string
           week_days: number[] | null
@@ -467,6 +468,7 @@ export type Database = {
           remind_date?: string | null
           remind_time?: string | null
           repeat?: string | null
+          task_id?: string | null
           title: string
           user_id: string
           week_days?: number[] | null
@@ -481,11 +483,20 @@ export type Database = {
           remind_date?: string | null
           remind_time?: string | null
           repeat?: string | null
+          task_id?: string | null
           title?: string
           user_id?: string
           week_days?: number[] | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reminders_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       settings: {
         Row: {

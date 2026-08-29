@@ -6,7 +6,7 @@ import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
 import { BellIcon, CheckIcon, EraserIcon, RepeatIcon, TrashIcon, WarningIcon, WeekIcon } from "./icons";
 import { TimePicker } from "./TimePicker";
-import { DAY_NAMES, fmtShortDate, todayISO } from "@/lib/date-utils";
+import { DAY_NAMES, fmtShortDate, isoAddDays, todayISO } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 import { REMINDER_ALERT_PRESETS, isReminderOverdue, reminderTargetMs } from "@/lib/board/reminder-alerts";
 import type { Reminder, Repeat } from "@/lib/types";
@@ -27,6 +27,29 @@ const REPEAT_SHORT: Record<Repeat, string> = {
   yearly: "anual",
 };
 
+type ReminderFilter = "todos" | "recorrentes" | "hoje" | "semana" | "atrasados";
+
+const REMINDER_FILTERS: { v: ReminderFilter; l: string }[] = [
+  { v: "todos", l: "Todos" },
+  { v: "recorrentes", l: "Recorrentes" },
+  { v: "hoje", l: "Hoje" },
+  { v: "semana", l: "Semana" },
+  { v: "atrasados", l: "Atrasados" },
+];
+
+function isRecurringReminder(r: Reminder): boolean {
+  return r.repeat !== "none" || (r.weekDays?.length ?? 0) > 0;
+}
+
+function matchesReminderFilter(r: Reminder, filter: ReminderFilter, today: string, weekEnd: string): boolean {
+  if (filter === "todos") return true;
+  if (filter === "recorrentes") return isRecurringReminder(r);
+  if (filter === "atrasados") return isReminderOverdue(r);
+  if (filter === "hoje") return r.date === today;
+  if (filter === "semana") return !!r.date && r.date >= today && r.date <= weekEnd;
+  return true;
+}
+
 // Ordena pelos mais próximos primeiro (vencidos: o que venceu há mais tempo primeiro);
 // sem data marcada fica sempre por último.
 function sortByClosestDate(list: Reminder[]): Reminder[] {
@@ -40,15 +63,30 @@ function sortByClosestDate(list: Reminder[]): Reminder[] {
   });
 }
 
-function ReminderDateButton({ reminder }: { reminder: Reminder }) {
-  const { board } = useBoardCtx();
+export interface ReminderScheduleFields {
+  date: string | null;
+  time: string | null;
+  repeat: Repeat;
+  weekDays: number[] | null;
+  alertMinutesBefore: number | null;
+}
+
+export function ReminderDateButton({
+  date,
+  time,
+  repeat,
+  weekDays,
+  alertMinutesBefore,
+  onSave,
+  emptyLabel = "Definir data",
+}: ReminderScheduleFields & { onSave: (fields: ReminderScheduleFields) => void; emptyLabel?: string }) {
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const open = anchorRect !== null;
-  const [dateDraft, setDateDraft] = useState(reminder.date ?? "");
-  const [timeDraft, setTimeDraft] = useState(reminder.time ?? "");
-  const [repeatDraft, setRepeatDraft] = useState<Repeat>(reminder.repeat);
-  const [weekDraft, setWeekDraft] = useState<number[]>(reminder.weekDays ?? []);
-  const [alertDraft, setAlertDraft] = useState<number | null>(reminder.alertMinutesBefore);
+  const [dateDraft, setDateDraft] = useState(date ?? "");
+  const [timeDraft, setTimeDraft] = useState(time ?? "");
+  const [repeatDraft, setRepeatDraft] = useState<Repeat>(repeat);
+  const [weekDraft, setWeekDraft] = useState<number[]>(weekDays ?? []);
+  const [alertDraft, setAlertDraft] = useState<number | null>(alertMinutesBefore);
   const btnRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
   const pos = useClampedPopoverPos(anchorRect, popRef);
@@ -70,11 +108,11 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
       setAnchorRect(null);
       return;
     }
-    setDateDraft(reminder.date ?? "");
-    setTimeDraft(reminder.time ?? "");
-    setRepeatDraft(reminder.repeat);
-    setWeekDraft(reminder.weekDays ?? []);
-    setAlertDraft(reminder.alertMinutesBefore);
+    setDateDraft(date ?? "");
+    setTimeDraft(time ?? "");
+    setRepeatDraft(repeat);
+    setWeekDraft(weekDays ?? []);
+    setAlertDraft(alertMinutesBefore);
     if (btnRef.current) {
       setAnchorRect(btnRef.current.getBoundingClientRect());
     }
@@ -87,7 +125,7 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
   function save() {
     const nextDate = dateDraft || null;
     const hasWeekDays = weekDraft.length > 0 && weekDraft.length < 7;
-    board.updateReminder(reminder.id, {
+    onSave({
       date: nextDate,
       time: nextDate ? timeDraft || null : null,
       repeat: hasWeekDays ? "none" : nextDate ? repeatDraft : "none",
@@ -97,18 +135,18 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
     setAnchorRect(null);
   }
 
-  const alertLabel = REMINDER_ALERT_PRESETS.find((p) => p.v === reminder.alertMinutesBefore)?.l;
+  const alertLabel = REMINDER_ALERT_PRESETS.find((p) => p.v === alertMinutesBefore)?.l;
   const weekLabel =
-    reminder.weekDays && reminder.weekDays.length > 0 && reminder.weekDays.length < 7
-      ? [...reminder.weekDays].sort((a, b) => a - b).map((d) => DAY_NAMES[d]).join(",")
+    weekDays && weekDays.length > 0 && weekDays.length < 7
+      ? [...weekDays].sort((a, b) => a - b).map((d) => DAY_NAMES[d]).join(",")
       : null;
-  const hasSchedule = !!reminder.date || !!weekLabel;
+  const hasSchedule = !!date || !!weekLabel;
   const label = hasSchedule
     ? [
-        reminder.date ? fmtShortDate(reminder.date) + (reminder.time ? ` às ${reminder.time}` : "") : null,
+        date ? fmtShortDate(date) + (time ? ` às ${time}` : "") : null,
         weekLabel,
-        reminder.repeat !== "none" ? REPEAT_SHORT[reminder.repeat] : null,
-        reminder.alertMinutesBefore ? `aviso ${alertLabel}` : null,
+        repeat !== "none" ? REPEAT_SHORT[repeat] : null,
+        alertMinutesBefore ? `aviso ${alertLabel}` : null,
       ]
         .filter(Boolean)
         .join(" · ")
@@ -120,7 +158,7 @@ function ReminderDateButton({ reminder }: { reminder: Reminder }) {
         ref={btnRef}
         type="button"
         className={"reminder-date-btn" + (hasSchedule ? " has-date" : "")}
-        title={label ?? "Definir data"}
+        title={label ?? emptyLabel}
         onClick={toggleOpen}
       >
         <WeekIcon />
@@ -215,7 +253,7 @@ function reminderStatus(reminder: Reminder, overdue: boolean, dueToday: boolean)
 }
 
 // Grid fixo (sem drag-to-resize), reaproveitando o mesmo visual da tabela de tarefas.
-const REMINDER_GRID = "84px minmax(140px,1fr) 96px 176px 34px 46px";
+const REMINDER_GRID = "80px minmax(130px,1fr) 90px 160px 32px 44px";
 
 function ReminderTableHeader() {
   return (
@@ -244,7 +282,7 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
   const today = todayISO();
   const overdue = isReminderOverdue(reminder);
   const dueToday = !reminder.done && !overdue && reminder.date === today;
-  const isRecurring = reminder.repeat !== "none" || (reminder.weekDays?.length ?? 0) > 0;
+  const isRecurring = isRecurringReminder(reminder);
   const status = reminderStatus(reminder, overdue, dueToday);
 
   return (
@@ -277,7 +315,14 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
       <span className={"chip" + (isRecurring ? " chip-recurring" : " chip-oneoff")}>
         {isRecurring && <RepeatIcon />} {isRecurring ? "Recorrente" : "Pontual"}
       </span>
-      <ReminderDateButton reminder={reminder} />
+      <ReminderDateButton
+        date={reminder.date}
+        time={reminder.time}
+        repeat={reminder.repeat}
+        weekDays={reminder.weekDays}
+        alertMinutesBefore={reminder.alertMinutesBefore}
+        onSave={(fields) => board.updateReminder(reminder.id, fields)}
+      />
       <CommentButton
         value={reminder.note}
         placeholder="Observação — cole um texto ou escreva algo..."
@@ -311,7 +356,7 @@ function ReminderCompactRow({ reminder }: { reminder: Reminder }) {
   const today = todayISO();
   const overdue = isReminderOverdue(reminder);
   const dueToday = !reminder.done && !overdue && reminder.date === today;
-  const isRecurring = reminder.repeat !== "none" || (reminder.weekDays?.length ?? 0) > 0;
+  const isRecurring = isRecurringReminder(reminder);
 
   return (
     <div
@@ -340,7 +385,14 @@ function ReminderCompactRow({ reminder }: { reminder: Reminder }) {
           <RepeatIcon />
         </span>
       )}
-      <ReminderDateButton reminder={reminder} />
+      <ReminderDateButton
+        date={reminder.date}
+        time={reminder.time}
+        repeat={reminder.repeat}
+        weekDays={reminder.weekDays}
+        alertMinutesBefore={reminder.alertMinutesBefore}
+        onSave={(fields) => board.updateReminder(reminder.id, fields)}
+      />
       <button
         className="icon-btn danger-hover"
         type="button"
@@ -458,6 +510,7 @@ export function RemindersButton({ onOpenFull }: { onOpenFull: () => void }) {
 export function RemindersView({ onBack }: { onBack: () => void }) {
   const { board } = useBoardCtx();
   const [newTitle, setNewTitle] = useState("");
+  const [filter, setFilter] = useState<ReminderFilter>("todos");
 
   function handleAdd() {
     const title = newTitle.trim();
@@ -466,10 +519,13 @@ export function RemindersView({ onBack }: { onBack: () => void }) {
     setNewTitle("");
   }
 
-  const notDone = board.state.reminders.filter((r) => !r.done);
+  const today = todayISO();
+  const weekEnd = isoAddDays(today, 7);
+  const filtered = board.state.reminders.filter((r) => matchesReminderFilter(r, filter, today, weekEnd));
+  const notDone = filtered.filter((r) => !r.done);
   const overdue = sortByClosestDate(notDone.filter((r) => isReminderOverdue(r)));
   const pending = sortByClosestDate(notDone.filter((r) => !isReminderOverdue(r)));
-  const done = board.state.reminders.filter((r) => r.done);
+  const done = filtered.filter((r) => r.done);
 
   return (
     <div className="section">
@@ -481,7 +537,7 @@ export function RemindersView({ onBack }: { onBack: () => void }) {
         <span style={{ width: 30 }} />
       </div>
 
-      <div className="narrow-list">
+      <div className="narrow-list reminders-wide">
         <div className="list-quickadd-card">
           <div className="quickadd-row">
             <span className="quickadd-plus" aria-hidden="true">
@@ -498,6 +554,27 @@ export function RemindersView({ onBack }: { onBack: () => void }) {
           </div>
         </div>
 
+        <div className="view-toggle reminder-filter-row">
+          {REMINDER_FILTERS.map((f) => (
+            <button
+              key={f.v}
+              type="button"
+              className={"view-toggle-btn" + (filter === f.v ? " active" : "")}
+              onClick={() => setFilter(f.v)}
+            >
+              {f.l}
+            </button>
+          ))}
+        </div>
+
+        {overdue.length === 0 && pending.length === 0 && done.length === 0 && (
+          <div className="list-card">
+            <div className="hp-empty">
+              {filter === "todos" ? "Nenhum lembrete ainda." : "Nenhum lembrete encontrado com esse filtro."}
+            </div>
+          </div>
+        )}
+
         {overdue.length > 0 && (
           <div className="list-card">
             <div className="list-card-section-label overdue-label">
@@ -512,18 +589,14 @@ export function RemindersView({ onBack }: { onBack: () => void }) {
           </div>
         )}
 
-        {(pending.length > 0 || overdue.length === 0) && (
+        {pending.length > 0 && (
           <div className="list-card">
-            {pending.length === 0 ? (
-              <div className="hp-empty">Nenhum lembrete pendente.</div>
-            ) : (
-              <div className="task-table-scroll">
-                <ReminderTableHeader />
-                {pending.map((r) => (
-                  <ReminderRow key={r.id} reminder={r} />
-                ))}
-              </div>
-            )}
+            <div className="task-table-scroll">
+              <ReminderTableHeader />
+              {pending.map((r) => (
+                <ReminderRow key={r.id} reminder={r} />
+              ))}
+            </div>
           </div>
         )}
 
