@@ -137,6 +137,25 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Prioridade nos Livros (29/08)
+
+Pedido direto do Leandro: **"só colocaria bandeira de prioridade nos
+livros, acho melhor alta, media e baixa como nas taks."**
+
+Adicionado o mesmo campo `priority` ("alta"/"media"/"baixa") que já
+existia em Tarefas, agora também em `Book` — reaproveitando a mesma
+bandeirinha colorida (`FlagIcon` + cores `--flag-alta/media/baixa`) e
+o mesmo comportamento de clique-pra-avançar (alta → baixa → média →
+alta) que já era usado no `TaskRow`. As funções `priorityColor`,
+`priorityLabel` e `nextPriority` foram exportadas de `TaskRow.tsx` e
+reaproveitadas em `BooksView.tsx` em vez de duplicadas.
+
+Migração `add_priority_to_books` (coluna `priority text not null
+default 'media'`) — os livros já cadastrados ficaram todos com
+prioridade "Média" por padrão, o Leandro pode reclassificar clicando
+na bandeira de cada um. A bandeira aparece na linha do livro, ao lado
+do seletor de status.
+
 ## Edição de tarefa mais organizada, Lazer com múltiplas tags, fila de leitura numerada (29/08)
 
 Print da edição de tarefa com feedback direto: **"organizar melhor as

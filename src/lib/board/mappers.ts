@@ -309,6 +309,7 @@ export function rowToBook(row: BookRow): Book {
     id: row.id,
     title: row.title,
     status: row.status as BookStatus,
+    priority: row.priority as Priority,
     insights: row.insights,
     startedAt: row.started_at,
     order: row.sort_order,
@@ -321,6 +322,7 @@ export function bookToInsertRow(b: Book, userId: string): TablesInsert<"books"> 
     user_id: userId,
     title: b.title,
     status: b.status,
+    priority: b.priority,
     insights: b.insights,
     started_at: b.startedAt,
     sort_order: b.order,
@@ -331,6 +333,7 @@ export function bookToUpdateRow(b: Partial<Book>): TablesUpdate<"books"> {
   const row: TablesUpdate<"books"> = {};
   if (b.title !== undefined) row.title = b.title;
   if (b.status !== undefined) row.status = b.status;
+  if (b.priority !== undefined) row.priority = b.priority;
   if (b.insights !== undefined) row.insights = b.insights;
   if (b.startedAt !== undefined) row.started_at = b.startedAt;
   if (b.order !== undefined) row.sort_order = b.order;

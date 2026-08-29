@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
-import { BookIcon, BookmarkIcon, BookOpenIcon, ChevronIcon, CommentIcon, DragGripIcon, TrashIcon, WeekIcon } from "./icons";
+import { BookIcon, BookmarkIcon, BookOpenIcon, ChevronIcon, CommentIcon, DragGripIcon, FlagIcon, TrashIcon, WeekIcon } from "./icons";
 import { RichTextEditor } from "./RichTextEditor";
+import { priorityColor, priorityLabel, nextPriority } from "./TaskRow";
 import { fmtShortDate } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 import { stripHtml } from "@/lib/rich-text";
@@ -248,6 +249,23 @@ function BookInsightsButton({ book }: { book: Book }) {
   );
 }
 
+function BookPriorityFlag({ book }: { book: Book }) {
+  const { board } = useBoardCtx();
+  return (
+    <button
+      type="button"
+      className="flag flag-btn"
+      title={`${priorityLabel(book.priority)} — clique pra mudar`}
+      onClick={(e) => {
+        e.stopPropagation();
+        board.updateBook(book.id, { priority: nextPriority(book.priority) });
+      }}
+    >
+      <FlagIcon color={priorityColor(book.priority)} />
+    </button>
+  );
+}
+
 function BookRow({
   book,
   draggable,
@@ -306,6 +324,7 @@ function BookRow({
         onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
       />
       {book.status === "lendo" && <BookStartDateButton book={book} />}
+      <BookPriorityFlag book={book} />
       <BookStatusPicker book={book} />
       <BookInsightsButton book={book} />
       <button

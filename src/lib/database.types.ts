@@ -46,6 +46,7 @@ export type Database = {
           created_at: string
           id: string
           insights: string | null
+          priority: string
           sort_order: number
           started_at: string | null
           status: string
@@ -56,6 +57,7 @@ export type Database = {
           created_at?: string
           id?: string
           insights?: string | null
+          priority?: string
           sort_order?: number
           started_at?: string | null
           status?: string
@@ -66,6 +68,7 @@ export type Database = {
           created_at?: string
           id?: string
           insights?: string | null
+          priority?: string
           sort_order?: number
           started_at?: string | null
           status?: string

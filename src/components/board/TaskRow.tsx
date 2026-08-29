@@ -76,15 +76,15 @@ function hexToRgba(hex: string, alpha: number) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-function priorityColor(p: Priority) {
+export function priorityColor(p: Priority) {
   return p === "alta" ? "var(--flag-alta)" : p === "media" ? "var(--flag-media)" : "var(--flag-baixa)";
 }
 
-function priorityLabel(p: Priority) {
+export function priorityLabel(p: Priority) {
   return p === "alta" ? "Alta prioridade" : p === "media" ? "Média prioridade" : "Baixa prioridade";
 }
 
-function nextPriority(p: Priority): Priority {
+export function nextPriority(p: Priority): Priority {
   if (p === "media") return "alta";
   if (p === "alta") return "baixa";
   return "media";
