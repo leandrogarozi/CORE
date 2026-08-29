@@ -137,6 +137,80 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Observação expansível, status de lembrete por escolha, recorrência continua, Lazer sem minutos obrigatórios, fila de leitura (29/08)
+
+Rodada de pedidos avulsos, com checklist prévio de novo (o Leandro pediu
+pra isso virar padrão: **"faça sempre o check list ao lado para eu ir
+conferindo"**):
+
+- **Observação expansível**: `CommentButton` ganha um ícone de expandir
+  dentro do popover pequeno, que abre um modal grande (reaproveitando o
+  mesmo padrão do resumo de livro — `.modal-backdrop`/`.modal-panel`) pra
+  nunca mais cortar o campo nem esconder o botão Salvar. Formatação rica
+  (negrito, itálico, listas, checklist, alinhamento — o Leandro mandou
+  prints do ClickUp como referência de toolbar) e anexos ficam pra uma
+  próxima rodada, é maior.
+- **Status do lembrete abre escolha em vez de alternar direto**: clicar no
+  chip de status agora abre um popover (`Pendente`/`Concluído`, reusando o
+  visual `.status-menu` já usado no status das tarefas) em vez de já marcar
+  concluído/pendente na hora do clique.
+- **Lembrete recorrente concluído gera o próximo**: pedido — *"quando uma
+  tarefa recorrente em lembretes é concluída ela vai para concluída, porém
+  e a recorrência dela? ela teria que gerar outro lembrete pra dar
+  continuidade."* Novo `board.completeReminder(id)`: marca o lembrete atual
+  como concluído (fica como histórico) e cria automaticamente um novo
+  lembrete pra próxima ocorrência (mesmo repeat/dias da semana/aviso),
+  calculando a próxima data a partir de hoje (`nextReminderOccurrenceDate`,
+  novo em `reminder-alerts.ts`).
+- **Lazer sem minutos obrigatórios**: o bloco fixo "Lazer" já tinha os
+  tipos certos cadastrados (Futebol, Sauna, Piscina...) e já suportava
+  várias entradas por dia — só que minutos era obrigatório pra cada uma. O
+  Leandro só queria marcar as atividades do dia sem cronometrar cada uma;
+  agora minutos é opcional no popover de entradas.
+- **Fila de leitura dos livros**: `Book` ganha campo `order` (migração
+  `add_sort_order_to_books`); dá pra arrastar os livros dentro do grupo
+  "Para ler" pra definir a ordem de leitura — só esse grupo é arrastável,
+  os outros (Lendo/Concluído) não precisam.
+- **Ideias maiores discutidas, não construídas ainda**: Projetos virarem um
+  PDA de verdade (o Leandro mandou uma planilha de referência — colunas
+  Ação/Início/Fim/Onde/Responsável/Motivo Estratégico/Procedimento/
+  Investimento/Status/%Conclusão — vai precisar de um redesenho grande das
+  etapas do projeto) e o envio de mensagem de verdade pelo WhatsApp (API
+  do WhatsApp Business tem custo e verificação — vai precisar de uma
+  conversa própria antes de começar).
+
+## [IDEIA CAPTURADA, AINDA NÃO CONSTRUÍDA] FARO faz varredura de inconsistências (29/08)
+
+Pedido do Leandro: **"a IA FARO faz uma varredura no sistema para encontrar
+inconsistência — um projeto com várias task e tags diferentes, uma com
+trabalho, outra com dev pessoal... pode ser cadastrada errado. ele verifica
+se tem task muito atrasados, tasks e lembretes abandonados... coisas desse
+tipo. em configurar FARO podemos definir os dias que ele faz essa varredura.
+Perguntar por que não está lendo, por que não está tendo lazer... por
+exemplo tenho anotações em livros para ler que são mais importantes para o
+momento — ele pode me ajudar. seria interessante também colocar uma ordem
+de leitura na fila dos livros."**
+
+Só anotado por enquanto — é um projeto grande (motor de análise + tela nova
+de configuração), fica pra depois de alinhar o escopo. Ideias iniciais do
+que a varredura poderia checar:
+
+- **Categoria inconsistente num projeto**: etapas com tags muito diferentes
+  entre si (ex.: uma "trabalho", outra "dev pessoal") no mesmo projeto —
+  sinaliza que alguma etapa pode estar vinculada ao projeto errado.
+- **Tarefas muito atrasadas** (sem data recente / paradas há muito tempo).
+- **Lembretes e tarefas "abandonados"**: sem interação (nem check, nem
+  edição) por N dias.
+- **Ausência de categorias inteiras** por um período — ex.: nada marcado em
+  Lazer/Saúde há muito tempo, vale perguntar "por que você não está
+  descansando/lendo?".
+- **Fila de leitura dos livros**: como o Leandro já anota quais livros são
+  mais importantes pro momento, o FARO poderia sugerir por onde começar —
+  depende de existir uma ordem/prioridade na lista "Para ler" primeiro
+  (esse pedaço, sim, é pequeno e dá pra construir antes do resto).
+- Tela nova **"Configurar FARO"**: escolher em quais dias da semana essa
+  varredura roda.
+
 ## Projetos com status Cancelado, botão Salvo, ícones só de indicação, Lembretes mais enxutos (29/08)
 
 Rodada de refinamentos em cima da anterior, a partir de novos prints:

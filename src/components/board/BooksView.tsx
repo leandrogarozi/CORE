@@ -253,7 +253,21 @@ function BookInsightsButton({ book }: { book: Book }) {
   );
 }
 
-function BookRow({ book }: { book: Book }) {
+function BookRow({
+  book,
+  draggable,
+  dragging,
+  onDragStart,
+  onDragOverRow,
+  onDrop,
+}: {
+  book: Book;
+  draggable?: boolean;
+  dragging?: boolean;
+  onDragStart?: (id: string) => void;
+  onDragOverRow?: (id: string) => void;
+  onDrop?: () => void;
+}) {
   const { board } = useBoardCtx();
   const [titleDraft, setTitleDraft] = useState<string | null>(null);
 
@@ -265,7 +279,21 @@ function BookRow({ book }: { book: Book }) {
   }
 
   return (
-    <div className="book-row">
+    <div
+      className={"book-row" + (dragging ? " dragging" : "")}
+      draggable={draggable}
+      onDragStart={() => onDragStart?.(book.id)}
+      onDragOver={(e) => {
+        if (!draggable) return;
+        e.preventDefault();
+        onDragOverRow?.(book.id);
+      }}
+      onDrop={(e) => {
+        if (!draggable) return;
+        e.preventDefault();
+        onDrop?.();
+      }}
+    >
       <input
         type="text"
         className="book-title-input"
@@ -293,6 +321,8 @@ export function BooksView({ onBack }: { onBack: () => void }) {
   const { board } = useBoardCtx();
   const [newTitle, setNewTitle] = useState("");
   const [collapsed, setCollapsed] = useState<Partial<Record<BookStatus, boolean>>>({});
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
 
   function handleAdd() {
     const title = newTitle.trim();
@@ -303,6 +333,20 @@ export function BooksView({ onBack }: { onBack: () => void }) {
 
   function toggleGroup(status: BookStatus) {
     setCollapsed((c) => ({ ...c, [status]: !c[status] }));
+  }
+
+  function handleDrop(books: Book[]) {
+    if (!draggingId) return;
+    const ids = books.map((b) => b.id);
+    const fromIdx = ids.indexOf(draggingId);
+    let toIdx = overId ? ids.indexOf(overId) : ids.length - 1;
+    if (fromIdx === -1) return;
+    if (toIdx === -1) toIdx = ids.length - 1;
+    ids.splice(fromIdx, 1);
+    ids.splice(toIdx, 0, draggingId);
+    board.reorderBooks(ids);
+    setDraggingId(null);
+    setOverId(null);
   }
 
   return (
@@ -333,10 +377,13 @@ export function BooksView({ onBack }: { onBack: () => void }) {
         </div>
 
         {BOOK_STATUS_ORDER.map((status) => {
-          const books = board.state.books.filter((b) => b.status === status);
+          const books = board.state.books
+            .filter((b) => b.status === status)
+            .sort((a, b) => (a.order || 0) - (b.order || 0));
           const isCollapsed = !!collapsed[status];
           const hasRows = !isCollapsed && books.length > 0;
           const GroupIcon = BOOK_STATUS_ICON[status];
+          const draggable = status === "para_ler";
           return (
             <div key={status} className="list-card">
               <button
@@ -356,7 +403,18 @@ export function BooksView({ onBack }: { onBack: () => void }) {
                 </span>
                 <span className="book-group-count">{books.length}</span>
               </button>
-              {!isCollapsed && books.map((b) => <BookRow key={b.id} book={b} />)}
+              {!isCollapsed &&
+                books.map((b) => (
+                  <BookRow
+                    key={b.id}
+                    book={b}
+                    draggable={draggable}
+                    dragging={draggingId === b.id}
+                    onDragStart={draggable ? setDraggingId : undefined}
+                    onDragOverRow={draggable ? setOverId : undefined}
+                    onDrop={draggable ? () => handleDrop(books) : undefined}
+                  />
+                ))}
             </div>
           );
         })}

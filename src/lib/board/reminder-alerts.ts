@@ -1,3 +1,4 @@
+import { dateFromISO, isoAddDays, stepIso, todayISO } from "@/lib/date-utils";
 import type { Reminder } from "@/lib/types";
 
 export const REMINDER_ALERT_PRESETS: { v: number | null; l: string }[] = [
@@ -9,6 +10,10 @@ export const REMINDER_ALERT_PRESETS: { v: number | null; l: string }[] = [
   { v: 2880, l: "2 dias antes" },
   { v: 10080, l: "1 semana antes" },
 ];
+
+export function isRecurringReminder(reminder: Pick<Reminder, "repeat" | "weekDays">): boolean {
+  return reminder.repeat !== "none" || (reminder.weekDays?.length ?? 0) > 0;
+}
 
 export function reminderTargetMs(reminder: Pick<Reminder, "date" | "time">): number | null {
   if (!reminder.date) return null;
@@ -35,4 +40,25 @@ export function isReminderOverdue(reminder: Pick<Reminder, "date" | "time" | "do
   const targetMs = reminderTargetMs(reminder);
   if (targetMs === null) return false;
   return nowMs > targetMs;
+}
+
+// Próxima ocorrência de um lembrete recorrente, a partir de hoje (não da data antiga do
+// lembrete concluído) — usada pra gerar o lembrete de continuação quando um recorrente é
+// marcado como concluído. Sem data nem dia da semana batendo, não tem o que gerar (null).
+export function nextReminderOccurrenceDate(
+  reminder: Pick<Reminder, "date" | "repeat" | "weekDays">
+): string | null {
+  const today = todayISO();
+  if (reminder.weekDays && reminder.weekDays.length > 0 && reminder.weekDays.length < 7) {
+    const base = reminder.date && reminder.date >= today ? reminder.date : today;
+    for (let i = 1; i <= 14; i++) {
+      const candidate = isoAddDays(base, i);
+      if (reminder.weekDays.includes(dateFromISO(candidate).getDay())) return candidate;
+    }
+    return null;
+  }
+  if (reminder.repeat !== "none" && reminder.date) {
+    return stepIso(reminder.repeat, reminder.date);
+  }
+  return null;
 }

@@ -214,8 +214,8 @@ function DayEntriesPopover({
   }, [onClose]);
 
   function handleAdd() {
-    if (!selected || !minutes || minutes <= 0) return;
-    onAdd(selected, minutes);
+    if (!selected) return;
+    onAdd(selected, minutes ?? 0);
     setSelected(null);
     setMinutes(null);
   }
@@ -227,7 +227,7 @@ function DayEntriesPopover({
           {entries.map((e) => (
             <div key={e.id} className="day-entry-row">
               <span className="day-entry-note">{e.note}</span>
-              <span className="day-entry-min">{e.minutes}min</span>
+              {e.minutes > 0 && <span className="day-entry-min">{e.minutes}min</span>}
               <button type="button" aria-label={`Remover ${e.note}`} onClick={() => onRemove(e.id)}>
                 ×
               </button>
@@ -251,7 +251,7 @@ function DayEntriesPopover({
         </div>
       </label>
       <label className="edit-field">
-        <span className="edit-field-label">Minutos</span>
+        <span className="edit-field-label">Minutos (opcional)</span>
         <MinutesPicker minutes={minutes} onChange={setMinutes} autoFocus />
       </label>
       <div className="edit-actions">

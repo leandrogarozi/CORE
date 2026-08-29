@@ -39,6 +39,7 @@ import {
   taskToRow,
 } from "@/lib/board/mappers";
 import { isoAddDays, occurrenceDates, todayISO } from "@/lib/date-utils";
+import { isRecurringReminder, nextReminderOccurrenceDate } from "@/lib/board/reminder-alerts";
 import type {
   ActiveTimer,
   Book,
@@ -745,7 +746,9 @@ export function useBoard(userId: string | null) {
   const addBook = useCallback(
     (title: string) => {
       if (!userId || !title.trim()) return;
-      const b: Book = { id: uid(), title: title.trim(), status: "para_ler", insights: null, startedAt: null };
+      const siblings = stateRef.current.books.filter((b) => b.status === "para_ler");
+      const order = siblings.length ? Math.max(...siblings.map((b) => b.order || 0)) + 1 : 0;
+      const b: Book = { id: uid(), title: title.trim(), status: "para_ler", insights: null, startedAt: null, order };
       apply((s) => ({ ...s, books: [...s.books, b] }));
       supabase.from("books").insert(bookToInsertRow(b, userId)).then(({ error }) => {
         if (error) console.error("addBook", error);
@@ -769,6 +772,25 @@ export function useBoard(userId: string | null) {
       apply((s) => ({ ...s, books: s.books.filter((b) => b.id !== id) }));
       supabase.from("books").delete().eq("id", id).then(({ error }) => {
         if (error) console.error("deleteBook", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  // Reordena a fila de leitura (arrastar dentro de um grupo, ex.: "Para ler").
+  const reorderBooks = useCallback(
+    (orderedIds: string[]) => {
+      apply((s) => ({
+        ...s,
+        books: s.books.map((b) => {
+          const idx = orderedIds.indexOf(b.id);
+          return idx === -1 ? b : { ...b, order: idx };
+        }),
+      }));
+      orderedIds.forEach((id, idx) => {
+        supabase.from("books").update({ sort_order: idx }).eq("id", id).then(({ error }) => {
+          if (error) console.error("reorderBooks", error);
+        });
       });
     },
     [apply, supabase]
@@ -976,6 +998,38 @@ export function useBoard(userId: string | null) {
       });
     },
     [apply, deleteReminder, supabase, updateReminder, userId]
+  );
+
+  // Marca um lembrete como concluído; se ele for recorrente, gera automaticamente
+  // um novo lembrete pra próxima ocorrência (o concluído fica como está, histórico).
+  const completeReminder = useCallback(
+    (id: string) => {
+      if (!userId) return;
+      const r = stateRef.current.reminders.find((x) => x.id === id);
+      if (!r) return;
+      updateReminder(id, { done: true });
+      if (!isRecurringReminder(r)) return;
+      const nextDate = nextReminderOccurrenceDate(r);
+      if (!nextDate) return;
+      const next: Reminder = {
+        id: uid(),
+        title: r.title,
+        date: nextDate,
+        time: r.time,
+        repeat: r.repeat,
+        weekDays: r.weekDays,
+        alertMinutesBefore: r.alertMinutesBefore,
+        note: null,
+        done: false,
+        deletedAt: null,
+        taskId: r.taskId,
+      };
+      apply((s) => ({ ...s, reminders: [...s.reminders, next] }));
+      supabase.from("reminders").insert(reminderToInsertRow(next, userId)).then(({ error }) => {
+        if (error) console.error("completeReminder", error);
+      });
+    },
+    [apply, supabase, updateReminder, userId]
   );
 
   // ---------- medications ----------
@@ -1659,6 +1713,7 @@ export function useBoard(userId: string | null) {
     addBook,
     updateBook,
     deleteBook,
+    reorderBooks,
     addProject,
     updateProject,
     deleteProject,
@@ -1669,6 +1724,7 @@ export function useBoard(userId: string | null) {
     restoreReminder,
     purgeReminder,
     setTaskReminder,
+    completeReminder,
     addMedication,
     updateMedication,
     deleteMedication,

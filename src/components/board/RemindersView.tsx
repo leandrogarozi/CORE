@@ -8,7 +8,7 @@ import { BellIcon, CheckIcon, EraserIcon, RepeatIcon, TrashIcon, WarningIcon, We
 import { TimePicker } from "./TimePicker";
 import { DAY_NAMES, fmtDayMonth, isoAddDays, todayISO } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
-import { REMINDER_ALERT_PRESETS, isReminderOverdue, reminderTargetMs } from "@/lib/board/reminder-alerts";
+import { REMINDER_ALERT_PRESETS, isReminderOverdue, isRecurringReminder, reminderTargetMs } from "@/lib/board/reminder-alerts";
 import type { Reminder, Repeat } from "@/lib/types";
 
 const REPEATS: { v: Repeat; l: string }[] = [
@@ -36,10 +36,6 @@ const REMINDER_FILTERS: { v: ReminderFilter; l: string }[] = [
   { v: "semana", l: "Semana" },
   { v: "atrasados", l: "Atrasados" },
 ];
-
-function isRecurringReminder(r: Reminder): boolean {
-  return r.repeat !== "none" || (r.weekDays?.length ?? 0) > 0;
-}
 
 function matchesReminderFilter(r: Reminder, filter: ReminderFilter, today: string, weekEnd: string): boolean {
   if (filter === "todos") return true;
@@ -245,6 +241,55 @@ export function ReminderDateButton({
   );
 }
 
+function ReminderStatusMenu({
+  anchorRect,
+  done,
+  onSelect,
+  onClose,
+}: {
+  anchorRect: DOMRect;
+  done: boolean;
+  onSelect: (done: boolean) => void;
+  onClose: () => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const pos = useClampedPopoverPos(anchorRect, ref);
+
+  useEffect(() => {
+    function onDocPointerDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    }
+    window.addEventListener("mousedown", onDocPointerDown);
+    return () => window.removeEventListener("mousedown", onDocPointerDown);
+  }, [onClose]);
+
+  return createPortal(
+    <div className="status-menu" ref={ref} style={{ top: pos.top, left: pos.left }}>
+      <button
+        type="button"
+        className={"status-menu-item" + (!done ? " active" : "")}
+        onClick={() => {
+          onSelect(false);
+          onClose();
+        }}
+      >
+        Pendente
+      </button>
+      <button
+        type="button"
+        className={"status-menu-item" + (done ? " active" : "")}
+        onClick={() => {
+          onSelect(true);
+          onClose();
+        }}
+      >
+        <CheckIcon /> Concluído
+      </button>
+    </div>,
+    document.body
+  );
+}
+
 function reminderStatus(reminder: Reminder, overdue: boolean, dueToday: boolean) {
   if (reminder.done) return { label: "Concluído", cls: "status-done" };
   if (overdue) return { label: "Vencido", cls: "status-overdue" };
@@ -271,12 +316,19 @@ function ReminderTableHeader() {
 export function ReminderRow({ reminder }: { reminder: Reminder }) {
   const { board } = useBoardCtx();
   const [titleDraft, setTitleDraft] = useState<string | null>(null);
+  const [statusAnchor, setStatusAnchor] = useState<DOMRect | null>(null);
+  const statusBtnRef = useRef<HTMLButtonElement>(null);
 
   function commitTitle() {
     if (titleDraft === null) return;
     const trimmed = titleDraft.trim();
     if (trimmed && trimmed !== reminder.title) board.updateReminder(reminder.id, { title: trimmed });
     setTitleDraft(null);
+  }
+
+  function applyDone(done: boolean) {
+    if (done) board.completeReminder(reminder.id);
+    else board.updateReminder(reminder.id, { done: false });
   }
 
   const today = todayISO();
@@ -296,14 +348,23 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
       style={{ gridTemplateColumns: REMINDER_GRID }}
     >
       <button
+        ref={statusBtnRef}
         type="button"
         className={"reminder-status-chip " + status.cls}
-        title={reminder.done ? "Marcar como não concluído" : "Marcar como concluído"}
-        onClick={() => board.updateReminder(reminder.id, { done: !reminder.done })}
+        title="Escolher status"
+        onClick={() => setStatusAnchor(statusBtnRef.current?.getBoundingClientRect() ?? null)}
       >
         {reminder.done && <CheckIcon />}
         {status.label}
       </button>
+      {statusAnchor && (
+        <ReminderStatusMenu
+          anchorRect={statusAnchor}
+          done={reminder.done}
+          onSelect={applyDone}
+          onClose={() => setStatusAnchor(null)}
+        />
+      )}
       <input
         type="text"
         className="reminder-title-input"
@@ -368,7 +429,9 @@ function ReminderCompactRow({ reminder }: { reminder: Reminder }) {
         type="button"
         className={"reminder-check" + (reminder.done ? " done" : "")}
         title={reminder.done ? "Marcar como não concluído" : "Marcar como concluído"}
-        onClick={() => board.updateReminder(reminder.id, { done: !reminder.done })}
+        onClick={() =>
+          reminder.done ? board.updateReminder(reminder.id, { done: false }) : board.completeReminder(reminder.id)
+        }
       >
         {reminder.done && <CheckIcon />}
       </button>

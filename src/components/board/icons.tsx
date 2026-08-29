@@ -552,6 +552,14 @@ export function CloseCircleIcon() {
   );
 }
 
+export function ExpandIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="12" height="12" fill="none">
+      <path d="M10 19H5V14M14 5H19V10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function FolderIcon() {
   return (
     <svg viewBox="0 0 24 24" width="15" height="15" fill="none">

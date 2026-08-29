@@ -180,6 +180,7 @@ export interface Book {
   status: BookStatus;
   insights: string | null;
   startedAt: string | null; // ISO date, "lendo": quando começou
+  order: number; // fila de leitura dentro do grupo (ex.: "Para ler") — arrastar pra reordenar
 }
 
 export interface Reminder {
