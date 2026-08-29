@@ -137,7 +137,33 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
-## Editor de texto rico em todos os campos de observação/resumo/nota (29/08)
+## Edição de tarefa mais organizada, Lazer com múltiplas tags, fila de leitura numerada (29/08)
+
+Print da edição de tarefa com feedback direto: **"organizar melhor as
+informações de edição da task, exemplo o campo observação estar muito
+escondido, ele tem que estar sempre mais aberto — não gosto desse visual
+desorganizado."**
+
+- `edit-grid` (linha de edição de tarefa/hábito/bloco) deixa de ser um
+  flex-wrap solto e vira um grid de verdade — todo campo agora tem
+  rótulo (Categoria, 2ª categoria, Prioridade e Data não tinham antes,
+  só os de baixo tinham). Observação ganha destaque: `CommentButton`
+  ganha uma variante `field` (botão do tamanho de um campo normal, com
+  prévia do texto ou placeholder "+ Observação...", em vez do ícone
+  pequeno de antes) e ocupa duas colunas na grade.
+- **Lazer ainda não funcionava direito**: *"eu saí para me divertir e
+  fiz 3 coisas, quero colocar as 3 tags dentro do mesmo tempo e não
+  está dando."* O popover de entradas (blocos com tipos, tipo Lazer)
+  só deixava marcar um tipo por vez — cada atividade virava uma entrada
+  separada, obrigando a repetir o fluxo. Agora os chips de tipo são
+  multi-seleção: marca Futebol + Sauna + Piscina de uma vez, e um clique
+  em Adicionar cria uma entrada só, com os três tipos juntos e o mesmo
+  tempo (opcional) pra todos.
+- **Fila de leitura**: *"não entendi como colocar ordem... numeração,
+  primeiro, segundo, terceiro."* Arrastar sozinho não deixava claro que
+  dava pra reordenar. Cada livro do grupo "Para ler" agora mostra um
+  número de posição (1, 2, 3...) e um ícone de grip do lado do título.
+
 
 Depois do modal expandido, o Leandro mandou prints de referência (planilha
 PDA de outro projeto, e a barra de formatação do ClickUp) e pediu:
@@ -195,6 +221,14 @@ novas na tabela — em vez disso:
 - Fica pra depois (e junto com o pedido de distribuir o projeto num
   prazo/quantas horas por dia): repensar se algum desses viram campo de
   verdade depois que aparecer um padrão de uso real.
+
+**Resposta do Leandro (29/08, mais tarde)**: **"acho que podemos no bloco
+de projeto escolher: Adicionar projeto ou PDA (plano de ação) e depois
+quando surgir essa demanda organizamos essa implementação com calma —
+deixa no briefing para resolver."** Ou seja: por enquanto só anotar — a
+ideia é que criar em Projetos ofereça dois tipos (Projeto normal / PDA),
+mas só implementar quando a necessidade de um PDA de verdade aparecer de
+novo. Nada a construir agora.
 
 ## Observação expansível, status de lembrete por escolha, recorrência continua, Lazer sem minutos obrigatórios, fila de leitura (29/08)
 

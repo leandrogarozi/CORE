@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
-import { BookIcon, BookmarkIcon, BookOpenIcon, ChevronIcon, CommentIcon, TrashIcon, WeekIcon } from "./icons";
+import { BookIcon, BookmarkIcon, BookOpenIcon, ChevronIcon, CommentIcon, DragGripIcon, TrashIcon, WeekIcon } from "./icons";
 import { RichTextEditor } from "./RichTextEditor";
 import { fmtShortDate } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
@@ -252,6 +252,7 @@ function BookRow({
   book,
   draggable,
   dragging,
+  position,
   onDragStart,
   onDragOverRow,
   onDrop,
@@ -259,6 +260,7 @@ function BookRow({
   book: Book;
   draggable?: boolean;
   dragging?: boolean;
+  position?: number;
   onDragStart?: (id: string) => void;
   onDragOverRow?: (id: string) => void;
   onDrop?: () => void;
@@ -289,6 +291,12 @@ function BookRow({
         onDrop?.();
       }}
     >
+      {draggable && (
+        <span className="book-row-order" title="Arraste pra reordenar a fila de leitura">
+          <DragGripIcon />
+          <span className="book-row-order-num mono">{position}</span>
+        </span>
+      )}
       <input
         type="text"
         className="book-title-input"
@@ -399,12 +407,13 @@ export function BooksView({ onBack }: { onBack: () => void }) {
                 <span className="book-group-count">{books.length}</span>
               </button>
               {!isCollapsed &&
-                books.map((b) => (
+                books.map((b, idx) => (
                   <BookRow
                     key={b.id}
                     book={b}
                     draggable={draggable}
                     dragging={draggingId === b.id}
+                    position={idx + 1}
                     onDragStart={draggable ? setDraggingId : undefined}
                     onDragOverRow={draggable ? setOverId : undefined}
                     onDrop={draggable ? () => handleDrop(books) : undefined}

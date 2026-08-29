@@ -198,7 +198,7 @@ function DayEntriesPopover({
   onRemove: (entryId: string) => void;
   onClose: () => void;
 }) {
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string[]>([]);
   const [minutes, setMinutes] = useState<number | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const pos = useClampedPopoverPos(anchorRect, ref);
@@ -213,10 +213,14 @@ function DayEntriesPopover({
     return () => window.removeEventListener("mousedown", onDocPointerDown);
   }, [onClose]);
 
+  function toggleSelected(opt: string) {
+    setSelected((cur) => (cur.includes(opt) ? cur.filter((x) => x !== opt) : [...cur, opt]));
+  }
+
   function handleAdd() {
-    if (!selected) return;
-    onAdd(selected, minutes ?? 0);
-    setSelected(null);
+    if (selected.length === 0) return;
+    onAdd(selected.join(", "), minutes ?? 0);
+    setSelected([]);
     setMinutes(null);
   }
 
@@ -236,14 +240,14 @@ function DayEntriesPopover({
         </div>
       )}
       <label className="edit-field">
-        <span className="edit-field-label">Tipo</span>
+        <span className="edit-field-label">Tipos (pode marcar mais de um)</span>
         <div className="note-options-chips">
           {noteOptions.map((opt) => (
             <button
               key={opt}
               type="button"
-              className={"note-chip" + (selected === opt ? " active" : "")}
-              onClick={() => setSelected((s) => (s === opt ? null : opt))}
+              className={"note-chip" + (selected.includes(opt) ? " active" : "")}
+              onClick={() => toggleSelected(opt)}
             >
               {opt}
             </button>
@@ -251,7 +255,7 @@ function DayEntriesPopover({
         </div>
       </label>
       <label className="edit-field">
-        <span className="edit-field-label">Minutos (opcional)</span>
+        <span className="edit-field-label">Minutos (opcional, vale pra todos marcados)</span>
         <MinutesPicker minutes={minutes} onChange={setMinutes} autoFocus />
       </label>
       <div className="edit-actions">

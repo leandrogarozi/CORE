@@ -260,38 +260,50 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
           onChange={(e) => setVals((v) => ({ ...v, title: e.target.value }))}
           onKeyDown={(e) => e.key === "Enter" && save()}
         />
-        <select
-          value={vals.category}
-          onChange={(e) => {
-            const category = e.target.value as Category;
-            setVals((v) => ({ ...v, category, category2: v.category2 === category ? null : v.category2 }));
-          }}
-        >
-          {CATEGORIES.map((c) => (
-            <option key={c} value={c}>
-              {CATEGORY_LABEL[c]}
-            </option>
-          ))}
-        </select>
-        <select
-          value={vals.category2 ?? ""}
-          onChange={(e) => setVals((v) => ({ ...v, category2: (e.target.value || null) as Category | null }))}
-        >
-          <option value="">+ segunda tag</option>
-          {CATEGORIES.filter((c) => c !== vals.category).map((c) => (
-            <option key={c} value={c}>
-              {CATEGORY_LABEL[c]}
-            </option>
-          ))}
-        </select>
-        <select value={vals.priority} onChange={(e) => setVals((v) => ({ ...v, priority: e.target.value as Priority }))}>
-          {PRIORITIES.map((p) => (
-            <option key={p.v} value={p.v}>
-              {p.l}
-            </option>
-          ))}
-        </select>
-        <input type="date" value={vals.date || ""} onChange={(e) => setVals((v) => ({ ...v, date: e.target.value || null }))} />
+        <label className="edit-field">
+          <span className="edit-field-label">Categoria</span>
+          <select
+            value={vals.category}
+            onChange={(e) => {
+              const category = e.target.value as Category;
+              setVals((v) => ({ ...v, category, category2: v.category2 === category ? null : v.category2 }));
+            }}
+          >
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {CATEGORY_LABEL[c]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="edit-field">
+          <span className="edit-field-label">2ª categoria</span>
+          <select
+            value={vals.category2 ?? ""}
+            onChange={(e) => setVals((v) => ({ ...v, category2: (e.target.value || null) as Category | null }))}
+          >
+            <option value="">Nenhuma</option>
+            {CATEGORIES.filter((c) => c !== vals.category).map((c) => (
+              <option key={c} value={c}>
+                {CATEGORY_LABEL[c]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="edit-field">
+          <span className="edit-field-label">Prioridade</span>
+          <select value={vals.priority} onChange={(e) => setVals((v) => ({ ...v, priority: e.target.value as Priority }))}>
+            {PRIORITIES.map((p) => (
+              <option key={p.v} value={p.v}>
+                {p.l}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="edit-field">
+          <span className="edit-field-label">Data</span>
+          <input type="date" value={vals.date || ""} onChange={(e) => setVals((v) => ({ ...v, date: e.target.value || null }))} />
+        </label>
         <label className="edit-field">
           <span className="edit-field-label">Hora</span>
           <TimePicker value={vals.time} onChange={(v) => setVals((s) => ({ ...s, time: v }))} />
@@ -313,11 +325,12 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
             ))}
           </select>
         </label>
-        <label className="edit-field">
+        <label className="edit-field edit-field-wide">
           <span className="edit-field-label">Observação</span>
           <CommentButton
+            variant="field"
             value={vals.note || null}
-            placeholder="Observação — cole um texto ou escreva algo..."
+            placeholder="+ Observação — cole um texto ou escreva algo..."
             ariaLabel="Observação da tarefa"
             onSave={(text) => {
               board.updateTaskNote(t.id, text);

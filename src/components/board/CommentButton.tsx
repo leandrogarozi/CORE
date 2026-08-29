@@ -120,6 +120,7 @@ export function CommentButton({
   ariaLabel,
   icon,
   title,
+  variant = "icon",
 }: {
   value: string | null;
   placeholder: string;
@@ -127,10 +128,12 @@ export function CommentButton({
   ariaLabel: string;
   icon?: ReactNode;
   title?: string;
+  variant?: "icon" | "field";
 }) {
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const [expanded, setExpanded] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
+  const preview = stripHtml(value ?? "");
 
   function toggleOpen(e: React.MouseEvent) {
     e.stopPropagation();
@@ -146,17 +149,20 @@ export function CommentButton({
       <button
         ref={btnRef}
         type="button"
-        className={"comment-btn" + (value ? " has-comment" : "")}
+        className={
+          (variant === "field" ? "comment-field-btn" : "comment-btn") + (value ? " has-comment" : "")
+        }
         aria-label={ariaLabel}
-        title={stripHtml(value ?? "") || ariaLabel}
+        title={preview || ariaLabel}
         onClick={toggleOpen}
       >
         {icon ?? <CommentIcon />}
+        {variant === "field" && <span className="comment-field-preview">{preview || placeholder}</span>}
       </button>
       {anchorRect && (
         <CommentPopover
           anchorRect={anchorRect}
-          initialValue={stripHtml(value ?? "")}
+          initialValue={preview}
           placeholder={placeholder}
           onSave={(text) => {
             onSave(text);
