@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { BookIcon, BookmarkIcon, BookOpenIcon, ChevronIcon, CommentIcon, TrashIcon, WeekIcon } from "./icons";
+import { RichTextEditor } from "./RichTextEditor";
 import { fmtShortDate } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
+import { stripHtml } from "@/lib/rich-text";
 import {
   BOOK_GROUP_LABEL,
   BOOK_STATUS_COLOR,
@@ -205,7 +207,7 @@ function BookInsightsButton({ book }: { book: Book }) {
   }
 
   function save() {
-    board.updateBook(book.id, { insights: draft.trim() || null });
+    board.updateBook(book.id, { insights: draft || null });
     setOpen(false);
   }
 
@@ -215,7 +217,7 @@ function BookInsightsButton({ book }: { book: Book }) {
         type="button"
         className={"comment-btn" + (book.insights ? " has-comment" : "")}
         aria-label="Resumo e insights do livro"
-        title={book.insights || "Resumo / insights"}
+        title={stripHtml(book.insights ?? "") || "Resumo / insights"}
         onClick={openSheet}
       >
         <CommentIcon />
@@ -229,15 +231,8 @@ function BookInsightsButton({ book }: { book: Book }) {
                 <span className="modal-title">{book.title}</span>
               </div>
               <div className="hint-text">Resumo, trechos marcantes, insights — o que quiser guardar sobre esse livro.</div>
-              <textarea
-                autoFocus
-                className="book-sheet-textarea"
-                value={draft}
-                placeholder="Escreva aqui..."
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
-              />
-              <div className="edit-actions">
+              <RichTextEditor value={draft} onChange={setDraft} placeholder="Escreva aqui..." autoFocus />
+              <div className="edit-actions" style={{ marginTop: 10 }}>
                 <button type="button" className="btn btn-ghost" onClick={() => setOpen(false)}>
                   Cancelar
                 </button>

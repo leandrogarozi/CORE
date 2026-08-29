@@ -560,6 +560,116 @@ export function ExpandIcon() {
   );
 }
 
+export function RtBoldIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
+      <path
+        d="M8 12H12.5M8 12V5H12.5C14.433 5 16 6.567 16 8.5C16 10.433 14.433 12 12.5 12M8 12V19H13.5C15.433 19 17 17.433 17 15.5C17 13.567 15.433 12 13.5 12H12.5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function RtItalicIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
+      <path d="M8 19H10M10 19H12M10 19L14 5M12 5H14M14 5H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function RtUnderlineIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
+      <path
+        d="M6 19H18M8 5V11C8 13.2091 9.79086 15 12 15C14.2091 15 16 13.2091 16 11V5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function RtStrikethroughIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
+      <path
+        d="M12.0005 12.0001C12.8959 12.0001 13.7749 12.1925 14.5457 12.5571C14.8939 12.7218 15.2146 12.9192 15.5009 13.1437C15.8484 13.4162 16.1457 13.729 16.3822 14.0732C16.8136 14.7009 17.0263 15.4096 16.9982 16.1256C16.97 16.8416 16.702 17.5385 16.2222 18.1433C15.7424 18.7481 15.0684 19.2386 14.2705 19.5638C13.4727 19.889 12.5802 20.0373 11.6865 19.9923C10.7928 19.9473 9.93104 19.7108 9.19043 19.3082C8.44982 18.9055 7.85782 18.3514 7.47656 17.7032M12.0005 12.0001H4M12.0005 12.0001H20M16.5243 6.29718C16.143 5.649 15.5512 5.09462 14.8105 4.69197C14.0699 4.28932 13.2076 4.05287 12.314 4.00789C11.4203 3.96291 10.5278 4.11091 9.72998 4.43613C8.93213 4.76135 8.25812 5.25205 7.77832 5.85689C7.29852 6.46173 7.03057 7.15885 7.00244 7.87485C6.9942 8.08463 7.00669 8.29345 7.03924 8.50014"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function RtBulletListIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
+      <path
+        d="M9 17H19M9 12H19M9 7H19M5.00195 17V17.002L5 17.002V17H5.00195ZM5.00195 12V12.002L5 12.002V12H5.00195ZM5.00195 7V7.002L5 7.00195V7H5.00195Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function RtTaskListIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
+      <path
+        d="M10 17H20M4 15.6853V15.5C4 14.6716 4.67157 14 5.5 14H5.54054C6.34658 14 7.00021 14.6534 7.00021 15.4595C7.00021 15.8103 6.8862 16.1519 6.67568 16.4326L4 20.0002L7 20M10 12H20M10 7H20M4 5L6 4V10"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function RtAlignLeftIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
+      <path d="M4 18H14M4 14H20M4 10H14M4 6H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function RtAlignCenterIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
+      <path d="M17 18H7M20 14H4M17 10H7M20 6H4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function RtAlignRightIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
+      <path d="M20 18H10M20 14H4M20 10H10M20 6H4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function RtAlignJustifyIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
+      <path d="M20 18H4M20 14H4M20 10H4M20 6H4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function FolderIcon() {
   return (
     <svg viewBox="0 0 24 24" width="15" height="15" fill="none">

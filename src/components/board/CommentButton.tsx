@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { CommentIcon, ExpandIcon } from "./icons";
+import { RichTextEditor } from "./RichTextEditor";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
+import { stripHtml } from "@/lib/rich-text";
 
 function CommentPopover({
   anchorRect,
@@ -86,7 +88,7 @@ function CommentModal({
   const [draft, setDraft] = useState(initialValue);
 
   function save() {
-    onSave(draft.trim());
+    onSave(draft);
   }
 
   return createPortal(
@@ -96,15 +98,8 @@ function CommentModal({
         <div className="modal-head">
           <span className="modal-title">{title}</span>
         </div>
-        <textarea
-          autoFocus
-          className="comment-sheet-textarea"
-          value={draft}
-          placeholder={placeholder}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => e.key === "Escape" && onClose()}
-        />
-        <div className="edit-actions">
+        <RichTextEditor value={draft} onChange={setDraft} placeholder={placeholder} autoFocus />
+        <div className="edit-actions" style={{ marginTop: 10 }}>
           <button type="button" className="btn btn-ghost" onClick={onClose}>
             Cancelar
           </button>
@@ -153,7 +148,7 @@ export function CommentButton({
         type="button"
         className={"comment-btn" + (value ? " has-comment" : "")}
         aria-label={ariaLabel}
-        title={value || ariaLabel}
+        title={stripHtml(value ?? "") || ariaLabel}
         onClick={toggleOpen}
       >
         {icon ?? <CommentIcon />}
@@ -161,7 +156,7 @@ export function CommentButton({
       {anchorRect && (
         <CommentPopover
           anchorRect={anchorRect}
-          initialValue={value ?? ""}
+          initialValue={stripHtml(value ?? "")}
           placeholder={placeholder}
           onSave={(text) => {
             onSave(text);

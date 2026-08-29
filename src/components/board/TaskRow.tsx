@@ -6,6 +6,7 @@ import { TimerButton } from "./TimerButton";
 import { StatusPicker } from "./StatusPicker";
 import { MinutesPicker, TimePicker } from "./TimePicker";
 import { ReminderDateButton } from "./RemindersView";
+import { CommentButton } from "./CommentButton";
 import { BellIcon, BoltIcon, CommentIcon, DuplicateIcon, FlagIcon, LinkIcon, RepeatIcon, TrashIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
 import { CATEGORY_LABEL, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
@@ -312,12 +313,18 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
             ))}
           </select>
         </label>
-        <input
-          type="text"
-          value={vals.note}
-          placeholder="nota (opcional)"
-          onChange={(e) => setVals((v) => ({ ...v, note: e.target.value }))}
-        />
+        <label className="edit-field">
+          <span className="edit-field-label">Observação</span>
+          <CommentButton
+            value={vals.note || null}
+            placeholder="Observação — cole um texto ou escreva algo..."
+            ariaLabel="Observação da tarefa"
+            onSave={(text) => {
+              board.updateTaskNote(t.id, text);
+              setVals((v) => ({ ...v, note: text }));
+            }}
+          />
+        </label>
         <label className="edit-field">
           <span className="edit-field-label">Projeto</span>
           <select

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { TaskRow } from "./TaskRow";
 import { CheckCircleIcon, CheckIcon, ClockIcon, CloseCircleIcon, PlayCircleIcon } from "./icons";
+import { RichTextEditor } from "./RichTextEditor";
 import { fmtHM } from "@/lib/date-utils";
 import type { Project } from "@/lib/types";
 
@@ -216,13 +217,10 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
               <ClockIcon /> {fmtHM(totalTrackedMin)}
             </span>
           </div>
-          <textarea
-            className="diet-plan-input"
-            placeholder="Objetivo, notas sobre o plano..."
+          <RichTextEditor
             value={descDraft ?? project.description}
-            onChange={(e) => setDescDraft(e.target.value)}
-            onBlur={commitDesc}
-            rows={3}
+            onChange={setDescDraft}
+            placeholder="Objetivo, notas sobre o plano..."
           />
           {steps.length > 0 && (
             <div className="project-progress-row">

@@ -137,6 +137,65 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Editor de texto rico em todos os campos de observação/resumo/nota (29/08)
+
+Depois do modal expandido, o Leandro mandou prints de referência (planilha
+PDA de outro projeto, e a barra de formatação do ClickUp) e pediu:
+**"ele tem que funcionar em todos campos onde podemos escrever
+observações, resumos, notas."**
+
+- Novo componente `RichTextEditor` (Tiptap — `@tiptap/react` +
+  `starter-kit` + extensões de underline/alinhamento/link/checklist),
+  com barra de: negrito, itálico, sublinhado, tachado, título 1/2/3,
+  lista, checklist, alinhar esquerda/centro/direita/justificado, link.
+  Ícones novos vieram do pack (`Edit/Bold`, `Edit/Italic`, etc.).
+- Guarda o conteúdo como HTML no mesmo campo de texto que já existia
+  (sem migração — `note`/`description`/`insights` continuam colunas de
+  texto simples, só que agora podem conter HTML).
+- Onde entrou: o modal expandido de Observação (Lembretes, Dieta, humor,
+  água...), a nota da Tarefa (que virou um ícone de observação clicável
+  em vez do campo de texto solto que tinha antes — `board.updateTaskNote`
+  novo), a descrição do Projeto, e o resumo/insights dos Livros.
+- **Onde não entrou de propósito**: o popover pequeno (o balãozinho que
+  abre direto, sem precisar expandir) continua com texto puro — não cabe
+  uma barra de formatação num popover desse tamanho. Ele mostra/edita a
+  versão sem formatação (texto puro) do conteúdo; formatar de verdade
+  precisa abrir o expandido. Se você editar ali depois de já ter
+  formatado algo, a formatação daquele campo é perdida (vira texto puro)
+  — é a troca consciente pra não arriscar mostrar tag HTML solta na tela.
+- Em qualquer lugar que só mostra uma prévia em texto (tooltip do ícone
+  de observação, por exemplo), a formatação é removida antes de exibir
+  (`stripHtml`, novo em `lib/rich-text.ts`) — só o texto conta pra
+  esses casos.
+- **Não testei a digitação/formatação de verdade num navegador logado**
+  (não tenho as credenciais desta sessão) — validei `tsc`, `eslint`,
+  `next build` e que o app sobe sem erro no `next dev`, mas vale um
+  teste manual seu assim que puder.
+
+## Projetos como PDA — próximo passo (discussão, ainda não construído) (29/08)
+
+Print da planilha PDA (5W2H: Ação/Início/Fim/Onde/Responsável/Motivo
+Estratégico/Procedimento/Investimento/Status/%Conclusão) recebido. Pergunta
+de volta do Leandro: **"baseado na tabela que eu mandei, o que podemos
+ajustar que seria indispensável sem inventar demais? [...] a ideia é que
+dependendo da task tenha como colocar certos tipos de campos... vai
+depender muito do projeto."**
+
+Como cada projeto pede campos diferentes, a recomendação (ainda não
+implementada, aguardando o próximo passo) é não fixar um monte de colunas
+novas na tabela — em vez disso:
+
+- Adicionar só **% Conclusão** (0-100) como campo de verdade na etapa —
+  é o único conceito genuinamente novo (hoje só existe feito/não-feito).
+- Deixar "Onde", "Responsável", "Procedimento", "do que depende" etc.
+  dentro da própria observação da etapa (texto livre) — que agora, com o
+  editor rico acima, já dá pra estruturar com títulos/checklist/negrito
+  conforme cada projeto precisar, sem precisar de campo fixo no banco.
+- "Motivo Estratégico" já existe — é o campo de objetivo do projeto.
+- Fica pra depois (e junto com o pedido de distribuir o projeto num
+  prazo/quantas horas por dia): repensar se algum desses viram campo de
+  verdade depois que aparecer um padrão de uso real.
+
 ## Observação expansível, status de lembrete por escolha, recorrência continua, Lazer sem minutos obrigatórios, fila de leitura (29/08)
 
 Rodada de pedidos avulsos, com checklist prévio de novo (o Leandro pediu

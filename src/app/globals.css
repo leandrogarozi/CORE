@@ -1165,3 +1165,36 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .signout-btn{ font-size:11.5px; color:var(--text-faint); }
 .signout-btn:hover{ color:var(--text); }
 .profile-signout-box{ display:flex; justify-content:flex-end; }
+
+/* editor de texto rico (Tiptap) */
+.rte{ display:flex; flex-direction:column; border:1px solid var(--border-strong); border-radius:9px; overflow:hidden; background:var(--bg); }
+.rte-toolbar{
+  display:flex; align-items:center; gap:2px; flex-wrap:wrap; padding:6px 8px;
+  border-bottom:1px solid var(--border); background:var(--surface);
+}
+.rte-btn{
+  display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px;
+  border-radius:6px; color:var(--text-muted); flex:none;
+}
+.rte-btn:hover{ background:var(--surface-2); color:var(--text); }
+.rte-btn.active{ background:var(--accent-soft); color:var(--accent); }
+.rte-sep{ width:1px; height:18px; background:var(--border); margin:0 4px; flex:none; }
+.rte-select{
+  font-size:11.5px; border:1px solid var(--border); border-radius:6px; padding:3px 6px;
+  background:var(--surface); color:var(--text);
+}
+.rte-editor{ padding:10px 12px; min-height:220px; overflow-y:auto; }
+.rte-content{ outline:none; font-size:13px; line-height:1.55; color:var(--text); }
+.rte-content > * + *{ margin-top:8px; }
+.rte-content h1{ font-size:19px; font-weight:700; }
+.rte-content h2{ font-size:16px; font-weight:700; }
+.rte-content h3{ font-size:14px; font-weight:700; }
+.rte-content ul, .rte-content ol{ padding-left:22px; }
+.rte-content a{ color:var(--accent); text-decoration:underline; }
+.rte-content ul[data-type="taskList"]{ list-style:none; padding-left:0; }
+.rte-content ul[data-type="taskList"] li{ display:flex; align-items:flex-start; gap:6px; }
+.rte-content ul[data-type="taskList"] li > label{ flex:none; margin-top:3px; }
+.rte-content ul[data-type="taskList"] li > div{ flex:1; }
+.rte-content p.is-editor-empty:first-child::before{
+  content:attr(data-placeholder); color:var(--text-faint); float:left; height:0; pointer-events:none;
+}
