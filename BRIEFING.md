@@ -137,6 +137,37 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Projetos com status Cancelado, botão Salvo, ícones só de indicação, Lembretes mais enxutos (29/08)
+
+Rodada de refinamentos em cima da anterior, a partir de novos prints:
+
+- **Projetos ganham status "Cancelado"** (antes só ativo/concluído). A tela
+  de detalhe ganhou o botão **"Cancelar projeto"** (só aparece quando o
+  projeto está ativo); a lista principal agora mostra três grupos, cada um
+  com um rótulo + ícone (mesmo padrão do "Vencidos" de Lembretes): Projetos
+  ativos / Concluídos / Cancelados.
+- **Tempo do projeto**: saiu da faixa cinza separada e virou só o ícone de
+  relógio + tempo total no canto da linha do nome do projeto, com tooltip
+  "Soma total do tempo do projeto" — mais discreto, como pedido.
+- **Botão Salvar projeto** agora rastreia se há mudança pendente: sem
+  edição, mostra "Salvo" (com check) e fica desabilitado; assim que o nome
+  ou a descrição mudam, volta a ficar ativo como "Salvar projeto".
+- **Concluir/Reabrir projeto** troca o preenchido roxo pelo mesmo estilo
+  contornado do "Excluir projeto" — só que o texto fica **verde** ao passar
+  o mouse (`success-hover`, nova classe irmã da `danger-hover` já usada no
+  Excluir).
+- **Ícones de link/lembrete/observação na tarefa**: o sino e o balão de
+  observação deixaram de abrir a edição da tarefa ao clicar — viram só
+  indicadores visuais, com tooltip explicando cada um ("Tarefa com
+  lembrete", "Observação na tarefa"). O ícone de link continua clicável
+  (leva pro projeto), porque essa navegação já era intencional.
+- **Lembretes**: a coluna Data mostra só dia e mês, sem o ano (`fmtDayMonth`,
+  novo, ao lado do `fmtShortDate` que já existia pras outras telas). O texto
+  da coluna Data agora trunca com reticências em vez de vazar pra fora da
+  célula quando é muito longo (recorrência + aviso combinados) — a data
+  completa continua no tooltip. Filtro ganhou o rótulo "Filtrar por:" antes
+  dos botões.
+
 ## Lembrete arrastável, ícone de obs/lembrete na task, lembrete vinculado à tarefa, filtro de Lembretes (29/08)
 
 Retomando o feedback com prints depois da entrega anterior: **"isso aqui não foi

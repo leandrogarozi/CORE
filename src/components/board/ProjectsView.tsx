@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { TaskRow } from "./TaskRow";
-import { ClockIcon } from "./icons";
+import { CheckCircleIcon, CheckIcon, ClockIcon, CloseCircleIcon, PlayCircleIcon } from "./icons";
 import { fmtHM } from "@/lib/date-utils";
 import type { Project } from "@/lib/types";
 
@@ -22,7 +22,7 @@ function ProjectListRow({
   onOpen: () => void;
 }) {
   return (
-    <button type="button" className={"project-row" + (project.status === "done" ? " done" : "")} onClick={onOpen}>
+    <button type="button" className={"project-row" + (project.status !== "active" ? " done" : "")} onClick={onOpen}>
       <span className="project-row-name">{project.name}</span>
       <span className="project-row-progress mono">
         {progress.total > 0 ? `${progress.done}/${progress.total}` : "sem etapas"}
@@ -44,6 +44,7 @@ function ProjectListView({ onBack, onOpen }: { onBack: () => void; onOpen: (id: 
 
   const active = board.state.projects.filter((p) => p.status === "active");
   const done = board.state.projects.filter((p) => p.status === "done");
+  const cancelled = board.state.projects.filter((p) => p.status === "cancelled");
 
   return (
     <div className="section">
@@ -73,6 +74,9 @@ function ProjectListView({ onBack, onOpen }: { onBack: () => void; onOpen: (id: 
         </div>
 
         <div className="list-card">
+          <div className="list-card-section-label active-label">
+            <PlayCircleIcon /> Projetos ativos
+          </div>
           {active.length === 0 ? (
             <div className="hp-empty">Nenhum projeto ativo.</div>
           ) : (
@@ -89,7 +93,26 @@ function ProjectListView({ onBack, onOpen }: { onBack: () => void; onOpen: (id: 
 
         {done.length > 0 && (
           <div className="list-card">
+            <div className="list-card-section-label done-label">
+              <CheckCircleIcon /> Concluídos
+            </div>
             {done.map((p) => (
+              <ProjectListRow
+                key={p.id}
+                project={p}
+                progress={projectProgress(p.id, board.state.tasks)}
+                onOpen={() => onOpen(p.id)}
+              />
+            ))}
+          </div>
+        )}
+
+        {cancelled.length > 0 && (
+          <div className="list-card">
+            <div className="list-card-section-label cancelled-label">
+              <CloseCircleIcon /> Cancelados
+            </div>
+            {cancelled.map((p) => (
               <ProjectListRow
                 key={p.id}
                 project={p}
@@ -135,6 +158,10 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
     commitDesc();
   }
 
+  const isDirty =
+    (nameDraft !== null && nameDraft.trim() !== "" && nameDraft.trim() !== project.name) ||
+    (descDraft !== null && descDraft !== project.description);
+
   function addStep() {
     const title = newStepTitle.trim();
     if (!title) return;
@@ -142,8 +169,16 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
     setNewStepTitle("");
   }
 
-  function toggleStatus() {
-    board.updateProject(project.id, { status: project.status === "done" ? "active" : "done" });
+  function markDone() {
+    board.updateProject(project.id, { status: "done" });
+  }
+
+  function markCancelled() {
+    board.updateProject(project.id, { status: "cancelled" });
+  }
+
+  function reopen() {
+    board.updateProject(project.id, { status: "active" });
   }
 
   function handleDelete() {
@@ -168,14 +203,19 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
 
       <div className="narrow-list">
         <div className="diet-page-card">
-          <input
-            type="text"
-            className="project-name-input"
-            value={nameDraft ?? project.name}
-            onChange={(e) => setNameDraft(e.target.value)}
-            onBlur={commitName}
-            onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-          />
+          <div className="project-name-row">
+            <input
+              type="text"
+              className="project-name-input"
+              value={nameDraft ?? project.name}
+              onChange={(e) => setNameDraft(e.target.value)}
+              onBlur={commitName}
+              onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+            />
+            <span className="project-time-badge mono" title="Soma total do tempo do projeto">
+              <ClockIcon /> {fmtHM(totalTrackedMin)}
+            </span>
+          </div>
           <textarea
             className="diet-plan-input"
             placeholder="Objetivo, notas sobre o plano..."
@@ -194,24 +234,33 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
               </span>
             </div>
           )}
-          <div className="project-time-row">
-            <ClockIcon />
-            Tempo gasto no projeto (soma das tarefas): <span className="mono">{fmtHM(totalTrackedMin)}</span>
-          </div>
           <div className="edit-actions">
             <button type="button" className="btn btn-ghost danger-hover" onClick={handleDelete}>
               Excluir projeto
             </button>
-            <button type="button" className="btn btn-accent" onClick={saveEdits}>
-              Salvar projeto
+            {project.status === "active" && (
+              <button type="button" className="btn btn-ghost" onClick={markCancelled}>
+                Cancelar projeto
+              </button>
+            )}
+            <button type="button" className={"btn" + (isDirty ? " btn-accent" : " btn-ghost saved-btn")} disabled={!isDirty} onClick={saveEdits}>
+              {isDirty ? (
+                "Salvar projeto"
+              ) : (
+                <>
+                  <CheckIcon /> Salvo
+                </>
+              )}
             </button>
-            <button
-              type="button"
-              className={"btn " + (project.status === "done" ? "btn-ghost" : "btn-accent")}
-              onClick={toggleStatus}
-            >
-              {project.status === "done" ? "Reabrir projeto" : "Concluir projeto"}
-            </button>
+            {project.status === "active" ? (
+              <button type="button" className="btn btn-ghost success-hover" onClick={markDone}>
+                Concluir projeto
+              </button>
+            ) : (
+              <button type="button" className="btn btn-ghost success-hover" onClick={reopen}>
+                Reabrir projeto
+              </button>
+            )}
           </div>
         </div>
 

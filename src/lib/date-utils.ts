@@ -31,6 +31,12 @@ export function fmtShortDate(iso: string): string {
   return `${d.getDate()} ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
 }
 
+// Igual fmtShortDate, mas sem o ano — pra caber em colunas estreitas (ex.: tabela de Lembretes).
+export function fmtDayMonth(iso: string): string {
+  const d = dateFromISO(iso);
+  return `${d.getDate()} ${MONTH_NAMES[d.getMonth()]}`;
+}
+
 export function mondayOf(date: Date): Date {
   const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   const day = d.getDay();

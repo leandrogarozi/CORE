@@ -6,7 +6,7 @@ import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
 import { BellIcon, CheckIcon, EraserIcon, RepeatIcon, TrashIcon, WarningIcon, WeekIcon } from "./icons";
 import { TimePicker } from "./TimePicker";
-import { DAY_NAMES, fmtShortDate, isoAddDays, todayISO } from "@/lib/date-utils";
+import { DAY_NAMES, fmtDayMonth, isoAddDays, todayISO } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 import { REMINDER_ALERT_PRESETS, isReminderOverdue, reminderTargetMs } from "@/lib/board/reminder-alerts";
 import type { Reminder, Repeat } from "@/lib/types";
@@ -143,7 +143,7 @@ export function ReminderDateButton({
   const hasSchedule = !!date || !!weekLabel;
   const label = hasSchedule
     ? [
-        date ? fmtShortDate(date) + (time ? ` às ${time}` : "") : null,
+        date ? fmtDayMonth(date) + (time ? ` às ${time}` : "") : null,
         weekLabel,
         repeat !== "none" ? REPEAT_SHORT[repeat] : null,
         alertMinutesBefore ? `aviso ${alertLabel}` : null,
@@ -253,7 +253,7 @@ function reminderStatus(reminder: Reminder, overdue: boolean, dueToday: boolean)
 }
 
 // Grid fixo (sem drag-to-resize), reaproveitando o mesmo visual da tabela de tarefas.
-const REMINDER_GRID = "80px minmax(130px,1fr) 90px 160px 32px 44px";
+const REMINDER_GRID = "80px minmax(130px,1fr) 90px 150px 32px 44px";
 
 function ReminderTableHeader() {
   return (
@@ -554,17 +554,20 @@ export function RemindersView({ onBack }: { onBack: () => void }) {
           </div>
         </div>
 
-        <div className="view-toggle reminder-filter-row">
-          {REMINDER_FILTERS.map((f) => (
-            <button
-              key={f.v}
-              type="button"
-              className={"view-toggle-btn" + (filter === f.v ? " active" : "")}
-              onClick={() => setFilter(f.v)}
-            >
-              {f.l}
-            </button>
-          ))}
+        <div className="reminder-filter-bar">
+          <span className="reminder-filter-label">Filtrar por:</span>
+          <div className="view-toggle reminder-filter-row">
+            {REMINDER_FILTERS.map((f) => (
+              <button
+                key={f.v}
+                type="button"
+                className={"view-toggle-btn" + (filter === f.v ? " active" : "")}
+                onClick={() => setFilter(f.v)}
+              >
+                {f.l}
+              </button>
+            ))}
+          </div>
         </div>
 
         {overdue.length === 0 && pending.length === 0 && done.length === 0 && (

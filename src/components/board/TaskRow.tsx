@@ -167,30 +167,14 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
               </button>
             )}
             {hasReminder && (
-              <button
-                type="button"
-                className="icon-btn task-badge task-reminder-badge"
-                title="Tarefa com lembrete"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setEditing(true);
-                }}
-              >
+              <span className="task-badge task-reminder-badge" title="Tarefa com lembrete">
                 <BellIcon filled />
-              </button>
+              </span>
             )}
             {t.note.trim() && (
-              <button
-                type="button"
-                className="icon-btn task-badge task-note-badge"
-                title="Observação na tarefa"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setEditing(true);
-                }}
-              >
+              <span className="task-badge task-note-badge" title="Observação na tarefa">
                 <CommentIcon />
-              </button>
+              </span>
             )}
           </span>
         )}

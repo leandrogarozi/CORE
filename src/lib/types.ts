@@ -45,7 +45,7 @@ export interface Task {
   projectId: string | null; // vincula essa tarefa como etapa de um Projeto (PDA)
 }
 
-export type ProjectStatus = "active" | "done";
+export type ProjectStatus = "active" | "done" | "cancelled";
 
 export interface Project {
   id: string;

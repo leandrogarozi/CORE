@@ -152,6 +152,7 @@ a{ color:inherit; }
 .icon-btn{ color:var(--text-faint); padding:2px; line-height:1; display:inline-flex; align-items:center; justify-content:center; }
 .icon-btn:hover{ color:var(--text); }
 .icon-btn.danger-hover:hover, .btn.danger-hover:hover{ color:var(--danger); }
+.icon-btn.success-hover:hover, .btn.success-hover:hover{ color:var(--success); border-color:var(--success); }
 .icon-btn.active{ color:var(--accent); }
 .profile-avatar-nav-btn{
   position:relative; flex:none; width:26px; height:26px; border-radius:50%; overflow:hidden;
@@ -363,6 +364,8 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   color:color-mix(in srgb, var(--book-yellow) 55%, var(--warn-text-mix));
   border-color:color-mix(in srgb, var(--book-yellow) 45%, var(--surface));
 }
+.reminder-filter-bar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+.reminder-filter-label{ font-size:11.5px; color:var(--text-faint); flex:none; }
 .view-toggle{ display:flex; border:1px solid var(--border-strong); border-radius:8px; overflow:hidden; flex:none; }
 .view-toggle-btn{ padding:0 12px; height:30px; font-size:12px; font-weight:500; color:var(--text-muted); background:var(--surface); }
 .view-toggle-btn + .view-toggle-btn{ border-left:1px solid var(--border-strong); }
@@ -682,10 +685,13 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .edit-field-label{ font-size:9.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-faint); padding-left:1px; }
 .edit-actions{ display:flex; justify-content:flex-end; gap:6px; }
 .btn{ border:none; border-radius:6px; padding:6px 12px; font-size:12px; font-weight:500; }
+.btn:disabled{ opacity:0.55; cursor:not-allowed; }
 .btn-accent{ background:var(--accent); color:var(--accent-contrast); }
 .btn-accent:hover{ filter:brightness(1.07); }
 .btn-ghost{ background:transparent; border:1px solid var(--border); color:var(--text-muted); }
 .btn-ghost:hover{ color:var(--text); border-color:var(--border-strong); }
+.btn-ghost.saved-btn{ display:inline-flex; align-items:center; gap:5px; color:var(--success); border-color:var(--border); }
+.btn-ghost.saved-btn svg{ width:12px; height:12px; }
 .btn-danger{ background:var(--danger); color:#fff; }
 .btn-danger:hover{ filter:brightness(1.07); }
 .confirm-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:14px; }
@@ -848,6 +854,9 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 }
 .list-card-section-label svg{ width:12px; height:12px; }
 .list-card-section-label.overdue-label{ color:var(--danger); background:color-mix(in srgb, var(--danger) 6%, var(--surface)); }
+.list-card-section-label.active-label{ color:var(--accent); background:color-mix(in srgb, var(--accent) 6%, var(--surface)); }
+.list-card-section-label.done-label{ color:var(--success); background:color-mix(in srgb, var(--success) 6%, var(--surface)); }
+.list-card-section-label.cancelled-label{ color:var(--text-faint); background:var(--surface); }
 .trash-toolbar{
   display:flex; align-items:center; justify-content:space-between; gap:10px;
   background:var(--surface); border:1px solid var(--border); border-radius:12px;
@@ -942,26 +951,25 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .project-row.done .project-row-name{ text-decoration:line-through; }
 .project-row-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .project-row-progress{ font-size:11px; color:var(--text-faint); flex:none; }
+.project-name-row{ display:flex; align-items:center; gap:8px; }
 .project-name-input{
-  width:100%; background:none; border:none; font-size:15px; font-weight:700; color:var(--text); padding:2px 0;
+  flex:1; min-width:0; background:none; border:none; font-size:15px; font-weight:700; color:var(--text); padding:2px 0;
 }
+.project-time-badge{
+  display:inline-flex; align-items:center; gap:4px; flex:none;
+  font-size:11px; color:var(--text-faint);
+}
+.project-time-badge svg{ width:12px; height:12px; }
 .project-progress-row{ display:flex; align-items:center; gap:8px; margin-top:2px; }
 .project-progress-row .hp-bar{ flex:1; }
 .project-progress-label{ font-size:11px; color:var(--text-faint); flex:none; }
-.project-time-row{
-  display:flex; align-items:center; gap:6px; margin-top:8px;
-  font-size:11.5px; color:var(--text-faint);
-}
-.project-time-row svg{ width:12px; height:12px; }
 .row-badges{ display:inline-flex; align-items:center; gap:2px; flex:none; }
-.task-badge{ padding:2px; }
+.task-badge{ display:inline-flex; align-items:center; justify-content:center; padding:2px; }
 .task-badge svg{ width:11px; height:11px; }
 .task-project-link{ color:var(--info); }
 .task-project-link:hover{ color:var(--accent); }
 .task-note-badge{ color:var(--text-faint); }
-.task-note-badge:hover{ color:var(--text-muted); }
 .task-reminder-badge{ color:var(--book-yellow); }
-.task-reminder-badge:hover{ color:var(--accent); }
 .reminder-check{
   width:16px; height:16px; border-radius:50%; flex:none;
   border:1.5px solid var(--border-strong);
@@ -979,10 +987,11 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 }
 .chip-recurring svg{ width:9px; height:9px; }
 .reminder-date-btn{
-  display:inline-flex; align-items:center; gap:5px; flex:none;
+  display:inline-flex; align-items:center; gap:5px; min-width:0;
   color:var(--text-faint); padding:3px 6px; border-radius:7px; font-size:11px; white-space:nowrap;
 }
-.reminder-date-btn svg{ width:12px; height:12px; }
+.reminder-date-btn svg{ flex:none; width:12px; height:12px; }
+.reminder-date-btn span{ overflow:hidden; text-overflow:ellipsis; min-width:0; }
 .reminder-date-btn:hover{ color:var(--text-muted); background:var(--surface-2); }
 .reminder-date-btn.has-date{ color:var(--text-muted); }
 .reminder-row .icon-btn{ padding:2px; }
