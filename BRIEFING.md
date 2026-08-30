@@ -137,6 +137,49 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Notificação push (grátis, sem WhatsApp/Meta) (30/08)
+
+Discussão sobre alternativas ao WhatsApp pra lembrete no celular: pesquisei
+Web Push, Telegram bot e o app Toki (referência do Leandro — liga por voz e
+transcreve, mas isso é pago por trás via telefonia, não dá pra copiar de
+graça). Decisão combinada com o Leandro: **Web Push como espinha dorsal
+gratuita, WhatsApp Business como canal pago opcional só depois, se os dados
+de uso mostrarem que vale o custo** — e ele pediu pra eu acompanhar isso
+junto conforme o desenvolvimento avança.
+
+Implementado agora (fundação técnica, primeira etapa):
+- `public/sw.js`: service worker novo, só cuida de push por enquanto (`push`
+  → mostra a notificação; `notificationclick` → foca/abre o app). Confirmei
+  que o FARO já tinha tudo mais que precisa pra instalar (manifest, ícones,
+  meta tags do iOS) — só faltava essa peça.
+- Tabela nova `push_subscriptions` (migração `create_push_subscriptions`,
+  RLS própria por usuário) guarda a inscrição de push de cada dispositivo
+  (endpoint + chaves).
+- Duas rotas de API (`/api/push/subscribe` e `/api/push/test`) usando a lib
+  `web-push` com chaves VAPID (identificação do nosso servidor pros serviços
+  de push do navegador — não é enviado a nenhum terceiro além disso).
+- Em Configurações: novo bloco "Notificações push" com toggle pra ativar e
+  botão "Testar notificação", pra confirmar que a entrega funciona de
+  verdade antes de conectar em qualquer lembrete de verdade.
+
+**Pendências pro Leandro**: as chaves VAPID (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`,
+`VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`) foram geradas e estão só no
+`.env.local` local (não vai pro git) — precisam ser adicionadas nas
+variáveis de ambiente do projeto na Vercel antes do deploy funcionar em
+produção. Não tenho ferramenta pra fazer isso automaticamente, é um passo
+manual no painel da Vercel.
+
+**Não testei entrega de verdade** (não tenho celular/navegador logado nesse
+ambiente) — só validei que o app builda, o service worker e o manifest são
+servidos corretamente, e não há erro no servidor. Teste real (o botão
+"Testar notificação" chegando no celular) só o Leandro consegue confirmar,
+depois das chaves estarem configuradas na Vercel.
+
+**Ainda não conectado a lembretes de verdade** — por enquanto é só a
+fundação (ativar/testar). Conectar isso ao motor de alertas de Lembretes
+(pra realmente notificar quando um lembrete vence) fica pro próximo passo,
+depois de confirmar que o teste manual chega.
+
 ## Ícone de abrir lembrete movido pro início da linha (30/08)
 
 Pedido do Leandro: **"o ícone de expandir que você colocou no lembrete

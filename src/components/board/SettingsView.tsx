@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useBoardCtx } from "./board-context";
-import { ChevronIcon, ClockIcon, FlagIcon, HomeIcon, TagIcon, TrashIcon, WaterDropIcon } from "./icons";
+import { BellIcon, ChevronIcon, ClockIcon, FlagIcon, HomeIcon, TagIcon, TrashIcon, WaterDropIcon } from "./icons";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { CATEGORY_LABEL, OPTIONAL_FEATURES, isFeatureEnabled, type Category, type TaskStatus } from "@/lib/types";
 import type { UseBoard } from "@/lib/board/use-board";
@@ -92,6 +92,139 @@ function StatusRow({
         <TrashIcon />
       </button>
     </div>
+  );
+}
+
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i++) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
+function PushNotificationsBox() {
+  const [supported, setSupported] = useState(true);
+  const [subscribed, setSubscribed] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time feature/support detection on mount
+      setSupported(false);
+      return;
+    }
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then((reg) => reg.pushManager.getSubscription())
+      .then((sub) => setSubscribed(!!sub))
+      .catch(() => setSupported(false));
+  }, []);
+
+  async function enable() {
+    setBusy(true);
+    setStatus(null);
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        setStatus("Permissão de notificação negada pelo navegador.");
+        return;
+      }
+      const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      if (!publicKey) {
+        setStatus("Chave pública VAPID não configurada no servidor.");
+        return;
+      }
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource,
+      });
+      const res = await fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(sub.toJSON()),
+      });
+      if (!res.ok) throw new Error("Falha ao salvar inscrição");
+      setSubscribed(true);
+      setStatus("Notificações ativadas.");
+    } catch (err) {
+      console.error("push enable", err);
+      setStatus("Não deu pra ativar agora. Tenta de novo.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function disable() {
+    setBusy(true);
+    setStatus(null);
+    try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      const sub = await reg?.pushManager.getSubscription();
+      if (sub) {
+        await fetch("/api/push/subscribe", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ endpoint: sub.endpoint }),
+        });
+        await sub.unsubscribe();
+      }
+      setSubscribed(false);
+      setStatus("Notificações desativadas.");
+    } catch (err) {
+      console.error("push disable", err);
+      setStatus("Não deu pra desativar agora. Tenta de novo.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function sendTest() {
+    setBusy(true);
+    setStatus(null);
+    try {
+      const res = await fetch("/api/push/test", { method: "POST" });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error || "Falha ao enviar o teste");
+      setStatus("Teste enviado — confira a notificação no celular.");
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : "Não deu pra enviar o teste.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <CollapsibleBox title="Notificações push" icon={<BellIcon />}>
+      {!supported ? (
+        <div className="hint-text">Esse navegador não suporta notificações push.</div>
+      ) : (
+        <>
+          <div className="settings-toggle-row">
+            <span>
+              <span className="settings-label">Receber lembretes como notificação</span>
+              <span className="settings-toggle-hint">
+                Grátis, direto do navegador ou do app instalado — sem depender de WhatsApp.
+              </span>
+            </span>
+            <ToggleSwitch
+              checked={subscribed}
+              onChange={(v) => (v ? enable() : disable())}
+              ariaLabel="Notificações push"
+            />
+          </div>
+          {subscribed && (
+            <button type="button" className="btn btn-ghost" disabled={busy} onClick={sendTest}>
+              Testar notificação
+            </button>
+          )}
+          {status && <div className="hint-text">{status}</div>}
+        </>
+      )}
+    </CollapsibleBox>
   );
 }
 
@@ -279,6 +412,8 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
           </div>
         )}
       </CollapsibleBox>
+
+      <PushNotificationsBox />
     </div>
   );
 }
