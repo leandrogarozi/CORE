@@ -852,6 +852,10 @@ export function useBoard(userId: string | null) {
   const addTaskToProject = useCallback(
     (projectId: string, title: string) => {
       if (!userId || !title.trim()) return;
+      // Ordem própria por projeto (não a do backlog geral), pra sempre entrar no
+      // fim da lista de etapas desse projeto, na ordem em que foram digitadas.
+      const siblings = stateRef.current.tasks.filter((x) => x.projectId === projectId);
+      const order = siblings.length ? Math.max(...siblings.map((x) => x.order || 0)) + 1 : 0;
       const t: Task = {
         id: uid(),
         title: title.trim(),
@@ -864,7 +868,7 @@ export function useBoard(userId: string | null) {
         expectedDurationMin: null,
         note: "",
         done: false,
-        order: nextOrder(""),
+        order,
         seriesId: null,
         trackedSeconds: 0,
         quick: 0,
@@ -877,7 +881,7 @@ export function useBoard(userId: string | null) {
         if (error) console.error("addTaskToProject", error);
       });
     },
-    [apply, defaultStatusId, nextOrder, supabase, userId]
+    [apply, defaultStatusId, supabase, userId]
   );
 
   // ---------- reminders ----------

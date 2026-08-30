@@ -7,7 +7,7 @@ import { StatusPicker } from "./StatusPicker";
 import { MinutesPicker, TimePicker } from "./TimePicker";
 import { ReminderDateButton } from "./RemindersView";
 import { CommentButton } from "./CommentButton";
-import { BellIcon, BoltIcon, CommentIcon, DuplicateIcon, FlagIcon, LinkIcon, RepeatIcon, TrashIcon } from "./icons";
+import { BellIcon, BoltIcon, CommentIcon, DragGripIcon, DuplicateIcon, FlagIcon, LinkIcon, RepeatIcon, TrashIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
 import { CATEGORY_LABEL, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
 import type { TaskEditFields } from "@/lib/board/use-board";
@@ -98,9 +98,10 @@ interface TaskRowProps {
   onDrop?: () => void;
   dragging?: boolean;
   gridTemplate: string;
+  position?: number; // quando definido, mostra 1/2/3... no lugar dos pontinhos de arrastar (ex.: etapas de um Projeto)
 }
 
-export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop, dragging, gridTemplate }: TaskRowProps) {
+export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop, dragging, gridTemplate, position }: TaskRowProps) {
   const { board, askScope, askConfirm, openProject } = useBoardCtx();
   const [editing, setEditing] = useState(false);
   const hasReminder = board.state.reminders.some((r) => r.taskId === t.id);
@@ -137,11 +138,18 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
         onDrop?.();
       }}
     >
-      <span className={"drag-handle" + (draggable ? "" : " disabled")} aria-hidden="true">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <span key={i} />
-        ))}
-      </span>
+      {position !== undefined ? (
+        <span className="task-row-order" title="Arraste pra reordenar">
+          <DragGripIcon />
+          <span className="task-row-order-num mono">{position}</span>
+        </span>
+      ) : (
+        <span className={"drag-handle" + (draggable ? "" : " disabled")} aria-hidden="true">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <span key={i} />
+          ))}
+        </span>
+      )}
       <StatusPicker
         statuses={board.state.taskStatuses}
         currentId={t.statusId}

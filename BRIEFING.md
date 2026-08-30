@@ -137,6 +137,23 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Ordem das etapas do Projeto (numeração + arrastar) (30/08)
+
+Print das Etapas de um projeto com a sequência de tarefas fora de ordem
+(Dia 6, Dia 2, Dia 7...): **"vamos colocar ordem aqui... 1,2,3... e poder
+organizar. Na hora de criar as task de sequência ela está ficando fora de
+ordem (aba projetos)."**
+
+Causa raiz: uma etapa nova ganhava a mesma "ordem" usada no backlog geral
+(compartilhada com qualquer tarefa sem data, de qualquer projeto), então a
+sequência dependia de coisas sem relação com aquele projeto. Agora
+`board.addTaskToProject` calcula a ordem olhando só as etapas daquele
+projeto (sempre entra no fim da lista dele). A lista de Etapas ganha
+numeração visível (1, 2, 3...) e vira arrastável de verdade — mesmo padrão
+grip+número já usado na fila de leitura dos Livros — pra reorganizar na
+mão quando precisar (útil pra corrigir a ordem das etapas que já existiam
+fora de sequência).
+
 ## Lembrete com visão focada (texto e observação completos) (30/08)
 
 Print da tabela de Lembretes com a descrição cortada: **"o texto não está

@@ -133,10 +133,28 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
   const [nameDraft, setNameDraft] = useState<string | null>(null);
   const [descDraft, setDescDraft] = useState<string | null>(null);
   const [newStepTitle, setNewStepTitle] = useState("");
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
 
   const steps = [...board.state.tasks]
     .filter((t) => t.projectId === project.id)
     .sort((a, b) => (a.order || 0) - (b.order || 0));
+  // Coluna inicial mais larga aqui pra caber o número da ordem além do grip.
+  const stepGridTemplate = columns.gridTemplate.replace(/^20px/, "34px");
+
+  function handleStepDrop() {
+    if (!draggingId) return;
+    const ids = steps.map((t) => t.id);
+    const fromIdx = ids.indexOf(draggingId);
+    let toIdx = overId ? ids.indexOf(overId) : ids.length - 1;
+    if (fromIdx === -1) return;
+    if (toIdx === -1) toIdx = ids.length - 1;
+    ids.splice(fromIdx, 1);
+    ids.splice(toIdx, 0, draggingId);
+    board.reorderBucket(`project-${project.id}`, ids);
+    setDraggingId(null);
+    setOverId(null);
+  }
   const doneCount = steps.filter((t) => t.done).length;
   const pct = steps.length > 0 ? Math.round((doneCount / steps.length) * 100) : 0;
   const totalTrackedMin = Math.round(steps.reduce((sum, t) => sum + (t.trackedSeconds || 0), 0) / 60);
@@ -282,8 +300,18 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
               <div className="empty-row">Nenhuma etapa vinculada ainda.</div>
             ) : (
               <div className="task-table-scroll">
-                {steps.map((t) => (
-                  <TaskRow key={t.id} task={t} draggable={false} gridTemplate={columns.gridTemplate} />
+                {steps.map((t, idx) => (
+                  <TaskRow
+                    key={t.id}
+                    task={t}
+                    draggable
+                    dragging={draggingId === t.id}
+                    position={idx + 1}
+                    onDragStart={setDraggingId}
+                    onDragOverRow={setOverId}
+                    onDrop={handleStepDrop}
+                    gridTemplate={stepGridTemplate}
+                  />
                 ))}
               </div>
             )}
