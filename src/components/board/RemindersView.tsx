@@ -299,11 +299,12 @@ function reminderStatus(reminder: Reminder, overdue: boolean, dueToday: boolean)
 }
 
 // Grid fixo (sem drag-to-resize), reaproveitando o mesmo visual da tabela de tarefas.
-const REMINDER_GRID = "80px minmax(130px,1fr) 90px 150px 32px 44px";
+const REMINDER_GRID = "36px 80px minmax(130px,1fr) 90px 150px 32px 44px";
 
 function ReminderTableHeader() {
   return (
     <div className="task-list-header" style={{ gridTemplateColumns: REMINDER_GRID }}>
+      <span className="tlh-cell tlh-center">Abrir</span>
       <span className="tlh-cell">Status</span>
       <span className="tlh-cell">Descrição</span>
       <span className="tlh-cell">Tipo</span>
@@ -431,6 +432,14 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
       style={{ gridTemplateColumns: REMINDER_GRID }}
     >
       <button
+        type="button"
+        className="icon-btn reminder-expand-btn"
+        title="Abrir lembrete completo (texto e observação)"
+        onClick={() => setDetailOpen(true)}
+      >
+        <ExpandIcon />
+      </button>
+      <button
         ref={statusBtnRef}
         type="button"
         className={"reminder-status-chip " + status.cls}
@@ -448,24 +457,14 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
           onClose={() => setStatusAnchor(null)}
         />
       )}
-      <span className="reminder-title-cell">
-        <input
-          type="text"
-          className="reminder-title-input"
-          value={titleDraft ?? reminder.title}
-          onChange={(e) => setTitleDraft(e.target.value)}
-          onBlur={commitTitle}
-          onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-        />
-        <button
-          type="button"
-          className="icon-btn reminder-expand-btn"
-          title="Ver lembrete completo (texto e observação)"
-          onClick={() => setDetailOpen(true)}
-        >
-          <ExpandIcon />
-        </button>
-      </span>
+      <input
+        type="text"
+        className="reminder-title-input"
+        value={titleDraft ?? reminder.title}
+        onChange={(e) => setTitleDraft(e.target.value)}
+        onBlur={commitTitle}
+        onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+      />
       <span className={"chip" + (isRecurring ? " chip-recurring" : " chip-oneoff")}>
         {isRecurring && <RepeatIcon />} {isRecurring ? "Recorrente" : "Pontual"}
       </span>

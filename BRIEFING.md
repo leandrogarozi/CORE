@@ -137,6 +137,17 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Ícone de abrir lembrete movido pro início da linha (30/08)
+
+Pedido do Leandro: **"o ícone de expandir que você colocou no lembrete
+ficou muito escondido, vamos colocar ele no início da task — antes do
+status — lá em cima vamos dar um nome para essa coluna, tipo 'Abrir'."**
+
+O ícone de expandir (que abre o modal com todos os dados do lembrete) saiu
+do fim da célula de Descrição — onde ficava apertado ao lado do texto
+truncado — e virou a primeira coluna da tabela, antes do Status, com o
+cabeçalho "Abrir".
+
 ## Ordem das etapas do Projeto (numeração + arrastar) (30/08)
 
 Print das Etapas de um projeto com a sequência de tarefas fora de ordem
