@@ -1007,6 +1007,16 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .reminder-title-input{
   flex:1; min-width:0; background:none; border:none; font-size:12px; color:var(--text); padding:2px 0;
 }
+.reminder-title-cell{ display:flex; align-items:center; gap:2px; min-width:0; }
+.reminder-title-cell .reminder-title-input{ overflow:hidden; text-overflow:ellipsis; }
+.reminder-expand-btn{ flex:none; padding:2px; color:var(--text-faint); }
+.reminder-expand-btn:hover{ color:var(--accent); }
+.reminder-expand-btn svg{ width:12px; height:12px; }
+.reminder-detail-sheet{ width:min(520px, 92vw); display:flex; flex-direction:column; gap:12px; }
+.reminder-detail-title-input{
+  font-size:16px; font-weight:600; border:none; background:none; padding:2px 0; width:100%; color:var(--text);
+}
+.reminder-detail-meta{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .chip-recurring{
   display:inline-flex; align-items:center; gap:3px; flex:none;
   background:color-mix(in srgb, var(--success) 16%, transparent); color:var(--success);

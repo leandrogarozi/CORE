@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
-import { BellIcon, CheckIcon, EraserIcon, RepeatIcon, TrashIcon, WarningIcon, WeekIcon } from "./icons";
+import { BellIcon, CheckIcon, EraserIcon, ExpandIcon, RepeatIcon, TrashIcon, WarningIcon, WeekIcon } from "./icons";
+import { RichTextEditor } from "./RichTextEditor";
 import { TimePicker } from "./TimePicker";
 import { DAY_NAMES, fmtDayMonth, isoAddDays, todayISO } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
@@ -313,10 +314,92 @@ function ReminderTableHeader() {
   );
 }
 
+function ReminderDetailModal({ reminder, onClose }: { reminder: Reminder; onClose: () => void }) {
+  const { board } = useBoardCtx();
+  const [titleDraft, setTitleDraft] = useState(reminder.title);
+  const [noteDraft, setNoteDraft] = useState(reminder.note ?? "");
+
+  const overdue = isReminderOverdue(reminder);
+  const dueToday = !reminder.done && !overdue && reminder.date === todayISO();
+  const isRecurring = isRecurringReminder(reminder);
+  const status = reminderStatus(reminder, overdue, dueToday);
+
+  function save() {
+    const trimmedTitle = titleDraft.trim();
+    board.updateReminder(reminder.id, { title: trimmedTitle || reminder.title, note: noteDraft || null });
+    onClose();
+  }
+
+  return createPortal(
+    <>
+      <div className="modal-backdrop" onClick={onClose} />
+      <div className="modal-panel reminder-detail-sheet" role="dialog" aria-label="Detalhes do lembrete">
+        <div className="modal-head">
+          <span className={"reminder-status-chip " + status.cls}>
+            {reminder.done && <CheckIcon />}
+            {status.label}
+          </span>
+          <button
+            type="button"
+            className="icon-btn danger-hover"
+            title="Excluir lembrete"
+            onClick={() => {
+              board.deleteReminder(reminder.id);
+              onClose();
+            }}
+          >
+            <TrashIcon />
+          </button>
+        </div>
+        <input
+          type="text"
+          className="reminder-detail-title-input"
+          value={titleDraft}
+          autoFocus
+          onChange={(e) => setTitleDraft(e.target.value)}
+        />
+        <div className="reminder-detail-meta">
+          {isRecurring && (
+            <span className="chip chip-recurring">
+              <RepeatIcon /> Recorrente
+            </span>
+          )}
+          <ReminderDateButton
+            date={reminder.date}
+            time={reminder.time}
+            repeat={reminder.repeat}
+            weekDays={reminder.weekDays}
+            alertMinutesBefore={reminder.alertMinutesBefore}
+            onSave={(fields) => board.updateReminder(reminder.id, fields)}
+          />
+        </div>
+        <label className="edit-field">
+          <span className="edit-field-label">Observação</span>
+          <RichTextEditor
+            value={noteDraft}
+            onChange={setNoteDraft}
+            placeholder="Cole um texto ou escreva algo..."
+          />
+        </label>
+        <div className="edit-actions" style={{ marginTop: 4 }}>
+          <button type="button" className="btn btn-ghost" onClick={onClose}>
+            Cancelar
+          </button>
+          <button type="button" className="btn btn-accent" onClick={save}>
+            Salvar
+          </button>
+        </div>
+      </div>
+    </>,
+    document.body
+  );
+}
+
 export function ReminderRow({ reminder }: { reminder: Reminder }) {
   const { board } = useBoardCtx();
   const [titleDraft, setTitleDraft] = useState<string | null>(null);
   const [statusAnchor, setStatusAnchor] = useState<DOMRect | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
   const statusBtnRef = useRef<HTMLButtonElement>(null);
 
   function commitTitle() {
@@ -365,14 +448,24 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
           onClose={() => setStatusAnchor(null)}
         />
       )}
-      <input
-        type="text"
-        className="reminder-title-input"
-        value={titleDraft ?? reminder.title}
-        onChange={(e) => setTitleDraft(e.target.value)}
-        onBlur={commitTitle}
-        onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-      />
+      <span className="reminder-title-cell">
+        <input
+          type="text"
+          className="reminder-title-input"
+          value={titleDraft ?? reminder.title}
+          onChange={(e) => setTitleDraft(e.target.value)}
+          onBlur={commitTitle}
+          onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+        />
+        <button
+          type="button"
+          className="icon-btn reminder-expand-btn"
+          title="Ver lembrete completo (texto e observação)"
+          onClick={() => setDetailOpen(true)}
+        >
+          <ExpandIcon />
+        </button>
+      </span>
       <span className={"chip" + (isRecurring ? " chip-recurring" : " chip-oneoff")}>
         {isRecurring && <RepeatIcon />} {isRecurring ? "Recorrente" : "Pontual"}
       </span>
@@ -398,6 +491,7 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
       >
         <TrashIcon />
       </button>
+      {detailOpen && <ReminderDetailModal reminder={reminder} onClose={() => setDetailOpen(false)} />}
     </div>
   );
 }

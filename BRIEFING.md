@@ -137,6 +137,22 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Lembrete com visão focada (texto e observação completos) (30/08)
+
+Print da tabela de Lembretes com a descrição cortada: **"o texto não está
+aparecendo todo aqui no lembrete e isso não tem problema, o problema está
+que quando eu clico na task ela não abre de forma que dá pra ver o texto
+todo e anotações. Temos que ter um clique que resolva isso, podemos ver
+com foco todos os dados do lembrete."**
+
+A célula de Descrição continua truncando (normal, cabe pouco espaço na
+tabela), mas agora ganha um ícone de expandir sempre visível ao lado do
+texto (mesmo `ExpandIcon` já usado no popover de Observação). Clicar nele
+abre um modal focado (`ReminderDetailModal`) com tudo do lembrete numa
+tela só: status, título completo (editável), recorrência/data, e a
+observação com o editor de texto rico — sem precisar abrir cada campo
+separado pra montar o quadro completo.
+
 ## Prioridade nos Livros (29/08)
 
 Pedido direto do Leandro: **"só colocaria bandeira de prioridade nos
