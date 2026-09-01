@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
-import { BookIcon, BookmarkIcon, BookOpenIcon, ChevronIcon, CommentIcon, DragGripIcon, FlagIcon, TrashIcon, WeekIcon } from "./icons";
+import { BookIcon, BookmarkIcon, BookOpenIcon, ChevronIcon, CommentIcon, DragGripIcon, FlagIcon, SearchIcon, TrashIcon, WeekIcon } from "./icons";
 import { RichTextEditor } from "./RichTextEditor";
 import { priorityColor, priorityLabel, nextPriority } from "./TaskRow";
 import { fmtShortDate } from "@/lib/date-utils";
@@ -295,8 +295,9 @@ function BookRow({
   onDragOverRow?: (id: string) => void;
   onDrop?: () => void;
 }) {
-  const { board } = useBoardCtx();
+  const { board, focusRequest, consumeFocusRequest } = useBoardCtx();
   const [titleDraft, setTitleDraft] = useState<string | null>(null);
+  const [flash, setFlash] = useState(false);
 
   function commitTitle() {
     if (titleDraft === null) return;
@@ -305,9 +306,21 @@ function BookRow({
     setTitleDraft(null);
   }
 
+  useEffect(() => {
+    if (focusRequest?.kind === "book" && focusRequest.id === book.id) {
+      document.querySelector(`[data-id="${book.id}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reagindo a um pedido de foco vindo da busca (sistema externo)
+      setFlash(true);
+      consumeFocusRequest("book", book.id);
+      const id = setTimeout(() => setFlash(false), 2000);
+      return () => clearTimeout(id);
+    }
+  }, [focusRequest, consumeFocusRequest, book.id]);
+
   return (
     <div
-      className={"book-row" + (dragging ? " dragging" : "")}
+      data-id={book.id}
+      className={"book-row" + (dragging ? " dragging" : "") + (flash ? " flash" : "")}
       draggable={draggable}
       onDragStart={() => onDragStart?.(book.id)}
       onDragOver={(e) => {
@@ -354,9 +367,11 @@ function BookRow({
 export function BooksView({ onBack }: { onBack: () => void }) {
   const { board } = useBoardCtx();
   const [newTitle, setNewTitle] = useState("");
+  const [search, setSearch] = useState("");
   const [collapsed, setCollapsed] = useState<Partial<Record<BookStatus, boolean>>>({});
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
+  const searchTerm = search.trim().toLowerCase();
 
   function handleAdd() {
     const title = newTitle.trim();
@@ -410,9 +425,25 @@ export function BooksView({ onBack }: { onBack: () => void }) {
           </div>
         </div>
 
+        <div className="list-quickadd-card">
+          <div className="quickadd-row">
+            <span className="quickadd-plus" aria-hidden="true">
+              <SearchIcon />
+            </span>
+            <input
+              type="text"
+              className="quickadd-input"
+              placeholder="Buscar livro pelo título..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </div>
+
         {BOOK_STATUS_ORDER.map((status) => {
           const books = board.state.books
             .filter((b) => b.status === status)
+            .filter((b) => !searchTerm || b.title.toLowerCase().includes(searchTerm))
             .sort((a, b) => (a.order || 0) - (b.order || 0));
           const isCollapsed = !!collapsed[status];
           const hasRows = !isCollapsed && books.length > 0;

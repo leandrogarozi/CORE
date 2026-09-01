@@ -18,6 +18,11 @@ interface ConfirmModalState {
   icon: ReactElement | null;
 }
 
+export interface FocusRequest {
+  kind: "task" | "reminder" | "book";
+  id: string;
+}
+
 interface BoardCtxValue {
   board: UseBoard;
   sortByQuick: boolean;
@@ -31,6 +36,9 @@ interface BoardCtxValue {
   columns: UseColumnWidths;
   openProject: (id: string) => void;
   setOpenProjectHandler: (fn: ((id: string) => void) | null) => void;
+  focusRequest: FocusRequest | null;
+  requestFocus: (req: FocusRequest) => void;
+  consumeFocusRequest: (kind: FocusRequest["kind"], id: string) => void;
 }
 
 const BoardCtx = createContext<BoardCtxValue | null>(null);
@@ -80,6 +88,12 @@ export function BoardProvider({ userId, children }: { userId: string; children: 
     [openProjectHandler]
   );
 
+  const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
+  const requestFocus = useCallback((req: FocusRequest) => setFocusRequest(req), []);
+  const consumeFocusRequest = useCallback((kind: FocusRequest["kind"], id: string) => {
+    setFocusRequest((cur) => (cur && cur.kind === kind && cur.id === id ? null : cur));
+  }, []);
+
   return (
     <BoardCtx.Provider
       value={{
@@ -95,6 +109,9 @@ export function BoardProvider({ userId, children }: { userId: string; children: 
         columns,
         openProject,
         setOpenProjectHandler,
+        focusRequest,
+        requestFocus,
+        consumeFocusRequest,
       }}
     >
       {children}

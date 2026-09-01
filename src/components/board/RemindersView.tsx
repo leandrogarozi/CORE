@@ -408,11 +408,20 @@ function ReminderDetailModal({ reminder, onClose }: { reminder: Reminder; onClos
 }
 
 export function ReminderRow({ reminder }: { reminder: Reminder }) {
-  const { board } = useBoardCtx();
+  const { board, focusRequest, consumeFocusRequest } = useBoardCtx();
   const [titleDraft, setTitleDraft] = useState<string | null>(null);
   const [statusAnchor, setStatusAnchor] = useState<DOMRect | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const statusBtnRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (focusRequest?.kind === "reminder" && focusRequest.id === reminder.id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reagindo a um pedido de foco vindo da busca (sistema externo)
+      setDetailOpen(true);
+      document.querySelector(`[data-id="${reminder.id}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      consumeFocusRequest("reminder", reminder.id);
+    }
+  }, [focusRequest, consumeFocusRequest, reminder.id]);
 
   function commitTitle() {
     if (titleDraft === null) return;
@@ -434,6 +443,7 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
 
   return (
     <div
+      data-id={reminder.id}
       className={
         "reminder-table-row" +
         (reminder.done ? " done" : "") +

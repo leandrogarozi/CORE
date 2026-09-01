@@ -33,7 +33,7 @@ import { dateFromISO, longLabel, mondayOf, todayISO } from "@/lib/date-utils";
 import type { Task } from "@/lib/types";
 
 function BoardShell() {
-  const { board, sortByQuick, setSortByQuick, setOpenProjectHandler } = useBoardCtx();
+  const { board, sortByQuick, setSortByQuick, setOpenProjectHandler, requestFocus } = useBoardCtx();
   const [viewMode, setViewMode] = useState<ViewMode>("day");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [weekAnchor, setWeekAnchor] = useState(() => mondayOf(new Date()));
@@ -78,9 +78,16 @@ function BoardShell() {
   }
 
   function handleSearchNavigate(result: SearchResult) {
-    if (result.kind === "task") goToTask(result.task);
-    else if (result.kind === "reminder") setViewMode("reminders");
-    else if (result.kind === "book") setViewMode("books");
+    if (result.kind === "task") {
+      goToTask(result.task);
+      requestFocus({ kind: "task", id: result.task.id });
+    } else if (result.kind === "reminder") {
+      setViewMode("reminders");
+      requestFocus({ kind: "reminder", id: result.reminder.id });
+    } else if (result.kind === "book") {
+      setViewMode("books");
+      requestFocus({ kind: "book", id: result.book.id });
+    }
   }
 
   const weekDatesISO = useMemo(() => {

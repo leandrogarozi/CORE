@@ -7,7 +7,7 @@ import { BellIcon, WarningIcon } from "./icons";
 import { TimePicker } from "./TimePicker";
 import { dateFromISO, todayISO } from "@/lib/date-utils";
 import { isFeatureEnabled } from "@/lib/types";
-import { MOODS } from "@/lib/mood";
+import { MOOD_EMOTIONS, MOODS } from "@/lib/mood";
 
 const WATER_STEPS = [200, 500];
 
@@ -32,6 +32,7 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
   const wokeAt = log?.wokeAt ?? "";
   const mood = log?.mood ?? null;
   const moodNote = log?.moodNote ?? null;
+  const moodEmotion = log?.moodEmotion ?? null;
   const goalMl = board.state.settings.waterGoalMl || 2000;
   const pct = goalMl > 0 ? Math.min(100, (waterMl / goalMl) * 100) : 0;
   const [dietInput, setDietInput] = useState<string | null>(null);
@@ -51,6 +52,10 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
   function setMood(v: number) {
     const next = mood === v ? null : v;
     board.updateDailyLog(selectedDate, next === null ? { mood: null, moodNote: null } : { mood: next });
+  }
+
+  function setMoodEmotion(v: string) {
+    board.updateDailyLog(selectedDate, { moodEmotion: moodEmotion === v ? null : v });
   }
 
   function addWater(ml: number) {
@@ -216,6 +221,18 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
                     />
                   )}
                 </div>
+              ))}
+            </div>
+            <div className="dl-mood-emotion-row">
+              {MOOD_EMOTIONS.map((m) => (
+                <button
+                  key={m.v}
+                  type="button"
+                  className={"dl-mood-emotion-chip" + (moodEmotion === m.v ? " active" : "")}
+                  onClick={() => setMoodEmotion(m.v)}
+                >
+                  <span>{m.emoji}</span> {m.label}
+                </button>
               ))}
             </div>
           </div>

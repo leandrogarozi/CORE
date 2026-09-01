@@ -12,3 +12,18 @@ export const MOODS = [
 export function moodByValue(v: number | null | undefined) {
   return MOODS.find((m) => m.v === v);
 }
+
+// Emoção específica do dia, junto do check-in de Humor (intensidade 1-5 continua
+// existindo — isso é um campo a mais, não substitui).
+export const MOOD_EMOTIONS = [
+  { v: "estressado", emoji: "😣", label: "Estressado" },
+  { v: "ansioso", emoji: "😰", label: "Ansioso" },
+  { v: "nervoso", emoji: "😬", label: "Nervoso" },
+  { v: "desmotivado", emoji: "😔", label: "Desmotivado" },
+  { v: "confiante", emoji: "😎", label: "Confiante" },
+  { v: "em_paz", emoji: "😌", label: "Em paz" },
+] as const;
+
+export function moodEmotionByValue(v: string | null | undefined) {
+  return MOOD_EMOTIONS.find((m) => m.v === v);
+}

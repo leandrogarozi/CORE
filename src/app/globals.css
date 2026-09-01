@@ -493,6 +493,15 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   position:absolute; top:-6px; right:-6px; background:var(--surface); border:1px solid var(--border);
   border-radius:50%; padding:3px; box-shadow:var(--shadow);
 }
+.dl-mood-emotion-row{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.dl-mood-emotion-chip{
+  display:inline-flex; align-items:center; gap:4px; padding:5px 10px; border-radius:20px;
+  border:1px solid var(--border); background:var(--surface); font-size:11.5px; color:var(--text-muted);
+}
+.dl-mood-emotion-chip span{ font-size:14px; filter:grayscale(1); opacity:0.6; }
+.dl-mood-emotion-chip:hover span{ opacity:0.85; }
+.dl-mood-emotion-chip.active{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }
+.dl-mood-emotion-chip.active span{ filter:none; opacity:1; }
 .dl-sleep-inputs{ display:flex; gap:10px; }
 .dl-sleep-field{ display:flex; flex-direction:column; gap:3px; font-size:11px; color:var(--text-faint); flex:1; }
 .dl-sleep-field input{
@@ -605,6 +614,13 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   -webkit-overflow-scrolling:touch;
 }
 .task-table-scroll::-webkit-scrollbar{ display:none; height:0; }
+/* Etapas do projeto: tabela larga (9 colunas) que costuma passar da tela —
+   mantém a barra visível aqui pra ficar óbvio que dá pra rolar até o Excluir. */
+.project-wide .task-table-scroll{ scrollbar-width:thin; }
+.project-wide .task-table-scroll::-webkit-scrollbar{ display:block; height:7px; }
+.project-wide .task-table-scroll::-webkit-scrollbar-track{ background:var(--surface-2); border-radius:4px; }
+.project-wide .task-table-scroll::-webkit-scrollbar-thumb{ background:var(--border-strong); border-radius:4px; }
+.project-wide .task-table-scroll::-webkit-scrollbar-thumb:hover{ background:var(--text-faint); }
 .task-list-header{
   display:grid; align-items:center; column-gap:14px; padding:7px 14px; min-width:max-content;
   border-bottom:1px solid var(--border); background:var(--bg);
@@ -940,6 +956,7 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .book-row:last-child{ border-bottom:none; }
 .book-row[draggable="true"]{ cursor:grab; }
 .book-row.dragging{ opacity:0.35; }
+.book-row.flash{ background:color-mix(in srgb, var(--accent) 16%, var(--surface)); transition:background 1.6s ease-out; }
 .book-row-order{
   display:inline-flex; align-items:center; gap:3px; flex:none; color:var(--text-faint);
 }
@@ -1008,13 +1025,10 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .task-badge svg{ width:11px; height:11px; }
 .task-project-link{ color:var(--info); }
 .task-project-link:hover{ color:var(--accent); }
-.task-project-chip{
-  display:inline-flex; align-items:center; gap:3px; flex:none; padding:2px 7px 2px 5px;
-  border-radius:20px; background:color-mix(in srgb, var(--info) 14%, var(--surface)); color:var(--info);
-  font-size:10px; font-weight:600;
-}
-.task-project-chip:hover{ background:color-mix(in srgb, var(--info) 24%, var(--surface)); }
-.task-project-chip svg{ width:10px; height:10px; }
+.row-lead-cell{ display:inline-flex; align-items:center; gap:3px; justify-self:start; }
+.task-project-folder{ display:inline-flex; align-items:center; justify-content:center; color:var(--success); padding:0; }
+.task-project-folder:hover{ opacity:0.75; }
+.task-project-folder svg{ width:11px; height:11px; }
 .task-note-badge{ color:var(--text-faint); }
 .task-reminder-badge{ color:var(--book-yellow); }
 .reminder-check{

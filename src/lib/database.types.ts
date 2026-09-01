@@ -112,6 +112,7 @@ export type Database = {
           diet_pct: number | null
           log_date: string
           mood: number | null
+          mood_emotion: string | null
           mood_note: string | null
           slept_at: string | null
           updated_at: string
@@ -126,6 +127,7 @@ export type Database = {
           diet_pct?: number | null
           log_date: string
           mood?: number | null
+          mood_emotion?: string | null
           mood_note?: string | null
           slept_at?: string | null
           updated_at?: string
@@ -140,6 +142,7 @@ export type Database = {
           diet_pct?: number | null
           log_date?: string
           mood?: number | null
+          mood_emotion?: string | null
           mood_note?: string | null
           slept_at?: string | null
           updated_at?: string

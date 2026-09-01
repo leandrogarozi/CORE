@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { TimerButton } from "./TimerButton";
 import { StatusPicker } from "./StatusPicker";
@@ -102,9 +102,22 @@ interface TaskRowProps {
 }
 
 export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop, dragging, gridTemplate, position }: TaskRowProps) {
-  const { board, askScope, askConfirm, openProject } = useBoardCtx();
+  const { board, askScope, askConfirm, openProject, focusRequest, consumeFocusRequest } = useBoardCtx();
   const [editing, setEditing] = useState(false);
   const hasReminder = board.state.reminders.some((r) => r.taskId === t.id);
+
+  useEffect(() => {
+    if (focusRequest?.kind === "task" && focusRequest.id === t.id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reagindo a um pedido de foco vindo da busca (sistema externo)
+      setEditing(true);
+      consumeFocusRequest("task", t.id);
+    }
+  }, [focusRequest, consumeFocusRequest, t.id]);
+
+  useEffect(() => {
+    if (!editing) return;
+    document.querySelector(`[data-id="${t.id}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [editing, t.id]);
 
   if (editing) {
     return <TaskEditRow task={t} onDone={() => setEditing(false)} />;
@@ -145,18 +158,33 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
         onDrop?.();
       }}
     >
-      {position !== undefined ? (
-        <span className="task-row-order" title="Arraste pra reordenar">
-          <DragGripIcon />
-          <span className="task-row-order-num mono">{position}</span>
-        </span>
-      ) : (
-        <span className={"drag-handle" + (draggable ? "" : " disabled")} aria-hidden="true">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <span key={i} />
-          ))}
-        </span>
-      )}
+      <span className="row-lead-cell">
+        {position !== undefined ? (
+          <span className="task-row-order" title="Arraste pra reordenar">
+            <DragGripIcon />
+            <span className="task-row-order-num mono">{position}</span>
+          </span>
+        ) : (
+          <span className={"drag-handle" + (draggable ? "" : " disabled")} aria-hidden="true">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <span key={i} />
+            ))}
+          </span>
+        )}
+        {t.projectId && !t.date && (
+          <button
+            type="button"
+            className="task-project-folder"
+            title="Tarefa de um projeto, sem data — clique pra abrir o projeto"
+            onClick={(e) => {
+              e.stopPropagation();
+              openProject(t.projectId!);
+            }}
+          >
+            <FolderIcon filled />
+          </button>
+        )}
+      </span>
       <StatusPicker
         statuses={board.state.taskStatuses}
         currentId={t.statusId}
@@ -167,21 +195,8 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
         <button type="button" className="row-title" title={t.title} onClick={() => setEditing(true)}>
           {t.title}
         </button>
-        {(t.projectId || hasReminder || t.note.trim()) && (
+        {((t.projectId && t.date) || hasReminder || t.note.trim()) && (
           <span className="row-badges">
-            {t.projectId && !t.date && (
-              <button
-                type="button"
-                className="task-badge task-project-chip"
-                title="Tarefa de um projeto, sem data — clique pra abrir o projeto"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openProject(t.projectId!);
-                }}
-              >
-                <FolderIcon /> Projeto
-              </button>
-            )}
             {t.projectId && t.date && (
               <button
                 type="button"

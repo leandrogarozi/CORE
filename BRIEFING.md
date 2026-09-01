@@ -137,6 +137,42 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Correções da leva anterior: ícone de projeto, rolagem, humor e busca (01/09)
+
+Feedback em cima da leva anterior (print da tabela de Etapas mostrando
+informação cortada) + confirmação de que as carinhas de humor não tinham
+entrado ainda (só a decisão do formato, não o código):
+
+- **Ícone de projeto**: virou só o ícone da pastinha (sem texto "Projeto"),
+  preenchido e verde, posicionado antes da bolinha de status — no mesmo
+  espaço do grip/número de posição, não mais dentro da célula de
+  descrição. `FolderIcon` ganhou uma variante `filled`.
+- **Projetos ainda cortava informação**: a barra de rolagem horizontal da
+  tabela de Etapas era invisível (`scrollbar-width:none`, padrão do resto
+  do app) — dava pra rolar até o Excluir, mas nada indicava isso. Agora,
+  só nessa tabela (`.project-wide`), a barra fica visível.
+- **Carinhas de humor implementadas**: `MOOD_EMOTIONS` novo em
+  `lib/mood.ts` (estressado/ansioso/nervoso/desmotivado/confiante/em paz,
+  cada um com emoji), campo `moodEmotion` no `DailyLog` (migração
+  `add_mood_emotion_to_daily_logs`), chips clicáveis dentro do mesmo bloco
+  de Humor no Painel do dia — exatamente como decidido: junto do check-in
+  existente, intensidade 1-5 continua igual.
+- **Busca com deep-link**: clicar num resultado agora abre o item de
+  verdade — tarefa abre em modo de edição (com foco/scroll até ela);
+  lembrete abre o modal de detalhes completo; livro rola até a linha dele
+  com um destaque rápido. Mecanismo novo (`focusRequest` no
+  `board-context`) — quem faz a busca "pede foco" num item, e o
+  componente daquele item (TaskRow/ReminderRow/BookRow) reage abrindo/
+  rolando até ele sozinho.
+- Livros ganhou uma **barra de busca própria** dentro da seção, filtrando
+  por título nos três grupos.
+
+**Pendência sinalizada, ainda não construída**: no Dashboard, o Leandro
+pediu pra além de Semana/Mês ter também visão por **Dia**, e blocos de
+"quantos dias fiz X essa semana/mês" não só pra atividade física (Cross/
+Corrida), mas também pra **Gratidão** e **Leitura**. Fica junto do resto
+do dashboard novo, pro próximo round.
+
 ## Leva grande de ajustes + próximos passos definidos (01/09)
 
 O Leandro mandou uma lista grande de pedidos numa mensagem só. Organizei em

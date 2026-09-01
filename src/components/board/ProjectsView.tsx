@@ -140,7 +140,7 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
     .filter((t) => t.projectId === project.id)
     .sort((a, b) => (a.order || 0) - (b.order || 0));
   // Coluna inicial mais larga aqui pra caber o número da ordem além do grip.
-  const stepGridTemplate = columns.gridTemplate.replace(/^20px/, "34px");
+  const stepGridTemplate = columns.gridTemplate.replace(/^30px/, "38px");
 
   function handleStepDrop() {
     if (!draggingId) return;

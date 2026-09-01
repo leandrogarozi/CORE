@@ -142,6 +142,9 @@ export interface DailyLog {
   // panel: recurring-thought / trigger detection, motivational phrases, and
   // correlating mood swings against routine data to spot gaps.
   moodNote: string | null;
+  // Emoção específica do dia (estressado, ansioso, confiante...), a par da
+  // intensidade 1-5 acima — ver MOOD_EMOTIONS em lib/mood.ts.
+  moodEmotion: string | null;
 }
 
 export interface ActiveTimer {

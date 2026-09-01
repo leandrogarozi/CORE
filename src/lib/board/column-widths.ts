@@ -75,7 +75,7 @@ export function useColumnWidths() {
   }, []);
 
   const gridTemplate = [
-    "20px",
+    "30px",
     ...TASK_COLUMNS.map((c) => {
       // Descrição fills any leftover row width until the user drags it to an
       // explicit size — avoids a dead strip of blank space after the last column.

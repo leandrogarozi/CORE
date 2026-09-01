@@ -255,6 +255,7 @@ export function rowToDailyLog(row: DailyLogRow): DailyLog {
     wokeAt: row.woke_at ? row.woke_at.slice(0, 5) : null,
     mood: row.mood,
     moodNote: row.mood_note,
+    moodEmotion: row.mood_emotion,
   };
 }
 
