@@ -86,10 +86,21 @@ function CommentModal({
   onClose: () => void;
 }) {
   const [draft, setDraft] = useState(initialValue);
+  const draftRef = useRef(draft);
+
+  useEffect(() => {
+    draftRef.current = draft;
+  }, [draft]);
 
   function save() {
     onSave(draft);
   }
+
+  // Auto-save a cada 30s pra não perder texto se fechar sem clicar em Salvar.
+  useEffect(() => {
+    const id = setInterval(() => onSave(draftRef.current), 30000);
+    return () => clearInterval(id);
+  }, [onSave]);
 
   return createPortal(
     <>
@@ -121,6 +132,7 @@ export function CommentButton({
   icon,
   title,
   variant = "icon",
+  alwaysExpanded = false,
 }: {
   value: string | null;
   placeholder: string;
@@ -129,6 +141,7 @@ export function CommentButton({
   icon?: ReactNode;
   title?: string;
   variant?: "icon" | "field";
+  alwaysExpanded?: boolean; // pula o popover pequeno e abre direto no modal grande
 }) {
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const [expanded, setExpanded] = useState(false);
@@ -137,6 +150,10 @@ export function CommentButton({
 
   function toggleOpen(e: React.MouseEvent) {
     e.stopPropagation();
+    if (alwaysExpanded) {
+      setExpanded(true);
+      return;
+    }
     if (anchorRect) {
       setAnchorRect(null);
     } else if (btnRef.current) {

@@ -16,7 +16,10 @@ export function ConfirmModal() {
     <>
       <div className="modal-backdrop" onClick={closeConfirmModal} />
       <div className="modal-panel">
-        <div className="modal-title">Confirmar exclusão</div>
+        <div className="modal-title">
+          {confirmModal.icon && <span className="modal-title-icon">{confirmModal.icon}</span>}
+          Confirmar exclusão
+        </div>
         <div className="scope-question">{confirmModal.question}</div>
         <div className="confirm-actions">
           <button type="button" className="btn btn-ghost" onClick={closeConfirmModal}>

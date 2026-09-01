@@ -95,7 +95,7 @@ function DayLogPopover({
       </label>
       {showNote && noteOptions.length > 0 && (
         <label className="edit-field">
-          <span className="edit-field-label">Tipo (opcional)</span>
+          <span className="edit-field-label">Como se sentiu durante a atividade?</span>
           <div className="note-options-chips">
             {noteOptions.map((opt) => (
               <button

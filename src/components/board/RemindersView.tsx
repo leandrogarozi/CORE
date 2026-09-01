@@ -124,10 +124,10 @@ export function ReminderDateButton({
     const hasWeekDays = weekDraft.length > 0 && weekDraft.length < 7;
     onSave({
       date: nextDate,
-      time: nextDate ? timeDraft || null : null,
+      time: nextDate || hasWeekDays ? timeDraft || null : null,
       repeat: hasWeekDays ? "none" : nextDate ? repeatDraft : "none",
       weekDays: hasWeekDays ? [...weekDraft].sort((a, b) => a - b) : null,
-      alertMinutesBefore: nextDate ? alertDraft : null,
+      alertMinutesBefore: nextDate || hasWeekDays ? alertDraft : null,
     });
     setAnchorRect(null);
   }
@@ -172,7 +172,7 @@ export function ReminderDateButton({
                 onChange={(e) => setDateDraft(e.target.value)}
                 onKeyDown={(e) => e.key === "Escape" && setAnchorRect(null)}
               />
-              <TimePicker value={timeDraft} disabled={!dateDraft} onChange={setTimeDraft} />
+              <TimePicker value={timeDraft} disabled={!dateDraft && weekDraft.length === 0} onChange={setTimeDraft} />
               <button
                 type="button"
                 className="icon-btn reminder-clear-btn"
@@ -218,7 +218,7 @@ export function ReminderDateButton({
             <select
               className="reminder-repeat-select"
               value={alertDraft ?? ""}
-              disabled={!dateDraft}
+              disabled={!dateDraft && weekDraft.length === 0}
               onChange={(e) => setAlertDraft(e.target.value ? Number(e.target.value) : null)}
             >
               {REMINDER_ALERT_PRESETS.map((p) => (
@@ -319,11 +319,22 @@ function ReminderDetailModal({ reminder, onClose }: { reminder: Reminder; onClos
   const { board } = useBoardCtx();
   const [titleDraft, setTitleDraft] = useState(reminder.title);
   const [noteDraft, setNoteDraft] = useState(reminder.note ?? "");
+  const noteDraftRef = useRef(noteDraft);
+
+  useEffect(() => {
+    noteDraftRef.current = noteDraft;
+  }, [noteDraft]);
 
   const overdue = isReminderOverdue(reminder);
   const dueToday = !reminder.done && !overdue && reminder.date === todayISO();
   const isRecurring = isRecurringReminder(reminder);
   const status = reminderStatus(reminder, overdue, dueToday);
+
+  // Auto-save a observação a cada 30s pra não perder texto se fechar sem clicar em Salvar.
+  useEffect(() => {
+    const id = setInterval(() => board.updateReminder(reminder.id, { note: noteDraftRef.current || null }), 30000);
+    return () => clearInterval(id);
+  }, [board, reminder.id]);
 
   function save() {
     const trimmedTitle = titleDraft.trim();
@@ -477,6 +488,7 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
         onSave={(fields) => board.updateReminder(reminder.id, fields)}
       />
       <CommentButton
+        alwaysExpanded
         value={reminder.note}
         placeholder="Observação — cole um texto ou escreva algo..."
         ariaLabel="Observação do lembrete"

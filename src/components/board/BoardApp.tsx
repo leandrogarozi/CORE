@@ -28,7 +28,7 @@ import { ProfileView } from "./ProfileView";
 import { MeetingButton } from "./MeetingButton";
 import { TimerNudges } from "./TimerNudges";
 import { Sidebar, type ViewMode } from "./Sidebar";
-import { MenuIcon, SettingsIcon, UserIcon, WeekIcon } from "./icons";
+import { MenuIcon, SettingsIcon, UserIcon, WarningIcon, WeekIcon } from "./icons";
 import { dateFromISO, longLabel, mondayOf, todayISO } from "@/lib/date-utils";
 import type { Task } from "@/lib/types";
 
@@ -272,10 +272,11 @@ function BoardShell() {
 
           <div className="section">
             <div className="section-head">
-              <span className="section-pill accent">
-                Sem data<span className="count">{backlogTasks.length}</span>
+              <span className="section-pill warning">
+                <WarningIcon /> Sem data<span className="count">{backlogTasks.length}</span>
               </span>
             </div>
+            <div className="hint-text">Coloque uma data pra essas tarefas não ficarem esquecidas por aqui.</div>
             <TaskListCard bucketKey="" tasks={backlogTasks} emptyLabel="Backlog vazio." quickAddId="qa-backlog" />
           </div>
 
@@ -293,7 +294,7 @@ function BoardShell() {
 
             <div className="section">
               <div className="section-head">
-                <span className="section-pill accent">Blocos fixos do dia</span>
+                <span className="section-pill accent">Dia a Dia</span>
               </div>
               <div className="hint-text">
                 Coisas que costumam ocupar tempo todo dia (almoço, deslocamento, academia...). Aperte o play na hora

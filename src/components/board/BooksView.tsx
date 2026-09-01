@@ -200,6 +200,11 @@ function BookInsightsButton({ book }: { book: Book }) {
   const { board } = useBoardCtx();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(book.insights ?? "");
+  const draftRef = useRef(draft);
+
+  useEffect(() => {
+    draftRef.current = draft;
+  }, [draft]);
 
   function openSheet(e: React.MouseEvent) {
     e.stopPropagation();
@@ -211,6 +216,13 @@ function BookInsightsButton({ book }: { book: Book }) {
     board.updateBook(book.id, { insights: draft || null });
     setOpen(false);
   }
+
+  // Auto-save a cada 30s pra não perder texto se fechar sem clicar em Salvar.
+  useEffect(() => {
+    if (!open) return;
+    const id = setInterval(() => board.updateBook(book.id, { insights: draftRef.current || null }), 30000);
+    return () => clearInterval(id);
+  }, [open, board, book.id]);
 
   return (
     <>

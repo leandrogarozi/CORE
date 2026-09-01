@@ -7,7 +7,7 @@ import { StatusPicker } from "./StatusPicker";
 import { MinutesPicker, TimePicker } from "./TimePicker";
 import { ReminderDateButton } from "./RemindersView";
 import { CommentButton } from "./CommentButton";
-import { BellIcon, BoltIcon, CommentIcon, DragGripIcon, DuplicateIcon, FlagIcon, LinkIcon, RepeatIcon, TrashIcon } from "./icons";
+import { BellIcon, BoltIcon, CommentIcon, DragGripIcon, DuplicateIcon, FlagIcon, FolderIcon, LinkIcon, RepeatIcon, TrashIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
 import { CATEGORY_LABEL, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
 import type { TaskEditFields } from "@/lib/board/use-board";
@@ -117,6 +117,13 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
     }
     if (t.seriesId) {
       askScope("Essa tarefa faz parte de uma repetição. Apagar:", doDelete);
+    } else if (t.projectId) {
+      const project = board.state.projects.find((p) => p.id === t.projectId);
+      askConfirm(
+        `Essa tarefa está dentro do projeto "${project?.name ?? "sem nome"}". Tem certeza que deseja apagá-la?`,
+        () => doDelete(null),
+        <FolderIcon />
+      );
     } else {
       askConfirm(`Excluir a tarefa "${t.title}"? Essa ação não pode ser desfeita.`, () => doDelete(null));
     }
@@ -162,7 +169,20 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
         </button>
         {(t.projectId || hasReminder || t.note.trim()) && (
           <span className="row-badges">
-            {t.projectId && (
+            {t.projectId && !t.date && (
+              <button
+                type="button"
+                className="task-badge task-project-chip"
+                title="Tarefa de um projeto, sem data — clique pra abrir o projeto"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openProject(t.projectId!);
+                }}
+              >
+                <FolderIcon /> Projeto
+              </button>
+            )}
+            {t.projectId && t.date && (
               <button
                 type="button"
                 className="icon-btn task-badge task-project-link"
@@ -337,6 +357,7 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
           <span className="edit-field-label">Observação</span>
           <CommentButton
             variant="field"
+            alwaysExpanded
             value={vals.note || null}
             placeholder="+ Observação — cole um texto ou escreva algo..."
             ariaLabel="Observação da tarefa"

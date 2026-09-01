@@ -220,7 +220,7 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
         <span style={{ width: 30 }} />
       </div>
 
-      <div className="narrow-list">
+      <div className="narrow-list project-wide">
         <div className="diet-page-card">
           <div className="project-name-row">
             <input

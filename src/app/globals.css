@@ -188,7 +188,9 @@ a{ color:inherit; }
 .task-list-modal-row:last-child{ border-bottom:none; }
 .task-list-modal-date{ font-size:10.5px; color:var(--text-faint); flex:none; width:36px; }
 .task-list-modal-title{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.modal-title{ font-weight:700; font-size:15px; }
+.modal-title{ font-weight:700; font-size:15px; display:flex; align-items:center; gap:6px; }
+.modal-title-icon{ display:inline-flex; color:var(--accent); }
+.modal-title-icon svg{ width:15px; height:15px; }
 .scope-question{ font-size:13px; margin-bottom:14px; color:var(--text-muted); }
 .scope-choices{ display:flex; flex-direction:column; gap:8px; }
 .scope-choice-btn{
@@ -415,6 +417,11 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 }
 .section-pill .count{ background:var(--surface); border-radius:10px; padding:0 6px; font-size:10.5px; color:var(--text-faint); }
 .section-pill.accent{ background:var(--accent-soft); color:var(--accent); }
+.section-pill.warning{
+  background:color-mix(in srgb, var(--book-yellow) 18%, var(--surface));
+  color:color-mix(in srgb, var(--book-yellow) 55%, var(--warn-text-mix));
+}
+.section-pill.warning svg{ width:12px; height:12px; }
 .hint-text{ font-size:11.5px; color:var(--text-faint); margin:-4px 0 8px; }
 
 .day-layout{ display:flex; flex-direction:column; gap:16px; }
@@ -862,6 +869,7 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 /* narrow list views (Livros, Lembretes) */
 .narrow-list{ max-width:640px; margin:0 auto; }
 .narrow-list.reminders-wide{ max-width:820px; }
+.narrow-list.project-wide{ max-width:900px; }
 .list-quickadd-card{
   background:var(--surface); border:1px solid var(--border); border-radius:12px;
   box-shadow:var(--shadow); margin-bottom:14px; overflow:hidden;
@@ -1000,6 +1008,13 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .task-badge svg{ width:11px; height:11px; }
 .task-project-link{ color:var(--info); }
 .task-project-link:hover{ color:var(--accent); }
+.task-project-chip{
+  display:inline-flex; align-items:center; gap:3px; flex:none; padding:2px 7px 2px 5px;
+  border-radius:20px; background:color-mix(in srgb, var(--info) 14%, var(--surface)); color:var(--info);
+  font-size:10px; font-weight:600;
+}
+.task-project-chip:hover{ background:color-mix(in srgb, var(--info) 24%, var(--surface)); }
+.task-project-chip svg{ width:10px; height:10px; }
 .task-note-badge{ color:var(--text-faint); }
 .task-reminder-badge{ color:var(--book-yellow); }
 .reminder-check{

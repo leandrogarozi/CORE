@@ -137,6 +137,73 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Leva grande de ajustes + próximos passos definidos (01/09)
+
+O Leandro mandou uma lista grande de pedidos numa mensagem só. Organizei em
+checklist, tirei as duas dúvidas de design por pergunta direta, implementei
+o que era bem definido nesta rodada e deixei documentado (com a decisão já
+tomada) o que é maior e fica pra próxima rodada.
+
+**Implementado:**
+- **Bug corrigido**: marcar 2+ dias da semana num Lembrete travava os campos
+  de horário e de aviso antecipado (ficavam desabilitados até ter uma data
+  também marcada, o que não fazia sentido pra recorrência por dia da
+  semana). Corrigido — reproduz exatamente a queixa **"percebi que quando
+  escolho 2 dia da semana no lembrete não consigo nem colocar o horário."**
+- Campo Observação (Tarefas e Lembretes) abre direto no modo expandido, sem
+  passar pelo popover pequeno — `CommentButton` ganhou a prop
+  `alwaysExpanded`.
+- **Auto-save a cada 30s** nos campos de observação (Tarefas, Lembretes,
+  resumo de Livros) — evita perder texto se fechar sem clicar em Salvar.
+- "Blocos fixos do dia" virou **"Dia a Dia"**.
+- Tag "Sem data" fica amarela com ícone de atenção, com um texto lembrando
+  de colocar data.
+- Atividades físicas: label do campo mudou pra **"Como se sentiu durante a
+  atividade?"**; Crossfit e Corrida ganharam opções com emoji (Corrida com
+  o set pedido: 🥵 Pesado / 🙂 Normal / 🪶 Leve / 🕊️ Voando).
+- Tarefa de projeto sem data ganha um chip **"Projeto"** (ícone de pasta,
+  igual ao do menu lateral) mais evidente que o ícone discreto de antes; a
+  confirmação de exclusão agora avisa que a tarefa pertence ao projeto
+  (nome do projeto + ícone de pasta no título do aviso).
+- Página de Projetos ficou mais larga (mesmo ajuste já usado em Lembretes)
+  — corrige o botão Excluir das etapas que estava fora da área visível sem
+  nenhuma indicação de que dava pra rolar até ele.
+
+**Discutido e decidido, fica pra próxima rodada (já com o caminho
+escolhido, pra ir rápido quando chegar a vez):**
+- Carinhas de humor novas (estressado/ansioso/nervoso/desmotivado/confiante/
+  em paz): entram junto do check-in de Humor que já existe — mesma tela,
+  intensidade 1-5 continua, mais um campo pra marcar a emoção específica.
+  Decisão do Leandro (perguntei as opções, ele escolheu "junto do Humor").
+- Recorrência dos Lembretes a cada N semanas/meses/anos: vai virar um campo
+  numérico "a cada [N]" dentro dos selects Semanal/Mensal/Anual que já
+  existem (sem trocar a estrutura da tela). Decisão do Leandro.
+- Busca: clicar num resultado deve abrir o item direto (editar a tarefa,
+  abrir o lembrete, ir pro livro) em vez de só trocar de aba; Livros ganha
+  barra de busca própria dentro da seção. Precisa de um mecanismo de "foco
+  pendente" cruzando telas — maior, fica pro próximo round.
+- Projetos: tags padrão por projeto (aplicadas automaticamente em toda
+  etapa nova) + nomenclatura automática das etapas (ex.: "[Projeto]
+  [Etapa_01] - descrição") com um botão "Atualizar nomenclatura" que
+  reaplica o padrão em todas as etapas de uma vez, sem mexer na descrição.
+- Dashboard: bloco semanal/mensal mostrando dias com atividade física
+  (Cross/Corrida por enquanto), estendendo depois pra Lazer/Gratidão/
+  Leitura.
+- **Aba Ferramentas** (anotado como pedido, sem construir ainda): caderno de
+  ganhos, caderno de gratidão, "Eu sou", provérbios sublinhados — e depois
+  outras como Roda da Vida/Mapa da Alma. Ideia do Leandro: a IA usar esse
+  material pra puxar frases, reconhecimento e lembretes de conquista nos
+  dias desanimados. **"vamos começar subindo pelas ferramentas mais fáceis
+  de aplicar quando chegar aqui."**
+
+**Nota importante — isso já existe**: o pedido de "mapeamento por item" nos
+blocos Dia a Dia (ex.: Piscina → aplicar algicida/trocar filtro/aspirar +
+2 tags) já está construído — o botão Editar de qualquer hábito/bloco tem
+"Opções de nota", onde já dá pra cadastrar as opções específicas daquele
+item, com multi-seleção numa entrada só (mesmo mecanismo que já funciona
+pro Lazer). Só falta o Leandro configurar pra Piscina e outros itens que
+quiser — não precisa de código novo pra isso.
+
 ## Notificação push (grátis, sem WhatsApp/Meta) (30/08)
 
 Discussão sobre alternativas ao WhatsApp pra lembrete no celular: pesquisei
