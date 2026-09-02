@@ -217,6 +217,8 @@ export interface Book {
   order: number; // fila de leitura dentro do grupo (ex.: "Para ler") — arrastar pra reordenar
 }
 
+export type ReminderStatus = "pending" | "waiting" | "done";
+
 export interface Reminder {
   id: string;
   title: string;
@@ -227,6 +229,7 @@ export interface Reminder {
   alertMinutesBefore: number | null; // aviso antecipado (minutos antes de date+time), null = sem aviso
   note: string | null; // observação livre — colar um texto, escrever algo
   done: boolean;
+  status: ReminderStatus; // "waiting" é um estado manual (ex.: aguardando resposta de terceiros), não mexe no cálculo de vencido/hoje
   deletedAt: string | null; // ISO datetime — soft delete, vai pra Lixeira em vez de sumir na hora
   taskId: string | null; // quando o lembrete foi criado a partir de uma tarefa (campo "Lembrete" na edição)
 }

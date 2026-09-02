@@ -942,6 +942,7 @@ export function useBoard(userId: string | null) {
         alertMinutesBefore: null,
         note: null,
         done: false,
+        status: "pending",
         deletedAt: null,
         taskId: null,
       };
@@ -957,7 +958,10 @@ export function useBoard(userId: string | null) {
     (
       id: string,
       patch: Partial<
-        Pick<Reminder, "title" | "date" | "time" | "repeat" | "weekDays" | "alertMinutesBefore" | "note" | "done">
+        Pick<
+          Reminder,
+          "title" | "date" | "time" | "repeat" | "weekDays" | "alertMinutesBefore" | "note" | "done" | "status"
+        >
       >
     ) => {
       apply((s) => ({ ...s, reminders: s.reminders.map((r) => (r.id === id ? { ...r, ...patch } : r)) }));
@@ -1047,6 +1051,7 @@ export function useBoard(userId: string | null) {
         alertMinutesBefore: fields.alertMinutesBefore,
         note: null,
         done: false,
+        status: "pending",
         deletedAt: null,
         taskId,
       };
@@ -1065,7 +1070,7 @@ export function useBoard(userId: string | null) {
       if (!userId) return;
       const r = stateRef.current.reminders.find((x) => x.id === id);
       if (!r) return;
-      updateReminder(id, { done: true });
+      updateReminder(id, { done: true, status: "done" });
       if (!isRecurringReminder(r)) return;
       const nextDate = nextReminderOccurrenceDate(r);
       if (!nextDate) return;
@@ -1079,6 +1084,7 @@ export function useBoard(userId: string | null) {
         alertMinutesBefore: r.alertMinutesBefore,
         note: null,
         done: false,
+        status: "pending",
         deletedAt: null,
         taskId: r.taskId,
       };

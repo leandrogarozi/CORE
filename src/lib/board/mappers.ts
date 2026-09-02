@@ -19,6 +19,7 @@ import type {
   Repeat,
   RecurringItem,
   Reminder,
+  ReminderStatus,
   Settings,
   Task,
   TaskSeries,
@@ -358,6 +359,7 @@ export function rowToReminder(row: ReminderRow): Reminder {
     alertMinutesBefore: row.alert_minutes_before,
     note: row.note,
     done: row.done,
+    status: (row.status as ReminderStatus) ?? (row.done ? "done" : "pending"),
     deletedAt: row.deleted_at,
     taskId: row.task_id,
   };
@@ -375,6 +377,7 @@ export function reminderToInsertRow(r: Reminder, userId: string): TablesInsert<"
     alert_minutes_before: r.alertMinutesBefore,
     note: r.note,
     done: r.done,
+    status: r.status,
     deleted_at: r.deletedAt,
     task_id: r.taskId,
   };
@@ -390,6 +393,7 @@ export function reminderToUpdateRow(r: Partial<Reminder>): TablesUpdate<"reminde
   if (r.alertMinutesBefore !== undefined) row.alert_minutes_before = r.alertMinutesBefore;
   if (r.note !== undefined) row.note = r.note;
   if (r.done !== undefined) row.done = r.done;
+  if (r.status !== undefined) row.status = r.status;
   if (r.deletedAt !== undefined) row.deleted_at = r.deletedAt;
   if (r.taskId !== undefined) row.task_id = r.taskId;
   return row;

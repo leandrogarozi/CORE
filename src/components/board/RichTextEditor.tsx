@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -8,7 +9,9 @@ import TextAlign from "@tiptap/extension-text-align";
 import Link from "@tiptap/extension-link";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
+import Highlight from "@tiptap/extension-highlight";
 import Placeholder from "@tiptap/extension-placeholder";
+import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 import {
   LinkIcon,
   RtAlignCenterIcon,
@@ -17,11 +20,78 @@ import {
   RtAlignRightIcon,
   RtBoldIcon,
   RtBulletListIcon,
+  RtHighlightIcon,
   RtItalicIcon,
+  RtOrderedListIcon,
   RtStrikethroughIcon,
   RtTaskListIcon,
   RtUnderlineIcon,
 } from "./icons";
+
+// Paleta de destaque (mesma ideia do ClickUp): cor de fundo aplicada ao texto selecionado.
+const HIGHLIGHT_COLORS = [
+  { v: "#fbcfe8", l: "Rosa" },
+  { v: "#fed7aa", l: "Laranja" },
+  { v: "#fef08a", l: "Amarelo" },
+  { v: "#bfdbfe", l: "Azul" },
+  { v: "#ddd6fe", l: "Roxo" },
+  { v: "#fecaca", l: "Vermelho" },
+  { v: "#bbf7d0", l: "Verde" },
+  { v: "#e5e7eb", l: "Cinza" },
+];
+
+function HighlightMenu({
+  anchorRect,
+  onPick,
+  onRemove,
+  onClose,
+}: {
+  anchorRect: DOMRect;
+  onPick: (color: string) => void;
+  onRemove: () => void;
+  onClose: () => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const pos = useClampedPopoverPos(anchorRect, ref);
+
+  useEffect(() => {
+    function onDocPointerDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    }
+    window.addEventListener("mousedown", onDocPointerDown);
+    return () => window.removeEventListener("mousedown", onDocPointerDown);
+  }, [onClose]);
+
+  return createPortal(
+    <div className="rte-highlight-menu" ref={ref} style={{ top: pos.top, left: pos.left }}>
+      {HIGHLIGHT_COLORS.map((c) => (
+        <button
+          key={c.v}
+          type="button"
+          className="rte-highlight-swatch"
+          title={c.l}
+          style={{ background: c.v }}
+          onClick={() => {
+            onPick(c.v);
+            onClose();
+          }}
+        />
+      ))}
+      <button
+        type="button"
+        className="rte-highlight-swatch rte-highlight-none"
+        title="Remover cor"
+        onClick={() => {
+          onRemove();
+          onClose();
+        }}
+      >
+        ⊘
+      </button>
+    </div>,
+    document.body
+  );
+}
 
 // Editor de texto rico (negrito/itálico/sublinhado/tachado, títulos, lista, checklist,
 // alinhamento, link) — guarda e devolve o conteúdo como HTML. Usado em todo campo de
@@ -37,6 +107,9 @@ export function RichTextEditor({
   placeholder?: string;
   autoFocus?: boolean;
 }) {
+  const [highlightAnchor, setHighlightAnchor] = useState<DOMRect | null>(null);
+  const highlightBtnRef = useRef<HTMLButtonElement>(null);
+
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -46,6 +119,7 @@ export function RichTextEditor({
       Link.configure({ openOnClick: false, autolink: true }),
       TaskList,
       TaskItem.configure({ nested: true }),
+      Highlight.configure({ multicolor: true }),
       Placeholder.configure({ placeholder: placeholder ?? "" }),
     ],
     content: value,
@@ -116,6 +190,15 @@ export function RichTextEditor({
         >
           <RtStrikethroughIcon />
         </button>
+        <button
+          ref={highlightBtnRef}
+          type="button"
+          className={"rte-btn" + (editor.isActive("highlight") ? " active" : "")}
+          title="Destaque"
+          onClick={() => setHighlightAnchor(highlightBtnRef.current?.getBoundingClientRect() ?? null)}
+        >
+          <RtHighlightIcon />
+        </button>
         <span className="rte-sep" />
         <select
           className="rte-select"
@@ -140,6 +223,14 @@ export function RichTextEditor({
           onClick={() => editor.chain().focus().toggleBulletList().run()}
         >
           <RtBulletListIcon />
+        </button>
+        <button
+          type="button"
+          className={"rte-btn" + (editor.isActive("orderedList") ? " active" : "")}
+          title="Lista numerada"
+          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        >
+          <RtOrderedListIcon />
         </button>
         <button
           type="button"
@@ -193,6 +284,18 @@ export function RichTextEditor({
         </button>
       </div>
       <EditorContent editor={editor} className="rte-editor" />
+      {highlightAnchor &&
+        (() => {
+          const anchor = highlightAnchor;
+          return (
+            <HighlightMenu
+              anchorRect={anchor}
+              onPick={(color) => editor.chain().focus().setHighlight({ color }).run()}
+              onRemove={() => editor.chain().focus().unsetHighlight().run()}
+              onClose={() => setHighlightAnchor(null)}
+            />
+          );
+        })()}
     </div>
   );
 }

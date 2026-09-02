@@ -5,7 +5,15 @@ import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { AttachmentsButton } from "./AttachmentsButton";
 import { TaskRow } from "./TaskRow";
-import { CheckCircleIcon, CheckIcon, ClockIcon, CloseCircleIcon, EditIcon, PlayCircleIcon } from "./icons";
+import {
+  CheckCircleIcon,
+  CheckIcon,
+  ClockIcon,
+  CloseCircleIcon,
+  EditIcon,
+  ExpandHorizontalIcon,
+  PlayCircleIcon,
+} from "./icons";
 import { RichTextEditor } from "./RichTextEditor";
 import { fmtHM } from "@/lib/date-utils";
 import { CATEGORY_LABEL, PROJECT_NAMING_TEMPLATE_DEFAULT, type Category, type Project } from "@/lib/types";
@@ -149,6 +157,18 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
   const [overId, setOverId] = useState<string | null>(null);
   const [namingEditorOpen, setNamingEditorOpen] = useState(false);
   const [namingDraft, setNamingDraft] = useState(namingTemplate);
+  const [wide, setWide] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("faro-project-wide") === "1";
+  });
+
+  function toggleWide() {
+    setWide((w) => {
+      const next = !w;
+      localStorage.setItem("faro-project-wide", next ? "1" : "0");
+      return next;
+    });
+  }
 
   // Coluna inicial mais larga aqui pra caber o número da ordem além do grip.
   const stepGridTemplate = columns.gridTemplate.replace(/^30px/, "38px");
@@ -244,10 +264,18 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
           ‹
         </button>
         <span className="dash-range-label">Projeto</span>
-        <span style={{ width: 30 }} />
+        <button
+          className="strip-nav"
+          type="button"
+          aria-label={wide ? "Reduzir largura do bloco" : "Expandir largura do bloco"}
+          title={wide ? "Reduzir largura" : "Expandir largura"}
+          onClick={toggleWide}
+        >
+          <ExpandHorizontalIcon flipped={wide} />
+        </button>
       </div>
 
-      <div className="narrow-list project-wide">
+      <div className={"narrow-list project-wide" + (wide ? " project-xl" : "")}>
         <div className="diet-page-card">
           <div className="project-name-row">
             <input

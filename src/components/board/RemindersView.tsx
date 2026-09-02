@@ -11,7 +11,7 @@ import { TimePicker } from "./TimePicker";
 import { DAY_NAMES, fmtDayMonth, isoAddDays, todayISO } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 import { REMINDER_ALERT_PRESETS, isReminderOverdue, isRecurringReminder, reminderTargetMs } from "@/lib/board/reminder-alerts";
-import type { Reminder, Repeat } from "@/lib/types";
+import type { Reminder, ReminderStatus, Repeat } from "@/lib/types";
 
 const REPEATS: { v: Repeat; l: string }[] = [
   { v: "none", l: "Não repete" },
@@ -245,13 +245,13 @@ export function ReminderDateButton({
 
 function ReminderStatusMenu({
   anchorRect,
-  done,
+  status,
   onSelect,
   onClose,
 }: {
   anchorRect: DOMRect;
-  done: boolean;
-  onSelect: (done: boolean) => void;
+  status: ReminderStatus;
+  onSelect: (status: ReminderStatus) => void;
   onClose: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -269,19 +269,29 @@ function ReminderStatusMenu({
     <div className="status-menu" ref={ref} style={{ top: pos.top, left: pos.left }}>
       <button
         type="button"
-        className={"status-menu-item" + (!done ? " active" : "")}
+        className={"status-menu-item" + (status === "pending" ? " active" : "")}
         onClick={() => {
-          onSelect(false);
+          onSelect("pending");
           onClose();
         }}
       >
-        Pendente
+        <span className="status-menu-dot" style={{ background: "var(--text-faint)" }} /> Pendente
       </button>
       <button
         type="button"
-        className={"status-menu-item" + (done ? " active" : "")}
+        className={"status-menu-item" + (status === "waiting" ? " active" : "")}
         onClick={() => {
-          onSelect(true);
+          onSelect("waiting");
+          onClose();
+        }}
+      >
+        <span className="status-menu-dot" style={{ background: "#D9A400" }} /> Aguardando
+      </button>
+      <button
+        type="button"
+        className={"status-menu-item" + (status === "done" ? " active" : "")}
+        onClick={() => {
+          onSelect("done");
           onClose();
         }}
       >
@@ -294,6 +304,7 @@ function ReminderStatusMenu({
 
 function reminderStatus(reminder: Reminder, overdue: boolean, dueToday: boolean) {
   if (reminder.done) return { label: "Concluído", cls: "status-done" };
+  if (reminder.status === "waiting") return { label: "Aguardando", cls: "status-waiting" };
   if (overdue) return { label: "Vencido", cls: "status-overdue" };
   if (dueToday) return { label: "Hoje", cls: "status-today" };
   return { label: "Pendente", cls: "status-pending" };
@@ -434,9 +445,9 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
     setTitleDraft(null);
   }
 
-  function applyDone(done: boolean) {
-    if (done) board.completeReminder(reminder.id);
-    else board.updateReminder(reminder.id, { done: false });
+  function applyStatus(status: ReminderStatus) {
+    if (status === "done") board.completeReminder(reminder.id);
+    else board.updateReminder(reminder.id, { done: false, status });
   }
 
   const today = todayISO();
@@ -477,8 +488,8 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
       {statusAnchor && (
         <ReminderStatusMenu
           anchorRect={statusAnchor}
-          done={reminder.done}
-          onSelect={applyDone}
+          status={reminder.status}
+          onSelect={applyStatus}
           onClose={() => setStatusAnchor(null)}
         />
       )}
@@ -549,7 +560,9 @@ function ReminderCompactRow({ reminder }: { reminder: Reminder }) {
         className={"reminder-check" + (reminder.done ? " done" : "")}
         title={reminder.done ? "Marcar como não concluído" : "Marcar como concluído"}
         onClick={() =>
-          reminder.done ? board.updateReminder(reminder.id, { done: false }) : board.completeReminder(reminder.id)
+          reminder.done
+            ? board.updateReminder(reminder.id, { done: false, status: "pending" })
+            : board.completeReminder(reminder.id)
         }
       >
         {reminder.done && <CheckIcon />}

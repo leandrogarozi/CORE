@@ -624,6 +624,44 @@ export function RtBulletListIcon() {
   );
 }
 
+// Setas apontando pra fora (expandir) ou pra dentro (reduzir, quando `flipped`).
+export function ExpandHorizontalIcon({ flipped }: { flipped?: boolean } = {}) {
+  const d = flipped
+    ? "M9 12H20M9 12L13 8M9 12L13 16M15 12H4M15 12L11 8M15 12L11 16"
+    : "M4 12H20M4 12L8 8M4 12L8 16M20 12L16 8M20 12L16 16";
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
+      <path d={d} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function RtOrderedListIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
+      <path d="M9 6H19M9 12H19M9 18H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <text x="3" y="8" fontSize="7" fill="currentColor" stroke="none" fontFamily="sans-serif">
+        1
+      </text>
+      <text x="3" y="14" fontSize="7" fill="currentColor" stroke="none" fontFamily="sans-serif">
+        2
+      </text>
+      <text x="3" y="20" fontSize="7" fill="currentColor" stroke="none" fontFamily="sans-serif">
+        3
+      </text>
+    </svg>
+  );
+}
+
+export function RtHighlightIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
+      <path d="M13 4L20 11L11 20H6V15L13 4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4 21H10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function RtTaskListIcon() {
   return (
     <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
