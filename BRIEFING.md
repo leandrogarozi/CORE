@@ -2056,11 +2056,6 @@ de feature flags que já existe pra água/dieta/sono/humor
         Voando (diferente do Fraco/Médio/Bom/Excelente do Crossfit).
       - **Bug**: em Lembretes, marcando 2+ dias da semana no seletor,
         não dá pra preencher o horário. Precisa reproduzir e corrigir.
-      - Busca: clicar num **livro** no resultado tem que abrir direto
-        a edição dele — hoje só abre a aba Livros inteira e rola até a
-        linha (`BooksView.tsx`, `focusRequest`), não abre o registro.
-        Adicionar também uma barra de busca dentro da própria aba
-        Livros.
       - Auto-save nos campos de Observação a cada 30s (perigo real de
         perder texto se a aba fechar ou a sessão cair no meio da
         digitação).
@@ -2077,14 +2072,16 @@ de feature flags que já existe pra água/dieta/sono/humor
         "Dia a Dia — tempo e dias ativos" que já existe cobre isso, ou
         se precisa um específico. Mesma lógica pra Lazer, Gratidão e
         Leitura.
-      - **Conferir ao vivo** (marcado como feito no histórico, mas o
-        Leandro reportou não estar funcionando): Lazer deveria permitir
-        marcar várias opções no mesmo dia, e ele diz que só consegue
-        marcar uma — investigar se é regressão ou mal-entendido de UI.
-      - **Conferir ao vivo**: o "grip"/arrasto de rolagem do TimePicker
-        já foi corrigido várias vezes, mas o Leandro insiste que ainda
-        falta em algum campo de horário/duração — mapear todos os
-        lugares que usam esse componente e confirmar cobertura total.
+
+      **(03/09) Conferido com o Leandro**: busca de livro (já abre e
+      rola até o registro certo, que já é editável ali — e a aba Livros
+      já tem busca própria por título), marcar várias opções de Lazer
+      no mesmo dia, e o grip/arrasto do TimePicker — os três já estão
+      funcionando de verdade. Eram itens de uma leva de notas antigas
+      coladas de uma vez (com blocos repetidos, sinal de anotação
+      acumulada ao longo do tempo) que eu tratei como reclamação atual
+      sem confirmar primeiro — vale sempre perguntar antes de marcar
+      algo como bug só por causa de texto de origem incerta.
 
 ### 🔴 Grandes
 
