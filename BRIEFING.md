@@ -137,6 +137,13 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Bolinha vermelha no ícone de observação (02/09)
+
+Print mostrando que o balãozinho de observação na linha da tarefa passava
+despercebido. Adicionado um pontinho vermelho no canto do ícone
+(`.task-note-badge::after`) sempre que a tarefa tem observação — sinaliza
+"tem algo pra ler aqui" sem precisar de número, só a presença do ponto.
+
 ## Aba Reuniões: cliente + pautas em aberto (02/09)
 
 Pedido pra ajudar a pensar: o Leandro cria checklist de pauta nas

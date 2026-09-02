@@ -1065,7 +1065,11 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .task-project-folder{ display:inline-flex; align-items:center; justify-content:center; color:var(--success); padding:0; }
 .task-project-folder:hover{ opacity:0.75; }
 .task-project-folder svg{ width:11px; height:11px; }
-.task-note-badge{ color:var(--text-faint); }
+.task-note-badge{ color:var(--text-faint); position:relative; }
+.task-note-badge::after{
+  content:""; position:absolute; top:0px; right:0px; width:6px; height:6px;
+  border-radius:50%; background:var(--danger); border:1px solid var(--surface);
+}
 .task-reminder-badge{ color:var(--book-yellow); }
 .task-pautas-badge{
   gap:2px; padding:1px 5px; border-radius:9px; font-size:10px; font-weight:600;
