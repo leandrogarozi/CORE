@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
+import { AttachmentsButton } from "./AttachmentsButton";
 import { CommentButton } from "./CommentButton";
 import { BellIcon, CheckIcon, EraserIcon, ExpandIcon, RepeatIcon, TrashIcon, WarningIcon, WeekIcon } from "./icons";
 import { RichTextEditor } from "./RichTextEditor";
@@ -351,17 +352,20 @@ function ReminderDetailModal({ reminder, onClose }: { reminder: Reminder; onClos
             {reminder.done && <CheckIcon />}
             {status.label}
           </span>
-          <button
-            type="button"
-            className="icon-btn danger-hover"
-            title="Excluir lembrete"
-            onClick={() => {
-              board.deleteReminder(reminder.id);
-              onClose();
-            }}
-          >
-            <TrashIcon />
-          </button>
+          <span className="modal-head-actions">
+            <AttachmentsButton entityType="reminder" entityId={reminder.id} ariaLabel="Anexos do lembrete" />
+            <button
+              type="button"
+              className="icon-btn danger-hover"
+              title="Excluir lembrete"
+              onClick={() => {
+                board.deleteReminder(reminder.id);
+                onClose();
+              }}
+            >
+              <TrashIcon />
+            </button>
+          </span>
         </div>
         <input
           type="text"

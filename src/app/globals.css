@@ -182,6 +182,7 @@ a{ color:inherit; }
   box-shadow:var(--shadow); padding:20px 22px; z-index:41;
 }
 .modal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:2px; }
+.modal-head-actions{ display:flex; align-items:center; gap:6px; }
 .modal-count{ font-size:11.5px; color:var(--text-faint); }
 .task-list-modal-body{ display:flex; flex-direction:column; gap:2px; max-height:50vh; overflow-y:auto; margin:12px 0; }
 .task-list-modal-row{ display:flex; align-items:center; gap:10px; padding:7px 4px; border-bottom:1px solid var(--border); font-size:12.5px; }
@@ -730,6 +731,24 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .comment-field-btn svg{ flex:none; width:13px; height:13px; }
 .comment-field-btn.has-comment{ color:var(--text); }
 .comment-field-preview{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.attachment-btn{ position:relative; }
+.attachment-btn.has-attachments{ color:var(--accent); }
+.attachment-count{
+  position:absolute; top:-4px; right:-6px; background:var(--accent); color:#fff;
+  font-size:9px; line-height:1; border-radius:8px; padding:2px 4px; min-width:14px; text-align:center;
+}
+.attachment-list{ display:flex; flex-direction:column; gap:6px; margin:8px 0; }
+.attachment-row{ display:flex; align-items:center; gap:8px; padding:6px 8px; background:var(--surface-2); border-radius:8px; }
+.attachment-name{
+  flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  text-align:left; color:var(--text); text-decoration:underline; text-decoration-color:var(--border-strong);
+}
+.attachment-name:hover{ text-decoration-color:var(--accent); }
+.attachment-meta{ font-size:11px; color:var(--text-faint); flex:none; }
+.attachment-badge{
+  font-size:10px; color:var(--success); background:color-mix(in srgb, var(--success) 15%, var(--surface));
+  padding:2px 6px; border-radius:10px; flex:none;
+}
 .btn{ border:none; border-radius:6px; padding:6px 12px; font-size:12px; font-weight:500; }
 .btn:disabled{ opacity:0.55; cursor:not-allowed; }
 .btn-accent{ background:var(--accent); color:var(--accent-contrast); }

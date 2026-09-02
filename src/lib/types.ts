@@ -62,6 +62,20 @@ export interface Project {
 
 export const PROJECT_NAMING_TEMPLATE_DEFAULT = "[{projeto}] [Etapa_{etapa}] - ";
 
+export type AttachmentEntityType = "task" | "reminder" | "book" | "project";
+
+export interface Attachment {
+  id: string;
+  entityType: AttachmentEntityType;
+  entityId: string;
+  fileName: string;
+  filePath: string; // caminho no bucket "attachments" do Supabase Storage
+  mimeType: string;
+  sizeBytes: number;
+  extractedText: string | null; // texto extraído (PDF/Word) na hora do upload, pra uso futuro por IA
+  createdAt: string;
+}
+
 export interface TaskStatus {
   id: string;
   label: string;

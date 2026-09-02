@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useBoardCtx } from "./board-context";
+import { AttachmentsButton } from "./AttachmentsButton";
 import { TimerButton } from "./TimerButton";
 import { StatusPicker } from "./StatusPicker";
 import { MinutesPicker, TimePicker } from "./TimePicker";
@@ -394,6 +395,10 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
             onSave={(fields) => board.setTaskReminder(t.id, fields)}
             emptyLabel="Sem lembrete"
           />
+        </label>
+        <label className="edit-field">
+          <span className="edit-field-label">Anexos</span>
+          <AttachmentsButton entityType="task" entityId={t.id} ariaLabel="Anexos da tarefa" />
         </label>
       </div>
       <div className="edit-actions">

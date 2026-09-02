@@ -1,6 +1,8 @@
 import type { Json, Tables, TablesInsert, TablesUpdate } from "@/lib/database.types";
 import type {
   ActiveTimer,
+  Attachment,
+  AttachmentEntityType,
   Book,
   BookStatus,
   Category,
@@ -43,6 +45,7 @@ type MedicationGroupRow = Tables<"medication_groups">;
 type ChecklistRow = Tables<"checklists">;
 type DietMealRow = Tables<"diet_meals">;
 type ProjectRow = Tables<"projects">;
+type AttachmentRow = Tables<"attachments">;
 
 export function rowToTask(row: TaskRow): Task {
   return {
@@ -533,4 +536,34 @@ export function projectToUpdateRow(p: Partial<Project>): TablesUpdate<"projects"
   if (p.defaultCategory2 !== undefined) row.default_category2 = p.defaultCategory2;
   if (p.namingTemplate !== undefined) row.naming_template = p.namingTemplate;
   return row;
+}
+
+export function rowToAttachment(row: AttachmentRow): Attachment {
+  return {
+    id: row.id,
+    entityType: row.entity_type as AttachmentEntityType,
+    entityId: row.entity_id,
+    fileName: row.file_name,
+    filePath: row.file_path,
+    mimeType: row.mime_type,
+    sizeBytes: row.size_bytes,
+    extractedText: row.extracted_text,
+    createdAt: row.created_at,
+  };
+}
+
+export function attachmentToInsertRow(
+  a: Pick<Attachment, "id" | "entityType" | "entityId" | "fileName" | "filePath" | "mimeType" | "sizeBytes">,
+  userId: string
+): TablesInsert<"attachments"> {
+  return {
+    id: a.id,
+    user_id: userId,
+    entity_type: a.entityType,
+    entity_id: a.entityId,
+    file_name: a.fileName,
+    file_path: a.filePath,
+    mime_type: a.mimeType,
+    size_bytes: a.sizeBytes,
+  };
 }

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
+import { AttachmentsButton } from "./AttachmentsButton";
 import { BookIcon, BookmarkIcon, BookOpenIcon, ChevronIcon, CommentIcon, DragGripIcon, FlagIcon, SearchIcon, TrashIcon, WeekIcon } from "./icons";
 import { RichTextEditor } from "./RichTextEditor";
 import { priorityColor, priorityLabel, nextPriority } from "./TaskRow";
@@ -352,6 +353,7 @@ function BookRow({
       <BookPriorityFlag book={book} />
       <BookStatusPicker book={book} />
       <BookInsightsButton book={book} />
+      <AttachmentsButton entityType="book" entityId={book.id} ariaLabel="Anexos do livro" />
       <button
         className="icon-btn danger-hover"
         type="button"

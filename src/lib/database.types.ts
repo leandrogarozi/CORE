@@ -796,6 +796,45 @@ export type Database = {
         }
         Relationships: []
       }
+      attachments: {
+        Row: {
+          id: string
+          user_id: string
+          entity_type: string
+          entity_id: string
+          file_name: string
+          file_path: string
+          mime_type: string
+          size_bytes: number
+          extracted_text: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          entity_type: string
+          entity_id: string
+          file_name: string
+          file_path: string
+          mime_type: string
+          size_bytes: number
+          extracted_text?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          entity_type?: string
+          entity_id?: string
+          file_name?: string
+          file_path?: string
+          mime_type?: string
+          size_bytes?: number
+          extracted_text?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

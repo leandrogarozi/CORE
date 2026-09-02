@@ -137,6 +137,54 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Anexos (PDF/Word/imagem) em Tarefas, Lembretes, Livros e Projetos (02/09)
+
+Pedido original: **"conseguimos subir arquivos anexos nas task dos livros?
+quero anexo o resumo em pdf de forma que a ia consiga acessar e ler"**.
+Antes de implementar, confirmei com o Leandro (via pergunta direta) três
+pontos:
+- **Escopo**: não só Livros — anexos em qualquer área (Tarefas, Lembretes,
+  Livros, Projetos), via um mecanismo genérico reutilizável.
+- **"A IA conseguir ler"**: hoje o app não tem nenhum chat/IA de verdade
+  ainda (só o mascote FARO com saudações, fase 1). Combinado que por
+  enquanto o app extrai e guarda o texto do arquivo automaticamente ao
+  subir, deixando pronto pra quando existir uma IA de verdade (fase 2 do
+  FARO) puxar esse texto como contexto — sem chat ainda, só a base
+  pronta.
+- **Formatos**: PDF, Word (.docx) e imagem (PNG/JPG). Só PDF e .docx têm
+  o texto extraído automaticamente (bibliotecas `pdf-parse` e `mammoth`,
+  rodando no servidor); imagem fica só guardada — teria que ser OCR, que
+  não entrou nessa leva.
+
+**Como funciona**: botão de clipe (ícone `PaperclipIcon`, novo, vindo do
+pack de ícones) com contador, abrindo um modal de lista + upload + exclusão
++ download. Aparece em:
+- **Livros**: na linha do livro, ao lado do botão de resumo.
+- **Tarefas**: dentro do formulário de edição (campo "Anexos").
+- **Lembretes**: no cabeçalho do modal de detalhes.
+- **Projetos**: no cabeçalho do bloco principal, ao lado do tempo total.
+
+**Técnico**:
+- Tabela `attachments` nova (migração `create_attachments`): `entity_type`
+  (task/reminder/book/project) + `entity_id` genéricos, `file_name`,
+  `file_path`, `mime_type`, `size_bytes`, `extracted_text`. RLS por
+  `user_id`, igual o resto do banco.
+- Bucket privado `attachments` no Supabase Storage, path
+  `${userId}/${entityType}/${entityId}/${uuid}-${nome}`; policies de
+  storage restringem cada usuário à própria pasta (`storage.foldername`).
+- Upload vai direto do navegador pro Storage (mesmo client já usado no
+  resto do app, RLS de verdade) — sem passar pela função serverless da
+  Vercel, evitando o limite de payload dela.
+- Nova rota `/api/attachments/extract` (só recebe o `id` do anexo já
+  salvo, não o arquivo em si): baixa o arquivo do Storage no servidor e
+  roda `pdf-parse` (PDF) ou `mammoth.extractRawText` (.docx), gravando o
+  texto extraído de volta na linha. Limite de 20MB pra tentar extrair.
+- Novas funções em `board`: `listAttachments`, `uploadAttachment`,
+  `deleteAttachment`, `getAttachmentUrl` (signed URL de 60s pro
+  download/preview) — anexos não entram no estado global do app
+  (`BoardState`), são buscados sob demanda por entidade, pra não pesar o
+  carregamento inicial.
+
 ## Dashboard reorganizado (mais compacto, sem blocos soltos) (02/09)
 
 Feedback direto sobre a leva anterior: "blocos quebrados, dados parecidos

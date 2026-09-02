@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
+import { AttachmentsButton } from "./AttachmentsButton";
 import { TaskRow } from "./TaskRow";
 import { CheckCircleIcon, CheckIcon, ClockIcon, CloseCircleIcon, EditIcon, PlayCircleIcon } from "./icons";
 import { RichTextEditor } from "./RichTextEditor";
@@ -260,6 +261,7 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
             <span className="project-time-badge mono" title="Soma total do tempo do projeto">
               <ClockIcon /> {fmtHM(totalTrackedMin)}
             </span>
+            <AttachmentsButton entityType="project" entityId={project.id} ariaLabel="Anexos do projeto" />
           </div>
           <RichTextEditor
             value={descDraft ?? project.description}

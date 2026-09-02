@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
+  attachmentToInsertRow,
   bookToInsertRow,
   bookToUpdateRow,
   buildRecurring,
@@ -25,6 +26,7 @@ import {
   rowToDietMeal,
   rowToMedication,
   rowToMedicationGroup,
+  rowToAttachment,
   rowToProject,
   rowToReminder,
   rowToSeries,
@@ -42,6 +44,8 @@ import { isoAddDays, occurrenceDates, todayISO } from "@/lib/date-utils";
 import { isRecurringReminder, nextReminderOccurrenceDate } from "@/lib/board/reminder-alerts";
 import type {
   ActiveTimer,
+  Attachment,
+  AttachmentEntityType,
   Book,
   BoardState,
   Category,
@@ -117,6 +121,11 @@ export interface TaskEditFields {
 function uid(): string {
   return crypto.randomUUID();
 }
+
+const ATTACHMENT_EXTRACTABLE_MIME = new Set([
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+]);
 
 function bucketOf(t: Pick<Task, "date">): string {
   return t.date || "";
@@ -1610,6 +1619,103 @@ export function useBoard(userId: string | null) {
     [supabase, userId, updateSettings]
   );
 
+  // ---------- anexos (tarefas, lembretes, livros, projetos) ----------
+  const listAttachments = useCallback(
+    async (entityType: AttachmentEntityType, entityId: string): Promise<Attachment[]> => {
+      const { data, error } = await supabase
+        .from("attachments")
+        .select("*")
+        .eq("entity_type", entityType)
+        .eq("entity_id", entityId)
+        .order("created_at", { ascending: true });
+      if (error) {
+        console.error("listAttachments", error);
+        return [];
+      }
+      return (data ?? []).map(rowToAttachment);
+    },
+    [supabase]
+  );
+
+  const uploadAttachment = useCallback(
+    async (
+      entityType: AttachmentEntityType,
+      entityId: string,
+      file: File
+    ): Promise<{ attachment: Attachment | null; error: string | null }> => {
+      if (!userId) return { attachment: null, error: "Não foi possível identificar o usuário." };
+      const id = uid();
+      const safeName = file.name.replace(/[^\w.\- ]/g, "_");
+      const path = `${userId}/${entityType}/${entityId}/${id}-${safeName}`;
+      const { error: uploadError } = await supabase.storage
+        .from("attachments")
+        .upload(path, file, { contentType: file.type || "application/octet-stream" });
+      if (uploadError) return { attachment: null, error: uploadError.message };
+
+      const insertRow = attachmentToInsertRow(
+        {
+          id,
+          entityType,
+          entityId,
+          fileName: file.name,
+          filePath: path,
+          mimeType: file.type || "application/octet-stream",
+          sizeBytes: file.size,
+        },
+        userId
+      );
+      const { data, error: insertError } = await supabase
+        .from("attachments")
+        .insert(insertRow)
+        .select("*")
+        .single();
+      if (insertError || !data) {
+        await supabase.storage.from("attachments").remove([path]);
+        return { attachment: null, error: insertError?.message || "Falha ao salvar o anexo." };
+      }
+
+      let attachment = rowToAttachment(data);
+      if (ATTACHMENT_EXTRACTABLE_MIME.has(attachment.mimeType)) {
+        try {
+          const res = await fetch("/api/attachments/extract", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id }),
+          });
+          const json = await res.json();
+          if (json.attachment) attachment = rowToAttachment(json.attachment);
+        } catch (err) {
+          console.error("uploadAttachment extract", err);
+        }
+      }
+      return { attachment, error: null };
+    },
+    [supabase, userId]
+  );
+
+  const deleteAttachment = useCallback(
+    async (attachment: Attachment): Promise<string | null> => {
+      const { error: storageError } = await supabase.storage.from("attachments").remove([attachment.filePath]);
+      if (storageError) return storageError.message;
+      const { error } = await supabase.from("attachments").delete().eq("id", attachment.id);
+      if (error) return error.message;
+      return null;
+    },
+    [supabase]
+  );
+
+  const getAttachmentUrl = useCallback(
+    async (filePath: string): Promise<string | null> => {
+      const { data, error } = await supabase.storage.from("attachments").createSignedUrl(filePath, 60);
+      if (error || !data) {
+        console.error("getAttachmentUrl", error);
+        return null;
+      }
+      return data.signedUrl;
+    },
+    [supabase]
+  );
+
   // ---------- daily log (água, dieta, sono) ----------
   const updateDailyLog = useCallback(
     (logDate: string, patch: Partial<DailyLog>) => {
@@ -1786,6 +1892,10 @@ export function useBoard(userId: string | null) {
     concludeMeeting,
     updateSettings,
     uploadAvatar,
+    listAttachments,
+    uploadAttachment,
+    deleteAttachment,
+    getAttachmentUrl,
     updateDailyLog,
     toggleDietMealChecked,
     setDietMealNote,
