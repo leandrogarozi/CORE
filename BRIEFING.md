@@ -137,6 +137,17 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Pastinha do projeto em toda etapa, mesmo com data (02/09)
+
+Print mostrando que etapas antigas dentro de um projeto (as que já tinham
+ganhado uma data, geralmente as concluídas) ficavam sem o ícone verde de
+pastinha antes da bolinha de status — só aparecia em etapas sem data.
+Causa: a condição no `TaskRow` era `t.projectId && !t.date`; havia também
+um badge de link (ícone diferente) reservado só pro caso com data, na
+célula de descrição. Agora a pastinha aparece em **toda** tarefa de
+projeto, com ou sem data (removido o badge de link duplicado, que ficou
+redundante).
+
 ## Tags padrão e nomenclatura automática das etapas de Projeto (02/09)
 
 Item da leva grande de 01/09 que tinha ficado só decidido/documentado, sem

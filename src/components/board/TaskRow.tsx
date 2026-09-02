@@ -7,7 +7,7 @@ import { StatusPicker } from "./StatusPicker";
 import { MinutesPicker, TimePicker } from "./TimePicker";
 import { ReminderDateButton } from "./RemindersView";
 import { CommentButton } from "./CommentButton";
-import { BellIcon, BoltIcon, CommentIcon, DragGripIcon, DuplicateIcon, FlagIcon, FolderIcon, LinkIcon, RepeatIcon, TrashIcon } from "./icons";
+import { BellIcon, BoltIcon, CommentIcon, DragGripIcon, DuplicateIcon, FlagIcon, FolderIcon, RepeatIcon, TrashIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
 import { CATEGORY_LABEL, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
 import type { TaskEditFields } from "@/lib/board/use-board";
@@ -171,11 +171,11 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
             ))}
           </span>
         )}
-        {t.projectId && !t.date && (
+        {t.projectId && (
           <button
             type="button"
             className="task-project-folder"
-            title="Tarefa de um projeto, sem data — clique pra abrir o projeto"
+            title="Tarefa de um projeto — clique pra abrir o projeto"
             onClick={(e) => {
               e.stopPropagation();
               openProject(t.projectId!);
@@ -195,21 +195,8 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
         <button type="button" className="row-title" title={t.title} onClick={() => setEditing(true)}>
           {t.title}
         </button>
-        {((t.projectId && t.date) || hasReminder || t.note.trim()) && (
+        {(hasReminder || t.note.trim()) && (
           <span className="row-badges">
-            {t.projectId && t.date && (
-              <button
-                type="button"
-                className="icon-btn task-badge task-project-link"
-                title="Tarefa vinculada a um projeto"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  openProject(t.projectId!);
-                }}
-              >
-                <LinkIcon />
-              </button>
-            )}
             {hasReminder && (
               <span className="task-badge task-reminder-badge" title="Tarefa com lembrete">
                 <BellIcon filled />

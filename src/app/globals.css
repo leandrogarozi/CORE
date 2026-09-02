@@ -1025,8 +1025,6 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .row-badges{ display:inline-flex; align-items:center; gap:2px; flex:none; }
 .task-badge{ display:inline-flex; align-items:center; justify-content:center; padding:2px; }
 .task-badge svg{ width:11px; height:11px; }
-.task-project-link{ color:var(--info); }
-.task-project-link:hover{ color:var(--accent); }
 .row-lead-cell{ display:inline-flex; align-items:center; gap:3px; justify-self:start; }
 .task-project-folder{ display:inline-flex; align-items:center; justify-content:center; color:var(--success); padding:0; }
 .task-project-folder:hover{ opacity:0.75; }
