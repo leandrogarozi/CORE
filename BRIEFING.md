@@ -137,6 +137,15 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Checklist do editor de texto vira bolinha, igual ao resto do app (02/09)
+
+Print mostrando as caixinhas quadradas nativas do navegador (checklist
+dentro de anotações, tipo pauta de reunião) desalinhadas com o texto.
+Trocado por bolinha redonda no mesmo estilo do `status-dot` das tarefas
+(borda cinza vazia quando pendente, preenchida verde com check branco
+quando concluído, texto riscado/apagado) — puro CSS em cima do checkbox
+nativo do Tiptap (`ul[data-type="taskList"]`), sem trocar de biblioteca.
+
 ## Modal de confirmação (Excluir) atrás de outros modais (02/09)
 
 Bug reportado logo depois do item acima: a caixa "Tem certeza que deseja
