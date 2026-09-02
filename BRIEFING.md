@@ -2041,6 +2041,50 @@ de feature flags que já existe pra água/dieta/sono/humor
       hábitos que só acontecem uma vez por dia. Já cadastrado nos
       hábitos "Corrida" e "Crossfit" com Fraco/Médio/Bom/Excelente.
 - [ ] Aba treino/suplementação
+- [ ] **Leva de pedidos do Leandro (02/09, lote grande)** — anotado de
+      uma vez, ainda não implementado. Itens objetivos, sem decisão
+      pendente:
+      - Campo de Observação (tasks e Lembretes) abre **sempre em modo
+        expandido** ao clicar, direto — hoje precisa de um passo extra.
+        Ideal um popup tipo ClickUp, com barra de formatação (negrito,
+        destaque etc.) e ícone de expandir bem visível. Motivo real:
+        em Lembretes o campo às vezes corta na tela e nem dá pra ver o
+        botão Salvar — está perdendo texto digitado por causa disso.
+      - Atividade física — texto da "opção de nota" vira **"Como se
+        sentiu durante a atividade?"**, com **emojis** em vez de nomes.
+        Corrida ganha opções próprias: Pesado / Normal / Leve /
+        Voando (diferente do Fraco/Médio/Bom/Excelente do Crossfit).
+      - **Bug**: em Lembretes, marcando 2+ dias da semana no seletor,
+        não dá pra preencher o horário. Precisa reproduzir e corrigir.
+      - Busca: clicar num **livro** no resultado tem que abrir direto
+        a edição dele — hoje só abre a aba Livros inteira e rola até a
+        linha (`BooksView.tsx`, `focusRequest`), não abre o registro.
+        Adicionar também uma barra de busca dentro da própria aba
+        Livros.
+      - Auto-save nos campos de Observação a cada 30s (perigo real de
+        perder texto se a aba fechar ou a sessão cair no meio da
+        digitação).
+      - **Bug**: dentro de um projeto, a etapa (task) não mostra o
+        botão de apagar — o bloco é estreito demais e empurra a ação
+        pra fora da área visível sem rolar. Alargar o painel/tabela.
+      - Tag "Sem data": conferir se está com cor **amarela** + ícone de
+        **atenção**; tasks de projeto sem data também têm que cair
+        nessa lista, com uma tag/ícone de projeto (a mesma pastinha do
+        menu lateral) bem visível — e o aviso de exclusão de uma task
+        assim precisa mencionar que ela pertence a um projeto.
+      - Dashboard: bloco de dias da semana/mês com e sem atividade
+        física (Crossfit, Corrida por enquanto) — e avaliar se o bloco
+        "Dia a Dia — tempo e dias ativos" que já existe cobre isso, ou
+        se precisa um específico. Mesma lógica pra Lazer, Gratidão e
+        Leitura.
+      - **Conferir ao vivo** (marcado como feito no histórico, mas o
+        Leandro reportou não estar funcionando): Lazer deveria permitir
+        marcar várias opções no mesmo dia, e ele diz que só consegue
+        marcar uma — investigar se é regressão ou mal-entendido de UI.
+      - **Conferir ao vivo**: o "grip"/arrasto de rolagem do TimePicker
+        já foi corrigido várias vezes, mas o Leandro insiste que ainda
+        falta em algum campo de horário/duração — mapear todos os
+        lugares que usam esse componente e confirmar cobertura total.
 
 ### 🔴 Grandes
 
@@ -2078,8 +2122,113 @@ de feature flags que já existe pra água/dieta/sono/humor
       por ora. Precisa de uma revisão de responsividade completa (não
       um ajuste pontual) quando chegar a vez: layout geral, popovers,
       tabelas/grids, menu lateral etc. em telas pequenas.
-- [ ] Ferramentas / Roda da Vida
+- [ ] **Aba Ferramentas (02/09)** — menu novo, o Leandro quer subir
+      conteúdo pessoal que já existe fora do app e transformar em
+      ferramentas de uso contínuo, com a IA (FARO) puxando frases,
+      reconhecimento e lembretes de conquistas a partir desse material
+      quando ele estiver desanimado/triste. Itens que ele quer, na
+      ordem "começar pelas mais fáceis de aplicar":
+      - **Caderno de ganhos**: ele tem um caderno físico/digital de
+        ganhos e conquistas — subir tudo, virar registro consultável.
+      - **Caderno de gratidão**: mesma ideia, subir o que ele já tem.
+      - **"Eu sou"**: lista de afirmações pessoais.
+      - **Provérbios sublinhados**: anotações/estudos do livro de
+        Provérbios.
+      - **Roda da Vida** e **Mapa da Alma**: ferramentas maiores, ficam
+        pra depois das de cima.
+      - **Seção de perguntas por momento** (nome ainda em aberto —
+        perguntar ao Leandro como quer chamar): registra data + "qual
+        o momento atual" (texto livre) + um conjunto de perguntas
+        cadastradas pra aquele momento, ele responde, fica arquivado.
+        Serve de material pra IA comparar ao longo do tempo (crescendo
+        ou estagnado) e é o mesmo tipo de fonte que ele quer usar pra
+        responder perguntas de livros que está lendo.
+      - **Perguntas em aberto antes de desenhar a modelagem de dados**:
+        como estruturar o cadastro de perguntas por "momento" (um
+        template fixo ou ele cria conjuntos de perguntas diferentes por
+        ocasião?); cada ferramenta (caderno de ganhos, gratidão etc.)
+        vira uma lista simples de entradas com data + texto, ou precisa
+        de campos próprios por tipo?
+- [ ] **Mapeamento de sub-opções por item do bloco Dia a Dia (02/09)**
+      — ex.: cadastrou "Piscina" pra rastrear o tempo gasto; ao parar o
+      cronômetro, quer poder marcar o que fez (Aplicar algicida, Trocar
+      filtro, Aspirar, Adicionar cloro — lista própria por item) e até
+      2 tags. Pareceria uma extensão do modelo de "opções de nota" que
+      hábitos já têm, ou do modelo de entradas múltiplas que Lazer já
+      tem — decidir qual dos dois reaproveitar antes de implementar.
+- [ ] **Recorrência de Lembretes por período (02/09)** — hoje só
+      escolhe dias da semana. O Leandro quer também poder definir
+      repetição por **semana(s)**, **mês(es)** ou **ano(s)** com
+      contagem (ex.: a cada 2 semanas), separado da escolha de dias.
+      Formato exato da UI (dropdown com opção + campo de contagem, ou
+      um botão "Recorrência" que abre tudo isso) ainda em aberto.
+- [ ] **Link entre tarefas relacionadas (02/09)** — ideia trazida pelo
+      Leandro com o exemplo de um app financeiro que ele quer construir
+      "do jeito que estamos fazendo o FARO": várias tasks separadas que
+      são, na prática, etapas do mesmo objetivo — tipo um PDA por
+      tarefa, sem virar um Projeto formal. Ainda não desenhado; precisa
+      de conversa sobre quando isso é diferente de simplesmente criar um
+      Projeto pra aquele objetivo.
+- [ ] **Plano de estudo (02/09)** — dor real do Leandro: hoje ele
+      empurra os estudos pra depois no meio das outras tarefas e isso
+      vira ansiedade acumulada (ex.: 2 matérias atrasadas da pós, uma
+      mentoria de coach de perfil comportamental pra terminar). Ideia
+      inicial dele: item novo no menu lateral onde cadastra um estudo
+      até terminar, e o FARO ajuda a distribuir ~40–60min/dia dele
+      durante a semana como tarefa com tag "Pessoal + Estudo" e o tempo
+      daquele dia — ele pediu explicitamente ajuda pra pensar no
+      desenho antes de implementar, não é só "constrói".
+- [ ] **Modo Foco / Pomodoro + tag "Desafiadora" (02/09)** — conectado
+      ao "Plano da Alma" (visão de futuro) que o Leandro também precisa
+      organizar. Duas ideias que ele quer discutir juntos antes de
+      implementar:
+      - **Modo Foco**: um temporizador tipo Pomodoro; se der pra
+        bloquear acesso à internet/distrações de verdade, ótimo — senão
+        pelo menos um aviso ao entrar ("Você vai entrar em Modo Foco —
+        afaste distrações, silencie o celular..."). Bloqueio de rede de
+        verdade provavelmente não é possível a partir de um web app;
+        avisar o Leandro disso na conversa de design.
+      - **Tag "Desafiadora"**: diferente da bandeira vermelha — marca
+        uma tarefa que ele tende a evitar/fugir (procrastinação), não
+        só uma tarefa urgente. Se tentar remarcar uma task assim, pedir
+        uma **justificativa obrigatória** — vira dado pra IA mapear
+        padrão de fuga/postergação ao longo do tempo.
+- [ ] **FARO faz varredura de inconsistências (02/09)** — rotina de IA
+      que revisa o sistema periodicamente e aponta problemas tipo: um
+      projeto com tags muito diferentes entre as etapas (ex.: uma
+      "trabalho", outra "dev pessoal" — sinal de cadastro errado);
+      tasks muito atrasadas; lembretes abandonados; por que ele não
+      está lendo (cruzando com Livros/Lazer); sugestão de ordem pra fila
+      de leitura dos livros. Configurável em "Configurar FARO" — o
+      Leandro escolhe os dias em que essa varredura roda.
+- [ ] **Backup dos dados (02/09)** — o Leandro está transformando o
+      FARO num banco de dados pessoal completo (livros, ferramentas,
+      registros importantes) e não quer nunca perder isso. Pensar numa
+      estratégia de backup — hoje os dados já vivem no Supabase (que
+      tem backup próprio de infraestrutura), mas vale avaliar se ele
+      quer também uma exportação própria (ex.: botão de exportar tudo
+      em JSON/CSV) como camada extra de segurança.
+- [ ] **Projetos como PDA completo (02/09)** — o Leandro quer que cada
+      etapa de projeto tenha descrição e ação cadastradas de verdade
+      (não só um título), pra depois poder pedir ao FARO pra ajudar a
+      distribuir aquele projeto ao longo de um prazo (quantas horas por
+      dia) — ou fazer isso manualmente. Ele disse que vai mandar um
+      print de exemplo pra adaptar o que já existe com o que falta;
+      aguardando esse material antes de desenhar. Conecta com a "IA de
+      distribuição de tarefas" já listada acima.
+- [ ] **Arrasto de tarefas + filtro "mais rápidas" (raio) (02/09)** —
+      pedido do Leandro descrevia um comportamento específico (ao
+      filtrar pelas tasks marcadas com raio/"mais rápidas", as que têm
+      raio saem da lista e só ficam arrastáveis as que não têm) que
+      ficou confuso por escrito — reproduzir com ele ao vivo antes de
+      mexer, pra confirmar o comportamento esperado.
 - [ ] Relatório cruzando dados (tarefas × hábitos × humor × sono etc.)
 - [ ] Observação do humor no dashboard alimentada por IA (rotina agendada
       + chamada de IA — não é só front-end)
 - [ ] Dashboard configurável (o que aparece na tela principal ou não)
+- [ ] **Carinhas de humor extras (02/09)** — o Leandro quer adicionar
+      novas opções de estado emocional: estressado, ansioso, nervoso,
+      desmotivado, confiante, em paz. Pergunta em aberto dele mesmo:
+      isso é uma extensão do check-in de **humor** que já existe, ou é
+      um tipo de dado diferente (ex.: "estado emocional" separado de
+      "humor geral do dia")? Decidir a modelagem antes de implementar.
