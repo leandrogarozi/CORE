@@ -137,6 +137,25 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Dashboard: visão por Dia + blocos de dias ativos (02/09)
+
+Pendência que tinha ficado só documentada na leva anterior — o Leandro
+pediu direto ("ajuste o dash agora"):
+
+- **Visão "Dia"**: terceiro botão no toggle do Dashboard, ao lado de
+  Semana/Mês (ordem: Dia/Semana/Mês). Navega dia a dia com ‹ ›, igual às
+  outras visões; range do dia (`fromISO === toISO`) já funciona com todo
+  o resto do cálculo existente (concluídas, tempo, hábitos etc.) sem
+  precisar de lógica nova ali.
+- **Blocos de dias ativos**: dois novos cards — "Dias ativos — Hábitos" e
+  "Dias ativos — Blocos fixos" — mostrando, pra cada item (Leitura,
+  Gratidão, Crossfit, Corrida, Lazer, etc.), quantos dias ele foi marcado
+  dentro do período (`X/Y dias`, Y = dias do período), ao lado dos cards
+  de tempo (`fmtHM`) que já existiam. Como todo hábito/bloco fixo entra
+  automaticamente nessas listas, cobre "tudo que tem de atividade fixa"
+  sem precisar hardcoded — inclusive Gratidão/Leitura, que já eram
+  hábitos cadastrados.
+
 ## Pastinha do projeto em toda etapa, mesmo com data (02/09)
 
 Print mostrando que etapas antigas dentro de um projeto (as que já tinham

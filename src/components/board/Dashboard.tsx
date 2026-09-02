@@ -3,7 +3,10 @@
 import { useMemo, useState } from "react";
 import { useBoardCtx } from "./board-context";
 import {
+  DAY_NAMES,
   MONTH_NAMES_FULL,
+  dateFromISO,
+  fmtDayMonth,
   fmtHM,
   isoAddDays,
   isoFromDate,
@@ -16,7 +19,7 @@ import { CATEGORY_LABEL, isFeatureEnabled, type Category, type Priority, type Ta
 import { moodByValue } from "@/lib/mood";
 import { TaskListModal } from "./TaskListModal";
 
-type Period = "week" | "month";
+type Period = "day" | "week" | "month";
 
 const CAT_COLORS: Record<Category, string> = {
   trabalho: "#B0581A",
@@ -28,7 +31,8 @@ const CAT_COLORS: Record<Category, string> = {
   reuniao: "#4A5FC1",
 };
 
-function rangeForPeriod(period: Period, weekAnchor: Date, monthAnchor: Date) {
+function rangeForPeriod(period: Period, dayAnchor: string, weekAnchor: Date, monthAnchor: Date) {
+  if (period === "day") return { fromISO: dayAnchor, toISO: dayAnchor };
   if (period === "week") {
     const dates = weekDatesFrom(weekAnchor);
     return { fromISO: isoFromDate(dates[0]), toISO: isoFromDate(dates[6]) };
@@ -39,7 +43,11 @@ function rangeForPeriod(period: Period, weekAnchor: Date, monthAnchor: Date) {
   return { fromISO: isoFromDate(new Date(y, m, 1)), toISO: isoFromDate(new Date(y, m, lastDay)) };
 }
 
-function rangeLabel(period: Period, weekAnchor: Date, monthAnchor: Date) {
+function rangeLabel(period: Period, dayAnchor: string, weekAnchor: Date, monthAnchor: Date) {
+  if (period === "day") {
+    const d = dateFromISO(dayAnchor);
+    return `${DAY_NAMES[d.getDay()]}, ${fmtDayMonth(dayAnchor)}`;
+  }
   if (period === "month") return `${MONTH_NAMES_FULL[monthAnchor.getMonth()]} ${monthAnchor.getFullYear()}`;
   const dates = weekDatesFrom(weekAnchor);
   const a = dates[0];
@@ -62,10 +70,11 @@ function eachDateInRange(fromISO: string, toISO: string): string[] {
 export function Dashboard() {
   const { board } = useBoardCtx();
   const [period, setPeriod] = useState<Period>("week");
+  const [dayAnchor, setDayAnchor] = useState(() => todayISO());
   const [weekAnchor, setWeekAnchor] = useState(() => mondayOf(new Date()));
   const [monthAnchor, setMonthAnchor] = useState(() => monthAnchorOf(new Date()));
 
-  const { fromISO, toISO } = rangeForPeriod(period, weekAnchor, monthAnchor);
+  const { fromISO, toISO } = rangeForPeriod(period, dayAnchor, weekAnchor, monthAnchor);
   const today = todayISO();
 
   const [modal, setModal] = useState<{ title: string; tasks: Task[] } | null>(null);
@@ -138,6 +147,7 @@ export function Dashboard() {
       byCategory,
       habitStats,
       blockStats,
+      daysInPeriod: days.length,
       priorityPending,
       statusBuckets,
       taskStatuses: [...s.taskStatuses].sort((a, b) => a.order - b.order),
@@ -170,7 +180,9 @@ export function Dashboard() {
   const moodOn = isFeatureEnabled(board.state.settings.featureFlags, "mood");
 
   function shiftPeriod(dir: 1 | -1) {
-    if (period === "week") {
+    if (period === "day") {
+      setDayAnchor((iso) => isoAddDays(iso, dir));
+    } else if (period === "week") {
       const d = new Date(weekAnchor);
       d.setDate(d.getDate() + dir * 7);
       setWeekAnchor(d);
@@ -185,11 +197,18 @@ export function Dashboard() {
         <button className="strip-nav" type="button" aria-label="período anterior" onClick={() => shiftPeriod(-1)}>
           ‹
         </button>
-        <span className="dash-range-label mono">{rangeLabel(period, weekAnchor, monthAnchor)}</span>
+        <span className="dash-range-label mono">{rangeLabel(period, dayAnchor, weekAnchor, monthAnchor)}</span>
         <button className="strip-nav" type="button" aria-label="próximo período" onClick={() => shiftPeriod(1)}>
           ›
         </button>
         <div className="view-toggle">
+          <button
+            type="button"
+            className={"view-toggle-btn" + (period === "day" ? " active" : "")}
+            onClick={() => setPeriod("day")}
+          >
+            Dia
+          </button>
           <button
             type="button"
             className={"view-toggle-btn" + (period === "week" ? " active" : "")}
@@ -306,6 +325,24 @@ export function Dashboard() {
         </div>
 
         <div className="dash-box">
+          <div className="dash-box-title">Dias ativos — Hábitos</div>
+          {!stats.habitStats.length && <div className="bar-empty">Nenhum hábito cadastrado.</div>}
+          {stats.habitStats.map((h) => (
+            <div className="bar-row" key={h.id}>
+              <div className="bar-row-top">
+                <span className="bar-row-name">{h.name}</span>
+                <span className="bar-row-value mono">
+                  {h.count}/{stats.daysInPeriod} dias
+                </span>
+              </div>
+              <div className="bar-row-track">
+                <div className="bar-row-fill" style={{ width: `${(h.count / stats.daysInPeriod) * 100}%` }} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="dash-box">
           <div className="dash-box-title">Blocos fixos</div>
           {!stats.blockStats.length && <div className="bar-empty">Nenhum bloco fixo cadastrado.</div>}
           {stats.blockStats.map((b) => (
@@ -316,6 +353,24 @@ export function Dashboard() {
               </div>
               <div className="bar-row-track">
                 <div className="bar-row-fill" style={{ width: `${(b.min / maxBlockMin) * 100}%` }} />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="dash-box">
+          <div className="dash-box-title">Dias ativos — Blocos fixos</div>
+          {!stats.blockStats.length && <div className="bar-empty">Nenhum bloco fixo cadastrado.</div>}
+          {stats.blockStats.map((b) => (
+            <div className="bar-row" key={b.id}>
+              <div className="bar-row-top">
+                <span className="bar-row-name">{b.name}</span>
+                <span className="bar-row-value mono">
+                  {b.count}/{stats.daysInPeriod} dias
+                </span>
+              </div>
+              <div className="bar-row-track">
+                <div className="bar-row-fill" style={{ width: `${(b.count / stats.daysInPeriod) * 100}%` }} />
               </div>
             </div>
           ))}
