@@ -1960,10 +1960,11 @@ de feature flags que já existe pra água/dieta/sono/humor
           texto livre pra guardar o destino das notificações — é o que
           faltava pra sair do papel a notificação via WhatsApp já
           combinada em Lembretes/Medicamentos (ver 🔴 "Notificações
-          push de lembretes" abaixo). O campo existe e guarda o dado;
-          **ainda não está conectado a nenhuma notificação de
-          verdade** — isso continua dependendo da integração com
-          WhatsApp Business API/Twilio, que segue não implementada.
+          push de lembretes" abaixo). **Atualizado (02/09) — integração
+          real feita**: ver "WhatsApp Cloud API conectada" logo abaixo,
+          já dá pra mandar mensagem de teste de verdade por esse
+          número. Envio automático de lembretes por WhatsApp ainda não
+          está ligado (só o teste manual, por enquanto).
         - **Fuso horário** (`settings.timezone`, IANA tz):
           `<select>` populado via `Intl.supportedValuesOf("timeZone")`
           (fallback pra uma lista curta de fusos do Brasil se o
@@ -1985,6 +1986,40 @@ de feature flags que já existe pra água/dieta/sono/humor
         - O botão **"Sair"** (antes solto no rodapé do app, aparecia
           em toda tela) foi movido pra dentro da `ProfileView`, no
           fim da página, é o lugar mais lógico pra ele.
+      - **WhatsApp Cloud API conectada (02/09)**: o Leandro configurou a
+        conta de negócio no Meta for Developers (app "FARO", WhatsApp
+        Business Account "Leandro Garozi") e a integração real ficou de
+        pé — `src/lib/whatsapp/send.ts` (helper server-side que chama a
+        Graph API) + `POST /api/whatsapp/test` (lê `settings.notify_phone`
+        do usuário logado e manda mensagem) + botão **"Testar WhatsApp"**
+        em `ProfileFields.tsx`, do lado do campo de telefone. Credenciais
+        (`WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`) ficam só
+        como variável de ambiente na Vercel, nunca no código/repo.
+        Pegadinhas do processo de configuração (documentando pra não
+        repetir o mesmo caminho errado de novo):
+        - O número de teste da Meta (tela "Try it out") e o número real
+          do negócio são coisas **completamente separadas** — cada um
+          com seu próprio Phone Number ID; usar o ID errado dá erro
+          "Object does not exist" (permissão).
+        - Depois de vincular a conta real, o número precisa passar por
+          um passo extra de **"Register"** (Step 2. Production setup →
+          Register your WhatsApp phone number) — sem isso a API recusa
+          com erro 133010 "Account not registered", mesmo com token e
+          Phone Number ID corretos.
+        - O template padrão `hello_world` (o que a Meta dá de graça na
+          conta de teste) **não existe** na conta de negócio real —
+          precisou criar um template próprio (`faro_teste`, categoria
+          **Serviços**, idioma `pt_BR`) no WhatsApp Manager
+          (business.facebook.com/wa/manage/message-templates) e esperar
+          aprovação. Texto genérico de teste é classificado como
+          Marketing e arrisca ser rejeitado; teve que soar como
+          mensagem de conta/status pra passar em Serviços.
+        - **Ainda não feito**: nenhum lembrete/hábito/refeição dispara
+          WhatsApp de verdade ainda — só existe o botão de teste manual
+          no Perfil. Ligar isso de fato em Lembretes/Medicamentos/Dieta
+          é trabalho futuro (ver 🔴 "Notificações push de lembretes"),
+          e provavelmente vai exigir templates aprovados por tipo de
+          aviso (a API não manda texto livre fora da janela de 24h).
 - [x] Livros lidos + insights — feito; falta só a parte de virar
       "conteúdo de inspiração" em outro lugar do painel (ver acima)
 - [x] Cadastro de tipos de lazer — cada bloco fixo tem uma lista própria de
@@ -2019,18 +2054,23 @@ de feature flags que já existe pra água/dieta/sono/humor
       combinados"), não numa tela separada.
 - [ ] Notificações push de lembretes — **confirmado pelo Leandro,
       implementar depois** (não é próximo passo agora). Alerta de
-      verdade na hora marcada (som/notificação do navegador). Precisa
-      de service worker + permissão de notificação + gatilho agendado
-      no servidor. Distinto da sync com Google Agenda. Ideal, se der:
-      lembrete chegando também por **WhatsApp** (precisaria de API
-      própria pra isso, ex. WhatsApp Business API/Twilio — integração
-      separada da notificação do navegador; depende do campo de
-      telefone/WhatsApp no Perfil, ver acima — é pra onde a mensagem
-      vai). **Sonho do Leandro**: ligação de verdade via WhatsApp
-      (telefone toca na hora do lembrete) — confirmado que é possível
-      via WhatsApp Business Calling API, mas exige conta Business
-      verificada, aprovação da Meta e tem custo por minuto; não começar
-      sem ele confirmar.
+      verdade na hora marcada (som/notificação do navegador). A
+      **base de Web Push já existe** (30/08 — service worker,
+      permissão, botão de teste em Configurações), mas falta o
+      **gatilho agendado no servidor** que dispara sozinho na hora
+      certa (hoje só manda se alguém clicar "Testar notificação").
+      Distinto da sync com Google Agenda. Ideal, se der: lembrete
+      chegando também por **WhatsApp** — a base da integração real já
+      foi feita (02/09, ver "WhatsApp Cloud API conectada" acima:
+      Cloud API + token + template aprovado + botão de teste manual
+      no Perfil), mas ainda falta o mesmo tipo de gatilho agendado no
+      servidor pra disparar sozinho, e provavelmente templates
+      aprovados por tipo de aviso (a API não manda texto livre fora da
+      janela de 24h de conversa). **Sonho do Leandro**: ligação de
+      verdade via WhatsApp (telefone toca na hora do lembrete) —
+      confirmado que é possível via WhatsApp Business Calling API, mas
+      exige conta Business verificada, aprovação da Meta e tem custo
+      por minuto; não começar sem ele confirmar.
 - [ ] **Layout mobile desconfigurado** — confirmado pelo Leandro
       (28/08): "o app no mobile ainda fica todo desconfigurado".
       Explicitamente adiado por ele — "isso corrigimos mais pra frente
