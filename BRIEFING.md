@@ -137,6 +137,41 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Destaque colorido + lista numerada, status Aguardando, largura de Projetos (03/09)
+
+Leandro mandou 4 pedidos pra eu ir implementando enquanto ele estava no
+Crossfit; dois vieram com print de referência que ele mandou logo em
+seguida (fora de ordem, no meio da conversa) — implementados assim que
+chegaram:
+
+- **Destaque de texto no editor** (`RichTextEditor.tsx`): botão novo
+  "Destaque" (ícone de marcador) abre uma paleta de 8 cores pastel
+  (rosa, laranja, amarelo, azul, roxo, vermelho, verde, cinza) + opção
+  de remover — usa `@tiptap/extension-highlight` com `multicolor:true`,
+  igual ao "Destaques do texto" do ClickUp que ele mandou de exemplo.
+  Não implementei "Cores de texto" nem "Selos" (as outras duas seções
+  daquele mesmo print) — só o que foi pedido (destaque); se quiser
+  aquilo também, é pedir.
+- **Lista numerada no editor**: só tinha lista com bolinha até agora;
+  adicionado o botão de lista numerada (1, 2, 3...) do lado, usando
+  `toggleOrderedList` (já vinha disponível no `StarterKit`, só faltava
+  o botão na toolbar).
+- **Status "Aguardando" em Lembretes** (cor amarela): antes só existia
+  Pendente/Concluído (um booleano `done`). Agora tem uma coluna
+  `status` própria (`pending`/`waiting`/`done`) na tabela `reminders`
+  (migração aplicada), mantendo `done` sincronizado pra não quebrar a
+  lógica de lembrete recorrente/vencido que já dependia dele. Menu de
+  status ganhou a 3ª opção "Aguardando".
+- **Largura ajustável no bloco de Projeto**: botão novo ao lado do
+  título "Projeto" (setas pra fora/pra dentro) alterna entre a largura
+  padrão (900px) e uma expandida (1300px), preferência salva no
+  navegador. Resolve o print que ele mandou da tabela de etapas cortada
+  precisando rolar horizontal pra ver as tags e os ícones de ação —
+  não achei nada literalmente "desalinhado" nas colunas em si (cada
+  linha seguia a mesma grade), o problema era mesmo falta de espaço;
+  se depois de usar o botão ainda achar que tem algo torto, mandar novo
+  print apontando onde.
+
 ## Categoria: nasce "Sem categoria" (alerta vermelho) + seleção de até 2 num clique só (02/09)
 
 Evolução em 3 rounds do mesmo problema (tag "Trabalho" fixa e esquecida
