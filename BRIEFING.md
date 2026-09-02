@@ -137,6 +137,18 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Ícone de anexo nas tasks (03/09)
+
+Pedido rápido: tasks com pelo menos um anexo ganham um ícone de clipe
+de papel (`PaperclipIcon`, já usado no botão de Anexos) junto dos
+outros indicadores da linha (pauta em aberto, lembrete, observação).
+Como a lista de anexos de cada tarefa só era buscada sob demanda (ao
+abrir o popover, uma consulta por vez), não dava pra saber de cara
+quais tarefas têm anexo sem uma consulta por linha — resolvido com
+`attachmentKeys`, um Set leve (`"task:<id>"` etc.) carregado uma vez no
+load inicial do board e mantido sincronizado a cada upload/exclusão de
+anexo, pra funcionar em Tarefas, Lembretes, Livros e Projetos.
+
 ## Destaque colorido + lista numerada, status Aguardando, largura de Projetos (03/09)
 
 Leandro mandou 4 pedidos pra eu ir implementando enquanto ele estava no
