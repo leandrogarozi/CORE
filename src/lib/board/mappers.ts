@@ -505,6 +505,9 @@ export function rowToProject(row: ProjectRow): Project {
     description: row.description,
     status: row.status as Project["status"],
     createdAt: row.created_at.slice(0, 10),
+    defaultCategory: row.default_category as Category | null,
+    defaultCategory2: row.default_category2 as Category | null,
+    namingTemplate: row.naming_template,
   };
 }
 
@@ -515,6 +518,9 @@ export function projectToInsertRow(p: Project, userId: string): TablesInsert<"pr
     name: p.name,
     description: p.description,
     status: p.status,
+    default_category: p.defaultCategory,
+    default_category2: p.defaultCategory2,
+    naming_template: p.namingTemplate,
   };
 }
 
@@ -523,5 +529,8 @@ export function projectToUpdateRow(p: Partial<Project>): TablesUpdate<"projects"
   if (p.name !== undefined) row.name = p.name;
   if (p.description !== undefined) row.description = p.description;
   if (p.status !== undefined) row.status = p.status;
+  if (p.defaultCategory !== undefined) row.default_category = p.defaultCategory;
+  if (p.defaultCategory2 !== undefined) row.default_category2 = p.defaultCategory2;
+  if (p.namingTemplate !== undefined) row.naming_template = p.namingTemplate;
   return row;
 }

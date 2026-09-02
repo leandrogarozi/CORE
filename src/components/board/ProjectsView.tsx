@@ -1,12 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { TaskRow } from "./TaskRow";
-import { CheckCircleIcon, CheckIcon, ClockIcon, CloseCircleIcon, PlayCircleIcon } from "./icons";
+import { CheckCircleIcon, CheckIcon, ClockIcon, CloseCircleIcon, EditIcon, PlayCircleIcon } from "./icons";
 import { RichTextEditor } from "./RichTextEditor";
 import { fmtHM } from "@/lib/date-utils";
-import type { Project } from "@/lib/types";
+import { CATEGORY_LABEL, PROJECT_NAMING_TEMPLATE_DEFAULT, type Category, type Project } from "@/lib/types";
+
+const CATEGORIES = Object.keys(CATEGORY_LABEL) as Category[];
+
+function applyNamingTemplate(template: string, projectName: string, n: number): string {
+  return template.replace(/\{projeto\}/g, () => projectName).replace(/\{etapa\}/g, () => String(n).padStart(2, "0"));
+}
 
 function projectProgress(projectId: string, tasks: { projectId: string | null; done: boolean }[]) {
   const steps = tasks.filter((t) => t.projectId === projectId);
@@ -132,13 +139,16 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
   const { board, askConfirm, columns } = useBoardCtx();
   const [nameDraft, setNameDraft] = useState<string | null>(null);
   const [descDraft, setDescDraft] = useState<string | null>(null);
-  const [newStepTitle, setNewStepTitle] = useState("");
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [overId, setOverId] = useState<string | null>(null);
-
+  const namingTemplate = project.namingTemplate ?? PROJECT_NAMING_TEMPLATE_DEFAULT;
   const steps = [...board.state.tasks]
     .filter((t) => t.projectId === project.id)
     .sort((a, b) => (a.order || 0) - (b.order || 0));
+  const [newStepTitle, setNewStepTitle] = useState(() => applyNamingTemplate(namingTemplate, project.name, steps.length + 1));
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
+  const [namingEditorOpen, setNamingEditorOpen] = useState(false);
+  const [namingDraft, setNamingDraft] = useState(namingTemplate);
+
   // Coluna inicial mais larga aqui pra caber o número da ordem além do grip.
   const stepGridTemplate = columns.gridTemplate.replace(/^30px/, "38px");
 
@@ -183,9 +193,25 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
 
   function addStep() {
     const title = newStepTitle.trim();
-    if (!title) return;
+    const prefix = applyNamingTemplate(namingTemplate, project.name, steps.length + 1).trim();
+    if (!title || title === prefix) return;
     board.addTaskToProject(project.id, title);
-    setNewStepTitle("");
+    setNewStepTitle(applyNamingTemplate(namingTemplate, project.name, steps.length + 2));
+  }
+
+  function saveNamingTemplate() {
+    const newTemplate = namingDraft.trim() || PROJECT_NAMING_TEMPLATE_DEFAULT;
+    steps.forEach((step, idx) => {
+      const oldPrefix = applyNamingTemplate(namingTemplate, project.name, idx + 1);
+      const newPrefix = applyNamingTemplate(newTemplate, project.name, idx + 1);
+      const newTitle = step.title.startsWith(oldPrefix)
+        ? newPrefix + step.title.slice(oldPrefix.length)
+        : newPrefix + step.title;
+      if (newTitle !== step.title) board.updateTaskTitle(step.id, newTitle);
+    });
+    board.updateProject(project.id, { namingTemplate: newTemplate });
+    setNewStepTitle(applyNamingTemplate(newTemplate, project.name, steps.length + 1));
+    setNamingEditorOpen(false);
   }
 
   function markDone() {
@@ -254,6 +280,16 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
             <button type="button" className="btn btn-ghost danger-hover" onClick={handleDelete}>
               Excluir projeto
             </button>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => {
+                setNamingDraft(namingTemplate);
+                setNamingEditorOpen(true);
+              }}
+            >
+              <EditIcon /> Atualizar nomenclatura
+            </button>
             {project.status === "active" && (
               <button type="button" className="btn btn-ghost" onClick={markCancelled}>
                 Cancelar projeto
@@ -282,6 +318,37 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
 
         <div className="diet-page-card">
           <span className="settings-label">Etapas</span>
+          <div className="project-default-tags-row">
+            <span className="hint-text" style={{ margin: 0 }}>
+              Tags padrão das novas etapas:
+            </span>
+            <select
+              value={project.defaultCategory ?? ""}
+              onChange={(e) =>
+                board.updateProject(project.id, { defaultCategory: (e.target.value || null) as Category | null })
+              }
+            >
+              <option value="">Categoria (nenhuma)</option>
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {CATEGORY_LABEL[c]}
+                </option>
+              ))}
+            </select>
+            <select
+              value={project.defaultCategory2 ?? ""}
+              onChange={(e) =>
+                board.updateProject(project.id, { defaultCategory2: (e.target.value || null) as Category | null })
+              }
+            >
+              <option value="">2ª categoria (nenhuma)</option>
+              {CATEGORIES.filter((c) => c !== project.defaultCategory).map((c) => (
+                <option key={c} value={c}>
+                  {CATEGORY_LABEL[c]}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="task-list">
             <div className="quickadd-row">
               <span className="quickadd-plus" aria-hidden="true">
@@ -318,6 +385,37 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
           </div>
         </div>
       </div>
+
+      {namingEditorOpen &&
+        createPortal(
+          <>
+            <div className="modal-backdrop" onClick={() => setNamingEditorOpen(false)} />
+            <div className="modal-panel" role="dialog" aria-label="Nomenclatura das etapas">
+              <div className="modal-title">Nomenclatura das etapas</div>
+              <div className="hint-text">
+                Use <code>{"{projeto}"}</code> pro nome do projeto e <code>{"{etapa}"}</code> pro número da etapa
+                (01, 02...). Salvar aqui atualiza o padrão de toda etapa já criada — só a parte da descrição
+                digitada depois do padrão é preservada.
+              </div>
+              <input
+                type="text"
+                autoFocus
+                value={namingDraft}
+                onChange={(e) => setNamingDraft(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && saveNamingTemplate()}
+              />
+              <div className="edit-actions" style={{ marginTop: 10 }}>
+                <button type="button" className="btn btn-ghost" onClick={() => setNamingEditorOpen(false)}>
+                  Cancelar
+                </button>
+                <button type="button" className="btn btn-accent" onClick={saveNamingTemplate}>
+                  Salvar
+                </button>
+              </div>
+            </div>
+          </>,
+          document.body
+        )}
     </div>
   );
 }
@@ -334,7 +432,7 @@ export function ProjectsView({
   const { board } = useBoardCtx();
   if (selectedId) {
     const project = board.state.projects.find((p) => p.id === selectedId);
-    if (project) return <ProjectDetailView project={project} onBack={() => onSelect(null)} />;
+    if (project) return <ProjectDetailView key={project.id} project={project} onBack={() => onSelect(null)} />;
   }
   return <ProjectListView onBack={onBack} onOpen={onSelect} />;
 }

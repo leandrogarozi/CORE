@@ -137,6 +137,34 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Tags padrão e nomenclatura automática das etapas de Projeto (02/09)
+
+Item da leva grande de 01/09 que tinha ficado só decidido/documentado, sem
+entrar no código — o Leandro cobrou (**"nao implementamos a questao da
+nomeclatura nos projetos"**) e entrou agora:
+
+- **Tags padrão do projeto**: cada projeto ganha uma linha "Tags padrão das
+  novas etapas" (dois selects, Categoria e 2ª categoria) na seção Etapas.
+  Toda etapa nova criada dali pra frente já nasce com essas categorias
+  aplicadas automaticamente (antes toda etapa nascia fixa como
+  "trabalho"/sem 2ª categoria).
+- **Nomenclatura automática**: campo `namingTemplate` no projeto, com
+  placeholders `{projeto}` e `{etapa}` (número da etapa, com zero à
+  esquerda: 01, 02...). Padrão: `[{projeto}] [Etapa_{etapa}] - `. Toda
+  etapa nova já nasce com esse prefixo pré-preenchido no campo de título,
+  o Leandro só completa a descrição depois.
+- **Botão "Atualizar nomenclatura"**: no bloco principal do projeto, ao
+  lado de Excluir. Abre um modal simples com o template atual pra editar;
+  ao salvar, reaplica o novo prefixo em **todas** as etapas já existentes
+  (se o título atual começa com o prefixo antigo calculado pra aquela
+  posição, troca só essa parte; senão, prepend do novo prefixo na frente —
+  pra não perder texto digitado manualmente). A parte da descrição escrita
+  depois do prefixo é sempre preservada.
+- Técnico: migração `add_naming_and_default_tags_to_projects` (`projects`
+  ganhou `default_category`, `default_category2`, `naming_template`);
+  `board.updateTaskTitle(id, title)` novo (mesmo padrão de
+  `updateTaskNote`); `board.updateProject` aceita os 3 campos novos.
+
 ## Correções da leva anterior: ícone de projeto, rolagem, humor e busca (01/09)
 
 Feedback em cima da leva anterior (print da tabela de Etapas mostrando

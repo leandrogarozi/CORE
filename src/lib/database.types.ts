@@ -736,24 +736,33 @@ export type Database = {
       projects: {
         Row: {
           created_at: string
+          default_category: string | null
+          default_category2: string | null
           description: string
           id: string
+          naming_template: string | null
           name: string
           status: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          default_category?: string | null
+          default_category2?: string | null
           description?: string
           id?: string
+          naming_template?: string | null
           name: string
           status?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          default_category?: string | null
+          default_category2?: string | null
           description?: string
           id?: string
+          naming_template?: string | null
           name?: string
           status?: string
           user_id?: string

@@ -332,6 +332,16 @@ export function useBoard(userId: string | null) {
     [apply, supabase]
   );
 
+  const updateTaskTitle = useCallback(
+    (id: string, title: string) => {
+      apply((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === id ? { ...x, title } : x)) }));
+      supabase.from("tasks").update({ title }).eq("id", id).then(({ error }) => {
+        if (error) console.error("updateTaskTitle", error);
+      });
+    },
+    [apply, supabase]
+  );
+
   const reorderBucket = useCallback(
     (bucketKey: string, orderedIds: string[]) => {
       apply((s) => ({
@@ -816,6 +826,9 @@ export function useBoard(userId: string | null) {
         description: "",
         status: "active",
         createdAt: todayISO(),
+        defaultCategory: null,
+        defaultCategory2: null,
+        namingTemplate: null,
       };
       apply((s) => ({ ...s, projects: [...s.projects, p] }));
       supabase.from("projects").insert(projectToInsertRow(p, userId)).then(({ error }) => {
@@ -826,7 +839,12 @@ export function useBoard(userId: string | null) {
   );
 
   const updateProject = useCallback(
-    (id: string, patch: Partial<Pick<Project, "name" | "description" | "status">>) => {
+    (
+      id: string,
+      patch: Partial<
+        Pick<Project, "name" | "description" | "status" | "defaultCategory" | "defaultCategory2" | "namingTemplate">
+      >
+    ) => {
       apply((s) => ({ ...s, projects: s.projects.map((p) => (p.id === id ? { ...p, ...patch } : p)) }));
       supabase.from("projects").update(projectToUpdateRow(patch)).eq("id", id).then(({ error }) => {
         if (error) console.error("updateProject", error);
@@ -856,11 +874,12 @@ export function useBoard(userId: string | null) {
       // fim da lista de etapas desse projeto, na ordem em que foram digitadas.
       const siblings = stateRef.current.tasks.filter((x) => x.projectId === projectId);
       const order = siblings.length ? Math.max(...siblings.map((x) => x.order || 0)) + 1 : 0;
+      const project = stateRef.current.projects.find((p) => p.id === projectId);
       const t: Task = {
         id: uid(),
         title: title.trim(),
-        category: "trabalho",
-        category2: null,
+        category: project?.defaultCategory ?? "trabalho",
+        category2: project?.defaultCategory2 ?? null,
         priority: "media",
         date: null,
         time: "",
@@ -1716,6 +1735,7 @@ export function useBoard(userId: string | null) {
     setQuick,
     setPriority,
     updateTaskNote,
+    updateTaskTitle,
     reorderBucket,
     duplicateTask,
     deleteTask,

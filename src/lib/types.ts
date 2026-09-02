@@ -53,7 +53,14 @@ export interface Project {
   description: string; // objetivo/notas livres
   status: ProjectStatus;
   createdAt: string; // ISO date
+  defaultCategory: Category | null; // aplicada automaticamente em toda etapa nova
+  defaultCategory2: Category | null;
+  // Template do título das etapas, com placeholders {projeto} e {etapa} (contador
+  // zero-padded). Null = usa PROJECT_NAMING_TEMPLATE_DEFAULT (ver mappers/UI).
+  namingTemplate: string | null;
 }
+
+export const PROJECT_NAMING_TEMPLATE_DEFAULT = "[{projeto}] [Etapa_{etapa}] - ";
 
 export interface TaskStatus {
   id: string;
