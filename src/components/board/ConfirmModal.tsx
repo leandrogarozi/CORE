@@ -1,5 +1,6 @@
 "use client";
 
+import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 
 export function ConfirmModal() {
@@ -12,7 +13,7 @@ export function ConfirmModal() {
     cb?.();
   }
 
-  return (
+  return createPortal(
     <>
       <div className="modal-backdrop" onClick={closeConfirmModal} />
       <div className="modal-panel">
@@ -30,6 +31,7 @@ export function ConfirmModal() {
           </button>
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }

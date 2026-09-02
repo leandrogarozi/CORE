@@ -137,6 +137,19 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Modal de confirmação (Excluir) atrás de outros modais (02/09)
+
+Bug reportado logo depois do item acima: a caixa "Tem certeza que deseja
+excluir..." abria atrás do modal de Anexos, sem dar pra ver nem clicar.
+Causa: `ConfirmModal` era o único modal do app que não usava
+`createPortal` — renderizava dentro da árvore normal do componente (em
+`BoardApp.tsx`), então mesmo com `z-index` igual ao resto, a ordem no DOM
+o deixava atrás de qualquer modal já aberto por cima dele (como o de
+Anexos, que é portalizado pro `document.body`). Corrigido portalizando o
+`ConfirmModal` também, no mesmo padrão do resto do app — assim ele sempre
+monta como o último filho de `body` no momento em que abre, ficando na
+frente de qualquer outro modal.
+
 ## Confirmação antes de excluir um anexo (02/09)
 
 Ajuste rápido na leva anterior: excluir um anexo agora passa pelo mesmo
