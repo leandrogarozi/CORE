@@ -24,7 +24,7 @@ export function AttachmentsButton({
   entityId: string;
   ariaLabel?: string;
 }) {
-  const { board } = useBoardCtx();
+  const { board, askConfirm } = useBoardCtx();
   const [count, setCount] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<Attachment[]>([]);
@@ -77,14 +77,20 @@ export function AttachmentsButton({
     setCount((c) => (c ?? 0) + 1);
   }
 
-  async function handleDelete(a: Attachment) {
-    const err = await board.deleteAttachment(a);
-    if (err) {
-      setError(err);
-      return;
-    }
-    setItems((prev) => prev.filter((x) => x.id !== a.id));
-    setCount((c) => Math.max(0, (c ?? 1) - 1));
+  function handleDelete(a: Attachment) {
+    askConfirm(
+      `Tem certeza que deseja excluir o arquivo "${a.fileName}"? Essa ação não pode ser desfeita.`,
+      async () => {
+        const err = await board.deleteAttachment(a);
+        if (err) {
+          setError(err);
+          return;
+        }
+        setItems((prev) => prev.filter((x) => x.id !== a.id));
+        setCount((c) => Math.max(0, (c ?? 1) - 1));
+      },
+      <PaperclipIcon />
+    );
   }
 
   async function handleDownload(a: Attachment) {

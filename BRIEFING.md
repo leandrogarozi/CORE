@@ -137,6 +137,12 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Confirmação antes de excluir um anexo (02/09)
+
+Ajuste rápido na leva anterior: excluir um anexo agora passa pelo mesmo
+modal de confirmação (`askConfirm`) usado no resto do app, mencionando o
+nome do arquivo — antes apagava direto no clique.
+
 ## Anexos (PDF/Word/imagem) em Tarefas, Lembretes, Livros e Projetos (02/09)
 
 Pedido original: **"conseguimos subir arquivos anexos nas task dos livros?
