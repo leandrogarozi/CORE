@@ -274,7 +274,7 @@ export function useBoard(userId: string | null) {
       const t: Task = {
         id: uid(),
         title: title.trim(),
-        category: "trabalho",
+        category: "sem_categoria",
         category2: null,
         priority: "media",
         date: bucketKey || null,
@@ -334,13 +334,8 @@ export function useBoard(userId: string | null) {
   );
 
   const setCategory = useCallback(
-    (id: string, category: Category) => {
-      apply((s) => ({
-        ...s,
-        tasks: s.tasks.map((x) => (x.id === id ? { ...x, category, category2: x.category2 === category ? null : x.category2 } : x)),
-      }));
-      const task = stateRef.current.tasks.find((x) => x.id === id);
-      const category2 = task?.category2 === category ? null : task?.category2 ?? null;
+    (id: string, category: Category, category2: Category | null) => {
+      apply((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === id ? { ...x, category, category2 } : x)) }));
       supabase.from("tasks").update({ category, category2 }).eq("id", id).then(({ error }) => {
         if (error) console.error("setCategory", error);
       });
@@ -907,7 +902,7 @@ export function useBoard(userId: string | null) {
       const t: Task = {
         id: uid(),
         title: title.trim(),
-        category: project?.defaultCategory ?? "trabalho",
+        category: project?.defaultCategory ?? "sem_categoria",
         category2: project?.defaultCategory2 ?? null,
         priority: "media",
         date: null,
@@ -1535,7 +1530,7 @@ export function useBoard(userId: string | null) {
       const t: Task = {
         id: uid(),
         title: title.trim(),
-        category: "trabalho",
+        category: "sem_categoria",
         category2: "reuniao",
         priority: "media",
         date: today,

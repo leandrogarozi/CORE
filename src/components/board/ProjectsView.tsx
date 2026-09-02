@@ -331,7 +331,7 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
               }
             >
               <option value="">Categoria (nenhuma)</option>
-              {CATEGORIES.map((c) => (
+              {CATEGORIES.filter((c) => c !== "sem_categoria").map((c) => (
                 <option key={c} value={c}>
                   {CATEGORY_LABEL[c]}
                 </option>
@@ -344,7 +344,7 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
               }
             >
               <option value="">2ª categoria (nenhuma)</option>
-              {CATEGORIES.filter((c) => c !== project.defaultCategory).map((c) => (
+              {CATEGORIES.filter((c) => c !== "sem_categoria" && c !== project.defaultCategory).map((c) => (
                 <option key={c} value={c}>
                   {CATEGORY_LABEL[c]}
                 </option>

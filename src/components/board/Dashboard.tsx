@@ -29,6 +29,7 @@ const CAT_COLORS: Record<Category, string> = {
   pessoal: "#A23E68",
   familia: "#1B7F79",
   reuniao: "#4A5FC1",
+  sem_categoria: "#E5484D",
 };
 
 function rangeForPeriod(period: Period, dayAnchor: string, weekAnchor: Date, monthAnchor: Date) {

@@ -10,7 +10,7 @@ import { StatusPicker } from "./StatusPicker";
 import { MinutesPicker, TimePicker } from "./TimePicker";
 import { ReminderDateButton } from "./RemindersView";
 import { CommentButton } from "./CommentButton";
-import { BellIcon, BoltIcon, CommentIcon, DragGripIcon, DuplicateIcon, FlagIcon, FolderIcon, RepeatIcon, TrashIcon, UsersGroupIcon } from "./icons";
+import { BellIcon, BoltIcon, CommentIcon, DragGripIcon, DuplicateIcon, FlagIcon, FolderIcon, RepeatIcon, TrashIcon, UsersGroupIcon, WarningIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
 import { countOpenChecklistItems } from "@/lib/rich-text";
 import { CATEGORY_LABEL, isMeetingTask, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
@@ -60,15 +60,31 @@ function QuickBolts({ value, onSet }: { value: number; onSet: (v: 0 | 1 | 2 | 3)
   );
 }
 
+// Alterna a categoria clicada: se já era a 1ª ou 2ª, tira (promovendo a 2ª pra
+// 1ª quando a 1ª sai); se não tinha nenhuma, vira a 1ª; se já tinha as duas,
+// substitui a 2ª pela nova escolha.
+function categoryToggleResult(
+  category: Category,
+  category2: Category | null,
+  c: Category
+): { category: Category; category2: Category | null } {
+  if (category === c) return { category: category2 ?? "sem_categoria", category2: null };
+  if (category2 === c) return { category, category2: null };
+  if (category === "sem_categoria") return { category: c, category2: null };
+  return { category, category2: c };
+}
+
 function CategoryMenu({
   anchorRect,
-  current,
-  onSelect,
+  category,
+  category2,
+  onToggle,
   onClose,
 }: {
   anchorRect: DOMRect;
-  current: Category;
-  onSelect: (c: Category) => void;
+  category: Category;
+  category2: Category | null;
+  onToggle: (c: Category) => void;
   onClose: () => void;
 }) {
   const { board } = useBoardCtx();
@@ -85,20 +101,19 @@ function CategoryMenu({
 
   return createPortal(
     <div className="status-menu" ref={ref} style={{ top: pos.top, left: pos.left }}>
-      {CATEGORIES.map((c) => {
+      {CATEGORIES.filter((c) => c !== "sem_categoria").map((c) => {
         const cfg = board.state.settings.tagColors[c];
+        const order = c === category ? 1 : c === category2 ? 2 : null;
         return (
           <button
             type="button"
             key={c}
-            className={"status-menu-item" + (c === current ? " active" : "")}
-            onClick={() => {
-              onSelect(c);
-              onClose();
-            }}
+            className={"status-menu-item" + (order ? " active" : "")}
+            onClick={() => onToggle(c)}
           >
             <span className="status-menu-dot" style={{ background: cfg.hex }} />
             {CATEGORY_LABEL[c]}
+            {order && <span className="category-order-badge">{order}</span>}
           </button>
         );
       })}
@@ -107,45 +122,66 @@ function CategoryMenu({
   );
 }
 
-export function CategoryChip({
-  category,
-  onSelect,
-}: {
-  category: Category;
-  onSelect?: (c: Category) => void;
-}) {
+function CategoryChipVisual({ category }: { category: Category }) {
   const { board } = useBoardCtx();
-  const cfg = board.state.settings.tagColors[category];
-  const style = { background: hexToRgba(cfg.hex, cfg.alpha), color: cfg.hex };
-  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
-
-  if (!onSelect) {
+  if (category === "sem_categoria") {
     return (
-      <span className="chip" style={style}>
-        {CATEGORY_LABEL[category]}
+      <span className="chip chip-warning">
+        <WarningIcon /> Sem categoria
       </span>
     );
+  }
+  const cfg = board.state.settings.tagColors[category];
+  const style = { background: hexToRgba(cfg.hex, cfg.alpha), color: cfg.hex };
+  return (
+    <span className="chip" style={style}>
+      {CATEGORY_LABEL[category]}
+    </span>
+  );
+}
+
+export function CategoryChip({ category }: { category: Category }) {
+  return <CategoryChipVisual category={category} />;
+}
+
+// Escolha de até 2 categorias num clique só: abre um menu com todas, marcando
+// 1/2 conforme a ordem escolhida — usado na linha compacta e na edição.
+export function CategoryPicker({
+  category,
+  category2,
+  onChange,
+}: {
+  category: Category;
+  category2: Category | null;
+  onChange: (category: Category, category2: Category | null) => void;
+}) {
+  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
+
+  function toggle(c: Category) {
+    const next = categoryToggleResult(category, category2, c);
+    onChange(next.category, next.category2);
   }
 
   return (
     <>
       <button
         type="button"
-        className="chip chip-btn"
-        style={style}
-        title="Clique pra trocar a categoria"
+        className="category-picker-btn"
+        title="Categorias (até 2) — clique pra escolher"
         onClick={(e) => {
           e.stopPropagation();
           setAnchorRect(anchorRect ? null : e.currentTarget.getBoundingClientRect());
         }}
       >
-        {CATEGORY_LABEL[category]}
+        <CategoryChipVisual category={category} />
+        {category2 && <CategoryChipVisual category={category2} />}
       </button>
       {anchorRect && (
         <CategoryMenu
           anchorRect={anchorRect}
-          current={category}
-          onSelect={onSelect}
+          category={category}
+          category2={category2}
+          onToggle={toggle}
           onClose={() => setAnchorRect(null)}
         />
       )}
@@ -309,8 +345,11 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
             <RepeatIcon />
           </span>
         )}
-        <CategoryChip category={t.category} onSelect={(c) => board.setCategory(t.id, c)} />
-        {t.category2 && <CategoryChip category={t.category2} />}
+        <CategoryPicker
+          category={t.category}
+          category2={t.category2}
+          onChange={(category, category2) => board.setCategory(t.id, category, category2)}
+        />
       </div>
       <button
         type="button"
@@ -388,34 +427,12 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
           onKeyDown={(e) => e.key === "Enter" && save()}
         />
         <label className="edit-field">
-          <span className="edit-field-label">Categoria</span>
-          <select
-            value={vals.category}
-            onChange={(e) => {
-              const category = e.target.value as Category;
-              setVals((v) => ({ ...v, category, category2: v.category2 === category ? null : v.category2 }));
-            }}
-          >
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {CATEGORY_LABEL[c]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="edit-field">
-          <span className="edit-field-label">2ª categoria</span>
-          <select
-            value={vals.category2 ?? ""}
-            onChange={(e) => setVals((v) => ({ ...v, category2: (e.target.value || null) as Category | null }))}
-          >
-            <option value="">Nenhuma</option>
-            {CATEGORIES.filter((c) => c !== vals.category).map((c) => (
-              <option key={c} value={c}>
-                {CATEGORY_LABEL[c]}
-              </option>
-            ))}
-          </select>
+          <span className="edit-field-label">Categorias</span>
+          <CategoryPicker
+            category={vals.category}
+            category2={vals.category2}
+            onChange={(category, category2) => setVals((v) => ({ ...v, category, category2 }))}
+          />
         </label>
         {isMeetingTask(vals) && (
           <label className="edit-field">

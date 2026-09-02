@@ -273,7 +273,7 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
 
       <CollapsibleBox title="Tags da tarefa" icon={<TagIcon />}>
         <div className="settings-rows">
-          {CATEGORIES.map((cat) => {
+          {CATEGORIES.filter((cat) => cat !== "sem_categoria").map((cat) => {
             const cfg = tagColors[cat];
             return (
               <div className="settings-row" key={cat}>

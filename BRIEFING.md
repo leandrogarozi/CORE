@@ -137,22 +137,32 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
-## Categoria clicável direto na linha da tarefa (02/09)
+## Categoria: nasce "Sem categoria" (alerta vermelho) + seleção de até 2 num clique só (02/09)
 
-Segunda parte do pedido sobre a tag "Trabalho" ficando esquecida em
-tarefas lançadas rápido: a tag de categoria (primeira, `t.category`) na
-linha da tarefa agora é clicável, igual a bandeirinha de prioridade já
-era — abre um menuzinho (mesmo padrão do `StatusPicker`) com todas as
-categorias coloridas, e escolher uma já salva na hora, sem precisar abrir
-a edição completa da tarefa. Nova função `board.setCategory`. A 2ª
-categoria continua só informativa (não clicável) por enquanto.
+Evolução em 3 rounds do mesmo problema (tag "Trabalho" fixa e esquecida
+em tarefas lançadas rápido, distorcendo relatório por categoria):
 
-**Ainda em aberto**: o Leandro também sugeriu tornar a escolha de
-categoria obrigatória ao salvar uma tarefa nova (tipo um passo que não
-deixa passar sem marcar) — ainda não implementado, respondi com o
-trade-off (risco de atrapalhar a velocidade do lançamento rápido, que é
-o objetivo do quick-add) e fiquei de alinhar o formato exato antes de
-construir.
+1. Primeiro round: categoria virou clicável na linha (menu tipo
+   `StatusPicker`), mas continuava nascendo "Trabalho" por padrão.
+2. O Leandro apontou o problema de fundo: cair sempre em "Trabalho" faz
+   o relatório mentir (conta como trabalho o que não é). Solução: toda
+   tarefa nova (`addTask`, `addTaskToProject`, `startMeeting`) passa a
+   nascer **sem categoria** — nova categoria especial `sem_categoria`
+   (sempre vermelha, ícone de alerta, "Sem categoria" ao invés de ficar
+   escondida como "Trabalho"). Reaparece em qualquer lugar que mostre
+   categoria — inclusive nos relatórios do Dashboard/Painel de horas,
+   como fatia própria "Sem categoria" — então agora dá pra ver de
+   verdade quanto ficou sem classificar, em vez de mascarado como
+   trabalho. Excluída das listas de customização de cor (Configurações)
+   e de categoria padrão de projeto, onde não faz sentido escolhê-la.
+3. Pedido de refinar ainda mais: unificar Categoria + 2ª categoria num
+   seletor só, permitindo marcar até 2 num clique, com selo numerado
+   (①/②) indicando a ordem escolhida. Campo "Categoria" + "2ª categoria"
+   (dois selects separados) virou um só, "Categorias", tanto na edição
+   completa quanto no clique direto na linha — mesmo componente
+   (`CategoryPicker`) nos dois lugares. Clicar numa categoria já
+   marcada tira ela (promovendo a 2ª pra 1ª se for o caso); clicar
+   numa terceira com as duas já preenchidas substitui a 2ª.
 
 ## Bolinha vermelha no ícone de observação (02/09)
 
