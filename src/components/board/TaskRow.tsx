@@ -10,7 +10,20 @@ import { StatusPicker } from "./StatusPicker";
 import { MinutesPicker, TimePicker } from "./TimePicker";
 import { ReminderDateButton } from "./RemindersView";
 import { CommentButton } from "./CommentButton";
-import { BellIcon, BoltIcon, CommentIcon, DragGripIcon, DuplicateIcon, FlagIcon, FolderIcon, RepeatIcon, TrashIcon, UsersGroupIcon, WarningIcon } from "./icons";
+import {
+  BellIcon,
+  BoltIcon,
+  CommentIcon,
+  DragGripIcon,
+  DuplicateIcon,
+  FlagIcon,
+  FolderIcon,
+  PaperclipIcon,
+  RepeatIcon,
+  TrashIcon,
+  UsersGroupIcon,
+  WarningIcon,
+} from "./icons";
 import { todayISO } from "@/lib/date-utils";
 import { countOpenChecklistItems } from "@/lib/rich-text";
 import { CATEGORY_LABEL, isMeetingTask, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
@@ -227,6 +240,7 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
   const { board, askScope, askConfirm, openProject, focusRequest, consumeFocusRequest } = useBoardCtx();
   const [editing, setEditing] = useState(false);
   const hasReminder = board.state.reminders.some((r) => r.taskId === t.id);
+  const hasAttachment = board.state.attachmentKeys.has(`task:${t.id}`);
   const openPautas = isMeetingTask(t) ? countOpenChecklistItems(t.note) : 0;
 
   useEffect(() => {
@@ -318,7 +332,7 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
         <button type="button" className="row-title" title={t.title} onClick={() => setEditing(true)}>
           {t.title}
         </button>
-        {(openPautas > 0 || hasReminder || t.note.trim()) && (
+        {(openPautas > 0 || hasReminder || t.note.trim() || hasAttachment) && (
           <span className="row-badges">
             {openPautas > 0 && (
               <span className="task-badge task-pautas-badge" title={`${openPautas} pauta(s) em aberto nessa reunião`}>
@@ -333,6 +347,11 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
             {t.note.trim() && (
               <span className="task-badge task-note-badge" title="Observação na tarefa">
                 <CommentIcon />
+              </span>
+            )}
+            {hasAttachment && (
+              <span className="task-badge task-attachment-badge" title="Tarefa com anexo">
+                <PaperclipIcon />
               </span>
             )}
           </span>

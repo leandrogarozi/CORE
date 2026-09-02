@@ -103,6 +103,7 @@ const EMPTY_STATE: BoardState = {
   },
   activeTimers: [],
   dailyLogs: {},
+  attachmentKeys: new Set(),
 };
 
 export interface TaskEditFields {
@@ -169,6 +170,7 @@ export function useBoard(userId: string | null) {
       settingsRes,
       timerRes,
       dailyLogsRes,
+      attachmentKeysRes,
     ] = await Promise.all([
       supabase.from("tasks").select("*").is("deleted_at", null).order("sort_order"),
       supabase.from("tasks").select("*").not("deleted_at", "is", null),
@@ -190,6 +192,7 @@ export function useBoard(userId: string | null) {
       supabase.from("settings").select("*").maybeSingle(),
       supabase.from("active_timer").select("*"),
       supabase.from("daily_logs").select("*"),
+      supabase.from("attachments").select("entity_type, entity_id"),
     ]);
 
     const dailyLogs: Record<string, DailyLog> = {};
@@ -215,6 +218,7 @@ export function useBoard(userId: string | null) {
       settings: rowToSettings(settingsRes.data ?? null),
       activeTimers: (timerRes.data ?? []).map(rowToActiveTimer),
       dailyLogs,
+      attachmentKeys: new Set((attachmentKeysRes.data ?? []).map((r) => `${r.entity_type}:${r.entity_id}`)),
     };
 
     const today = todayISO();
@@ -1711,9 +1715,13 @@ export function useBoard(userId: string | null) {
           console.error("uploadAttachment extract", err);
         }
       }
+      apply((s) => ({
+        ...s,
+        attachmentKeys: new Set(s.attachmentKeys).add(`${entityType}:${entityId}`),
+      }));
       return { attachment, error: null };
     },
-    [supabase, userId]
+    [apply, supabase, userId]
   );
 
   const deleteAttachment = useCallback(
@@ -1722,9 +1730,21 @@ export function useBoard(userId: string | null) {
       if (storageError) return storageError.message;
       const { error } = await supabase.from("attachments").delete().eq("id", attachment.id);
       if (error) return error.message;
+      const { count } = await supabase
+        .from("attachments")
+        .select("id", { count: "exact", head: true })
+        .eq("entity_type", attachment.entityType)
+        .eq("entity_id", attachment.entityId);
+      if (!count) {
+        apply((s) => {
+          const next = new Set(s.attachmentKeys);
+          next.delete(`${attachment.entityType}:${attachment.entityId}`);
+          return { ...s, attachmentKeys: next };
+        });
+      }
       return null;
     },
-    [supabase]
+    [apply, supabase]
   );
 
   const getAttachmentUrl = useCallback(

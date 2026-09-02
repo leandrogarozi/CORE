@@ -1087,6 +1087,7 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   border-radius:50%; background:var(--danger); border:1px solid var(--surface);
 }
 .task-reminder-badge{ color:var(--book-yellow); }
+.task-attachment-badge{ color:var(--text-faint); }
 .task-pautas-badge{
   gap:2px; padding:1px 5px; border-radius:9px; font-size:10px; font-weight:600;
   color:color-mix(in srgb, var(--book-yellow) 55%, var(--warn-text-mix));

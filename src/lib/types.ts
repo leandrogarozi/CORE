@@ -302,4 +302,5 @@ export interface BoardState {
   settings: Settings;
   activeTimers: ActiveTimer[];
   dailyLogs: Record<string, DailyLog>; // iso date -> log
+  attachmentKeys: Set<string>; // "<entityType>:<entityId>" com ao menos 1 anexo — só pra indicador (ícone), não a lista em si
 }
