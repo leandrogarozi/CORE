@@ -1,0 +1,53 @@
+const GRAPH_API_VERSION = "v21.0";
+
+export function normalizeWhatsAppPhone(raw: string): string {
+  return raw.replace(/[^\d]/g, "");
+}
+
+type WhatsAppSendResult = { ok: true } | { ok: false; error: string };
+
+async function callWhatsAppApi(body: Record<string, unknown>): Promise<WhatsAppSendResult> {
+  const token = process.env.WHATSAPP_ACCESS_TOKEN;
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  if (!token || !phoneNumberId) {
+    return { ok: false, error: "WhatsApp não configurado no servidor (faltam variáveis de ambiente)" };
+  }
+
+  const res = await fetch(`https://graph.facebook.com/${GRAPH_API_VERSION}/${phoneNumberId}/messages`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ messaging_product: "whatsapp", to: body.to, ...body }),
+  });
+
+  if (!res.ok) {
+    const json = await res.json().catch(() => null);
+    const message = json?.error?.message || `Falha ao enviar (HTTP ${res.status})`;
+    return { ok: false, error: message };
+  }
+  return { ok: true };
+}
+
+/** Manda o template "hello_world" — aprovado por padrão pela Meta pra toda conta, funciona sem sessão aberta. Só serve pra teste. */
+export async function sendWhatsAppTestMessage(toRaw: string): Promise<WhatsAppSendResult> {
+  const to = normalizeWhatsAppPhone(toRaw);
+  if (!to) return { ok: false, error: "Telefone inválido" };
+  return callWhatsAppApi({
+    to,
+    type: "template",
+    template: { name: "hello_world", language: { code: "en_US" } },
+  });
+}
+
+/** Mensagem de texto livre — só entrega se o destinatário tiver falado com o número nas últimas 24h. */
+export async function sendWhatsAppTextMessage(toRaw: string, text: string): Promise<WhatsAppSendResult> {
+  const to = normalizeWhatsAppPhone(toRaw);
+  if (!to) return { ok: false, error: "Telefone inválido" };
+  return callWhatsAppApi({
+    to,
+    type: "text",
+    text: { body: text },
+  });
+}

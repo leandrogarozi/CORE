@@ -40,6 +40,36 @@ function useTimezoneOptions(): { brazil: string[]; others: string[] } {
   }, []);
 }
 
+function WhatsAppTestButton({ phone }: { phone: string | null }) {
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
+
+  async function sendTest() {
+    setBusy(true);
+    setStatus(null);
+    try {
+      const res = await fetch("/api/whatsapp/test", { method: "POST" });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error || "Falha ao enviar o teste");
+      setStatus("Teste enviado — confira seu WhatsApp.");
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : "Não deu pra enviar o teste.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!phone) return null;
+  return (
+    <div style={{ marginTop: 6 }}>
+      <button type="button" className="btn btn-ghost" disabled={busy} onClick={sendTest}>
+        Testar WhatsApp
+      </button>
+      {status && <div className="hint-text">{status}</div>}
+    </div>
+  );
+}
+
 export function AvatarUploader({ avatarUrl, board }: { avatarUrl: string | null; board: UseBoard }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -140,6 +170,7 @@ export function ProfileFields({ board }: { board: UseBoard }) {
               setPhoneInput(null);
             }}
           />
+          <WhatsAppTestButton phone={board.state.settings.notifyPhone} />
         </div>
         <div className="settings-row-standalone">
           <span className="settings-label">Fuso horário</span>
