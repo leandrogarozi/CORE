@@ -13,3 +13,11 @@ export function stripHtml(html: string): string {
 export function isRichTextEmpty(html: string | null | undefined): boolean {
   return !html || stripHtml(html).length === 0;
 }
+
+// Conta quantos itens de checklist (bloco "tarefa" do editor rico) ainda estão
+// desmarcados — usado pra saber se uma reunião concluída deixou pauta em aberto.
+export function countOpenChecklistItems(html: string | null | undefined): number {
+  if (!html) return 0;
+  const matches = html.match(/data-checked="false"/g);
+  return matches ? matches.length : 0;
+}

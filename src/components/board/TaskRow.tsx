@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { AttachmentsButton } from "./AttachmentsButton";
 import { TimerButton } from "./TimerButton";
@@ -8,9 +8,10 @@ import { StatusPicker } from "./StatusPicker";
 import { MinutesPicker, TimePicker } from "./TimePicker";
 import { ReminderDateButton } from "./RemindersView";
 import { CommentButton } from "./CommentButton";
-import { BellIcon, BoltIcon, CommentIcon, DragGripIcon, DuplicateIcon, FlagIcon, FolderIcon, RepeatIcon, TrashIcon } from "./icons";
+import { BellIcon, BoltIcon, CommentIcon, DragGripIcon, DuplicateIcon, FlagIcon, FolderIcon, RepeatIcon, TrashIcon, UsersGroupIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
-import { CATEGORY_LABEL, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
+import { countOpenChecklistItems } from "@/lib/rich-text";
+import { CATEGORY_LABEL, isMeetingTask, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
 import type { TaskEditFields } from "@/lib/board/use-board";
 
 const CATEGORIES = Object.keys(CATEGORY_LABEL) as Category[];
@@ -106,6 +107,7 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
   const { board, askScope, askConfirm, openProject, focusRequest, consumeFocusRequest } = useBoardCtx();
   const [editing, setEditing] = useState(false);
   const hasReminder = board.state.reminders.some((r) => r.taskId === t.id);
+  const openPautas = isMeetingTask(t) ? countOpenChecklistItems(t.note) : 0;
 
   useEffect(() => {
     if (focusRequest?.kind === "task" && focusRequest.id === t.id) {
@@ -196,8 +198,13 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
         <button type="button" className="row-title" title={t.title} onClick={() => setEditing(true)}>
           {t.title}
         </button>
-        {(hasReminder || t.note.trim()) && (
+        {(openPautas > 0 || hasReminder || t.note.trim()) && (
           <span className="row-badges">
+            {openPautas > 0 && (
+              <span className="task-badge task-pautas-badge" title={`${openPautas} pauta(s) em aberto nessa reunião`}>
+                <UsersGroupIcon /> {openPautas}
+              </span>
+            )}
             {hasReminder && (
               <span className="task-badge task-reminder-badge" title="Tarefa com lembrete">
                 <BellIcon filled />
@@ -255,6 +262,10 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
   const { board, askScope } = useBoardCtx();
   const currentSeries = t.seriesId ? board.state.taskSeries.find((s) => s.id === t.seriesId) : null;
   const linkedReminder = board.state.reminders.find((r) => r.taskId === t.id) ?? null;
+  const clientListId = useId();
+  const clientOptions = Array.from(
+    new Set(board.state.tasks.filter((x) => isMeetingTask(x) && x.client).map((x) => x.client as string))
+  ).sort();
   const [vals, setVals] = useState<TaskEditFields>({
     title: t.title,
     category: t.category,
@@ -266,6 +277,7 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
     note: t.note,
     repeat: currentSeries ? currentSeries.repeat : "none",
     projectId: t.projectId,
+    client: t.client,
   });
 
   function save() {
@@ -321,6 +333,23 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
             ))}
           </select>
         </label>
+        {isMeetingTask(vals) && (
+          <label className="edit-field">
+            <span className="edit-field-label">Cliente</span>
+            <input
+              type="text"
+              list={clientListId}
+              value={vals.client ?? ""}
+              placeholder="Nome do cliente"
+              onChange={(e) => setVals((v) => ({ ...v, client: e.target.value || null }))}
+            />
+            <datalist id={clientListId}>
+              {clientOptions.map((c) => (
+                <option key={c} value={c} />
+              ))}
+            </datalist>
+          </label>
+        )}
         <label className="edit-field">
           <span className="edit-field-label">Prioridade</span>
           <select value={vals.priority} onChange={(e) => setVals((v) => ({ ...v, priority: e.target.value as Priority }))}>

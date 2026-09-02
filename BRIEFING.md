@@ -137,6 +137,40 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Aba Reuniões: cliente + pautas em aberto (02/09)
+
+Pedido pra ajudar a pensar: o Leandro cria checklist de pauta nas
+anotações da reunião, mas quando marca a reunião como concluída perde de
+vista o que ficou pendente pra resolver depois. Conversamos o desenho via
+pergunta direta e decidimos:
+
+- **Campo Cliente na tarefa** (`client`, migração `add_client_to_tasks`):
+  aparece na edição da tarefa e no popover do botão "Reunião" (que já
+  existia — inicia uma reunião rápida com timer) sempre que a tarefa é
+  reunião (`category` ou `category2` = "reuniao"), com autocompletar dos
+  clientes já usados antes.
+- **Pautas em aberto calculadas automaticamente**: em vez de um campo
+  manual (que ficaria desatualizado), conto quantos itens do checklist
+  dentro da Observação da reunião ainda estão desmarcados
+  (`countOpenChecklistItems`, novo em `lib/rich-text.ts`, conta
+  `data-checked="false"` no HTML). Zero manutenção manual — a fonte da
+  verdade é o próprio checklist.
+- **Selo "N pautas" na tarefa**: toda tarefa de reunião com pauta em
+  aberto ganha um selo amarelo (ícone de grupo + número) na lista de
+  badges, visível em **qualquer lugar** que a tarefa apareça — Hoje,
+  Semana, ou já concluída — não só na aba nova. Resolve o "como saber que
+  ainda tem pauta ali" mesmo depois de concluir a reunião.
+- **Aba "Reuniões" nova** (menu lateral, depois de Projetos): lista todas
+  as reuniões agrupadas por cliente, com contador de reuniões e de pautas
+  em aberto por grupo, destaque visual (selo amarelo no cabeçalho) nos
+  clientes com pendência, busca por nome de cliente e filtro "só com
+  pauta em aberto". Cada linha é a mesma `TaskRow` de sempre — abre e
+  edita normalmente, herda tudo que a tarefa já tinha (anexos, comentário,
+  timer etc.).
+- Isso aproveita a função `startMeeting`/`concludeMeeting` que já existia
+  (botão "Reunião" de início rápido com timer) — não foi preciso criar
+  uma entidade nova, só estender a tarefa existente.
+
 ## Checklist do editor de texto vira bolinha, igual ao resto do app (02/09)
 
 Print mostrando as caixinhas quadradas nativas do navegador (checklist

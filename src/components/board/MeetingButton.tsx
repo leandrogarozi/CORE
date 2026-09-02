@@ -20,11 +20,15 @@ export function MeetingButton() {
   const { board } = useBoardCtx();
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const [title, setTitle] = useState("");
+  const [client, setClient] = useState("");
   const [duration, setDuration] = useState<number | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
   const pos = useClampedPopoverPos(anchorRect, popRef);
   const open = anchorRect !== null;
+  const clientOptions = Array.from(
+    new Set(board.state.tasks.filter((t) => t.category2 === "reuniao" && t.client).map((t) => t.client as string))
+  ).sort();
 
   useEffect(() => {
     if (!open) return;
@@ -44,12 +48,13 @@ export function MeetingButton() {
       return;
     }
     setTitle("");
+    setClient("");
     setDuration(null);
     if (btnRef.current) setAnchorRect(btnRef.current.getBoundingClientRect());
   }
 
   function start() {
-    board.startMeeting(title.trim() || "Reunião", duration ?? 30);
+    board.startMeeting(title.trim() || "Reunião", duration ?? 30, client.trim() || null);
     setAnchorRect(null);
   }
 
@@ -91,6 +96,25 @@ export function MeetingButton() {
                   else if (e.key === "Escape") setAnchorRect(null);
                 }}
               />
+            </div>
+            <div className="edit-field">
+              <span className="edit-field-label">Cliente</span>
+              <input
+                type="text"
+                list="meeting-client-options"
+                placeholder="Nome do cliente"
+                value={client}
+                onChange={(e) => setClient(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") start();
+                  else if (e.key === "Escape") setAnchorRect(null);
+                }}
+              />
+              <datalist id="meeting-client-options">
+                {clientOptions.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
             </div>
             <div className="edit-actions">
               <button type="button" className="btn btn-ghost" onClick={() => setAnchorRect(null)}>

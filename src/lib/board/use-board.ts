@@ -116,6 +116,7 @@ export interface TaskEditFields {
   note: string;
   repeat: Repeat;
   projectId: string | null;
+  client: string | null;
 }
 
 function uid(): string {
@@ -289,6 +290,7 @@ export function useBoard(userId: string | null) {
         statusId: defaultStatusId(),
         deletedAt: null,
         projectId: null,
+        client: null,
       };
       apply((s) => ({ ...s, tasks: [...s.tasks, t] }));
       supabase.from("tasks").insert(taskToInsertRow(t, userId)).then(({ error }) => {
@@ -529,6 +531,7 @@ export function useBoard(userId: string | null) {
           durationMin: vals.durationMin,
           note: vals.note,
           projectId: vals.projectId,
+          client: vals.client,
           order,
         };
 
@@ -579,6 +582,7 @@ export function useBoard(userId: string | null) {
         durationMin: vals.durationMin,
         note: vals.note,
         projectId: vals.projectId,
+        client: vals.client,
         order,
       };
       apply((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === id ? updated : x)) }));
@@ -679,6 +683,7 @@ export function useBoard(userId: string | null) {
             statusId: defaultStatusId(),
             deletedAt: null,
             projectId: null,
+            client: null,
           });
         });
       });
@@ -903,6 +908,7 @@ export function useBoard(userId: string | null) {
         statusId: defaultStatusId(),
         deletedAt: null,
         projectId,
+        client: null,
       };
       apply((s) => ({ ...s, tasks: [...s.tasks, t] }));
       supabase.from("tasks").insert(taskToInsertRow(t, userId)).then(({ error }) => {
@@ -1506,7 +1512,7 @@ export function useBoard(userId: string | null) {
 
   // ---------- reuniões rápidas ----------
   const startMeeting = useCallback(
-    (title: string, expectedDurationMin: number) => {
+    (title: string, expectedDurationMin: number, client: string | null) => {
       if (!userId || !title.trim()) return;
       const today = todayISO();
       const now = new Date();
@@ -1530,6 +1536,7 @@ export function useBoard(userId: string | null) {
         statusId: defaultStatusId(),
         deletedAt: null,
         projectId: null,
+        client: client?.trim() || null,
       };
       const at: ActiveTimer = { id: uid(), kind: "task", itemId: t.id, logDate: today, startedAt: Date.now() };
       apply((s) => ({ ...s, tasks: [...s.tasks, t], activeTimers: [...s.activeTimers, at] }));

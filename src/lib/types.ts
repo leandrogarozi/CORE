@@ -43,6 +43,13 @@ export interface Task {
   statusId: string | null;
   deletedAt: string | null; // ISO datetime — soft delete, tarefa vai pra Lixeira em vez de sumir na hora
   projectId: string | null; // vincula essa tarefa como etapa de um Projeto (PDA)
+  client: string | null; // nome do cliente — usado quando é reunião, pra agrupar na aba Reuniões
+}
+
+// Reunião = categoria ou 2ª categoria "reuniao" — cobre tanto reunião criada
+// pelo botão rápido (category2) quanto marcada manualmente na edição (category).
+export function isMeetingTask(t: Pick<Task, "category" | "category2">): boolean {
+  return t.category === "reuniao" || t.category2 === "reuniao";
 }
 
 export type ProjectStatus = "active" | "done" | "cancelled";

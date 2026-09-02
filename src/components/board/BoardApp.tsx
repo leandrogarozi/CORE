@@ -19,6 +19,7 @@ import { MedicationsView } from "./MedicationsView";
 import { ChecklistsView } from "./ChecklistsView";
 import { DietView } from "./DietView";
 import { ProjectsView } from "./ProjectsView";
+import { MeetingsView } from "./MeetingsView";
 import { TrashView } from "./TrashView";
 import { ScopeModal } from "./ScopeModal";
 import { ConfirmModal } from "./ConfirmModal";
@@ -182,6 +183,8 @@ function BoardShell() {
           selectedId={selectedProjectId}
           onSelect={setSelectedProjectId}
         />
+      ) : viewMode === "meetings" ? (
+        <MeetingsView onBack={() => setViewMode("day")} />
       ) : viewMode === "calendar" ? (
         <CalendarView onBack={() => setViewMode("day")} onSelectWeek={() => setViewMode("week")} onSelectDay={goToDate} />
       ) : (

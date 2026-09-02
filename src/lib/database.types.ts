@@ -643,6 +643,7 @@ export type Database = {
         Row: {
           category: string
           category2: string | null
+          client: string | null
           created_at: string
           date: string | null
           deleted_at: string | null
@@ -666,6 +667,7 @@ export type Database = {
         Insert: {
           category: string
           category2?: string | null
+          client?: string | null
           created_at?: string
           date?: string | null
           deleted_at?: string | null
@@ -689,6 +691,7 @@ export type Database = {
         Update: {
           category?: string
           category2?: string | null
+          client?: string | null
           created_at?: string
           date?: string | null
           deleted_at?: string | null
