@@ -279,6 +279,40 @@ export function Dashboard() {
           </button>
         </div>
 
+        <div className="dash-box">
+          <div className="dash-box-title">Concluídas x pendentes (período)</div>
+          <div className="dash-split">
+            {doneTotal > 0 && (
+              <div className="dash-split-done" style={{ width: `${(stats.doneCount / doneTotal) * 100}%` }} />
+            )}
+          </div>
+          <div className="dash-split-legend">
+            <span>{stats.doneCount} concluídas</span>
+            <span>{stats.pendingCount} pendentes</span>
+          </div>
+        </div>
+
+        <div className="dash-box">
+          <div className="dash-box-title">Prioridade (pendentes)</div>
+          {(["alta", "media", "baixa"] as Priority[]).map((p) => (
+            <div className="bar-row" key={p}>
+              <div className="bar-row-top">
+                <span className="bar-row-name">{p === "alta" ? "Alta" : p === "media" ? "Média" : "Baixa"}</span>
+                <span className="bar-row-value">{stats.priorityPending[p]}</span>
+              </div>
+              <div className="bar-row-track">
+                <div
+                  className="bar-row-fill"
+                  style={{
+                    width: `${(stats.priorityPending[p] / maxPriority) * 100}%`,
+                    background: p === "alta" ? "var(--flag-alta)" : p === "media" ? "var(--flag-media)" : "var(--flag-baixa)",
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
         {moodOn && (
           <div className="dash-box">
             <div className="dash-box-title">Humor</div>
@@ -309,74 +343,6 @@ export function Dashboard() {
         )}
 
         <div className="dash-box">
-          <div className="dash-box-title">Hábitos</div>
-          {!stats.habitStats.length && <div className="bar-empty">Nenhum hábito cadastrado.</div>}
-          {stats.habitStats.map((h) => (
-            <div className="bar-row" key={h.id}>
-              <div className="bar-row-top">
-                <span className="bar-row-name">{h.name}</span>
-                <span className="bar-row-value">{fmtHM(h.min)}</span>
-              </div>
-              <div className="bar-row-track">
-                <div className="bar-row-fill" style={{ width: `${(h.min / maxHabitMin) * 100}%` }} />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="dash-box">
-          <div className="dash-box-title">Dias ativos — Hábitos</div>
-          {!stats.habitStats.length && <div className="bar-empty">Nenhum hábito cadastrado.</div>}
-          {stats.habitStats.map((h) => (
-            <div className="bar-row" key={h.id}>
-              <div className="bar-row-top">
-                <span className="bar-row-name">{h.name}</span>
-                <span className="bar-row-value mono">
-                  {h.count}/{stats.daysInPeriod} dias
-                </span>
-              </div>
-              <div className="bar-row-track">
-                <div className="bar-row-fill" style={{ width: `${(h.count / stats.daysInPeriod) * 100}%` }} />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="dash-box">
-          <div className="dash-box-title">Blocos fixos</div>
-          {!stats.blockStats.length && <div className="bar-empty">Nenhum bloco fixo cadastrado.</div>}
-          {stats.blockStats.map((b) => (
-            <div className="bar-row" key={b.id}>
-              <div className="bar-row-top">
-                <span className="bar-row-name">{b.name}</span>
-                <span className="bar-row-value">{fmtHM(b.min)}</span>
-              </div>
-              <div className="bar-row-track">
-                <div className="bar-row-fill" style={{ width: `${(b.min / maxBlockMin) * 100}%` }} />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="dash-box">
-          <div className="dash-box-title">Dias ativos — Blocos fixos</div>
-          {!stats.blockStats.length && <div className="bar-empty">Nenhum bloco fixo cadastrado.</div>}
-          {stats.blockStats.map((b) => (
-            <div className="bar-row" key={b.id}>
-              <div className="bar-row-top">
-                <span className="bar-row-name">{b.name}</span>
-                <span className="bar-row-value mono">
-                  {b.count}/{stats.daysInPeriod} dias
-                </span>
-              </div>
-              <div className="bar-row-track">
-                <div className="bar-row-fill" style={{ width: `${(b.count / stats.daysInPeriod) * 100}%` }} />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="dash-box">
           <div className="dash-box-title">Tempo por categoria</div>
           {!catEntries.length && <div className="bar-empty">Nenhuma tarefa concluída com duração no período.</div>}
           {!!catEntries.length && (
@@ -396,37 +362,47 @@ export function Dashboard() {
         </div>
 
         <div className="dash-box">
-          <div className="dash-box-title">Prioridade (pendentes)</div>
-          {(["alta", "media", "baixa"] as Priority[]).map((p) => (
-            <div className="bar-row" key={p}>
+          <div className="dash-box-title">Hábitos — tempo e dias ativos</div>
+          {!stats.habitStats.length && <div className="bar-empty">Nenhum hábito cadastrado.</div>}
+          {stats.habitStats.map((h) => (
+            <div className="bar-row" key={h.id}>
               <div className="bar-row-top">
-                <span className="bar-row-name">{p === "alta" ? "Alta" : p === "media" ? "Média" : "Baixa"}</span>
-                <span className="bar-row-value">{stats.priorityPending[p]}</span>
+                <span className="bar-row-name">{h.name}</span>
+                <span className="bar-row-value">{fmtHM(h.min)}</span>
+                <span className="bar-row-value mono">
+                  {h.count}/{stats.daysInPeriod}d
+                </span>
               </div>
               <div className="bar-row-track">
-                <div
-                  className="bar-row-fill"
-                  style={{
-                    width: `${(stats.priorityPending[p] / maxPriority) * 100}%`,
-                    background: p === "alta" ? "var(--flag-alta)" : p === "media" ? "var(--flag-media)" : "var(--flag-baixa)",
-                  }}
-                />
+                <div className="bar-row-fill" style={{ width: `${(h.min / maxHabitMin) * 100}%` }} />
+              </div>
+              <div className="bar-row-track">
+                <div className="bar-row-fill days" style={{ width: `${(h.count / stats.daysInPeriod) * 100}%` }} />
               </div>
             </div>
           ))}
         </div>
 
         <div className="dash-box">
-          <div className="dash-box-title">Concluídas x pendentes (período)</div>
-          <div className="dash-split">
-            {doneTotal > 0 && (
-              <div className="dash-split-done" style={{ width: `${(stats.doneCount / doneTotal) * 100}%` }} />
-            )}
-          </div>
-          <div className="dash-split-legend">
-            <span>{stats.doneCount} concluídas</span>
-            <span>{stats.pendingCount} pendentes</span>
-          </div>
+          <div className="dash-box-title">Dia a Dia — tempo e dias ativos</div>
+          {!stats.blockStats.length && <div className="bar-empty">Nenhum bloco fixo cadastrado.</div>}
+          {stats.blockStats.map((b) => (
+            <div className="bar-row" key={b.id}>
+              <div className="bar-row-top">
+                <span className="bar-row-name">{b.name}</span>
+                <span className="bar-row-value">{fmtHM(b.min)}</span>
+                <span className="bar-row-value mono">
+                  {b.count}/{stats.daysInPeriod}d
+                </span>
+              </div>
+              <div className="bar-row-track">
+                <div className="bar-row-fill" style={{ width: `${(b.min / maxBlockMin) * 100}%` }} />
+              </div>
+              <div className="bar-row-track">
+                <div className="bar-row-fill days" style={{ width: `${(b.count / stats.daysInPeriod) * 100}%` }} />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

@@ -137,6 +137,32 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Dashboard reorganizado (mais compacto, sem blocos soltos) (02/09)
+
+Feedback direto sobre a leva anterior: "blocos quebrados, dados parecidos
+longe", pedindo mais organização visual e mais compactação.
+
+- **Layout em colunas (masonry)**: `.dash-charts` deixou de ser um grid
+  comum (`auto-fit`, que alinha tudo em linhas e cria buracos quando um
+  card é mais alto que o vizinho) e virou `column-count` com
+  `break-inside:avoid` — os cards se empilham em colunas de altura
+  variável, sem espaço em branco quebrando o layout. 3 colunas no
+  desktop, 2 em telas médias, 1 no mobile.
+- **Hábitos e Blocos fixos consolidados**: os 4 cards separados (tempo de
+  Hábitos, dias ativos de Hábitos, tempo de Blocos fixos, dias ativos de
+  Blocos fixos — adicionados na leva anterior) viraram só 2 cards
+  ("Hábitos — tempo e dias ativos" / "Dia a Dia — tempo e dias ativos"),
+  cada item com duas barrinhas empilhadas (tempo em cima, dias embaixo) e
+  os dois valores lado a lado no cabeçalho da linha — resolve o "dados
+  parecidos longe" sem perder nenhuma informação.
+- **Ordem lógica**: cards de tarefas primeiro (Tarefas, Concluídas x
+  pendentes, Prioridade), depois Humor, depois os de tempo/atividade
+  (Tempo por categoria, Hábitos, Dia a Dia) — antes a ordem misturava os
+  dois assuntos.
+- **Compactação geral**: cards de estatística do topo (Atrasadas, Sem
+  data etc.) e os `dash-box` ganharam padding/gap menores, cabendo mais
+  informação por tela sem cortar nada.
+
 ## Dashboard: visão por Dia + blocos de dias ativos (02/09)
 
 Pendência que tinha ficado só documentada na leva anterior — o Leandro
