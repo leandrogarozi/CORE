@@ -30,14 +30,14 @@ async function callWhatsAppApi(body: Record<string, unknown>): Promise<WhatsAppS
   return { ok: true };
 }
 
-/** Manda o template "hello_world" — aprovado por padrão pela Meta pra toda conta, funciona sem sessão aberta. Só serve pra teste. */
+/** Manda o template "faro_teste" (categoria Serviços, aprovado pra conta real) — funciona sem sessão aberta. Só serve pra teste. */
 export async function sendWhatsAppTestMessage(toRaw: string): Promise<WhatsAppSendResult> {
   const to = normalizeWhatsAppPhone(toRaw);
   if (!to) return { ok: false, error: "Telefone inválido" };
   return callWhatsAppApi({
     to,
     type: "template",
-    template: { name: "hello_world", language: { code: "en_US" } },
+    template: { name: "faro_teste", language: { code: "pt_BR" } },
   });
 }
 
