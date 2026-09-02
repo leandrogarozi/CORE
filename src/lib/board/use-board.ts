@@ -333,6 +333,21 @@ export function useBoard(userId: string | null) {
     [apply, supabase]
   );
 
+  const setCategory = useCallback(
+    (id: string, category: Category) => {
+      apply((s) => ({
+        ...s,
+        tasks: s.tasks.map((x) => (x.id === id ? { ...x, category, category2: x.category2 === category ? null : x.category2 } : x)),
+      }));
+      const task = stateRef.current.tasks.find((x) => x.id === id);
+      const category2 = task?.category2 === category ? null : task?.category2 ?? null;
+      supabase.from("tasks").update({ category, category2 }).eq("id", id).then(({ error }) => {
+        if (error) console.error("setCategory", error);
+      });
+    },
+    [apply, supabase]
+  );
+
   const updateTaskNote = useCallback(
     (id: string, note: string) => {
       apply((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === id ? { ...x, note } : x)) }));
@@ -1847,6 +1862,7 @@ export function useBoard(userId: string | null) {
     setTaskStatus,
     setQuick,
     setPriority,
+    setCategory,
     updateTaskNote,
     updateTaskTitle,
     reorderBucket,

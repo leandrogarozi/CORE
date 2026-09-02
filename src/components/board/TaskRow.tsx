@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
+import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 import { AttachmentsButton } from "./AttachmentsButton";
 import { TimerButton } from "./TimerButton";
 import { StatusPicker } from "./StatusPicker";
@@ -58,14 +60,96 @@ function QuickBolts({ value, onSet }: { value: number; onSet: (v: 0 | 1 | 2 | 3)
   );
 }
 
-export function CategoryChip({ category }: { category: Category }) {
+function CategoryMenu({
+  anchorRect,
+  current,
+  onSelect,
+  onClose,
+}: {
+  anchorRect: DOMRect;
+  current: Category;
+  onSelect: (c: Category) => void;
+  onClose: () => void;
+}) {
+  const { board } = useBoardCtx();
+  const ref = useRef<HTMLDivElement>(null);
+  const pos = useClampedPopoverPos(anchorRect, ref);
+
+  useEffect(() => {
+    function onDocPointerDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    }
+    window.addEventListener("mousedown", onDocPointerDown);
+    return () => window.removeEventListener("mousedown", onDocPointerDown);
+  }, [onClose]);
+
+  return createPortal(
+    <div className="status-menu" ref={ref} style={{ top: pos.top, left: pos.left }}>
+      {CATEGORIES.map((c) => {
+        const cfg = board.state.settings.tagColors[c];
+        return (
+          <button
+            type="button"
+            key={c}
+            className={"status-menu-item" + (c === current ? " active" : "")}
+            onClick={() => {
+              onSelect(c);
+              onClose();
+            }}
+          >
+            <span className="status-menu-dot" style={{ background: cfg.hex }} />
+            {CATEGORY_LABEL[c]}
+          </button>
+        );
+      })}
+    </div>,
+    document.body
+  );
+}
+
+export function CategoryChip({
+  category,
+  onSelect,
+}: {
+  category: Category;
+  onSelect?: (c: Category) => void;
+}) {
   const { board } = useBoardCtx();
   const cfg = board.state.settings.tagColors[category];
   const style = { background: hexToRgba(cfg.hex, cfg.alpha), color: cfg.hex };
+  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
+
+  if (!onSelect) {
+    return (
+      <span className="chip" style={style}>
+        {CATEGORY_LABEL[category]}
+      </span>
+    );
+  }
+
   return (
-    <span className="chip" style={style}>
-      {CATEGORY_LABEL[category]}
-    </span>
+    <>
+      <button
+        type="button"
+        className="chip chip-btn"
+        style={style}
+        title="Clique pra trocar a categoria"
+        onClick={(e) => {
+          e.stopPropagation();
+          setAnchorRect(anchorRect ? null : e.currentTarget.getBoundingClientRect());
+        }}
+      >
+        {CATEGORY_LABEL[category]}
+      </button>
+      {anchorRect && (
+        <CategoryMenu
+          anchorRect={anchorRect}
+          current={category}
+          onSelect={onSelect}
+          onClose={() => setAnchorRect(null)}
+        />
+      )}
+    </>
   );
 }
 
@@ -225,7 +309,7 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
             <RepeatIcon />
           </span>
         )}
-        <CategoryChip category={t.category} />
+        <CategoryChip category={t.category} onSelect={(c) => board.setCategory(t.id, c)} />
         {t.category2 && <CategoryChip category={t.category2} />}
       </div>
       <button

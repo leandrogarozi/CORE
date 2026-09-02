@@ -137,6 +137,23 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Categoria clicável direto na linha da tarefa (02/09)
+
+Segunda parte do pedido sobre a tag "Trabalho" ficando esquecida em
+tarefas lançadas rápido: a tag de categoria (primeira, `t.category`) na
+linha da tarefa agora é clicável, igual a bandeirinha de prioridade já
+era — abre um menuzinho (mesmo padrão do `StatusPicker`) com todas as
+categorias coloridas, e escolher uma já salva na hora, sem precisar abrir
+a edição completa da tarefa. Nova função `board.setCategory`. A 2ª
+categoria continua só informativa (não clicável) por enquanto.
+
+**Ainda em aberto**: o Leandro também sugeriu tornar a escolha de
+categoria obrigatória ao salvar uma tarefa nova (tipo um passo que não
+deixa passar sem marcar) — ainda não implementado, respondi com o
+trade-off (risco de atrapalhar a velocidade do lançamento rápido, que é
+o objetivo do quick-add) e fiquei de alinhar o formato exato antes de
+construir.
+
 ## Bolinha vermelha no ícone de observação (02/09)
 
 Print mostrando que o balãozinho de observação na linha da tarefa passava

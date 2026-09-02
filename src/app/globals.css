@@ -703,6 +703,8 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .row-category-cell{ display:flex; align-items:center; gap:6px; min-width:0; }
 .row-time{ font-size:10px; color:var(--text-muted); white-space:nowrap; flex:none; }
 .chip{ font-size:9px; font-weight:600; padding:1px 7px; border-radius:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.chip-btn{ border:none; cursor:pointer; }
+.chip-btn:hover{ filter:brightness(0.92); }
 .flag{ width:12px; height:12px; display:flex; align-items:center; justify-self:center; }
 .flag-btn{ padding:0; }
 .flag-btn:hover{ filter:brightness(1.2); }
