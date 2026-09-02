@@ -2041,47 +2041,28 @@ de feature flags que já existe pra água/dieta/sono/humor
       hábitos que só acontecem uma vez por dia. Já cadastrado nos
       hábitos "Corrida" e "Crossfit" com Fraco/Médio/Bom/Excelente.
 - [ ] Aba treino/suplementação
-- [ ] **Leva de pedidos do Leandro (02/09, lote grande)** — anotado de
-      uma vez, ainda não implementado. Itens objetivos, sem decisão
-      pendente:
-      - Campo de Observação (tasks e Lembretes) abre **sempre em modo
-        expandido** ao clicar, direto — hoje precisa de um passo extra.
-        Ideal um popup tipo ClickUp, com barra de formatação (negrito,
-        destaque etc.) e ícone de expandir bem visível. Motivo real:
-        em Lembretes o campo às vezes corta na tela e nem dá pra ver o
-        botão Salvar — está perdendo texto digitado por causa disso.
-      - Atividade física — texto da "opção de nota" vira **"Como se
-        sentiu durante a atividade?"**, com **emojis** em vez de nomes.
-        Corrida ganha opções próprias: Pesado / Normal / Leve /
-        Voando (diferente do Fraco/Médio/Bom/Excelente do Crossfit).
-      - **Bug**: em Lembretes, marcando 2+ dias da semana no seletor,
-        não dá pra preencher o horário. Precisa reproduzir e corrigir.
-      - Auto-save nos campos de Observação a cada 30s (perigo real de
-        perder texto se a aba fechar ou a sessão cair no meio da
-        digitação).
-      - **Bug**: dentro de um projeto, a etapa (task) não mostra o
-        botão de apagar — o bloco é estreito demais e empurra a ação
-        pra fora da área visível sem rolar. Alargar o painel/tabela.
-      - Tag "Sem data": conferir se está com cor **amarela** + ícone de
-        **atenção**; tasks de projeto sem data também têm que cair
-        nessa lista, com uma tag/ícone de projeto (a mesma pastinha do
-        menu lateral) bem visível — e o aviso de exclusão de uma task
-        assim precisa mencionar que ela pertence a um projeto.
-      - Dashboard: bloco de dias da semana/mês com e sem atividade
-        física (Crossfit, Corrida por enquanto) — e avaliar se o bloco
-        "Dia a Dia — tempo e dias ativos" que já existe cobre isso, ou
-        se precisa um específico. Mesma lógica pra Lazer, Gratidão e
-        Leitura.
-
-      **(03/09) Conferido com o Leandro**: busca de livro (já abre e
-      rola até o registro certo, que já é editável ali — e a aba Livros
-      já tem busca própria por título), marcar várias opções de Lazer
-      no mesmo dia, e o grip/arrasto do TimePicker — os três já estão
-      funcionando de verdade. Eram itens de uma leva de notas antigas
-      coladas de uma vez (com blocos repetidos, sinal de anotação
-      acumulada ao longo do tempo) que eu tratei como reclamação atual
-      sem confirmar primeiro — vale sempre perguntar antes de marcar
-      algo como bug só por causa de texto de origem incerta.
+- [ ] **(03/09) Correção**: a leva de pedidos que o Leandro colou nessa
+      data já tinha sido **quase toda resolvida** na rodada "Leva
+      grande de ajustes + próximos passos definidos (01/09)" (ver acima
+      no arquivo) — eu não tinha cruzado direito antes de anotar de
+      novo, e listei como pendente coisa que já estava feita. Conferido
+      no código em 03/09: Observação sempre expandida, auto-save de
+      30s, bug do horário com 2+ dias da semana em Lembretes, frase +
+      emojis da atividade física, tag "Sem data" (cor/ícone/chip de
+      projeto/aviso de exclusão), botão apagar da etapa de projeto —
+      **todos já implementados** (01/09), assim como o mapeamento de
+      sub-opções por item do Dia a Dia (ex.: Piscina → algicida/trocar
+      filtro/aspirar + 2 tags — já dá pra cadastrar isso em "Opções de
+      nota", no Editar de qualquer hábito/bloco, sem precisar de código
+      novo, só configurar). Dashboard de dias com atividade física
+      (Crossfit/Corrida) também já existe, no bloco "Hábitos — tempo e
+      dias ativos"; falta só confirmar se cobre Lazer/Gratidão/Leitura
+      do mesmo jeito ou se essas precisam de um bloco à parte.
+      **O que realmente ainda falta**, sem duplicar o que já foi feito:
+      - **Recorrência de Lembretes a cada N semanas/meses/anos**: a
+        decisão já foi tomada em 01/09 (campo numérico "a cada [N]"
+        dentro dos selects Semanal/Mensal/Anual que já existem, sem
+        trocar a estrutura da tela) — só falta implementar.
 
 ### 🔴 Grandes
 
@@ -2146,19 +2127,6 @@ de feature flags que já existe pra água/dieta/sono/humor
         ocasião?); cada ferramenta (caderno de ganhos, gratidão etc.)
         vira uma lista simples de entradas com data + texto, ou precisa
         de campos próprios por tipo?
-- [ ] **Mapeamento de sub-opções por item do bloco Dia a Dia (02/09)**
-      — ex.: cadastrou "Piscina" pra rastrear o tempo gasto; ao parar o
-      cronômetro, quer poder marcar o que fez (Aplicar algicida, Trocar
-      filtro, Aspirar, Adicionar cloro — lista própria por item) e até
-      2 tags. Pareceria uma extensão do modelo de "opções de nota" que
-      hábitos já têm, ou do modelo de entradas múltiplas que Lazer já
-      tem — decidir qual dos dois reaproveitar antes de implementar.
-- [ ] **Recorrência de Lembretes por período (02/09)** — hoje só
-      escolhe dias da semana. O Leandro quer também poder definir
-      repetição por **semana(s)**, **mês(es)** ou **ano(s)** com
-      contagem (ex.: a cada 2 semanas), separado da escolha de dias.
-      Formato exato da UI (dropdown com opção + campo de contagem, ou
-      um botão "Recorrência" que abre tudo isso) ainda em aberto.
 - [ ] **Link entre tarefas relacionadas (02/09)** — ideia trazida pelo
       Leandro com o exemplo de um app financeiro que ele quer construir
       "do jeito que estamos fazendo o FARO": várias tasks separadas que
@@ -2213,19 +2181,15 @@ de feature flags que já existe pra água/dieta/sono/humor
       print de exemplo pra adaptar o que já existe com o que falta;
       aguardando esse material antes de desenhar. Conecta com a "IA de
       distribuição de tarefas" já listada acima.
-- [ ] **Arrasto de tarefas + filtro "mais rápidas" (raio) (02/09)** —
-      pedido do Leandro descrevia um comportamento específico (ao
-      filtrar pelas tasks marcadas com raio/"mais rápidas", as que têm
-      raio saem da lista e só ficam arrastáveis as que não têm) que
-      ficou confuso por escrito — reproduzir com ele ao vivo antes de
-      mexer, pra confirmar o comportamento esperado.
 - [ ] Relatório cruzando dados (tarefas × hábitos × humor × sono etc.)
 - [ ] Observação do humor no dashboard alimentada por IA (rotina agendada
       + chamada de IA — não é só front-end)
 - [ ] Dashboard configurável (o que aparece na tela principal ou não)
-- [ ] **Carinhas de humor extras (02/09)** — o Leandro quer adicionar
-      novas opções de estado emocional: estressado, ansioso, nervoso,
-      desmotivado, confiante, em paz. Pergunta em aberto dele mesmo:
-      isso é uma extensão do check-in de **humor** que já existe, ou é
-      um tipo de dado diferente (ex.: "estado emocional" separado de
-      "humor geral do dia")? Decidir a modelagem antes de implementar.
+
+**(03/09) Conferido com o Leandro — já feito, não entra em pendência:**
+carinhas de humor extras (estressado, ansioso, nervoso, desmotivado,
+confiante, em paz já existem em `src/lib/mood.ts` como `MOOD_EMOTIONS`,
+campo próprio separado do humor 1-5) e o comportamento de arrasto com
+o filtro "⚡ Rápidas primeiro" (arrasto desativado pra lista toda
+enquanto esse modo está ativo, em `TaskListCard.tsx` — comportamento
+correto e já implementado).
