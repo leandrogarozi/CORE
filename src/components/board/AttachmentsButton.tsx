@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
-import { PaperclipIcon, TrashIcon } from "./icons";
+import { CheckIcon, PaperclipIcon, TrashIcon } from "./icons";
 import type { Attachment, AttachmentEntityType } from "@/lib/types";
 
 const ACCEPT = ".pdf,.doc,.docx,.png,.jpg,.jpeg";
@@ -30,6 +30,7 @@ export function AttachmentsButton({
   const [items, setItems] = useState<Attachment[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -75,6 +76,8 @@ export function AttachmentsButton({
     }
     setItems((prev) => [...prev, attachment]);
     setCount((c) => (c ?? 0) + 1);
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 2500);
   }
 
   function handleDelete(a: Attachment) {
@@ -176,11 +179,19 @@ export function AttachmentsButton({
                 </button>
                 <button
                   type="button"
-                  className="btn btn-accent"
+                  className={"btn" + (justSaved ? " btn-ghost saved-btn" : " btn-accent")}
                   disabled={uploading}
                   onClick={() => fileRef.current?.click()}
                 >
-                  {uploading ? "Enviando…" : "Adicionar anexo"}
+                  {uploading ? (
+                    "Enviando…"
+                  ) : justSaved ? (
+                    <>
+                      <CheckIcon /> Salvo
+                    </>
+                  ) : (
+                    "Adicionar anexo"
+                  )}
                 </button>
               </div>
             </div>

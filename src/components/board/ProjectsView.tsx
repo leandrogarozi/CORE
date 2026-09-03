@@ -16,6 +16,7 @@ import {
 } from "./icons";
 import { RichTextEditor } from "./RichTextEditor";
 import { fmtHM } from "@/lib/date-utils";
+import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { CATEGORY_LABEL, PROJECT_NAMING_TEMPLATE_DEFAULT, type Category, type Project } from "@/lib/types";
 
 const CATEGORIES = Object.keys(CATEGORY_LABEL) as Category[];
@@ -157,18 +158,7 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
   const [overId, setOverId] = useState<string | null>(null);
   const [namingEditorOpen, setNamingEditorOpen] = useState(false);
   const [namingDraft, setNamingDraft] = useState(namingTemplate);
-  const [wide, setWide] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem("faro-project-wide") === "1";
-  });
-
-  function toggleWide() {
-    setWide((w) => {
-      const next = !w;
-      localStorage.setItem("faro-project-wide", next ? "1" : "0");
-      return next;
-    });
-  }
+  const { wide, toggleWide } = useWideLayout("faro-project-wide");
 
   // Coluna inicial mais larga aqui pra caber o número da ordem além do grip.
   const stepGridTemplate = columns.gridTemplate.replace(/^30px/, "38px");
@@ -277,7 +267,7 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
         </button>
       </div>
 
-      <div className={"narrow-list project-wide" + (wide ? " project-xl" : "")}>
+      <div className={"narrow-list project-wide" + (wide ? " list-xl" : "")}>
         <div className="diet-page-card">
           <div className="project-name-row">
             <input

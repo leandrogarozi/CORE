@@ -94,9 +94,12 @@ function CommentModal({
 
   function save() {
     onSave(draft);
+    onClose();
   }
 
-  // Auto-save a cada 30s pra não perder texto se fechar sem clicar em Salvar.
+  // Auto-save a cada 30s pra não perder texto se fechar sem clicar em Salvar —
+  // só persiste, nunca fecha a caixa (diferente do botão Salvar/Enter), senão
+  // corta quem está digitando no meio do processo a cada 30s.
   useEffect(() => {
     const id = setInterval(() => onSave(draftRef.current), 30000);
     return () => clearInterval(id);
@@ -197,10 +200,7 @@ export function CommentButton({
           initialValue={value ?? ""}
           placeholder={placeholder}
           title={title ?? ariaLabel}
-          onSave={(text) => {
-            onSave(text);
-            setExpanded(false);
-          }}
+          onSave={onSave}
           onClose={() => setExpanded(false)}
         />
       )}

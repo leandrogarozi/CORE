@@ -5,11 +5,22 @@ import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { AttachmentsButton } from "./AttachmentsButton";
 import { CommentButton } from "./CommentButton";
-import { BellIcon, CheckIcon, EraserIcon, ExpandIcon, RepeatIcon, TrashIcon, WarningIcon, WeekIcon } from "./icons";
+import {
+  BellIcon,
+  CheckIcon,
+  EraserIcon,
+  ExpandHorizontalIcon,
+  ExpandIcon,
+  RepeatIcon,
+  TrashIcon,
+  WarningIcon,
+  WeekIcon,
+} from "./icons";
 import { RichTextEditor } from "./RichTextEditor";
 import { TimePicker } from "./TimePicker";
 import { DAY_NAMES, fmtDayMonth, isoAddDays, todayISO } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
+import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { REMINDER_ALERT_PRESETS, isReminderOverdue, isRecurringReminder, reminderTargetMs } from "@/lib/board/reminder-alerts";
 import type { Reminder, ReminderStatus, Repeat } from "@/lib/types";
 
@@ -707,6 +718,7 @@ export function RemindersView({ onBack }: { onBack: () => void }) {
   const { board } = useBoardCtx();
   const [newTitle, setNewTitle] = useState("");
   const [filter, setFilter] = useState<ReminderFilter>("todos");
+  const { wide, toggleWide } = useWideLayout("faro-reminders-wide");
 
   async function handleAdd() {
     const title = newTitle.trim();
@@ -731,10 +743,18 @@ export function RemindersView({ onBack }: { onBack: () => void }) {
           ‹
         </button>
         <span className="dash-range-label">Lembretes</span>
-        <span style={{ width: 30 }} />
+        <button
+          className="strip-nav"
+          type="button"
+          aria-label={wide ? "Reduzir largura do bloco" : "Expandir largura do bloco"}
+          title={wide ? "Reduzir largura" : "Expandir largura"}
+          onClick={toggleWide}
+        >
+          <ExpandHorizontalIcon flipped={wide} />
+        </button>
       </div>
 
-      <div className="narrow-list reminders-wide">
+      <div className={"narrow-list reminders-wide" + (wide ? " list-xl" : "")}>
         <div className="list-quickadd-card">
           <div className="quickadd-row">
             <span className="quickadd-plus" aria-hidden="true">
