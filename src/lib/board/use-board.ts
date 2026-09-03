@@ -42,6 +42,7 @@ import {
 } from "@/lib/board/mappers";
 import { isoAddDays, occurrenceDates, todayISO } from "@/lib/date-utils";
 import { isRecurringReminder, nextReminderOccurrenceDate } from "@/lib/board/reminder-alerts";
+import { reportSaveError } from "@/lib/board/error-toast";
 import type {
   ActiveTimer,
   Attachment,
@@ -232,7 +233,7 @@ export function useBoard(userId: string | null) {
       );
       expiredMeds.forEach((m) => {
         supabase.from("medications").update({ active: false }).eq("id", m.id).then(({ error }) => {
-          if (error) console.error("auto-deactivate medication", error);
+          if (error) reportSaveError("auto-deactivate medication", error);
         });
       });
     }
@@ -244,7 +245,7 @@ export function useBoard(userId: string | null) {
       );
       expiredGroups.forEach((g) => {
         supabase.from("medication_groups").update({ active: false }).eq("id", g.id).then(({ error }) => {
-          if (error) console.error("auto-deactivate medication group", error);
+          if (error) reportSaveError("auto-deactivate medication group", error);
         });
       });
     }
@@ -298,7 +299,7 @@ export function useBoard(userId: string | null) {
       };
       apply((s) => ({ ...s, tasks: [...s.tasks, t] }));
       supabase.from("tasks").insert(taskToInsertRow(t, userId)).then(({ error }) => {
-        if (error) console.error("addTask", error);
+        if (error) reportSaveError("addTask", error);
       });
     },
     [apply, defaultStatusId, nextOrder, supabase, userId]
@@ -311,7 +312,7 @@ export function useBoard(userId: string | null) {
       const done = status.isDone;
       apply((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === id ? { ...x, statusId, done } : x)) }));
       supabase.from("tasks").update({ status_id: statusId, done }).eq("id", id).then(({ error }) => {
-        if (error) console.error("setTaskStatus", error);
+        if (error) reportSaveError("setTaskStatus", error);
       });
     },
     [apply, supabase]
@@ -321,7 +322,7 @@ export function useBoard(userId: string | null) {
     (id: string, quick: 0 | 1 | 2 | 3) => {
       apply((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === id ? { ...x, quick } : x)) }));
       supabase.from("tasks").update({ quick }).eq("id", id).then(({ error }) => {
-        if (error) console.error("setQuick", error);
+        if (error) reportSaveError("setQuick", error);
       });
     },
     [apply, supabase]
@@ -331,7 +332,7 @@ export function useBoard(userId: string | null) {
     (id: string, priority: Priority) => {
       apply((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === id ? { ...x, priority } : x)) }));
       supabase.from("tasks").update({ priority }).eq("id", id).then(({ error }) => {
-        if (error) console.error("setPriority", error);
+        if (error) reportSaveError("setPriority", error);
       });
     },
     [apply, supabase]
@@ -341,7 +342,7 @@ export function useBoard(userId: string | null) {
     (id: string, category: Category, category2: Category | null) => {
       apply((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === id ? { ...x, category, category2 } : x)) }));
       supabase.from("tasks").update({ category, category2 }).eq("id", id).then(({ error }) => {
-        if (error) console.error("setCategory", error);
+        if (error) reportSaveError("setCategory", error);
       });
     },
     [apply, supabase]
@@ -351,7 +352,7 @@ export function useBoard(userId: string | null) {
     (id: string, note: string) => {
       apply((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === id ? { ...x, note } : x)) }));
       supabase.from("tasks").update({ note }).eq("id", id).then(({ error }) => {
-        if (error) console.error("updateTaskNote", error);
+        if (error) reportSaveError("updateTaskNote", error);
       });
     },
     [apply, supabase]
@@ -361,7 +362,7 @@ export function useBoard(userId: string | null) {
     (id: string, title: string) => {
       apply((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === id ? { ...x, title } : x)) }));
       supabase.from("tasks").update({ title }).eq("id", id).then(({ error }) => {
-        if (error) console.error("updateTaskTitle", error);
+        if (error) reportSaveError("updateTaskTitle", error);
       });
     },
     [apply, supabase]
@@ -378,7 +379,7 @@ export function useBoard(userId: string | null) {
       }));
       orderedIds.forEach((id, idx) => {
         supabase.from("tasks").update({ sort_order: idx }).eq("id", id).then(({ error }) => {
-          if (error) console.error("reorderBucket", error);
+          if (error) reportSaveError("reorderBucket", error);
         });
       });
     },
@@ -413,7 +414,7 @@ export function useBoard(userId: string | null) {
           supabase.from("tasks").update({ sort_order: x.order }).eq("id", x.id).then(() => {});
         });
       supabase.from("tasks").insert(taskToInsertRow(clone, userId)).then(({ error }) => {
-        if (error) console.error("duplicateTask", error);
+        if (error) reportSaveError("duplicateTask", error);
       });
     },
     [apply, defaultStatusId, supabase, userId]
@@ -439,7 +440,7 @@ export function useBoard(userId: string | null) {
           trashedTasks: [...s.trashedTasks, { ...t, deletedAt: nowIso }],
         }));
         supabase.from("tasks").update({ deleted_at: nowIso }).eq("id", id).then(({ error }) => {
-          if (error) console.error("deleteTask", error);
+          if (error) reportSaveError("deleteTask", error);
         });
         if (t.seriesId) {
           const series = stateRef.current.taskSeries.find((sr) => sr.id === t.seriesId);
@@ -454,7 +455,7 @@ export function useBoard(userId: string | null) {
               .update({ skipped_dates: skipped })
               .eq("id", series.id)
               .then(({ error }) => {
-                if (error) console.error("deleteTask skip", error);
+                if (error) reportSaveError("deleteTask skip", error);
               });
           }
         }
@@ -479,14 +480,14 @@ export function useBoard(userId: string | null) {
         trashedTasks: [...s.trashedTasks, ...toDelete.map((x) => ({ ...x, deletedAt: nowIso }))],
       }));
       supabase.from("tasks").update({ deleted_at: nowIso }).in("id", toDeleteIds).then(({ error }) => {
-        if (error) console.error("deleteTask bulk", error);
+        if (error) reportSaveError("deleteTask bulk", error);
       });
       apply((s) => ({
         ...s,
         taskSeries: s.taskSeries.map((sr) => (sr.id === seriesId ? { ...sr, repeat: "none" } : sr)),
       }));
       supabase.from("task_series").update({ repeat: "none" }).eq("id", seriesId).then(({ error }) => {
-        if (error) console.error("deleteTask stop series", error);
+        if (error) reportSaveError("deleteTask stop series", error);
       });
     },
     [apply, supabase]
@@ -502,7 +503,7 @@ export function useBoard(userId: string | null) {
         tasks: [...s.tasks, { ...t, deletedAt: null }],
       }));
       supabase.from("tasks").update({ deleted_at: null }).eq("id", id).then(({ error }) => {
-        if (error) console.error("restoreTask", error);
+        if (error) reportSaveError("restoreTask", error);
       });
     },
     [apply, supabase]
@@ -518,7 +519,7 @@ export function useBoard(userId: string | null) {
         trashedReminders: s.trashedReminders.filter((r) => r.taskId !== id),
       }));
       supabase.from("tasks").delete().eq("id", id).then(({ error }) => {
-        if (error) console.error("purgeTask", error);
+        if (error) reportSaveError("purgeTask", error);
       });
     },
     [apply, supabase]
@@ -569,7 +570,7 @@ export function useBoard(userId: string | null) {
             taskSeries: [...s.taskSeries, series],
           }));
           supabase.from("task_series").insert(seriesToInsertRow(series, userId)).then(({ error }) => {
-            if (error) console.error("saveTaskEdit series insert", error);
+            if (error) reportSaveError("saveTaskEdit series insert", error);
           });
         } else {
           apply((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === id ? updated : x)) }));
@@ -579,7 +580,7 @@ export function useBoard(userId: string | null) {
           .update(taskToRow(updated, userId))
           .eq("id", id)
           .then(({ error }) => {
-            if (error) console.error("saveTaskEdit", error);
+            if (error) reportSaveError("saveTaskEdit", error);
           });
         return;
       }
@@ -605,7 +606,7 @@ export function useBoard(userId: string | null) {
         .update(taskToRow(updated, userId))
         .eq("id", id)
         .then(({ error }) => {
-          if (error) console.error("saveTaskEdit occurrence", error);
+          if (error) reportSaveError("saveTaskEdit occurrence", error);
         });
 
       if (scope === "esta" || !scope) return;
@@ -625,7 +626,7 @@ export function useBoard(userId: string | null) {
         taskSeries: s.taskSeries.map((sr) => (sr.id === seriesId ? { ...sr, ...seriesPatch } : sr)),
       }));
       supabase.from("task_series").update(seriesToUpdateRow(seriesPatch)).eq("id", seriesId).then(({ error }) => {
-        if (error) console.error("saveTaskEdit series update", error);
+        if (error) reportSaveError("saveTaskEdit series update", error);
       });
 
       const today = todayISO();
@@ -660,7 +661,7 @@ export function useBoard(userId: string | null) {
           })
           .eq("id", sid)
           .then(({ error }) => {
-            if (error) console.error("saveTaskEdit sibling", error);
+            if (error) reportSaveError("saveTaskEdit sibling", error);
           });
       });
     },
@@ -707,7 +708,7 @@ export function useBoard(userId: string | null) {
         .from("tasks")
         .insert(created.map((t) => taskToInsertRow(t, userId)))
         .then(({ error }) => {
-          if (error) console.error("ensureOccurrencesInView", error);
+          if (error) reportSaveError("ensureOccurrencesInView", error);
         });
     },
     [apply, defaultStatusId, nextOrder, supabase, userId]
@@ -723,7 +724,7 @@ export function useBoard(userId: string | null) {
       const status: TaskStatus = { id: uid(), label: label.trim(), color, isDone: false, order };
       apply((s) => ({ ...s, taskStatuses: [...s.taskStatuses, status] }));
       supabase.from("task_statuses").insert(taskStatusToInsertRow(status, userId)).then(({ error }) => {
-        if (error) console.error("addTaskStatus", error);
+        if (error) reportSaveError("addTaskStatus", error);
       });
     },
     [apply, supabase, userId]
@@ -733,7 +734,7 @@ export function useBoard(userId: string | null) {
     (id: string, patch: Partial<Pick<TaskStatus, "label" | "color" | "isDone">>) => {
       apply((s) => ({ ...s, taskStatuses: s.taskStatuses.map((x) => (x.id === id ? { ...x, ...patch } : x)) }));
       supabase.from("task_statuses").update(taskStatusToUpdateRow(patch)).eq("id", id).then(({ error }) => {
-        if (error) console.error("updateTaskStatus", error);
+        if (error) reportSaveError("updateTaskStatus", error);
       });
       if (patch.isDone === undefined) return;
       const isDone = patch.isDone;
@@ -741,7 +742,7 @@ export function useBoard(userId: string | null) {
       if (!affectedIds.length) return;
       apply((s) => ({ ...s, tasks: s.tasks.map((t) => (t.statusId === id ? { ...t, done: isDone } : t)) }));
       supabase.from("tasks").update({ done: isDone }).in("id", affectedIds).then(({ error }) => {
-        if (error) console.error("updateTaskStatus sync done", error);
+        if (error) reportSaveError("updateTaskStatus sync done", error);
       });
     },
     [apply, supabase]
@@ -759,7 +760,7 @@ export function useBoard(userId: string | null) {
         tasks: s.tasks.map((t) => (t.statusId === id ? { ...t, statusId: fallback.id, done: fallback.isDone } : t)),
       }));
       supabase.from("task_statuses").delete().eq("id", id).then(({ error }) => {
-        if (error) console.error("deleteTaskStatus", error);
+        if (error) reportSaveError("deleteTaskStatus", error);
       });
       if (affectedIds.length) {
         supabase
@@ -767,7 +768,7 @@ export function useBoard(userId: string | null) {
           .update({ status_id: fallback.id, done: fallback.isDone })
           .in("id", affectedIds)
           .then(({ error }) => {
-            if (error) console.error("deleteTaskStatus reassign", error);
+            if (error) reportSaveError("deleteTaskStatus reassign", error);
           });
       }
     },
@@ -799,7 +800,7 @@ export function useBoard(userId: string | null) {
       const b: Book = { id: uid(), title: title.trim(), status: "para_ler", priority: "media", insights: null, startedAt: null, order };
       apply((s) => ({ ...s, books: [...s.books, b] }));
       supabase.from("books").insert(bookToInsertRow(b, userId)).then(({ error }) => {
-        if (error) console.error("addBook", error);
+        if (error) reportSaveError("addBook", error);
       });
     },
     [apply, supabase, userId]
@@ -809,7 +810,7 @@ export function useBoard(userId: string | null) {
     (id: string, patch: Partial<Pick<Book, "title" | "status" | "priority" | "insights" | "startedAt">>) => {
       apply((s) => ({ ...s, books: s.books.map((b) => (b.id === id ? { ...b, ...patch } : b)) }));
       supabase.from("books").update(bookToUpdateRow(patch)).eq("id", id).then(({ error }) => {
-        if (error) console.error("updateBook", error);
+        if (error) reportSaveError("updateBook", error);
       });
     },
     [apply, supabase]
@@ -819,7 +820,7 @@ export function useBoard(userId: string | null) {
     (id: string) => {
       apply((s) => ({ ...s, books: s.books.filter((b) => b.id !== id) }));
       supabase.from("books").delete().eq("id", id).then(({ error }) => {
-        if (error) console.error("deleteBook", error);
+        if (error) reportSaveError("deleteBook", error);
       });
     },
     [apply, supabase]
@@ -837,7 +838,7 @@ export function useBoard(userId: string | null) {
       }));
       orderedIds.forEach((id, idx) => {
         supabase.from("books").update({ sort_order: idx }).eq("id", id).then(({ error }) => {
-          if (error) console.error("reorderBooks", error);
+          if (error) reportSaveError("reorderBooks", error);
         });
       });
     },
@@ -860,7 +861,7 @@ export function useBoard(userId: string | null) {
       };
       apply((s) => ({ ...s, projects: [...s.projects, p] }));
       supabase.from("projects").insert(projectToInsertRow(p, userId)).then(({ error }) => {
-        if (error) console.error("addProject", error);
+        if (error) reportSaveError("addProject", error);
       });
     },
     [apply, supabase, userId]
@@ -875,7 +876,7 @@ export function useBoard(userId: string | null) {
     ) => {
       apply((s) => ({ ...s, projects: s.projects.map((p) => (p.id === id ? { ...p, ...patch } : p)) }));
       supabase.from("projects").update(projectToUpdateRow(patch)).eq("id", id).then(({ error }) => {
-        if (error) console.error("updateProject", error);
+        if (error) reportSaveError("updateProject", error);
       });
     },
     [apply, supabase]
@@ -889,7 +890,7 @@ export function useBoard(userId: string | null) {
         tasks: s.tasks.map((t) => (t.projectId === id ? { ...t, projectId: null } : t)),
       }));
       supabase.from("projects").delete().eq("id", id).then(({ error }) => {
-        if (error) console.error("deleteProject", error);
+        if (error) reportSaveError("deleteProject", error);
       });
     },
     [apply, supabase]
@@ -926,7 +927,7 @@ export function useBoard(userId: string | null) {
       };
       apply((s) => ({ ...s, tasks: [...s.tasks, t] }));
       supabase.from("tasks").insert(taskToInsertRow(t, userId)).then(({ error }) => {
-        if (error) console.error("addTaskToProject", error);
+        if (error) reportSaveError("addTaskToProject", error);
       });
     },
     [apply, defaultStatusId, supabase, userId]
@@ -952,7 +953,7 @@ export function useBoard(userId: string | null) {
       };
       apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
       supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
-        if (error) console.error("addReminder", error);
+        if (error) reportSaveError("addReminder", error);
       });
     },
     [apply, supabase, userId]
@@ -970,7 +971,7 @@ export function useBoard(userId: string | null) {
     ) => {
       apply((s) => ({ ...s, reminders: s.reminders.map((r) => (r.id === id ? { ...r, ...patch } : r)) }));
       supabase.from("reminders").update(reminderToUpdateRow(patch)).eq("id", id).then(({ error }) => {
-        if (error) console.error("updateReminder", error);
+        if (error) reportSaveError("updateReminder", error);
       });
     },
     [apply, supabase]
@@ -987,7 +988,7 @@ export function useBoard(userId: string | null) {
         trashedReminders: [...s.trashedReminders, { ...r, deletedAt: nowIso }],
       }));
       supabase.from("reminders").update({ deleted_at: nowIso }).eq("id", id).then(({ error }) => {
-        if (error) console.error("deleteReminder", error);
+        if (error) reportSaveError("deleteReminder", error);
       });
     },
     [apply, supabase]
@@ -1003,7 +1004,7 @@ export function useBoard(userId: string | null) {
         reminders: [...s.reminders, { ...r, deletedAt: null }],
       }));
       supabase.from("reminders").update({ deleted_at: null }).eq("id", id).then(({ error }) => {
-        if (error) console.error("restoreReminder", error);
+        if (error) reportSaveError("restoreReminder", error);
       });
     },
     [apply, supabase]
@@ -1013,7 +1014,7 @@ export function useBoard(userId: string | null) {
     (id: string) => {
       apply((s) => ({ ...s, trashedReminders: s.trashedReminders.filter((x) => x.id !== id) }));
       supabase.from("reminders").delete().eq("id", id).then(({ error }) => {
-        if (error) console.error("purgeReminder", error);
+        if (error) reportSaveError("purgeReminder", error);
       });
     },
     [apply, supabase]
@@ -1061,7 +1062,7 @@ export function useBoard(userId: string | null) {
       };
       apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
       supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
-        if (error) console.error("setTaskReminder", error);
+        if (error) reportSaveError("setTaskReminder", error);
       });
     },
     [apply, deleteReminder, supabase, updateReminder, userId]
@@ -1094,7 +1095,7 @@ export function useBoard(userId: string | null) {
       };
       apply((s) => ({ ...s, reminders: [...s.reminders, next] }));
       supabase.from("reminders").insert(reminderToInsertRow(next, userId)).then(({ error }) => {
-        if (error) console.error("completeReminder", error);
+        if (error) reportSaveError("completeReminder", error);
       });
     },
     [apply, supabase, updateReminder, userId]
@@ -1117,7 +1118,7 @@ export function useBoard(userId: string | null) {
       };
       apply((s) => ({ ...s, medications: [...s.medications, m] }));
       supabase.from("medications").insert(medicationToInsertRow(m, userId)).then(({ error }) => {
-        if (error) console.error("addMedication", error);
+        if (error) reportSaveError("addMedication", error);
       });
     },
     [apply, supabase, userId]
@@ -1127,7 +1128,7 @@ export function useBoard(userId: string | null) {
     (id: string, patch: Partial<Pick<Medication, "name" | "time" | "notes" | "startDate" | "durationDays" | "weekDays" | "active">>) => {
       apply((s) => ({ ...s, medications: s.medications.map((m) => (m.id === id ? { ...m, ...patch } : m)) }));
       supabase.from("medications").update(medicationToUpdateRow(patch)).eq("id", id).then(({ error }) => {
-        if (error) console.error("updateMedication", error);
+        if (error) reportSaveError("updateMedication", error);
       });
     },
     [apply, supabase]
@@ -1137,7 +1138,7 @@ export function useBoard(userId: string | null) {
     (id: string) => {
       apply((s) => ({ ...s, medications: s.medications.filter((m) => m.id !== id) }));
       supabase.from("medications").delete().eq("id", id).then(({ error }) => {
-        if (error) console.error("deleteMedication", error);
+        if (error) reportSaveError("deleteMedication", error);
       });
     },
     [apply, supabase]
@@ -1159,7 +1160,7 @@ export function useBoard(userId: string | null) {
       };
       apply((s) => ({ ...s, medicationGroups: [...s.medicationGroups, g] }));
       supabase.from("medication_groups").insert(medicationGroupToInsertRow(g, userId)).then(({ error }) => {
-        if (error) console.error("addMedicationGroup", error);
+        if (error) reportSaveError("addMedicationGroup", error);
       });
     },
     [apply, supabase, userId]
@@ -1172,7 +1173,7 @@ export function useBoard(userId: string | null) {
     ) => {
       apply((s) => ({ ...s, medicationGroups: s.medicationGroups.map((g) => (g.id === id ? { ...g, ...patch } : g)) }));
       supabase.from("medication_groups").update(medicationGroupToUpdateRow(patch)).eq("id", id).then(({ error }) => {
-        if (error) console.error("updateMedicationGroup", error);
+        if (error) reportSaveError("updateMedicationGroup", error);
       });
     },
     [apply, supabase]
@@ -1186,7 +1187,7 @@ export function useBoard(userId: string | null) {
         medications: s.medications.filter((m) => m.groupId !== id),
       }));
       supabase.from("medication_groups").delete().eq("id", id).then(({ error }) => {
-        if (error) console.error("deleteMedicationGroup", error);
+        if (error) reportSaveError("deleteMedicationGroup", error);
       });
     },
     [apply, supabase]
@@ -1205,7 +1206,7 @@ export function useBoard(userId: string | null) {
       };
       apply((s) => ({ ...s, checklists: [...s.checklists, c] }));
       supabase.from("checklists").insert(checklistToInsertRow(c, userId)).then(({ error }) => {
-        if (error) console.error("addChecklist", error);
+        if (error) reportSaveError("addChecklist", error);
       });
     },
     [apply, supabase, userId]
@@ -1215,7 +1216,7 @@ export function useBoard(userId: string | null) {
     (id: string, patch: Partial<Pick<Checklist, "title" | "type" | "items">>) => {
       apply((s) => ({ ...s, checklists: s.checklists.map((c) => (c.id === id ? { ...c, ...patch } : c)) }));
       supabase.from("checklists").update(checklistToUpdateRow(patch)).eq("id", id).then(({ error }) => {
-        if (error) console.error("updateChecklist", error);
+        if (error) reportSaveError("updateChecklist", error);
       });
     },
     [apply, supabase]
@@ -1225,7 +1226,7 @@ export function useBoard(userId: string | null) {
     (id: string) => {
       apply((s) => ({ ...s, checklists: s.checklists.filter((c) => c.id !== id) }));
       supabase.from("checklists").delete().eq("id", id).then(({ error }) => {
-        if (error) console.error("deleteChecklist", error);
+        if (error) reportSaveError("deleteChecklist", error);
       });
     },
     [apply, supabase]
@@ -1245,7 +1246,7 @@ export function useBoard(userId: string | null) {
       };
       apply((s) => ({ ...s, checklists: [...s.checklists, copy] }));
       supabase.from("checklists").insert(checklistToInsertRow(copy, userId)).then(({ error }) => {
-        if (error) console.error("duplicateChecklist", error);
+        if (error) reportSaveError("duplicateChecklist", error);
       });
     },
     [apply, supabase, userId]
@@ -1269,7 +1270,7 @@ export function useBoard(userId: string | null) {
         .from(tableFor(kind))
         .insert({ id: item.id, user_id: userId, name: item.name, duration_minutes: durationMin, sort_order: order })
         .then(({ error }) => {
-          if (error) console.error("addRecurring", error);
+          if (error) reportSaveError("addRecurring", error);
         });
     },
     [apply, supabase, userId]
@@ -1287,7 +1288,7 @@ export function useBoard(userId: string | null) {
         .update({ name, duration_minutes: durationMin })
         .eq("id", id)
         .then(({ error }) => {
-          if (error) console.error("updateRecurring", error);
+          if (error) reportSaveError("updateRecurring", error);
         });
     },
     [apply, supabase]
@@ -1305,7 +1306,7 @@ export function useBoard(userId: string | null) {
         .update({ note_options: noteOptions })
         .eq("id", id)
         .then(({ error }) => {
-          if (error) console.error("updateRecurringNoteOptions", error);
+          if (error) reportSaveError("updateRecurringNoteOptions", error);
         });
     },
     [apply, supabase]
@@ -1321,7 +1322,7 @@ export function useBoard(userId: string | null) {
       }
       apply((s) => ({ ...s, [listKey]: s[listKey].filter((x) => x.id !== id) }));
       supabase.from(tableFor(kind)).delete().eq("id", id).then(({ error }) => {
-        if (error) console.error("deleteRecurringItem", error);
+        if (error) reportSaveError("deleteRecurringItem", error);
       });
     },
     [apply, supabase]
@@ -1334,7 +1335,7 @@ export function useBoard(userId: string | null) {
           ? supabase.from("habit_logs").delete().eq("habit_id", id).eq("log_date", iso)
           : supabase.from("fixed_block_logs").delete().eq("block_id", id).eq("log_date", iso);
       query.then(({ error }) => {
-        if (error) console.error("deleteRecurringLog", error);
+        if (error) reportSaveError("deleteRecurringLog", error);
       });
     },
     [supabase]
@@ -1361,7 +1362,7 @@ export function useBoard(userId: string | null) {
                 { onConflict: "block_id,log_date" }
               );
       query.then(({ error }) => {
-        if (error) console.error("upsertRecurringLog", error);
+        if (error) reportSaveError("upsertRecurringLog", error);
       });
     },
     [supabase]
@@ -1421,7 +1422,7 @@ export function useBoard(userId: string | null) {
         .from("fixed_block_log_entries")
         .insert({ id: newEntry.id, user_id: userId, block_id: blockId, log_date: iso, note, minutes })
         .then(({ error }) => {
-          if (error) console.error("addBlockLogEntry", error);
+          if (error) reportSaveError("addBlockLogEntry", error);
         });
       upsertRecurringLog("block", blockId, iso, trackedSeconds, userId, summaryNote);
     },
@@ -1449,7 +1450,7 @@ export function useBoard(userId: string | null) {
         .delete()
         .eq("id", entryId)
         .then(({ error }) => {
-          if (error) console.error("deleteBlockLogEntry", error);
+          if (error) reportSaveError("deleteBlockLogEntry", error);
         });
       if (entries.length === 0) {
         deleteRecurringLog("block", blockId, iso);
@@ -1485,7 +1486,7 @@ export function useBoard(userId: string | null) {
             .update({ tracked_seconds: trackedSeconds, duration_minutes: durationMin })
             .eq("id", at.itemId)
             .then(({ error }) => {
-              if (error) console.error("stopTimer task", error);
+              if (error) reportSaveError("stopTimer task", error);
             });
         }
       } else {
@@ -1524,7 +1525,7 @@ export function useBoard(userId: string | null) {
         .from("active_timer")
         .insert({ id: at.id, user_id: userId, kind, item_id: id, log_date: logDate, started_at: new Date(at.startedAt).toISOString() })
         .then(({ error }) => {
-          if (error) console.error("toggleTimer", error);
+          if (error) reportSaveError("toggleTimer", error);
         });
     },
     [apply, stopTimer, supabase, userId]
@@ -1561,13 +1562,13 @@ export function useBoard(userId: string | null) {
       const at: ActiveTimer = { id: uid(), kind: "task", itemId: t.id, logDate: today, startedAt: Date.now() };
       apply((s) => ({ ...s, tasks: [...s.tasks, t], activeTimers: [...s.activeTimers, at] }));
       supabase.from("tasks").insert(taskToInsertRow(t, userId)).then(({ error }) => {
-        if (error) console.error("startMeeting task", error);
+        if (error) reportSaveError("startMeeting task", error);
       });
       supabase
         .from("active_timer")
         .insert({ id: at.id, user_id: userId, kind: "task", item_id: t.id, log_date: today, started_at: new Date(at.startedAt).toISOString() })
         .then(({ error }) => {
-          if (error) console.error("startMeeting timer", error);
+          if (error) reportSaveError("startMeeting timer", error);
         });
     },
     [apply, defaultStatusId, nextOrder, supabase, userId]
@@ -1580,7 +1581,7 @@ export function useBoard(userId: string | null) {
       const next = (task.expectedDurationMin ?? 0) + addMin;
       apply((s) => ({ ...s, tasks: s.tasks.map((t) => (t.id === taskId ? { ...t, expectedDurationMin: next } : t)) }));
       supabase.from("tasks").update({ expected_duration_min: next }).eq("id", taskId).then(({ error }) => {
-        if (error) console.error("bumpExpectedDuration", error);
+        if (error) reportSaveError("bumpExpectedDuration", error);
       });
     },
     [apply, supabase]
@@ -1623,7 +1624,7 @@ export function useBoard(userId: string | null) {
           diet_whatsapp_opt_in: merged.dietWhatsappOptIn,
         })
         .then(({ error }) => {
-          if (error) console.error("updateSettings", error);
+          if (error) reportSaveError("updateSettings", error);
         });
     },
     [apply, supabase, userId]
@@ -1656,7 +1657,7 @@ export function useBoard(userId: string | null) {
         .eq("entity_id", entityId)
         .order("created_at", { ascending: true });
       if (error) {
-        console.error("listAttachments", error);
+        reportSaveError("listAttachments", error);
         return [];
       }
       return (data ?? []).map(rowToAttachment);
@@ -1751,7 +1752,7 @@ export function useBoard(userId: string | null) {
     async (filePath: string): Promise<string | null> => {
       const { data, error } = await supabase.storage.from("attachments").createSignedUrl(filePath, 60);
       if (error || !data) {
-        console.error("getAttachmentUrl", error);
+        reportSaveError("getAttachmentUrl", error);
         return null;
       }
       return data.signedUrl;
@@ -1797,7 +1798,7 @@ export function useBoard(userId: string | null) {
           { onConflict: "user_id,log_date" }
         )
         .then(({ error }) => {
-          if (error) console.error("updateDailyLog", error);
+          if (error) reportSaveError("updateDailyLog", error);
         });
     },
     [apply, supabase, userId]
@@ -1838,7 +1839,7 @@ export function useBoard(userId: string | null) {
       };
       apply((s) => ({ ...s, dietMeals: [...s.dietMeals, m].sort((a, b) => a.time.localeCompare(b.time)) }));
       supabase.from("diet_meals").insert(dietMealToInsertRow(m, userId)).then(({ error }) => {
-        if (error) console.error("addDietMeal", error);
+        if (error) reportSaveError("addDietMeal", error);
       });
     },
     [apply, supabase, userId]
@@ -1856,7 +1857,7 @@ export function useBoard(userId: string | null) {
           .sort((a, b) => a.time.localeCompare(b.time)),
       }));
       supabase.from("diet_meals").update(dietMealToUpdateRow(patch)).eq("id", id).then(({ error }) => {
-        if (error) console.error("updateDietMeal", error);
+        if (error) reportSaveError("updateDietMeal", error);
       });
     },
     [apply, supabase]
@@ -1866,7 +1867,7 @@ export function useBoard(userId: string | null) {
     (id: string) => {
       apply((s) => ({ ...s, dietMeals: s.dietMeals.filter((m) => m.id !== id) }));
       supabase.from("diet_meals").delete().eq("id", id).then(({ error }) => {
-        if (error) console.error("deleteDietMeal", error);
+        if (error) reportSaveError("deleteDietMeal", error);
       });
     },
     [apply, supabase]

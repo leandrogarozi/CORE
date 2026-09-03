@@ -29,6 +29,7 @@ import { ProfileView } from "./ProfileView";
 import { MeetingButton } from "./MeetingButton";
 import { TimerNudges } from "./TimerNudges";
 import { Sidebar, type ViewMode } from "./Sidebar";
+import { SaveErrorToaster } from "./SaveErrorToaster";
 import { MenuIcon, SettingsIcon, UserIcon, WarningIcon, WeekIcon } from "./icons";
 import { dateFromISO, longLabel, mondayOf, todayISO } from "@/lib/date-utils";
 import type { Task } from "@/lib/types";
@@ -124,6 +125,7 @@ function BoardShell() {
 
   return (
     <div className="wrap">
+      <SaveErrorToaster />
       <Sidebar open={sidebarOpen} viewMode={viewMode} onSelect={selectView} onClose={() => setSidebarOpen(false)} />
 
       <div className="topbar">
