@@ -41,6 +41,26 @@ export async function sendWhatsAppTestMessage(toRaw: string): Promise<WhatsAppSe
   });
 }
 
+/**
+ * Manda o template "lembrete_faro" (categoria Serviços, precisa existir e estar
+ * aprovado na conta) — 1 variável de corpo com o texto do lembrete já formatado
+ * (título + horário). Funciona fora da janela de 24h, é o usado pelo disparo
+ * automático de lembretes.
+ */
+export async function sendWhatsAppReminderMessage(toRaw: string, reminderText: string): Promise<WhatsAppSendResult> {
+  const to = normalizeWhatsAppPhone(toRaw);
+  if (!to) return { ok: false, error: "Telefone inválido" };
+  return callWhatsAppApi({
+    to,
+    type: "template",
+    template: {
+      name: "lembrete_faro",
+      language: { code: "pt_BR" },
+      components: [{ type: "body", parameters: [{ type: "text", text: reminderText }] }],
+    },
+  });
+}
+
 /** Mensagem de texto livre — só entrega se o destinatário tiver falado com o número nas últimas 24h. */
 export async function sendWhatsAppTextMessage(toRaw: string, text: string): Promise<WhatsAppSendResult> {
   const to = normalizeWhatsAppPhone(toRaw);

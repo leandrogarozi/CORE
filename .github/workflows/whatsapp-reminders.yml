@@ -1,0 +1,18 @@
+name: Disparar lembretes por WhatsApp
+
+on:
+  schedule:
+    # A cada 10 minutos. Vercel Hobby não permite cron com essa frequência,
+    # então esse workflow chama a rota da API pelo GitHub Actions.
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chamar /api/whatsapp/dispatch-reminders
+        run: |
+          curl -sS -X POST "${{ vars.FARO_APP_URL }}/api/whatsapp/dispatch-reminders" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            --fail-with-body
