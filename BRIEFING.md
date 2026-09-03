@@ -200,6 +200,22 @@ avisado o Leandro na hora, em vez dele só descobrir no refresh.
 adicionado no app**: sempre conferir se existe uma CHECK constraint no
 banco pra esse campo, e atualizar ela junto — não só o tipo TypeScript.
 
+**Levantamento do estrago real**: contei nos logs do Supabase todos os
+`POST` que falharam por causa dessa constraint desde que o bug começou
+(02/09 13:53) até a correção (03/09 ~18:30) — **13 tarefas** perdidas
+(incluindo as 3 que o Leandro lembrou de cabeça) e mais alguns `POST` de
+lembrete com erro 409 (conflito, causa ainda não investigada —
+diferente da constraint, anotar pra olhar se acontecer de novo). Não
+tem como recuperar o texto de nenhuma — nunca saiu do navegador.
+
+**Camada extra de proteção (mesmo dia)**: `addTask`, `addReminder` e
+`addTaskToProject` agora retornam se salvaram de verdade — os 3 campos
+de "+ adicionar" só limpam o campo depois de confirmar sucesso; se
+falhar, o texto volta pro campo (em vez de sumir junto com o item
+otimista) e fica protegido pelo aviso de fechar a página também. Some
+ao `SaveErrorToaster`: agora um erro real vem com aviso na tela E o
+texto não perdido, sem o Leandro precisar fazer nada.
+
 **Observação à parte, não corrigida ainda**: no mesmo dia, 3 tarefas
 idênticas "Imersão Claude online" foram criadas em 33 segundos —
 parece o Leandro apertando Enter várias vezes achando que não tinha
