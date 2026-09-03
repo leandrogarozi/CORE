@@ -164,6 +164,42 @@ campo `.quickadd-input` ainda tiver texto não confirmado ao tentar
 fechar/recarregar a página — cobre de brinde os quick-add de Livros,
 Checklists e Medicamentos também, sem precisar editar cada tela.
 
+**Atualização (mesmo dia, horas depois) — a causa real era outra, mais grave**:
+o Leandro voltou a perder lançamentos mesmo depois da correção acima
+("toda vez que atualizo o navegador, some"). O diagnóstico do Enter/onBlur
+estava incompleto — cobria só uma causa possível, não a que estava
+acontecendo de verdade. Investigando os logs do Supabase na hora exata que
+ele relançou algo e viu sumir: `POST /rest/v1/tasks` retornando **400**,
+com o erro `new row for relation "tasks" violates check constraint
+"tasks_category_check"`.
+
+**Causa raiz de verdade**: 3 CHECK constraints no banco nunca foram
+atualizadas quando o app ganhou valores novos, então o Postgres estava
+**rejeitando o insert/update inteiro** — e como esses erros só iam pro
+`console.error` (nunca apareciam na tela), o item sumia sem nenhum aviso.
+Não era sobre apertar Enter ou não — mesmo confirmando certinho, o
+salvamento falhava silenciosamente:
+- `tasks_category_check` só permitia as 6 categorias antigas
+  (trabalho/estudo/dev/saude/pessoal/familia) — faltavam `sem_categoria`
+  (categoria padrão de task nova desde 02/09 13:53) e `reuniao`. Confirmado
+  no banco: **zero** tasks com essas categorias existiam, ou seja, vinha
+  falhando 100% das vezes desde então.
+- `task_series_category_check` tinha a mesma lacuna (tarefas recorrentes).
+- `projects_status_check` só permitia `active`/`done`, faltava `cancelled`
+  — esse bug existe desde 29/08 (commit do status Cancelado em Projetos).
+
+**Corrigido**: as 3 constraints atualizadas no Supabase pra aceitar todos
+os valores que o app realmente usa. E, mais importante — **um aviso
+visível na tela** (`SaveErrorToaster`) agora aparece sempre que um
+salvamento falhar de verdade, em vez de sumir só no console: troquei os
+73 `console.error` de `use-board.ts` por `reportSaveError`, que loga E
+mostra um toast vermelho por 12s. Esse é o tipo de proteção que teria
+avisado o Leandro na hora, em vez dele só descobrir no refresh.
+
+**Lição pra próxima vez que um valor novo (categoria, status, etc.) for
+adicionado no app**: sempre conferir se existe uma CHECK constraint no
+banco pra esse campo, e atualizar ela junto — não só o tipo TypeScript.
+
 **Observação à parte, não corrigida ainda**: no mesmo dia, 3 tarefas
 idênticas "Imersão Claude online" foram criadas em 33 segundos —
 parece o Leandro apertando Enter várias vezes achando que não tinha
