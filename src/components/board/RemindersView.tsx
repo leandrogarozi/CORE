@@ -13,6 +13,7 @@ import {
   ExpandIcon,
   RepeatIcon,
   TrashIcon,
+  UsersGroupIcon,
   WarningIcon,
   WeekIcon,
 } from "./icons";
@@ -21,6 +22,8 @@ import { TimePicker } from "./TimePicker";
 import { DAY_NAMES, fmtDayMonth, isoAddDays, todayISO } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
+import { countOpenChecklistItems } from "@/lib/rich-text";
+import { isMeetingTask } from "@/lib/types";
 import { REMINDER_ALERT_PRESETS, isReminderOverdue, isRecurringReminder, reminderTargetMs } from "@/lib/board/reminder-alerts";
 import type { Reminder, ReminderStatus, Repeat } from "@/lib/types";
 
@@ -714,11 +717,14 @@ export function RemindersButton({ onOpenFull }: { onOpenFull: () => void }) {
   );
 }
 
-export function RemindersView({ onBack }: { onBack: () => void }) {
+export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; onOpenMeetings?: () => void }) {
   const { board } = useBoardCtx();
   const [newTitle, setNewTitle] = useState("");
   const [filter, setFilter] = useState<ReminderFilter>("todos");
   const { wide, toggleWide } = useWideLayout("faro-reminders-wide");
+  const openMeetingsCount = board.state.tasks.filter(
+    (t) => isMeetingTask(t) && countOpenChecklistItems(t.note) > 0
+  ).length;
 
   async function handleAdd() {
     const title = newTitle.trim();
@@ -755,6 +761,15 @@ export function RemindersView({ onBack }: { onBack: () => void }) {
       </div>
 
       <div className={"narrow-list reminders-wide" + (wide ? " list-xl" : "")}>
+        {openMeetingsCount > 0 && (
+          <button type="button" className="meetings-pautas-banner" onClick={onOpenMeetings}>
+            <UsersGroupIcon />
+            <span>
+              {openMeetingsCount} reunião{openMeetingsCount > 1 ? "ões" : ""} com pauta em aberto — clique pra ver
+              em Reuniões
+            </span>
+          </button>
+        )}
         <div className="list-quickadd-card">
           <div className="quickadd-row">
             <span className="quickadd-plus" aria-hidden="true">

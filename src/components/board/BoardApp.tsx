@@ -186,7 +186,7 @@ function BoardShell() {
       ) : viewMode === "books" ? (
         <BooksView onBack={() => setViewMode("day")} />
       ) : viewMode === "reminders" ? (
-        <RemindersView onBack={() => setViewMode("day")} />
+        <RemindersView onBack={() => setViewMode("day")} onOpenMeetings={() => setViewMode("meetings")} />
       ) : viewMode === "medications" ? (
         <MedicationsView onBack={() => setViewMode("day")} />
       ) : viewMode === "checklists" ? (
