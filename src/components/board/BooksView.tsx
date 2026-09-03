@@ -11,7 +11,6 @@ import {
   ChevronIcon,
   CommentIcon,
   DragGripIcon,
-  ExpandHorizontalIcon,
   FlagIcon,
   SearchIcon,
   TrashIcon,
@@ -21,7 +20,6 @@ import { RichTextEditor } from "./RichTextEditor";
 import { priorityColor, priorityLabel, nextPriority } from "./TaskRow";
 import { fmtShortDate } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
-import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { stripHtml } from "@/lib/rich-text";
 import {
   BOOK_GROUP_LABEL,
@@ -387,7 +385,6 @@ export function BooksView({ onBack }: { onBack: () => void }) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const searchTerm = search.trim().toLowerCase();
-  const { wide, toggleWide } = useWideLayout("faro-books-wide");
 
   function handleAdd() {
     const title = newTitle.trim();
@@ -421,18 +418,10 @@ export function BooksView({ onBack }: { onBack: () => void }) {
           ‹
         </button>
         <span className="dash-range-label">Livros</span>
-        <button
-          className="strip-nav"
-          type="button"
-          aria-label={wide ? "Reduzir largura do bloco" : "Expandir largura do bloco"}
-          title={wide ? "Reduzir largura" : "Expandir largura"}
-          onClick={toggleWide}
-        >
-          <ExpandHorizontalIcon flipped={wide} />
-        </button>
+        <span style={{ width: 30 }} />
       </div>
 
-      <div className={"narrow-list" + (wide ? " list-xl" : "")}>
+      <div className="narrow-list">
         <div className="list-quickadd-card">
           <div className="quickadd-row">
             <span className="quickadd-plus" aria-hidden="true">

@@ -16,6 +16,7 @@ import {
   CommentIcon,
   DragGripIcon,
   DuplicateIcon,
+  EraserIcon,
   FlagIcon,
   FolderIcon,
   PaperclipIcon,
@@ -23,6 +24,7 @@ import {
   TrashIcon,
   UsersGroupIcon,
   WarningIcon,
+  WeekIcon,
 } from "./icons";
 import { fmtDayMonth, todayISO } from "@/lib/date-utils";
 import { countOpenChecklistItems } from "@/lib/rich-text";
@@ -406,6 +408,132 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
   );
 }
 
+interface TaskWhenFields {
+  date: string | null;
+  time: string;
+  endDate: string | null;
+  endTime: string | null;
+}
+
+// Um menu só pro "quando" da tarefa: início (data + hora) e fim (data + hora)
+// juntos, em vez de 4 campos soltos espalhados pelo formulário.
+function TaskWhenButton({ date, time, endDate, endTime, onSave }: TaskWhenFields & { onSave: (f: TaskWhenFields) => void }) {
+  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
+  const open = anchorRect !== null;
+  const [dateDraft, setDateDraft] = useState(date ?? "");
+  const [timeDraft, setTimeDraft] = useState(time ?? "");
+  const [endDateDraft, setEndDateDraft] = useState(endDate ?? "");
+  const [endTimeDraft, setEndTimeDraft] = useState(endTime ?? "");
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const popRef = useRef<HTMLDivElement>(null);
+  const pos = useClampedPopoverPos(anchorRect, popRef);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDocPointerDown(e: MouseEvent) {
+      if (popRef.current?.contains(e.target as Node) || btnRef.current?.contains(e.target as Node)) return;
+      if ((e.target as HTMLElement).closest?.(".time-picker-pop")) return;
+      setAnchorRect(null);
+    }
+    window.addEventListener("mousedown", onDocPointerDown);
+    return () => window.removeEventListener("mousedown", onDocPointerDown);
+  }, [open]);
+
+  function toggleOpen(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (open) {
+      setAnchorRect(null);
+      return;
+    }
+    setDateDraft(date ?? "");
+    setTimeDraft(time ?? "");
+    setEndDateDraft(endDate ?? "");
+    setEndTimeDraft(endTime ?? "");
+    if (btnRef.current) setAnchorRect(btnRef.current.getBoundingClientRect());
+  }
+
+  function save() {
+    onSave({
+      date: dateDraft || null,
+      time: timeDraft,
+      endDate: endDateDraft || null,
+      endTime: endTimeDraft || null,
+    });
+    setAnchorRect(null);
+  }
+
+  function clearAll() {
+    setDateDraft("");
+    setTimeDraft("");
+    setEndDateDraft("");
+    setEndTimeDraft("");
+  }
+
+  const startLabel = date ? fmtDayMonth(date) + (time ? ` às ${time}` : "") : null;
+  const endLabel = endDate || endTime
+    ? `${endDate && endDate !== date ? fmtDayMonth(endDate) : ""}${endTime ? ` ${endTime}` : ""}`.trim()
+    : null;
+  const label = [startLabel, endLabel ? `até ${endLabel}` : null].filter(Boolean).join(" · ") || null;
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        className={"reminder-date-btn" + (label ? " has-date" : "")}
+        title={label ?? "Definir data e horário"}
+        onClick={toggleOpen}
+      >
+        <WeekIcon />
+        {label && <span>{label}</span>}
+      </button>
+      {open &&
+        createPortal(
+          <div className="daylog-popover" ref={popRef} style={{ top: pos.top, left: pos.left }}>
+            <div className="edit-field">
+              <span className="edit-field-label">Início</span>
+              <div className="reminder-datetime-row">
+                <input
+                  type="date"
+                  autoFocus
+                  value={dateDraft}
+                  onChange={(e) => setDateDraft(e.target.value)}
+                  onKeyDown={(e) => e.key === "Escape" && setAnchorRect(null)}
+                />
+                <TimePicker value={timeDraft} onChange={setTimeDraft} />
+              </div>
+            </div>
+            <div className="edit-field" style={{ marginTop: 8 }}>
+              <span className="edit-field-label">Fim (opcional — evento que passa de um dia)</span>
+              <div className="reminder-datetime-row">
+                <input type="date" value={endDateDraft} onChange={(e) => setEndDateDraft(e.target.value)} />
+                <TimePicker value={endTimeDraft} onChange={setEndTimeDraft} />
+                <button
+                  type="button"
+                  className="icon-btn reminder-clear-btn"
+                  disabled={!dateDraft && !timeDraft && !endDateDraft && !endTimeDraft}
+                  title="Limpar tudo"
+                  onClick={clearAll}
+                >
+                  <EraserIcon />
+                </button>
+              </div>
+            </div>
+            <div className="edit-actions" style={{ marginTop: 10 }}>
+              <button type="button" className="btn btn-ghost" onClick={() => setAnchorRect(null)}>
+                Cancelar
+              </button>
+              <button type="button" className="btn btn-accent" onClick={save}>
+                Salvar
+              </button>
+            </div>
+          </div>,
+          document.body
+        )}
+    </>
+  );
+}
+
 function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
   const { board, askScope } = useBoardCtx();
   const currentSeries = t.seriesId ? board.state.taskSeries.find((s) => s.id === t.seriesId) : null;
@@ -488,27 +616,16 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
             ))}
           </select>
         </label>
-        <label className="edit-field">
-          <span className="edit-field-label">Data</span>
-          <input type="date" value={vals.date || ""} onChange={(e) => setVals((v) => ({ ...v, date: e.target.value || null }))} />
-        </label>
-        <label className="edit-field">
-          <span className="edit-field-label">Hora</span>
-          <TimePicker value={vals.time} onChange={(v) => setVals((s) => ({ ...s, time: v }))} />
-        </label>
-        <label className="edit-field">
-          <span className="edit-field-label">Até (data)</span>
-          <input
-            type="date"
-            value={vals.endDate || ""}
-            placeholder="Igual à data, se vazio"
-            onChange={(e) => setVals((v) => ({ ...v, endDate: e.target.value || null }))}
+        <div className="edit-field">
+          <span className="edit-field-label">Quando</span>
+          <TaskWhenButton
+            date={vals.date}
+            time={vals.time}
+            endDate={vals.endDate}
+            endTime={vals.endTime}
+            onSave={(f) => setVals((v) => ({ ...v, ...f }))}
           />
-        </label>
-        <label className="edit-field">
-          <span className="edit-field-label">Até (hora)</span>
-          <TimePicker value={vals.endTime ?? ""} onChange={(v) => setVals((s) => ({ ...s, endTime: v || null }))} />
-        </label>
+        </div>
         <label className="edit-field">
           <span className="edit-field-label">Duração</span>
           <MinutesPicker

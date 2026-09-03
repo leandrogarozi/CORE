@@ -11,12 +11,10 @@ import {
   ClockIcon,
   CloseCircleIcon,
   EditIcon,
-  ExpandHorizontalIcon,
   PlayCircleIcon,
 } from "./icons";
 import { RichTextEditor } from "./RichTextEditor";
 import { fmtHM } from "@/lib/date-utils";
-import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { CATEGORY_LABEL, PROJECT_NAMING_TEMPLATE_DEFAULT, type Category, type Project } from "@/lib/types";
 
 const CATEGORIES = Object.keys(CATEGORY_LABEL) as Category[];
@@ -158,7 +156,6 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
   const [overId, setOverId] = useState<string | null>(null);
   const [namingEditorOpen, setNamingEditorOpen] = useState(false);
   const [namingDraft, setNamingDraft] = useState(namingTemplate);
-  const { wide, toggleWide } = useWideLayout("faro-project-wide");
 
   // Coluna inicial mais larga aqui pra caber o número da ordem além do grip.
   const stepGridTemplate = columns.gridTemplate.replace(/^30px/, "38px");
@@ -256,18 +253,10 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
           ‹
         </button>
         <span className="dash-range-label">Projeto</span>
-        <button
-          className="strip-nav"
-          type="button"
-          aria-label={wide ? "Reduzir largura do bloco" : "Expandir largura do bloco"}
-          title={wide ? "Reduzir largura" : "Expandir largura"}
-          onClick={toggleWide}
-        >
-          <ExpandHorizontalIcon flipped={wide} />
-        </button>
+        <span style={{ width: 30 }} />
       </div>
 
-      <div className={"narrow-list project-wide" + (wide ? " list-xl" : "")}>
+      <div className="narrow-list project-wide">
         <div className="diet-page-card">
           <div className="project-name-row">
             <input

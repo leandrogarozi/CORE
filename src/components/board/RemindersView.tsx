@@ -9,7 +9,6 @@ import {
   BellIcon,
   CheckIcon,
   EraserIcon,
-  ExpandHorizontalIcon,
   ExpandIcon,
   RepeatIcon,
   TrashIcon,
@@ -21,7 +20,6 @@ import { RichTextEditor } from "./RichTextEditor";
 import { TimePicker } from "./TimePicker";
 import { DAY_NAMES, fmtDayMonth, isoAddDays, todayISO } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
-import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { countOpenChecklistItems } from "@/lib/rich-text";
 import { isMeetingTask } from "@/lib/types";
 import { REMINDER_ALERT_PRESETS, isReminderOverdue, isRecurringReminder, reminderTargetMs } from "@/lib/board/reminder-alerts";
@@ -721,7 +719,6 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
   const { board } = useBoardCtx();
   const [newTitle, setNewTitle] = useState("");
   const [filter, setFilter] = useState<ReminderFilter>("todos");
-  const { wide, toggleWide } = useWideLayout("faro-reminders-wide");
   const openMeetingsCount = board.state.tasks.filter(
     (t) => isMeetingTask(t) && countOpenChecklistItems(t.note) > 0
   ).length;
@@ -749,18 +746,10 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
           ‹
         </button>
         <span className="dash-range-label">Lembretes</span>
-        <button
-          className="strip-nav"
-          type="button"
-          aria-label={wide ? "Reduzir largura do bloco" : "Expandir largura do bloco"}
-          title={wide ? "Reduzir largura" : "Expandir largura"}
-          onClick={toggleWide}
-        >
-          <ExpandHorizontalIcon flipped={wide} />
-        </button>
+        <span style={{ width: 30 }} />
       </div>
 
-      <div className={"narrow-list reminders-wide" + (wide ? " list-xl" : "")}>
+      <div className="narrow-list reminders-wide">
         {openMeetingsCount > 0 && (
           <button type="button" className="meetings-pautas-banner" onClick={onOpenMeetings}>
             <UsersGroupIcon />

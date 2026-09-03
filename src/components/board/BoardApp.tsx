@@ -30,7 +30,8 @@ import { MeetingButton } from "./MeetingButton";
 import { TimerNudges } from "./TimerNudges";
 import { Sidebar, type ViewMode } from "./Sidebar";
 import { SaveErrorToaster } from "./SaveErrorToaster";
-import { MenuIcon, SettingsIcon, UserIcon, WarningIcon, WeekIcon } from "./icons";
+import { ExpandHorizontalIcon, MenuIcon, SettingsIcon, UserIcon, WarningIcon, WeekIcon } from "./icons";
+import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { dateFromISO, longLabel, mondayOf, todayISO } from "@/lib/date-utils";
 import type { Task } from "@/lib/types";
 
@@ -38,6 +39,7 @@ function BoardShell() {
   const { board, sortByQuick, setSortByQuick, setOpenProjectHandler, requestFocus } = useBoardCtx();
   const [viewMode, setViewMode] = useState<ViewMode>("day");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { wide, toggleWide } = useWideLayout("faro-wide-layout");
   const [weekAnchor, setWeekAnchor] = useState(() => mondayOf(new Date()));
   const [selectedDate, setSelectedDate] = useState(() => todayISO());
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
@@ -124,7 +126,7 @@ function BoardShell() {
   const dayTasks = board.state.tasks.filter((t) => t.date === selectedDate);
 
   return (
-    <div className="wrap">
+    <div className={"wrap" + (wide ? " wide" : "")}>
       <SaveErrorToaster />
       <Sidebar open={sidebarOpen} viewMode={viewMode} onSelect={selectView} onClose={() => setSidebarOpen(false)} />
 
@@ -140,6 +142,15 @@ function BoardShell() {
           <div className="today-date mono">{longLabel(todayISO())}</div>
           <button className="today-btn" type="button" onClick={goToday}>
             Hoje
+          </button>
+          <button
+            className={"icon-btn" + (wide ? " active" : "")}
+            type="button"
+            aria-label={wide ? "Voltar à largura normal" : "Usar a tela toda"}
+            title={wide ? "Voltar à largura normal" : "Usar a tela toda"}
+            onClick={toggleWide}
+          >
+            <ExpandHorizontalIcon flipped={wide} />
           </button>
           <button
             className={"icon-btn" + (viewMode === "calendar" ? " active" : "")}
