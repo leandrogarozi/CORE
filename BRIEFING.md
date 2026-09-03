@@ -270,6 +270,35 @@ chegaram:
   se depois de usar o botão ainda achar que tem algo torto, mandar novo
   print apontando onde.
 
+## Leva de 5 ajustes (03/09, depois do incidente de perda de dados)
+
+- **Autosave fechando a caixa de Observação a cada 30s (bug)**: no
+  editor expandido (`CommentButton.tsx` → `CommentModal`), o autosave
+  de 30s chamava a mesma função do botão Salvar, que também fechava a
+  caixa — cortava o Leandro no meio de escrever, repetindo a cada 30s.
+  Corrigido: autosave só persiste, nunca fecha; fechar continua sendo
+  só Salvar/Cancelar/Escape.
+- **Confirmação visual ao anexar arquivo**: depois de subir um anexo,
+  o botão "Adicionar anexo" vira "✓ Salvo" por 2.5s antes de voltar ao
+  normal — antes não dava nenhum feedback de que salvou, gerava
+  insegurança ("gastura", nas palavras dele).
+- **Largura ajustável em Lembretes e Livros**: extraído `useWideLayout`
+  (compartilhado, antes só existia em Projetos) e aplicado nas duas
+  telas — mesmo botão de expandir/reduzir (900px ↔ 1300px), resolve
+  descrição cortada em Lembretes.
+- **Início/fim de data e hora nas tarefas**: colunas `end_date`/
+  `end_time` novas, campos "Até (data)"/"Até (hora)" na edição da
+  tarefa, indicador "→ DD/MM HH:MM" na linha quando preenchido. Por
+  enquanto só guarda o dado — a tarefa continua no bucket do seu
+  `date` original, não aparece em todos os dias do intervalo ainda
+  (isso fica pra quando a sync com Google Agenda for implementada de
+  verdade).
+- **Aviso de reuniões com pauta em aberto em Lembretes, sem misturar**:
+  banner amarelo clicável no topo da aba Lembretes ("N reunião(ões) com
+  pauta em aberto"), só aparece quando existe pelo menos uma — clicar
+  leva pra aba Reuniões (que já tinha essa lógica pronta,
+  `countOpenChecklistItems`). A lista de lembretes em si não muda nada.
+
 ## Categoria: nasce "Sem categoria" (alerta vermelho) + seleção de até 2 num clique só (02/09)
 
 Evolução em 3 rounds do mesmo problema (tag "Trabalho" fixa e esquecida
