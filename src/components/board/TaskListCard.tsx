@@ -114,6 +114,7 @@ export function TaskListCard({
           value={inputVal}
           onChange={(e) => setInputVal(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+          onBlur={handleAdd}
         />
       </div>
       {!items.length && <div className="empty-row">{emptyLabel}</div>}

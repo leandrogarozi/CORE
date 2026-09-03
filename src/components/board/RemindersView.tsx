@@ -745,6 +745,7 @@ export function RemindersView({ onBack }: { onBack: () => void }) {
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+              onBlur={handleAdd}
             />
           </div>
         </div>

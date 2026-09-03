@@ -103,6 +103,22 @@ function BoardShell() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [board.loading, weekDatesISO.fromISO, weekDatesISO.toISO]);
 
+  // Avisa antes de fechar/recarregar se algum campo "+ adicionar" (tarefa, lembrete,
+  // etapa de projeto...) tiver texto digitado e ainda não confirmado (Enter) — sem
+  // isso, fechar a aba nesse meio tempo perde o texto sem deixar rastro nenhum.
+  useEffect(() => {
+    function onBeforeUnload(e: BeforeUnloadEvent) {
+      const hasUnsavedQuickAdd = Array.from(document.querySelectorAll<HTMLInputElement>(".quickadd-input")).some(
+        (el) => el.value.trim() !== ""
+      );
+      if (!hasUnsavedQuickAdd) return;
+      e.preventDefault();
+      e.returnValue = "";
+    }
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, []);
+
   const backlogTasks = board.state.tasks.filter((t) => !t.date);
   const dayTasks = board.state.tasks.filter((t) => t.date === selectedDate);
 

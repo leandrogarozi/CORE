@@ -391,6 +391,7 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
                 value={newStepTitle}
                 onChange={(e) => setNewStepTitle(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addStep()}
+                onBlur={addStep}
               />
             </div>
             {steps.length === 0 ? (
