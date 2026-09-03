@@ -34,6 +34,8 @@ export interface Task {
   priority: Priority;
   date: string | null; // ISO date, null = backlog
   time: string; // "HH:MM" or ""
+  endDate: string | null; // ISO date — fim de um evento que passa de um dia (ex.: viagem, curso); null = evento de um dia só (usa só "date")
+  endTime: string | null; // "HH:MM" — horário de término, no endDate (ou no date, se endDate vazio)
   durationMin: number | null;
   expectedDurationMin: number | null; // previsão de duração (ex.: reunião de 30min) — usada pra avisar quando passar do previsto
   note: string;

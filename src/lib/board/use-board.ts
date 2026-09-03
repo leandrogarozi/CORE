@@ -114,6 +114,8 @@ export interface TaskEditFields {
   priority: Priority;
   date: string | null;
   time: string;
+  endDate: string | null;
+  endTime: string | null;
   durationMin: number | null;
   note: string;
   repeat: Repeat;
@@ -289,6 +291,8 @@ export function useBoard(userId: string | null) {
         priority: "media",
         date: bucketKey || null,
         time: "",
+        endDate: null,
+        endTime: null,
         durationMin: null,
         expectedDurationMin: null,
         note: "",
@@ -552,6 +556,8 @@ export function useBoard(userId: string | null) {
           priority: vals.priority,
           date: vals.date,
           time: vals.time,
+          endDate: vals.endDate,
+          endTime: vals.endTime,
           durationMin: vals.durationMin,
           note: vals.note,
           projectId: vals.projectId,
@@ -603,6 +609,8 @@ export function useBoard(userId: string | null) {
         priority: vals.priority,
         date: vals.date,
         time: vals.time,
+        endDate: vals.endDate,
+        endTime: vals.endTime,
         durationMin: vals.durationMin,
         note: vals.note,
         projectId: vals.projectId,
@@ -696,6 +704,8 @@ export function useBoard(userId: string | null) {
             priority: series.priority,
             date: iso,
             time: series.time || "",
+            endDate: null,
+            endTime: null,
             durationMin: null,
             expectedDurationMin: null,
             note: series.note || "",
@@ -921,6 +931,8 @@ export function useBoard(userId: string | null) {
         priority: "media",
         date: null,
         time: "",
+        endDate: null,
+        endTime: null,
         durationMin: null,
         expectedDurationMin: null,
         note: "",
@@ -1563,6 +1575,8 @@ export function useBoard(userId: string | null) {
         priority: "media",
         date: today,
         time,
+        endDate: null,
+        endTime: null,
         durationMin: null,
         expectedDurationMin,
         note: "",

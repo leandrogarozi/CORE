@@ -24,7 +24,7 @@ import {
   UsersGroupIcon,
   WarningIcon,
 } from "./icons";
-import { todayISO } from "@/lib/date-utils";
+import { fmtDayMonth, todayISO } from "@/lib/date-utils";
 import { countOpenChecklistItems } from "@/lib/rich-text";
 import { CATEGORY_LABEL, isMeetingTask, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
 import type { TaskEditFields } from "@/lib/board/use-board";
@@ -357,6 +357,12 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
           </span>
         )}
         {t.time && <span className="row-time mono">{t.time}</span>}
+        {(t.endDate || t.endTime) && (
+          <span className="row-time mono row-end-range" title="Data/hora de término">
+            → {t.endDate && t.endDate !== t.date ? fmtDayMonth(t.endDate) : ""}
+            {t.endTime ? ` ${t.endTime}` : ""}
+          </span>
+        )}
       </div>
       <div className="row-category-cell">
         {t.seriesId && (
@@ -415,6 +421,8 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
     priority: t.priority,
     date: t.date,
     time: t.time,
+    endDate: t.endDate,
+    endTime: t.endTime,
     durationMin: t.durationMin,
     note: t.note,
     repeat: currentSeries ? currentSeries.repeat : "none",
@@ -487,6 +495,19 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
         <label className="edit-field">
           <span className="edit-field-label">Hora</span>
           <TimePicker value={vals.time} onChange={(v) => setVals((s) => ({ ...s, time: v }))} />
+        </label>
+        <label className="edit-field">
+          <span className="edit-field-label">Até (data)</span>
+          <input
+            type="date"
+            value={vals.endDate || ""}
+            placeholder="Igual à data, se vazio"
+            onChange={(e) => setVals((v) => ({ ...v, endDate: e.target.value || null }))}
+          />
+        </label>
+        <label className="edit-field">
+          <span className="edit-field-label">Até (hora)</span>
+          <TimePicker value={vals.endTime ?? ""} onChange={(v) => setVals((s) => ({ ...s, endTime: v || null }))} />
         </label>
         <label className="edit-field">
           <span className="edit-field-label">Duração</span>

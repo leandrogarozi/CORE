@@ -655,6 +655,8 @@ export type Database = {
           deleted_at: string | null
           done: boolean
           duration_minutes: number | null
+          end_date: string | null
+          end_time: string | null
           expected_duration_min: number | null
           id: string
           note: string | null
@@ -679,6 +681,8 @@ export type Database = {
           deleted_at?: string | null
           done?: boolean
           duration_minutes?: number | null
+          end_date?: string | null
+          end_time?: string | null
           expected_duration_min?: number | null
           id?: string
           note?: string | null
@@ -703,6 +707,8 @@ export type Database = {
           deleted_at?: string | null
           done?: boolean
           duration_minutes?: number | null
+          end_date?: string | null
+          end_time?: string | null
           expected_duration_min?: number | null
           id?: string
           note?: string | null
