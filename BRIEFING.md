@@ -137,6 +137,40 @@ por dificuldade:
   dos status customizáveis em Configurações), com a contagem. Clicar
   num dia navega direto pra ele no Painel do dia.
 
+## Incidente: perda de texto ao fechar o navegador (03/09)
+
+O Leandro fechou o navegador e, ao voltar ~10min depois, notou que os
+últimos lançamentos tinham sumido. Investigado direto no Supabase
+(cruzando `created_at` de tasks/reminders com o horário real): o
+último salvamento confirmado foi às 14:50 (horário de Brasília), e ele
+fechou por volta das 14:59 — uma janela de ~9 minutos sem nenhum
+salvamento. Ele lembrou o que tinha digitado nesse intervalo (uma nova
+etapa em Projetos → Aplicativo FARO, um lembrete de sábado sobre
+"acompanhar treinador Alberto", uma tarefa "subir demandas vídeos ads
+Metalosa") e confirmei no banco: **nenhum dos três existe** — o texto
+nunca chegou a sair do navegador, então não tinha como recuperar o
+conteúdo exato, só a causa.
+
+**Causa raiz**: os campos "+ adicionar" (tarefa, lembrete, etapa de
+projeto) só confirmavam com **Enter** — sem `onBlur`, sem autosave, sem
+aviso nenhum. Se o Leandro digitava e fechava a aba (ou clicava em
+outra coisa) sem apertar Enter, o texto simplesmente sumia, sem deixar
+rastro em lugar nenhum.
+
+**Corrigido**: os 3 campos (`TaskListCard`, `RemindersView`,
+`ProjectsView` — etapa) agora também confirmam no `onBlur` (clicar
+fora), e um aviso do navegador (`beforeunload`) dispara se qualquer
+campo `.quickadd-input` ainda tiver texto não confirmado ao tentar
+fechar/recarregar a página — cobre de brinde os quick-add de Livros,
+Checklists e Medicamentos também, sem precisar editar cada tela.
+
+**Observação à parte, não corrigida ainda**: no mesmo dia, 3 tarefas
+idênticas "Imersão Claude online" foram criadas em 33 segundos —
+parece o Leandro apertando Enter várias vezes achando que não tinha
+funcionado (falta de feedback visual claro de que o item foi
+adicionado). Vale melhorar isso depois, mas não é urgente como a perda
+de dado.
+
 ## Ícone de anexo nas tasks (03/09)
 
 Pedido rápido: tasks com pelo menos um anexo ganham um ícone de clipe
