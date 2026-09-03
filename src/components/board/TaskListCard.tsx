@@ -93,11 +93,12 @@ export function TaskListCard({
     setOverId(null);
   }
 
-  function handleAdd() {
+  async function handleAdd() {
     const title = inputVal.trim();
     if (!title) return;
-    board.addTask(bucketKey, title);
     setInputVal("");
+    const ok = await board.addTask(bucketKey, title);
+    if (!ok) setInputVal(title);
   }
 
   return (

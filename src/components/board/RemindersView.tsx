@@ -640,11 +640,12 @@ export function RemindersButton({ onOpenFull }: { onOpenFull: () => void }) {
     setOpen((v) => !v);
   }
 
-  function handleAdd() {
+  async function handleAdd() {
     const title = newTitle.trim();
     if (!title) return;
-    board.addReminder(title);
     setNewTitle("");
+    const ok = await board.addReminder(title);
+    if (!ok) setNewTitle(title);
   }
 
   return (
@@ -707,11 +708,12 @@ export function RemindersView({ onBack }: { onBack: () => void }) {
   const [newTitle, setNewTitle] = useState("");
   const [filter, setFilter] = useState<ReminderFilter>("todos");
 
-  function handleAdd() {
+  async function handleAdd() {
     const title = newTitle.trim();
     if (!title) return;
-    board.addReminder(title);
     setNewTitle("");
+    const ok = await board.addReminder(title);
+    if (!ok) setNewTitle(title);
   }
 
   const today = todayISO();

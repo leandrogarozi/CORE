@@ -273,9 +273,14 @@ export function useBoard(userId: string | null) {
     return Math.max(...xs.map((t) => t.order || 0)) + 1;
   }, []);
 
+  // Retorna se salvou de verdade — quem chama usa isso pra só limpar o campo de
+  // "+ adicionar" em caso de sucesso; se falhar, desfaz o item otimista e devolve
+  // false, pra quem chamou poder recolocar o texto digitado de volta no campo
+  // (em vez do item sumir silenciosamente no próximo refresh, como aconteceu
+  // em 03/09 por causa de uma constraint desatualizada no banco).
   const addTask = useCallback(
-    (bucketKey: string, title: string) => {
-      if (!userId || !title.trim()) return;
+    async (bucketKey: string, title: string): Promise<boolean> => {
+      if (!userId || !title.trim()) return false;
       const t: Task = {
         id: uid(),
         title: title.trim(),
@@ -298,9 +303,13 @@ export function useBoard(userId: string | null) {
         client: null,
       };
       apply((s) => ({ ...s, tasks: [...s.tasks, t] }));
-      supabase.from("tasks").insert(taskToInsertRow(t, userId)).then(({ error }) => {
-        if (error) reportSaveError("addTask", error);
-      });
+      const { error } = await supabase.from("tasks").insert(taskToInsertRow(t, userId));
+      if (error) {
+        reportSaveError("addTask", error);
+        apply((s) => ({ ...s, tasks: s.tasks.filter((x) => x.id !== t.id) }));
+        return false;
+      }
+      return true;
     },
     [apply, defaultStatusId, nextOrder, supabase, userId]
   );
@@ -897,8 +906,8 @@ export function useBoard(userId: string | null) {
   );
 
   const addTaskToProject = useCallback(
-    (projectId: string, title: string) => {
-      if (!userId || !title.trim()) return;
+    async (projectId: string, title: string): Promise<boolean> => {
+      if (!userId || !title.trim()) return false;
       // Ordem própria por projeto (não a do backlog geral), pra sempre entrar no
       // fim da lista de etapas desse projeto, na ordem em que foram digitadas.
       const siblings = stateRef.current.tasks.filter((x) => x.projectId === projectId);
@@ -926,17 +935,21 @@ export function useBoard(userId: string | null) {
         client: null,
       };
       apply((s) => ({ ...s, tasks: [...s.tasks, t] }));
-      supabase.from("tasks").insert(taskToInsertRow(t, userId)).then(({ error }) => {
-        if (error) reportSaveError("addTaskToProject", error);
-      });
+      const { error } = await supabase.from("tasks").insert(taskToInsertRow(t, userId));
+      if (error) {
+        reportSaveError("addTaskToProject", error);
+        apply((s) => ({ ...s, tasks: s.tasks.filter((x) => x.id !== t.id) }));
+        return false;
+      }
+      return true;
     },
     [apply, defaultStatusId, supabase, userId]
   );
 
   // ---------- reminders ----------
   const addReminder = useCallback(
-    (title: string) => {
-      if (!userId || !title.trim()) return;
+    async (title: string): Promise<boolean> => {
+      if (!userId || !title.trim()) return false;
       const r: Reminder = {
         id: uid(),
         title: title.trim(),
@@ -952,9 +965,13 @@ export function useBoard(userId: string | null) {
         taskId: null,
       };
       apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
-      supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
-        if (error) reportSaveError("addReminder", error);
-      });
+      const { error } = await supabase.from("reminders").insert(reminderToInsertRow(r, userId));
+      if (error) {
+        reportSaveError("addReminder", error);
+        apply((s) => ({ ...s, reminders: s.reminders.filter((x) => x.id !== r.id) }));
+        return false;
+      }
+      return true;
     },
     [apply, supabase, userId]
   );

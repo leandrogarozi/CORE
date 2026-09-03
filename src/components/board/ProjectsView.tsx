@@ -212,12 +212,14 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
     (nameDraft !== null && nameDraft.trim() !== "" && nameDraft.trim() !== project.name) ||
     (descDraft !== null && descDraft !== project.description);
 
-  function addStep() {
+  async function addStep() {
     const title = newStepTitle.trim();
     const prefix = applyNamingTemplate(namingTemplate, project.name, steps.length + 1).trim();
     if (!title || title === prefix) return;
-    board.addTaskToProject(project.id, title);
-    setNewStepTitle(applyNamingTemplate(namingTemplate, project.name, steps.length + 2));
+    const nextDraft = applyNamingTemplate(namingTemplate, project.name, steps.length + 2);
+    setNewStepTitle(nextDraft);
+    const ok = await board.addTaskToProject(project.id, title);
+    if (!ok) setNewStepTitle(title);
   }
 
   function saveNamingTemplate() {
