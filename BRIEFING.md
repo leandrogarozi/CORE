@@ -270,6 +270,25 @@ chegaram:
   se depois de usar o botão ainda achar que tem algo torto, mandar novo
   print apontando onde.
 
+## Correção da largura + menu único de data/hora (03/09)
+
+- **Por que o botão de expandir não funcionava**: o container do app
+  inteiro (`.wrap`) está travado em `max-width:1180px`. O botão que eu
+  tinha feito expandia só o bloco interno (900px -> 1300px), mas ele
+  nunca conseguia passar de 1180px por causa do pai — na prática quase
+  nada mudava na tela. O Leandro mandou 3 prints com setas nas duas
+  bordas de cada bloco deixando claro que queria os blocos ocupando a
+  tela, não um pouco mais largos.
+- **Refeito como um modo global**: um botão ↔ na topbar liga o
+  `.wrap.wide` (até `min(1900px, 100vw - 32px)`) e solta todo bloco
+  interno junto (`.narrow-list` vira 100%). Cobre Projetos, Lembretes,
+  Livros e também a lista de tarefas do dia — que nem tinha botão antes,
+  era o terceiro print dele. Os 3 botões por tela foram removidos.
+- **Data/hora de início e fim num menu só**: os 4 campos soltos (Data,
+  Hora, Até data, Até hora) viraram um campo "Quando" que abre um
+  popover com Início (data + hora) e Fim (data + hora) juntos, como ele
+  pediu pra simplificar.
+
 ## Leva de 5 ajustes (03/09, depois do incidente de perda de dados)
 
 - **Autosave fechando a caixa de Observação a cada 30s (bug)**: no
