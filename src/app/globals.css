@@ -729,7 +729,7 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .empty-row{ padding:14px 12px; font-size:12.5px; color:var(--text-faint); font-style:italic; }
 
 /* inline edit */
-.edit-row{ padding:10px 12px; border-bottom:1px solid var(--border); background:var(--surface-2); }
+.edit-row{ padding:10px 12px; border-bottom:1px solid var(--border); background:var(--surface); }
 .edit-row:last-child{ border-bottom:none; }
 .edit-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px 8px; margin-bottom:10px; align-items:end; }
 .edit-grid > input[type="text"]:first-child{ grid-column:1 / -1; }
@@ -746,7 +746,7 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 }
 .edit-title-input::placeholder{ color:var(--text-faint); font-weight:500; }
 .edit-title-input:hover{ border-color:var(--border); }
-.edit-title-input:focus{ outline:none; border-color:var(--accent); background:var(--surface); }
+.edit-title-input:focus{ outline:none; border-color:var(--accent); background:var(--surface-2); }
 
 /* Lista de propriedades (ícone + nome + valor), duas colunas quando cabe.
    Os controles ficam "invisíveis" até o mouse passar por cima — a tela fica
@@ -773,10 +773,10 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .prop-value > select:hover, .prop-value > input[type="text"]:hover,
 .prop-value > .time-picker-btn:hover, .prop-value > .reminder-date-btn:hover,
 .prop-value > .category-picker-btn:hover, .prop-value > .attachment-field-btn:hover{
-  background:var(--surface); border-color:var(--border);
+  background:var(--surface-2); border-color:var(--border);
 }
 .prop-value > select:focus, .prop-value > input[type="text"]:focus{
-  outline:none; background:var(--surface); border-color:var(--accent);
+  outline:none; background:var(--surface-2); border-color:var(--accent);
 }
 .prop-value > .reminder-date-btn svg{ color:var(--text-faint); }
 /* data com início e fim é texto longo: melhor quebrar em duas linhas do que cortar */
@@ -796,13 +796,13 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .comment-block-body:not(.open){ max-height:150px; }
 .comment-block-body.faded::after{
   content:""; position:absolute; left:0; right:0; bottom:0; height:44px; pointer-events:none;
-  background:linear-gradient(to bottom, transparent, var(--surface-2));
+  background:linear-gradient(to bottom, transparent, var(--surface));
 }
 .comment-block-placeholder{ font-size:12.5px; color:var(--text-faint); }
 .comment-block-toggle{
   display:inline-flex; align-items:center; gap:5px; align-self:center;
   font-size:11.5px; color:var(--text-muted);
-  background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:3px 11px;
+  background:var(--surface-2); border:1px solid var(--border); border-radius:999px; padding:3px 11px;
 }
 .comment-block-toggle:hover{ color:var(--text); border-color:var(--border-strong); }
 .comment-block-toggle svg{ width:12px; height:12px; transition:transform 0.15s ease; }

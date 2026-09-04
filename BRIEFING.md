@@ -297,6 +297,11 @@ cima tudo fica listado só com os ícones, bem limpo".
   quando não cabe. Clicar no texto abre o editor grande, como antes.
 - **Datas com início e fim quebram em duas linhas** em vez de cortar o
   texto no meio ("04/09 às 09:00 · até 12:00").
+- **Fundo branco** (`--surface`) na linha de edição, no lugar do cinza
+  (`--surface-2`) — pedido dele depois de ver a primeira versão. Com o
+  fundo branco, o hover/foco dos campos passou a usar o cinza claro
+  (senão o realce sumia), e o degradê do "Exibir mais" terminou em
+  branco pra não deixar faixa cinza no pé do texto.
 - Conferido com screenshot renderizado do CSS real em 1180px e 720px
   antes de subir.
 
