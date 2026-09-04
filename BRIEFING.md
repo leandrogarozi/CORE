@@ -270,6 +270,36 @@ chegaram:
   se depois de usar o botão ainda achar que tem algo torto, mandar novo
   print apontando onde.
 
+## Edição da tarefa no estilo lista de propriedades (03/09)
+
+O Leandro mandou um print de uma ferramenta de gestão (estilo ClickUp) e
+perguntou: "conseguimos organizar mais dessa forma? o campo observação
+fica mais aberto e quando tem muito texto tem um botão exibir mais; e em
+cima tudo fica listado só com os ícones, bem limpo".
+
+- **Lista de propriedades no lugar do grid de caixas** (`.prop-list`):
+  cada campo virou uma linha `ícone + nome + valor`, em duas colunas
+  quando a tela permite (vira uma coluna no celular). O controle fica
+  **invisível até o mouse passar por cima** — sem borda nem fundo, só o
+  valor escrito. No hover ganha borda e fundo, no clique edita. É o que
+  deixa a área de cima limpa como no print.
+- **Ícones por campo**: Quando (calendário), Prioridade (bandeira),
+  Categorias (tag), Duração (relógio), Cliente (pessoa), Repete (setas),
+  Projeto (pasta), Lembrete (sino), Anexos (clipe), Observação (balão).
+- **Campos vazios mostram "Vazio"** em cinza claro, como no print, em
+  vez de um botão vazio sem pista nenhuma.
+- **Título da tarefa** virou uma linha grande (15px, semibold) e sem
+  moldura no topo do formulário.
+- **Observação aberta** (`variant="block"` no `CommentButton`): o texto
+  formatado aparece à mostra (negrito, marca-texto, listas, checklists —
+  reusa `.rte-content`, o mesmo CSS do editor), recolhido em 150px de
+  altura com um degradê no pé e um botão **Exibir mais / Exibir menos**
+  quando não cabe. Clicar no texto abre o editor grande, como antes.
+- **Datas com início e fim quebram em duas linhas** em vez de cortar o
+  texto no meio ("04/09 às 09:00 · até 12:00").
+- Conferido com screenshot renderizado do CSS real em 1180px e 720px
+  antes de subir.
+
 ## Formulário de edição padronizado + limpar datas + cancelar projeto (03/09)
 
 Print do Leandro: "as opções de edição da task estão muito feias,

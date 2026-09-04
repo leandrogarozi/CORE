@@ -13,6 +13,7 @@ import { CommentButton } from "./CommentButton";
 import {
   BellIcon,
   BoltIcon,
+  ClockIcon,
   CommentIcon,
   DragGripIcon,
   DuplicateIcon,
@@ -21,7 +22,9 @@ import {
   FolderIcon,
   PaperclipIcon,
   RepeatIcon,
+  TagIcon,
   TrashIcon,
+  UserIcon,
   UsersGroupIcon,
   WarningIcon,
   WeekIcon,
@@ -597,125 +600,164 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
 
   return (
     <div className="edit-row" data-id={t.id}>
-      <div className="edit-grid">
-        <label className="edit-field edit-field-full">
-          <span className="edit-field-label">Tarefa</span>
-          <input
-            type="text"
-            value={vals.title}
-            autoFocus
-            placeholder="Título da tarefa"
-            onChange={(e) => setVals((v) => ({ ...v, title: e.target.value }))}
-            onKeyDown={(e) => e.key === "Enter" && save()}
-          />
-        </label>
-        <label className="edit-field">
-          <span className="edit-field-label">Categorias</span>
-          <CategoryPicker
-            category={vals.category}
-            category2={vals.category2}
-            onChange={(category, category2) => setVals((v) => ({ ...v, category, category2 }))}
-          />
-        </label>
-        {isMeetingTask(vals) && (
-          <label className="edit-field">
-            <span className="edit-field-label">Cliente</span>
-            <input
-              type="text"
-              list={clientListId}
-              value={vals.client ?? ""}
-              placeholder="Nome do cliente"
-              onChange={(e) => setVals((v) => ({ ...v, client: e.target.value || null }))}
+      <input
+        type="text"
+        className="edit-title-input"
+        value={vals.title}
+        autoFocus
+        placeholder="Título da tarefa"
+        onChange={(e) => setVals((v) => ({ ...v, title: e.target.value }))}
+        onKeyDown={(e) => e.key === "Enter" && save()}
+      />
+      {/* Lista de propriedades no estilo "ícone + nome + valor", em duas colunas:
+          os campos ficam alinhados e discretos, sem virar um monte de caixas. */}
+      <div className="prop-list">
+        <div className="prop-row">
+          <span className="prop-label">
+            <WeekIcon /> Quando
+          </span>
+          <div className="prop-value">
+            <TaskWhenButton
+              date={vals.date}
+              time={vals.time}
+              endDate={vals.endDate}
+              endTime={vals.endTime}
+              onSave={(f) => setVals((v) => ({ ...v, ...f }))}
             />
-            <datalist id={clientListId}>
-              {clientOptions.map((c) => (
-                <option key={c} value={c} />
+          </div>
+        </div>
+        <label className="prop-row">
+          <span className="prop-label">
+            <FlagIcon color="currentColor" /> Prioridade
+          </span>
+          <div className="prop-value">
+            <select value={vals.priority} onChange={(e) => setVals((v) => ({ ...v, priority: e.target.value as Priority }))}>
+              {PRIORITIES.map((p) => (
+                <option key={p.v} value={p.v}>
+                  {p.l}
+                </option>
               ))}
-            </datalist>
+            </select>
+          </div>
+        </label>
+        <div className="prop-row">
+          <span className="prop-label">
+            <TagIcon /> Categorias
+          </span>
+          <div className="prop-value">
+            <CategoryPicker
+              category={vals.category}
+              category2={vals.category2}
+              onChange={(category, category2) => setVals((v) => ({ ...v, category, category2 }))}
+            />
+          </div>
+        </div>
+        <div className="prop-row">
+          <span className="prop-label">
+            <ClockIcon /> Duração
+          </span>
+          <div className="prop-value">
+            <MinutesPicker
+              minutes={vals.durationMin}
+              placeholder="Vazio"
+              onChange={(m) => setVals((v) => ({ ...v, durationMin: m }))}
+              onClear={() => setVals((v) => ({ ...v, durationMin: null }))}
+            />
+          </div>
+        </div>
+        {isMeetingTask(vals) && (
+          <label className="prop-row">
+            <span className="prop-label">
+              <UserIcon /> Cliente
+            </span>
+            <div className="prop-value">
+              <input
+                type="text"
+                list={clientListId}
+                value={vals.client ?? ""}
+                placeholder="Vazio"
+                onChange={(e) => setVals((v) => ({ ...v, client: e.target.value || null }))}
+              />
+              <datalist id={clientListId}>
+                {clientOptions.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+            </div>
           </label>
         )}
-        <label className="edit-field">
-          <span className="edit-field-label">Prioridade</span>
-          <select value={vals.priority} onChange={(e) => setVals((v) => ({ ...v, priority: e.target.value as Priority }))}>
-            {PRIORITIES.map((p) => (
-              <option key={p.v} value={p.v}>
-                {p.l}
-              </option>
-            ))}
-          </select>
+        <label className="prop-row">
+          <span className="prop-label">
+            <RepeatIcon /> Repete
+          </span>
+          <div className="prop-value">
+            <select value={vals.repeat} onChange={(e) => setVals((v) => ({ ...v, repeat: e.target.value as Repeat }))}>
+              {REPEATS.map((r) => (
+                <option key={r.v} value={r.v}>
+                  {r.l}
+                </option>
+              ))}
+            </select>
+          </div>
         </label>
-        <div className="edit-field">
-          <span className="edit-field-label">Quando</span>
-          <TaskWhenButton
-            date={vals.date}
-            time={vals.time}
-            endDate={vals.endDate}
-            endTime={vals.endTime}
-            onSave={(f) => setVals((v) => ({ ...v, ...f }))}
-          />
+        <label className="prop-row">
+          <span className="prop-label">
+            <FolderIcon /> Projeto
+          </span>
+          <div className="prop-value">
+            <select
+              value={vals.projectId ?? ""}
+              onChange={(e) => setVals((v) => ({ ...v, projectId: e.target.value || null }))}
+            >
+              <option value="">Sem projeto</option>
+              {board.state.projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </label>
+        <div className="prop-row">
+          <span className="prop-label">
+            <BellIcon /> Lembrete
+          </span>
+          <div className="prop-value">
+            <ReminderDateButton
+              date={linkedReminder?.date ?? null}
+              time={linkedReminder?.time ?? null}
+              repeat={linkedReminder?.repeat ?? "none"}
+              weekDays={linkedReminder?.weekDays ?? null}
+              alertMinutesBefore={linkedReminder?.alertMinutesBefore ?? null}
+              onSave={(fields) => board.setTaskReminder(t.id, fields)}
+              emptyLabel="Vazio"
+            />
+          </div>
         </div>
-        <label className="edit-field">
-          <span className="edit-field-label">Duração</span>
-          <MinutesPicker
-            minutes={vals.durationMin}
-            onChange={(m) => setVals((v) => ({ ...v, durationMin: m }))}
-            onClear={() => setVals((v) => ({ ...v, durationMin: null }))}
-          />
-        </label>
-        <label className="edit-field">
-          <span className="edit-field-label">Repete</span>
-          <select value={vals.repeat} onChange={(e) => setVals((v) => ({ ...v, repeat: e.target.value as Repeat }))}>
-            {REPEATS.map((r) => (
-              <option key={r.v} value={r.v}>
-                {r.l}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="edit-field">
-          <span className="edit-field-label">Projeto</span>
-          <select
-            value={vals.projectId ?? ""}
-            onChange={(e) => setVals((v) => ({ ...v, projectId: e.target.value || null }))}
-          >
-            <option value="">Sem projeto</option>
-            {board.state.projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="edit-field">
-          <span className="edit-field-label">Lembrete</span>
-          <ReminderDateButton
-            date={linkedReminder?.date ?? null}
-            time={linkedReminder?.time ?? null}
-            repeat={linkedReminder?.repeat ?? "none"}
-            weekDays={linkedReminder?.weekDays ?? null}
-            alertMinutesBefore={linkedReminder?.alertMinutesBefore ?? null}
-            onSave={(fields) => board.setTaskReminder(t.id, fields)}
-            emptyLabel="Sem lembrete"
-          />
-        </label>
-        <label className="edit-field">
-          <span className="edit-field-label">Anexos</span>
-          <AttachmentsButton variant="field" entityType="task" entityId={t.id} ariaLabel="Anexos da tarefa" />
-        </label>
-        <label className="edit-field edit-field-full">
-          <span className="edit-field-label">Observação</span>
-          <CommentButton
-            variant="field"
-            alwaysExpanded
-            value={vals.note || null}
-            placeholder="+ Observação — cole um texto ou escreva algo..."
-            ariaLabel="Observação da tarefa"
-            onSave={(text) => {
-              board.updateTaskNote(t.id, text);
-              setVals((v) => ({ ...v, note: text }));
-            }}
-          />
-        </label>
+        <div className="prop-row">
+          <span className="prop-label">
+            <PaperclipIcon /> Anexos
+          </span>
+          <div className="prop-value">
+            <AttachmentsButton variant="field" entityType="task" entityId={t.id} ariaLabel="Anexos da tarefa" />
+          </div>
+        </div>
+      </div>
+      <div className="edit-note">
+        <span className="prop-label">
+          <CommentIcon /> Observação
+        </span>
+        <CommentButton
+          variant="block"
+          alwaysExpanded
+          value={vals.note || null}
+          placeholder="Clique pra escrever ou colar um texto..."
+          ariaLabel="Observação da tarefa"
+          onSave={(text) => {
+            board.updateTaskNote(t.id, text);
+            setVals((v) => ({ ...v, note: text }));
+          }}
+        />
       </div>
       <div className="edit-actions">
         <button className="btn btn-ghost" type="button" onClick={onDone}>

@@ -731,34 +731,82 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 /* inline edit */
 .edit-row{ padding:10px 12px; border-bottom:1px solid var(--border); background:var(--surface-2); }
 .edit-row:last-child{ border-bottom:none; }
-.edit-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px 8px; margin-bottom:10px; align-items:start; }
+.edit-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px 8px; margin-bottom:10px; align-items:end; }
 .edit-grid > input[type="text"]:first-child{ grid-column:1 / -1; }
-/* Todo controle do formulário de edição usa a MESMA caixa: mesma altura, borda,
-   raio e fonte — antes cada campo (select, picker de data, anexo) tinha um visual
-   diferente e o formulário ficava desalinhado. */
-.edit-grid input, .edit-grid select,
-.edit-grid .edit-field > .time-picker-btn,
-.edit-grid .edit-field > .reminder-date-btn,
-.edit-grid .edit-field > .category-picker-btn,
-.edit-grid .edit-field > .attachment-field-btn,
-.edit-grid .edit-field > .comment-field-btn{
-  width:100%; box-sizing:border-box; min-height:30px;
-  background:var(--surface); border:1px solid var(--border-strong); border-radius:7px;
-  padding:6px 8px; font-size:12.5px; color:var(--text); text-align:left;
+.edit-grid input, .edit-grid select, .edit-grid .time-picker-btn{
+  width:100%; box-sizing:border-box; background:var(--surface); border:1px solid var(--border-strong);
+  border-radius:7px; padding:6px 8px; font-size:12.5px; color:var(--text);
 }
-.edit-grid .edit-field > .time-picker-btn,
-.edit-grid .edit-field > .reminder-date-btn,
-.edit-grid .edit-field > .category-picker-btn,
-.edit-grid .edit-field > .attachment-field-btn,
-.edit-grid .edit-field > .comment-field-btn{
+.reminder-date-empty{ color:var(--text-faint); }
+
+/* Edição da tarefa: título grande e discreto no topo */
+.edit-title-input{
+  width:100%; box-sizing:border-box; background:transparent; border:1px solid transparent; border-radius:7px;
+  padding:5px 7px; font-size:15px; font-weight:600; color:var(--text);
+}
+.edit-title-input::placeholder{ color:var(--text-faint); font-weight:500; }
+.edit-title-input:hover{ border-color:var(--border); }
+.edit-title-input:focus{ outline:none; border-color:var(--accent); background:var(--surface); }
+
+/* Lista de propriedades (ícone + nome + valor), duas colunas quando cabe.
+   Os controles ficam "invisíveis" até o mouse passar por cima — a tela fica
+   limpa e mesmo assim tudo continua editável no clique. */
+.prop-list{ display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:2px 22px; margin:6px 0 10px; }
+.prop-row{ display:grid; grid-template-columns:104px minmax(0, 1fr); align-items:center; gap:6px; min-height:30px; }
+.prop-label{
+  display:flex; align-items:center; gap:7px; min-width:0;
+  font-size:12px; color:var(--text-muted); white-space:nowrap;
+}
+.prop-label svg{ width:13px; height:13px; flex:none; color:var(--text-faint); }
+.prop-value{ min-width:0; display:flex; align-items:center; }
+.prop-value > select, .prop-value > input[type="text"],
+.prop-value > .time-picker-btn, .prop-value > .reminder-date-btn,
+.prop-value > .category-picker-btn, .prop-value > .attachment-field-btn{
+  width:100%; box-sizing:border-box; min-height:28px;
+  background:transparent; border:1px solid transparent; border-radius:6px;
+  padding:4px 6px; font-size:12.5px; color:var(--text); text-align:left;
+}
+.prop-value > .time-picker-btn, .prop-value > .reminder-date-btn,
+.prop-value > .category-picker-btn, .prop-value > .attachment-field-btn{
   display:flex; align-items:center; gap:6px; white-space:nowrap; overflow:hidden;
 }
-.edit-grid .edit-field > .reminder-date-btn:hover,
-.edit-grid .edit-field > .category-picker-btn:hover,
-.edit-grid .edit-field > .attachment-field-btn:hover,
-.edit-grid .edit-field > .comment-field-btn:hover{ border-color:var(--accent); background:var(--surface); }
-.edit-grid .edit-field > .reminder-date-btn svg{ color:var(--text-faint); }
-.reminder-date-empty{ color:var(--text-faint); }
+.prop-value > select:hover, .prop-value > input[type="text"]:hover,
+.prop-value > .time-picker-btn:hover, .prop-value > .reminder-date-btn:hover,
+.prop-value > .category-picker-btn:hover, .prop-value > .attachment-field-btn:hover{
+  background:var(--surface); border-color:var(--border);
+}
+.prop-value > select:focus, .prop-value > input[type="text"]:focus{
+  outline:none; background:var(--surface); border-color:var(--accent);
+}
+.prop-value > .reminder-date-btn svg{ color:var(--text-faint); }
+/* data com início e fim é texto longo: melhor quebrar em duas linhas do que cortar */
+.prop-value > .reminder-date-btn{ white-space:normal; }
+.prop-value > .reminder-date-btn span{ overflow:visible; white-space:normal; }
+.prop-value > .attachment-field-btn.has-attachments{ color:var(--accent); }
+.prop-value input[type="text"]::placeholder{ color:var(--text-faint); }
+
+/* Observação aberta, com "Exibir mais" quando o texto é longo */
+.edit-note{ display:flex; flex-direction:column; gap:5px; border-top:1px solid var(--border); padding-top:9px; margin-bottom:10px; }
+.comment-block{ display:flex; flex-direction:column; align-items:flex-start; gap:5px; }
+.comment-block-body{
+  position:relative; width:100%; box-sizing:border-box; overflow:hidden; cursor:text;
+  border:1px solid transparent; border-radius:8px; padding:6px 8px;
+}
+.comment-block-body:hover{ border-color:var(--border); }
+.comment-block-body:not(.open){ max-height:150px; }
+.comment-block-body.faded::after{
+  content:""; position:absolute; left:0; right:0; bottom:0; height:44px; pointer-events:none;
+  background:linear-gradient(to bottom, transparent, var(--surface-2));
+}
+.comment-block-placeholder{ font-size:12.5px; color:var(--text-faint); }
+.comment-block-toggle{
+  display:inline-flex; align-items:center; gap:5px; align-self:center;
+  font-size:11.5px; color:var(--text-muted);
+  background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:3px 11px;
+}
+.comment-block-toggle:hover{ color:var(--text); border-color:var(--border-strong); }
+.comment-block-toggle svg{ width:12px; height:12px; transition:transform 0.15s ease; }
+.comment-block-toggle.open svg{ transform:rotate(180deg); }
 .edit-field{ display:flex; flex-direction:column; gap:4px; min-width:0; }
 .edit-field-wide{ grid-column:span 2; }
 .edit-field-full{ grid-column:1 / -1; }
