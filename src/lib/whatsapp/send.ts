@@ -24,7 +24,13 @@ async function callWhatsAppApi(body: Record<string, unknown>): Promise<WhatsAppS
 
   if (!res.ok) {
     const json = await res.json().catch(() => null);
-    const message = json?.error?.message || `Falha ao enviar (HTTP ${res.status})`;
+    const err = json?.error;
+    // O código do Meta é o que diz o que fazer: 190 = token expirado/inválido,
+    // 132001 = template não existe ou não foi aprovado. Sem ele, "Authentication
+    // Error" sozinho não diz nada pra quem está olhando a tela.
+    const message = err?.message
+      ? `${err.message}${err.code ? ` (código ${err.code}${err.error_subcode ? `/${err.error_subcode}` : ""})` : ""}`
+      : `Falha ao enviar (HTTP ${res.status})`;
     return { ok: false, error: message };
   }
   return { ok: true };
