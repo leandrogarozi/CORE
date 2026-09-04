@@ -19,10 +19,13 @@ export function AttachmentsButton({
   entityType,
   entityId,
   ariaLabel = "Anexos",
+  variant = "icon",
 }: {
   entityType: AttachmentEntityType;
   entityId: string;
   ariaLabel?: string;
+  // "field" = caixa com texto, do mesmo tamanho dos outros campos do formulário
+  variant?: "icon" | "field";
 }) {
   const { board, askConfirm } = useBoardCtx();
   const [count, setCount] = useState<number | null>(null);
@@ -105,13 +108,22 @@ export function AttachmentsButton({
     <>
       <button
         type="button"
-        className={"icon-btn attachment-btn" + (count ? " has-attachments" : "")}
+        className={
+          (variant === "field" ? "attachment-field-btn" : "icon-btn attachment-btn") +
+          (count ? " has-attachments" : "")
+        }
         aria-label={ariaLabel}
         title={count ? `${count} anexo(s)` : "Anexos"}
         onClick={openModal}
       >
         <PaperclipIcon />
-        {!!count && <span className="attachment-count mono">{count}</span>}
+        {variant === "field" ? (
+          <span className="attachment-field-label">
+            {count ? `${count} arquivo${count > 1 ? "s" : ""}` : "Nenhum anexo"}
+          </span>
+        ) : (
+          !!count && <span className="attachment-count mono">{count}</span>
+        )}
       </button>
       {open &&
         createPortal(

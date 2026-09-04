@@ -172,7 +172,7 @@ export function ReminderDateButton({
         onClick={toggleOpen}
       >
         <WeekIcon />
-        {label && <span>{label}</span>}
+        <span className={label ? undefined : "reminder-date-empty"}>{label ?? emptyLabel}</span>
       </button>
       {open &&
         createPortal(
@@ -185,7 +185,12 @@ export function ReminderDateButton({
                 onChange={(e) => setDateDraft(e.target.value)}
                 onKeyDown={(e) => e.key === "Escape" && setAnchorRect(null)}
               />
-              <TimePicker value={timeDraft} disabled={!dateDraft && weekDraft.length === 0} onChange={setTimeDraft} />
+              <TimePicker
+                value={timeDraft}
+                disabled={!dateDraft && weekDraft.length === 0}
+                onChange={setTimeDraft}
+                onClear={() => setTimeDraft("")}
+              />
               <button
                 type="button"
                 className="icon-btn reminder-clear-btn"
@@ -240,7 +245,22 @@ export function ReminderDateButton({
                 </option>
               ))}
             </select>
-            <div className="edit-actions">
+            <div className="edit-actions edit-actions-split">
+              <button
+                type="button"
+                className="btn btn-ghost"
+                disabled={!dateDraft && !timeDraft && weekDraft.length === 0 && repeatDraft === "none" && alertDraft == null}
+                title="Limpar data, hora, dias da semana e aviso"
+                onClick={() => {
+                  setDateDraft("");
+                  setTimeDraft("");
+                  setWeekDraft([]);
+                  setRepeatDraft("none");
+                  setAlertDraft(null);
+                }}
+              >
+                <EraserIcon /> Limpar
+              </button>
               <button type="button" className="btn btn-ghost" onClick={() => setAnchorRect(null)}>
                 Cancelar
               </button>

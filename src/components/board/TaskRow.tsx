@@ -485,7 +485,7 @@ function TaskWhenButton({ date, time, endDate, endTime, onSave }: TaskWhenFields
         onClick={toggleOpen}
       >
         <WeekIcon />
-        {label && <span>{label}</span>}
+        <span className={label ? undefined : "reminder-date-empty"}>{label ?? "Sem data"}</span>
       </button>
       {open &&
         createPortal(
@@ -500,26 +500,50 @@ function TaskWhenButton({ date, time, endDate, endTime, onSave }: TaskWhenFields
                   onChange={(e) => setDateDraft(e.target.value)}
                   onKeyDown={(e) => e.key === "Escape" && setAnchorRect(null)}
                 />
-                <TimePicker value={timeDraft} onChange={setTimeDraft} />
-              </div>
-            </div>
-            <div className="edit-field" style={{ marginTop: 8 }}>
-              <span className="edit-field-label">Fim (opcional — evento que passa de um dia)</span>
-              <div className="reminder-datetime-row">
-                <input type="date" value={endDateDraft} onChange={(e) => setEndDateDraft(e.target.value)} />
-                <TimePicker value={endTimeDraft} onChange={setEndTimeDraft} />
+                <TimePicker value={timeDraft} onChange={setTimeDraft} onClear={() => setTimeDraft("")} />
                 <button
                   type="button"
                   className="icon-btn reminder-clear-btn"
-                  disabled={!dateDraft && !timeDraft && !endDateDraft && !endTimeDraft}
-                  title="Limpar tudo"
-                  onClick={clearAll}
+                  disabled={!dateDraft && !timeDraft}
+                  title="Limpar início"
+                  onClick={() => {
+                    setDateDraft("");
+                    setTimeDraft("");
+                  }}
                 >
                   <EraserIcon />
                 </button>
               </div>
             </div>
-            <div className="edit-actions" style={{ marginTop: 10 }}>
+            <div className="edit-field">
+              <span className="edit-field-label">Fim (opcional — evento que passa de um dia)</span>
+              <div className="reminder-datetime-row">
+                <input type="date" value={endDateDraft} onChange={(e) => setEndDateDraft(e.target.value)} />
+                <TimePicker value={endTimeDraft} onChange={setEndTimeDraft} onClear={() => setEndTimeDraft("")} />
+                <button
+                  type="button"
+                  className="icon-btn reminder-clear-btn"
+                  disabled={!endDateDraft && !endTimeDraft}
+                  title="Limpar fim"
+                  onClick={() => {
+                    setEndDateDraft("");
+                    setEndTimeDraft("");
+                  }}
+                >
+                  <EraserIcon />
+                </button>
+              </div>
+            </div>
+            <div className="edit-actions edit-actions-split">
+              <button
+                type="button"
+                className="btn btn-ghost"
+                disabled={!dateDraft && !timeDraft && !endDateDraft && !endTimeDraft}
+                title="Limpar datas e horários"
+                onClick={clearAll}
+              >
+                <EraserIcon /> Limpar
+              </button>
               <button type="button" className="btn btn-ghost" onClick={() => setAnchorRect(null)}>
                 Cancelar
               </button>
@@ -574,13 +598,17 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
   return (
     <div className="edit-row" data-id={t.id}>
       <div className="edit-grid">
-        <input
-          type="text"
-          value={vals.title}
-          autoFocus
-          onChange={(e) => setVals((v) => ({ ...v, title: e.target.value }))}
-          onKeyDown={(e) => e.key === "Enter" && save()}
-        />
+        <label className="edit-field edit-field-full">
+          <span className="edit-field-label">Tarefa</span>
+          <input
+            type="text"
+            value={vals.title}
+            autoFocus
+            placeholder="Título da tarefa"
+            onChange={(e) => setVals((v) => ({ ...v, title: e.target.value }))}
+            onKeyDown={(e) => e.key === "Enter" && save()}
+          />
+        </label>
         <label className="edit-field">
           <span className="edit-field-label">Categorias</span>
           <CategoryPicker
@@ -631,6 +659,7 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
           <MinutesPicker
             minutes={vals.durationMin}
             onChange={(m) => setVals((v) => ({ ...v, durationMin: m }))}
+            onClear={() => setVals((v) => ({ ...v, durationMin: null }))}
           />
         </label>
         <label className="edit-field">
@@ -642,20 +671,6 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
               </option>
             ))}
           </select>
-        </label>
-        <label className="edit-field edit-field-wide">
-          <span className="edit-field-label">Observação</span>
-          <CommentButton
-            variant="field"
-            alwaysExpanded
-            value={vals.note || null}
-            placeholder="+ Observação — cole um texto ou escreva algo..."
-            ariaLabel="Observação da tarefa"
-            onSave={(text) => {
-              board.updateTaskNote(t.id, text);
-              setVals((v) => ({ ...v, note: text }));
-            }}
-          />
         </label>
         <label className="edit-field">
           <span className="edit-field-label">Projeto</span>
@@ -685,7 +700,21 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
         </label>
         <label className="edit-field">
           <span className="edit-field-label">Anexos</span>
-          <AttachmentsButton entityType="task" entityId={t.id} ariaLabel="Anexos da tarefa" />
+          <AttachmentsButton variant="field" entityType="task" entityId={t.id} ariaLabel="Anexos da tarefa" />
+        </label>
+        <label className="edit-field edit-field-full">
+          <span className="edit-field-label">Observação</span>
+          <CommentButton
+            variant="field"
+            alwaysExpanded
+            value={vals.note || null}
+            placeholder="+ Observação — cole um texto ou escreva algo..."
+            ariaLabel="Observação da tarefa"
+            onSave={(text) => {
+              board.updateTaskNote(t.id, text);
+              setVals((v) => ({ ...v, note: text }));
+            }}
+          />
         </label>
       </div>
       <div className="edit-actions">

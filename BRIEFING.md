@@ -270,6 +270,48 @@ chegaram:
   se depois de usar o botão ainda achar que tem algo torto, mandar novo
   print apontando onde.
 
+## Formulário de edição padronizado + limpar datas + cancelar projeto (03/09)
+
+Print do Leandro: "as opções de edição da task estão muito feias,
+desorganizadas e fora de padrão". Mais dois pedidos junto.
+
+- **Padrão de caixa em todos os campos** (`.edit-grid` no
+  `globals.css`): cada campo do formulário tinha um visual próprio —
+  `select` era caixa com borda, "Quando"/"Lembrete" eram botões sem
+  borda e cinza claro, Categorias era só o chip solto, Anexos era um
+  clipe de papel minúsculo. Agora todo controle dentro do grid usa a
+  MESMA caixa: `min-height:30px`, mesma borda, mesmo raio (7px), mesma
+  fonte (12.5px) e largura total da coluna, com hover igual (borda
+  accent). Colunas passaram de 130px para 150px e o alinhamento virou
+  `start`, então as caixas ficam na mesma linha de base.
+- **Título ganhou label** ("Tarefa") e placeholder, em vez de um input
+  solto no topo sem identificação.
+- **Observação foi pro fim do formulário e ocupa a linha inteira**
+  (`.edit-field-full`) — era o pedido "as observações podem ficar mais
+  para baixo pq tem espaço". Antes ela ficava no meio do grid ocupando
+  2 colunas e quebrava a leitura dos campos.
+- **Botões que estavam vazios agora dizem o que são**: "Quando" mostra
+  "Sem data" quando não tem data, "Lembrete" mostra "Definir data",
+  Anexos mostra "Nenhum anexo" / "N arquivos" (nova variante
+  `variant="field"` do `AttachmentsButton`).
+- **Limpar datas e horários** (pedido: "não dá para limpar"):
+  - o seletor de horas (`TimePicker`) ganhou um rodapé **Limpar** —
+    antes, escolhido um horário, não havia como voltar pra "sem
+    horário". Vale também pra Duração (`MinutesPicker`), que agora
+    limpa pra `null`.
+  - o popover "Quando" ganhou borracha separada pro Início e pro Fim,
+    mais um **Limpar** no rodapé que zera tudo.
+  - o popover de Lembrete ganhou **Limpar** no rodapé que zera data,
+    hora, dias da semana, repetição e aviso de uma vez (a borracha que
+    existia limpava só data e hora).
+- **Cancelar projeto agora leva as tarefas junto** (bug relatado): o
+  projeto ficava cancelado mas as etapas dele continuavam soltas na
+  lista "sem data". Novo `board.cancelProject(id)` em `use-board.ts`
+  marca o projeto como cancelado E manda as tarefas **em aberto** dele
+  pra Lixeira (soft delete, dá pra restaurar). As já concluídas ficam,
+  pra não sumir do histórico de horas. A confirmação diz quantas
+  tarefas vão ser removidas antes de executar.
+
 ## Correção da largura + menu único de data/hora (03/09)
 
 - **Por que o botão de expandir não funcionava**: o container do app

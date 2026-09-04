@@ -229,7 +229,11 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
   }
 
   function markCancelled() {
-    board.updateProject(project.id, { status: "cancelled" });
+    const open = steps.filter((t) => !t.done).length;
+    const msg = open
+      ? `Cancelar o projeto "${project.name}"? As ${open} tarefa(s) em aberto dele vão pra Lixeira (dá pra restaurar). As já concluídas ficam no histórico.`
+      : `Cancelar o projeto "${project.name}"?`;
+    askConfirm(msg, () => board.cancelProject(project.id));
   }
 
   function reopen() {

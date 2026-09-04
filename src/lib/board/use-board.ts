@@ -901,6 +901,40 @@ export function useBoard(userId: string | null) {
     [apply, supabase]
   );
 
+  // Cancelar projeto arrasta junto as tarefas dele: antes elas continuavam soltas
+  // na lista "sem data" mesmo com o projeto cancelado. Vão pra Lixeira (dá pra
+  // restaurar); as já concluídas ficam, pra não sumir do histórico de horas.
+  const cancelProject = useCallback(
+    (id: string) => {
+      const nowIso = new Date().toISOString();
+      const related = stateRef.current.tasks.filter((t) => t.projectId === id && !t.done);
+      const ids = related.map((t) => t.id);
+      apply((s) => ({
+        ...s,
+        projects: s.projects.map((p) => (p.id === id ? { ...p, status: "cancelled" } : p)),
+        tasks: s.tasks.filter((t) => !ids.includes(t.id)),
+        trashedTasks: [...s.trashedTasks, ...related.map((t) => ({ ...t, deletedAt: nowIso }))],
+      }));
+      supabase
+        .from("projects")
+        .update(projectToUpdateRow({ status: "cancelled" }))
+        .eq("id", id)
+        .then(({ error }) => {
+          if (error) reportSaveError("cancelProject", error);
+        });
+      if (ids.length) {
+        supabase
+          .from("tasks")
+          .update({ deleted_at: nowIso })
+          .in("id", ids)
+          .then(({ error }) => {
+            if (error) reportSaveError("cancelProject tasks", error);
+          });
+      }
+    },
+    [apply, supabase]
+  );
+
   const deleteProject = useCallback(
     (id: string) => {
       apply((s) => ({
@@ -1935,6 +1969,7 @@ export function useBoard(userId: string | null) {
     reorderBooks,
     addProject,
     updateProject,
+    cancelProject,
     deleteProject,
     addTaskToProject,
     addReminder,

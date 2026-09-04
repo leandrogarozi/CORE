@@ -731,16 +731,44 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 /* inline edit */
 .edit-row{ padding:10px 12px; border-bottom:1px solid var(--border); background:var(--surface-2); }
 .edit-row:last-child{ border-bottom:none; }
-.edit-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:8px; margin-bottom:8px; align-items:end; }
+.edit-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px 8px; margin-bottom:10px; align-items:start; }
 .edit-grid > input[type="text"]:first-child{ grid-column:1 / -1; }
-.edit-grid input, .edit-grid select, .edit-grid .time-picker-btn{
-  width:100%; background:var(--surface); border:1px solid var(--border-strong); border-radius:7px;
-  padding:6px 8px; font-size:12.5px; color:var(--text);
+/* Todo controle do formulário de edição usa a MESMA caixa: mesma altura, borda,
+   raio e fonte — antes cada campo (select, picker de data, anexo) tinha um visual
+   diferente e o formulário ficava desalinhado. */
+.edit-grid input, .edit-grid select,
+.edit-grid .edit-field > .time-picker-btn,
+.edit-grid .edit-field > .reminder-date-btn,
+.edit-grid .edit-field > .category-picker-btn,
+.edit-grid .edit-field > .attachment-field-btn,
+.edit-grid .edit-field > .comment-field-btn{
+  width:100%; box-sizing:border-box; min-height:30px;
+  background:var(--surface); border:1px solid var(--border-strong); border-radius:7px;
+  padding:6px 8px; font-size:12.5px; color:var(--text); text-align:left;
 }
-.edit-field{ display:flex; flex-direction:column; gap:3px; min-width:0; }
+.edit-grid .edit-field > .time-picker-btn,
+.edit-grid .edit-field > .reminder-date-btn,
+.edit-grid .edit-field > .category-picker-btn,
+.edit-grid .edit-field > .attachment-field-btn,
+.edit-grid .edit-field > .comment-field-btn{
+  display:flex; align-items:center; gap:6px; white-space:nowrap; overflow:hidden;
+}
+.edit-grid .edit-field > .reminder-date-btn:hover,
+.edit-grid .edit-field > .category-picker-btn:hover,
+.edit-grid .edit-field > .attachment-field-btn:hover,
+.edit-grid .edit-field > .comment-field-btn:hover{ border-color:var(--accent); background:var(--surface); }
+.edit-grid .edit-field > .reminder-date-btn svg{ color:var(--text-faint); }
+.reminder-date-empty{ color:var(--text-faint); }
+.edit-field{ display:flex; flex-direction:column; gap:4px; min-width:0; }
 .edit-field-wide{ grid-column:span 2; }
+.edit-field-full{ grid-column:1 / -1; }
 .edit-field-label{ font-size:9.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-faint); padding-left:1px; }
-.edit-actions{ display:flex; justify-content:flex-end; gap:6px; }
+.edit-actions{ display:flex; justify-content:flex-end; gap:6px; align-items:center; }
+/* rodapé com "Limpar" na esquerda e Cancelar/Salvar na direita */
+.edit-actions-split > .btn:first-child{ margin-right:auto; }
+.attachment-field-btn{ cursor:pointer; }
+.attachment-field-btn.has-attachments{ color:var(--accent); }
+.attachment-field-label{ overflow:hidden; text-overflow:ellipsis; min-width:0; }
 .comment-field-btn{
   display:flex; align-items:center; gap:6px; width:100%;
   background:var(--surface); border:1px solid var(--border-strong); border-radius:7px;
@@ -814,6 +842,7 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 }
 .daylog-popover select:disabled, .daylog-popover input:disabled{ opacity:0.5; }
 .daylog-popover .edit-actions{ margin-top:2px; }
+.daylog-popover .edit-actions .btn svg{ width:12px; height:12px; }
 .reminder-datetime-row{ display:flex; gap:6px; align-items:center; }
 .reminder-datetime-row input[type="date"]{ width:auto; flex:1; min-width:0; }
 .reminder-clear-btn{ flex:none; padding:6px; border:1px solid var(--border-strong); border-radius:7px; }
@@ -829,10 +858,16 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .time-picker-btn:hover{ border-color:var(--accent); }
 .time-picker-btn:disabled{ opacity:0.5; cursor:not-allowed; }
 .time-picker-pop{
-  position:fixed; z-index:60; display:flex; align-items:stretch;
+  position:fixed; z-index:60; display:flex; flex-direction:column;
   background:var(--surface); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow);
-  padding:6px 0; height:190px; max-height:190px;
+  padding:6px 0 0;
 }
+.time-picker-cols{ display:flex; align-items:stretch; height:190px; max-height:190px; }
+.time-picker-clear{
+  margin-top:4px; padding:6px 8px; border-top:1px solid var(--border);
+  font-size:11px; color:var(--text-faint); width:100%; text-align:center;
+}
+.time-picker-clear:hover{ color:var(--danger); }
 .time-picker-col{
   display:flex; flex-direction:column; gap:1px; overflow-y:auto; width:36px; padding:0 6px;
   min-height:0; scrollbar-width:none; -webkit-overflow-scrolling:touch; touch-action:pan-y; overscroll-behavior:contain;

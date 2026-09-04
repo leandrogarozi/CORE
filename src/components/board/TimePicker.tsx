@@ -73,6 +73,7 @@ function useDragScroll(ref: React.RefObject<HTMLDivElement | null>) {
 export function TimePicker({
   value,
   onChange,
+  onClear,
   disabled,
   placeholder = "--:--",
   className,
@@ -80,6 +81,9 @@ export function TimePicker({
 }: {
   value: string;
   onChange: (value: string) => void;
+  // Quando informado, o seletor ganha um "Limpar" no rodapé — sem isso não havia
+  // como voltar pra "sem horário" depois de escolher um.
+  onClear?: () => void;
   disabled?: boolean;
   placeholder?: string;
   className?: string;
@@ -145,6 +149,7 @@ export function TimePicker({
       {open &&
         createPortal(
           <div className="time-picker-pop" ref={popRef} style={{ top: pos.top, left: pos.left }}>
+            <div className="time-picker-cols">
             <div className="time-picker-col" ref={hourListRef}>
               {HOURS.map((hh) => (
                 <button
@@ -174,6 +179,19 @@ export function TimePicker({
                 </button>
               ))}
             </div>
+            </div>
+            {onClear && (
+              <button
+                type="button"
+                className="time-picker-clear"
+                onClick={() => {
+                  onClear();
+                  setAnchorRect(null);
+                }}
+              >
+                Limpar
+              </button>
+            )}
           </div>,
           document.body
         )}
@@ -186,6 +204,7 @@ export function TimePicker({
 export function MinutesPicker({
   minutes,
   onChange,
+  onClear,
   disabled,
   placeholder,
   className,
@@ -193,6 +212,7 @@ export function MinutesPicker({
 }: {
   minutes: number | null;
   onChange: (minutes: number) => void;
+  onClear?: () => void;
   disabled?: boolean;
   placeholder?: string;
   className?: string;
@@ -205,6 +225,7 @@ export function MinutesPicker({
         const [h, m] = v.split(":").map(Number);
         onChange(h * 60 + m);
       }}
+      onClear={onClear}
       disabled={disabled}
       placeholder={placeholder}
       className={className}
