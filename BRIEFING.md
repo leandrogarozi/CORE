@@ -291,6 +291,32 @@ chegaram:
   ficar no fim do texto, e o corpo era curto demais pra quantidade de
   variáveis. Aprovado como: `🔔 Lembrete do seu app FARO: {{1}}. Esse é
   o aviso que você programou para esse compromisso.`
+- **Dois bugs reais que só apareceram testando de ponta a ponta** (o
+  teste foi feito disparando `net.http_post` pelo próprio Supabase e
+  lendo a resposta em `net._http_response`, já que o ambiente do Claude
+  Code não alcança o domínio do app):
+  1. **405 Method Not Allowed** — o `matcher` do `middleware.ts` pegava
+     também as rotas `/api/`. Sem sessão de usuário (que é o caso de
+     qualquer chamada server-to-server) o middleware respondia com
+     redirect pro `/login`, e o POST do cron acabava batendo na página
+     de login. Isso teria quebrado o cron do GitHub do mesmo jeito.
+     Corrigido tirando `api/` do matcher — nenhuma rota ficou
+     desprotegida: as do app validam a sessão e devolvem 401 sozinhas, a
+     do cron exige o `CRON_SECRET`.
+  2. **500 "permission denied for table reminders"** — as tabelas só
+     tinham GRANT pra `authenticated`; a `service_role` (que é quem o
+     cron usa, sem usuário logado) não tinha nem SELECT. Corrigido com
+     grant mínimo: `select, update` em `reminders` e `select` em
+     `settings`.
+  Depois disso a rota respondeu **200 `{"checked":1,"notified":0}`** —
+  ou seja, achou 1 lembrete com aviso configurado e não mandou nada
+  porque ainda não estava dentro da janela de aviso. Fluxo completo
+  funcionando.
+- **Como ficou montado no Supabase**: extensões `pg_cron` e `pg_net`;
+  segredo `faro_cron_secret` no **Vault** (não fica em texto puro no
+  comando do cron); função `faro_jobs.dispatch_whatsapp_reminders()` num
+  schema privado, que não é exposto pelo PostgREST e teve o EXECUTE
+  revogado do public; job `faro-whatsapp-lembretes` rodando `* * * * *`.
 - **Chave do Supabase**: o painel novo mostra "Publishable key" e
   "Secret keys" no lugar de anon/service_role. A que serve é a **Secret
   key** (`sb_secret_...`), que ignora RLS; a publishable respeita RLS e
