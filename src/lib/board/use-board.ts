@@ -424,7 +424,9 @@ export function useBoard(userId: string | null) {
       bumped
         .filter((x) => bucketOf(x) === myBucket && x.id !== t.id && (x.order || 0) > myOrder)
         .forEach((x) => {
-          supabase.from("tasks").update({ sort_order: x.order }).eq("id", x.id).then(() => {});
+          supabase.from("tasks").update({ sort_order: x.order }).eq("id", x.id).then(({ error }) => {
+            if (error) reportSaveError("reordenar tarefas", error);
+          });
         });
       supabase.from("tasks").insert(taskToInsertRow(clone, userId)).then(({ error }) => {
         if (error) reportSaveError("duplicateTask", error);
@@ -441,7 +443,9 @@ export function useBoard(userId: string | null) {
       const runningTimer = stateRef.current.activeTimers.find((at) => at.kind === "task" && at.itemId === id);
       if (runningTimer) {
         apply((s) => ({ ...s, activeTimers: s.activeTimers.filter((at) => at.id !== runningTimer.id) }));
-        supabase.from("active_timer").delete().eq("id", runningTimer.id).then(() => {});
+        supabase.from("active_timer").delete().eq("id", runningTimer.id).then(({ error }) => {
+          if (error) reportSaveError("parar cronômetro", error);
+        });
       }
 
       const nowIso = new Date().toISOString();
@@ -804,7 +808,9 @@ export function useBoard(userId: string | null) {
         }),
       }));
       orderedIds.forEach((id, idx) => {
-        supabase.from("task_statuses").update({ sort_order: idx }).eq("id", id).then(() => {});
+        supabase.from("task_statuses").update({ sort_order: idx }).eq("id", id).then(({ error }) => {
+          if (error) reportSaveError("reordenar status", error);
+        });
       });
     },
     [apply, supabase]
@@ -1381,7 +1387,9 @@ export function useBoard(userId: string | null) {
       const runningTimer = stateRef.current.activeTimers.find((at) => at.kind === kind && at.itemId === id);
       if (runningTimer) {
         apply((s) => ({ ...s, activeTimers: s.activeTimers.filter((at) => at.id !== runningTimer.id) }));
-        supabase.from("active_timer").delete().eq("id", runningTimer.id).then(() => {});
+        supabase.from("active_timer").delete().eq("id", runningTimer.id).then(({ error }) => {
+          if (error) reportSaveError("parar cronômetro", error);
+        });
       }
       apply((s) => ({ ...s, [listKey]: s[listKey].filter((x) => x.id !== id) }));
       supabase.from(tableFor(kind)).delete().eq("id", id).then(({ error }) => {
@@ -1579,7 +1587,9 @@ export function useBoard(userId: string | null) {
       if (running) {
         stopTimer(running);
         apply((s) => ({ ...s, activeTimers: s.activeTimers.filter((at) => at.id !== running.id) }));
-        supabase.from("active_timer").delete().eq("id", running.id).then(() => {});
+        supabase.from("active_timer").delete().eq("id", running.id).then(({ error }) => {
+          if (error) reportSaveError("parar cronômetro", error);
+        });
         return;
       }
       const at: ActiveTimer = { id: uid(), kind, itemId: id, logDate, startedAt: Date.now() };

@@ -270,6 +270,32 @@ chegaram:
   se depois de usar o botão ainda achar que tem algo torto, mandar novo
   print apontando onde.
 
+## Conferência de "está tudo salvo?" (04/09)
+
+O Leandro perguntou como ter certeza de que o dia inteiro de uso ficou
+gravado. Dá pra responder com dado, não com opinião — fica registrado
+aqui como fazer de novo:
+
+1. **Contar o que entrou no banco hoje** (tasks, lembretes, logs do dia,
+   blocos fixos...), com `created_at`/`updated_at` convertidos pra
+   `America/Sao_Paulo`.
+2. **Procurar gravação que falhou**, nos logs: `edge_logs` com
+   `response.status_code >= 400` e método POST/PATCH/DELETE/PUT.
+
+No dia 04/09: 15 tarefas criadas, 15 editadas, 2 pra Lixeira, 10
+lembretes, 1 registro de dia e 4 blocos fixos. Só duas gravações
+falharam em 24h, nenhuma delas dado do Leandro: o PATCH 504 às 18:00 era
+o próprio cron marcando o lembrete de teste (a falha que motivou a
+correção acima), e um DELETE 401 em `active_timer` às 14:07 — sessão
+expirada ao parar um cronômetro; a tabela está vazia, então não sobrou
+nada travado.
+
+**Lacuna que isso expôs**: cinco escritas usavam `.then(() => {})`,
+ignorando o erro — reordenação de tarefas, reordenação de status e três
+paradas de cronômetro. Elas não apareciam na caixa vermelha de erro.
+Justamente o DELETE 401 acima era uma delas: falhou em silêncio. Todas
+passaram a chamar `reportSaveError`.
+
 ## Teste real do disparo: risco de mensagem repetida (04/09)
 
 Teste feito com um lembrete de verdade no banco, dentro da janela de
