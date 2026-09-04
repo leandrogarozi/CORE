@@ -270,6 +270,28 @@ chegaram:
   se depois de usar o botão ainda achar que tem algo torto, mandar novo
   print apontando onde.
 
+## Teste real do disparo: risco de mensagem repetida (04/09)
+
+Teste feito com um lembrete de verdade no banco, dentro da janela de
+aviso, acompanhando `net._http_response` a cada minuto.
+
+- **Resultado**: `200 {"checked":2,"due":1,"notified":0,"errors":
+  ["(#132001) Template name does not exist (código 132001)"]}`. Ou seja:
+  o token novo funciona (não é mais 190), o cron acha o lembrete certo,
+  a rota tenta enviar — falta só o Meta aprovar o `lembrete_faro`.
+- **O que o teste revelou de grave**: o MESMO lembrete disparou às 18:00
+  e de novo às 18:01. A rota marcava `whatsapp_notified_at` **depois**
+  do envio e ignorava o erro dessa gravação. Com o template aprovado,
+  isso viraria uma mensagem por minuto no número pessoal do Leandro —
+  exatamente o tipo de coisa que faz o WhatsApp bloquear um número.
+- **Correção**: a marcação virou uma "reserva" feita ANTES do envio —
+  `update ... where id = ? and whatsapp_notified_at is null` com
+  `.select()`, e o envio só acontece se esta execução foi quem
+  conseguiu marcar. Duas execuções simultâneas não conseguem mandar a
+  mesma mensagem, e uma falha ao gravar agora aparece em `errors` em vez
+  de virar repetição. A troca é consciente: no pior caso um lembrete
+  deixa de ser avisado — nunca o contrário.
+
 ## Token permanente do WhatsApp e correção de fuso no disparo (04/09)
 
 - **"Authentication Error" (código 190)**: o token que estava na Vercel

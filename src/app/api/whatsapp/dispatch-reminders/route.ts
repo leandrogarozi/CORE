@@ -62,6 +62,23 @@ export async function POST(req: NextRequest) {
     const phone = phoneByUser.get(userId);
     if (!phone) continue;
 
+    // Marca ANTES de enviar, e só segue se esta execução foi quem marcou (o
+    // `.is(null)` + `.select()` garantem isso). O cron roda de minuto em minuto:
+    // se a marcação viesse depois do envio, qualquer falha em gravá-la faria a
+    // mesma mensagem sair de novo no minuto seguinte, e de novo, pra sempre.
+    // Assim, no pior caso um lembrete deixa de ser avisado — nunca o contrário.
+    const { data: claimed, error: claimError } = await supabase
+      .from("reminders")
+      .update({ whatsapp_notified_at: new Date().toISOString() })
+      .eq("id", reminder.id)
+      .is("whatsapp_notified_at", null)
+      .select("id");
+    if (claimError) {
+      errors.push(`${reminder.id}: falha ao marcar como notificado (${claimError.message})`);
+      continue;
+    }
+    if (!claimed || claimed.length === 0) continue; // outra execução já pegou
+
     const text = reminderMessageText(reminder.title, reminder.date, reminder.time);
     const result = await sendWhatsAppReminderMessage(phone, text);
     if (result.ok) {
@@ -69,9 +86,6 @@ export async function POST(req: NextRequest) {
     } else {
       errors.push(`${reminder.id}: ${result.error}`);
     }
-    // Marca como notificado mesmo se falhar, pra não ficar tentando pra sempre
-    // num número inválido/template rejeitado — erro real fica no log do cron.
-    await supabase.from("reminders").update({ whatsapp_notified_at: new Date().toISOString() }).eq("id", reminder.id);
   }
 
   return NextResponse.json({ checked: dueRows.length, due: due.length, notified, errors });
