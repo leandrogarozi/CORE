@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { rowToReminder } from "@/lib/board/mappers";
-import { isReminderAlerting } from "@/lib/board/reminder-alerts";
+import { isReminderAlertingInZone } from "@/lib/board/reminder-alerts";
 import { sendWhatsAppReminderMessage } from "@/lib/whatsapp/send";
 import { fmtDayMonth } from "@/lib/date-utils";
 
 export const dynamic = "force-dynamic";
+
+const DEFAULT_TIME_ZONE = "America/Sao_Paulo";
 
 function reminderMessageText(title: string, date: string | null, time: string | null): string {
   const when = date ? `${fmtDayMonth(date)}${time ? ` às ${time}` : ""}` : time ? `às ${time}` : null;
@@ -33,17 +35,24 @@ export async function POST(req: NextRequest) {
   const dueRows = rows ?? [];
 
   const userIdById = new Map(dueRows.map((row) => [row.id, row.user_id]));
-  const due = dueRows.map(rowToReminder).filter((r) => isReminderAlerting(r, nowMs));
-  if (due.length === 0) return NextResponse.json({ checked: dueRows.length, notified: 0 });
+  const userIds = [...new Set(dueRows.map((row) => row.user_id))];
+  if (userIds.length === 0) return NextResponse.json({ checked: 0, due: 0, notified: 0 });
 
-  const userIds = [...new Set(due.map((r) => userIdById.get(r.id)!))];
+  // As configurações vêm ANTES do filtro porque o fuso do usuário faz parte da
+  // conta: aqui no servidor (UTC) "10:00" sem fuso viraria 07:00 de Brasília.
   const { data: settingsRows, error: settingsError } = await supabase
     .from("settings")
-    .select("user_id, notify_phone")
+    .select("user_id, notify_phone, timezone")
     .in("user_id", userIds);
   if (settingsError) return NextResponse.json({ error: settingsError.message }, { status: 500 });
 
   const phoneByUser = new Map((settingsRows ?? []).map((s) => [s.user_id, s.notify_phone]));
+  const tzByUser = new Map((settingsRows ?? []).map((s) => [s.user_id, s.timezone || DEFAULT_TIME_ZONE]));
+
+  const due = dueRows
+    .map(rowToReminder)
+    .filter((r) => isReminderAlertingInZone(r, nowMs, tzByUser.get(userIdById.get(r.id)!) ?? DEFAULT_TIME_ZONE));
+  if (due.length === 0) return NextResponse.json({ checked: dueRows.length, due: 0, notified: 0 });
 
   let notified = 0;
   const errors: string[] = [];

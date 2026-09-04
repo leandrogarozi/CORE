@@ -22,6 +22,50 @@ export function reminderTargetMs(reminder: Pick<Reminder, "date" | "time">): num
   return Number.isNaN(d.getTime()) ? null : d.getTime();
 }
 
+// Quanto o fuso está deslocado do UTC no instante utcMs (positivo a leste).
+function timeZoneOffsetMs(utcMs: number, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(new Date(utcMs));
+  const v = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? 0);
+  return Date.UTC(v("year"), v("month") - 1, v("day"), v("hour"), v("minute"), v("second")) - utcMs;
+}
+
+/**
+ * Converte "2026-09-05" + "10:00" lidos NO FUSO DO USUÁRIO pro instante real.
+ *
+ * No navegador o `new Date("...T10:00")` do reminderTargetMs já acerta, porque o
+ * fuso local é o do usuário. No servidor (Vercel roda em UTC) ele erraria em 3h:
+ * um lembrete das 10:00 viraria 07:00 de Brasília. Por isso o disparo automático
+ * usa esta função com o `timezone` salvo em settings.
+ */
+export function zonedDateTimeToMs(dateISO: string, time: string, timeZone: string): number {
+  const asIfUtc = Date.parse(`${dateISO}T${time}:00Z`);
+  if (Number.isNaN(asIfUtc)) return NaN;
+  const firstPass = asIfUtc - timeZoneOffsetMs(asIfUtc, timeZone);
+  // Segunda passada: nas viradas de horário de verão o deslocamento do palpite
+  // inicial pode não ser o mesmo do instante final.
+  const offset = timeZoneOffsetMs(firstPass, timeZone);
+  return asIfUtc - offset;
+}
+
+/** Mesma regra do isReminderAlerting, mas lendo data/hora no fuso do usuário. */
+export function isReminderAlertingInZone(reminder: Reminder, nowMs: number, timeZone: string): boolean {
+  if (reminder.done || !reminder.alertMinutesBefore) return false;
+  if (!reminder.date) return false;
+  const targetMs = zonedDateTimeToMs(reminder.date, reminder.time ?? "23:59", timeZone);
+  if (Number.isNaN(targetMs)) return false;
+  const alertAtMs = targetMs - reminder.alertMinutesBefore * 60000;
+  return nowMs >= alertAtMs && nowMs < targetMs;
+}
+
 export function isReminderAlerting(reminder: Reminder, nowMs: number): boolean {
   if (reminder.done || !reminder.alertMinutesBefore) return false;
   const targetMs = reminderTargetMs(reminder);

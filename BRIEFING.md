@@ -270,6 +270,35 @@ chegaram:
   se depois de usar o botão ainda achar que tem algo torto, mandar novo
   print apontando onde.
 
+## Token permanente do WhatsApp e correção de fuso no disparo (04/09)
+
+- **"Authentication Error" (código 190)**: o token que estava na Vercel
+  era o **temporário de 24h** do painel do app — venceu. Trocado por um
+  token de **usuário do sistema** (`faro-api`) com validade **Nunca**,
+  permissões `whatsapp_business_messaging` e
+  `whatsapp_business_management`.
+- **Como gerar (o caminho não é óbvio na interface do Meta)**: o
+  usuário do sistema precisa de **cargo no app** E da **conta do
+  WhatsApp** como ativo atribuído. Sem o cargo no app, a etapa
+  "Atribuir permissões" mostra "Sem permissões disponíveis" e não deixa
+  concluir. No caso do Leandro a atribuição pela interface não
+  funcionou; resolveu com uma chamada no Graph API Explorer:
+  `POST /{app_id}/assigned_users` com `user={system_user_id}` e
+  `tasks=MANAGE`.
+- **A mensagem de erro agora mostra o código do Meta** junto do texto
+  (190 = token, 132001 = template), porque "Authentication Error"
+  sozinho não dizia o que fazer.
+- **Bug de fuso horário no disparo automático** (achado antes de testar):
+  `reminderTargetMs` faz `new Date("2026-09-05T10:00:00")`, sem fuso —
+  no navegador isso acerta, porque o fuso local é o do usuário, mas a
+  Vercel roda em **UTC**: um lembrete das 10:00 seria lido como 10:00
+  UTC = 07:00 de Brasília, e o aviso sairia 3 horas adiantado. A tabela
+  `settings` já tinha a coluna `timezone` (`America/Sao_Paulo`) e o cron
+  não usava. Criadas `zonedDateTimeToMs` e `isReminderAlertingInZone`, e
+  a rota passou a buscar as configurações **antes** de filtrar, pra ler
+  data/hora no fuso de cada usuário. Conferido com 4 casos (10:00 SP =
+  13:00Z; não alerta 09:49, alerta 09:51, não alerta 10:01).
+
 ## Agendamento dos lembretes sai do GitHub e vai pro Supabase (04/09)
 
 - **Por que mudou**: o workflow do GitHub Actions estava agendado a cada
