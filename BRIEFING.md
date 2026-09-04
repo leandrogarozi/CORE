@@ -270,6 +270,37 @@ chegaram:
   se depois de usar o botão ainda achar que tem algo torto, mandar novo
   print apontando onde.
 
+## Observação vira campo de digitação direta (03/09)
+
+Ajuste final pedido pelo Leandro sobre a Observação: "eu tiraria essa
+marcação do bloco de texto — esse retângulo que aparece quando coloca o
+mouse em cima. E deixaria dar para digitar nesse campo normalmente sem
+abrir um pop-up. Quando clica pra digitar eu posso começar a escrever
+por ali mesmo e aparece a barra de edição de texto. E colocaria aquele
+ícone de expandir no cantinho — aí sim, quando clica, abre a caixa de
+texto pop-up."
+
+- **Novo componente `NoteField.tsx`**, que substituiu a variante "block"
+  do `CommentButton` (removida): o `RichTextEditor` fica montado direto
+  no formulário, então dá pra escrever no campo sem abrir nada.
+- **Sem moldura no repouso**: fora de foco o campo não tem borda, nem
+  fundo, nem o retângulo de hover, nem o tooltip "Clique pra editar" —
+  parece só o texto na página. A borda e a barra de formatação aparecem
+  no `:focus-within` (a barra também ganhou `hidden` de verdade, porque
+  `display:flex` no `.rte-toolbar` ganhava do `[hidden]` do navegador).
+- **A barra não rouba o foco**: `onMouseDown` com `preventDefault` no
+  `.rte-toolbar` — sem isso, clicar em Negrito tirava o foco do editor e
+  a própria barra sumia antes do clique chegar.
+- **Ícone de expandir no canto superior direito** abre a caixa grande
+  (`CommentModal`), o mesmo pop-up de antes, pra quem quer mais espaço.
+- **Gravação**: o texto sobe pro formulário a cada tecla (então o botão
+  Salvar da tarefa nunca pega valor velho) e vai pro banco 1,2s depois
+  da última tecla, ao sair do campo, ao abrir o pop-up e ao desmontar o
+  formulário — sem escrever no Supabase a cada letra digitada.
+- **Recolhido só em repouso**: fora de foco, o campo trava em 150px com
+  degradê e o botão "Exibir mais"/"Exibir menos"; ao clicar pra escrever
+  ele abre inteiro, pra não digitar por baixo do degradê.
+
 ## Edição da tarefa no estilo lista de propriedades (03/09)
 
 O Leandro mandou um print de uma ferramenta de gestão (estilo ClickUp) e

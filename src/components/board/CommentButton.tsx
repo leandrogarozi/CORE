@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { ChevronIcon, CommentIcon, ExpandIcon } from "./icons";
+import { CommentIcon, ExpandIcon } from "./icons";
 import { RichTextEditor } from "./RichTextEditor";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 import { stripHtml } from "@/lib/rich-text";
@@ -72,7 +72,7 @@ function CommentPopover({
   );
 }
 
-function CommentModal({
+export function CommentModal({
   initialValue,
   placeholder,
   title,
@@ -143,26 +143,13 @@ export function CommentButton({
   ariaLabel: string;
   icon?: ReactNode;
   title?: string;
-  // "block" = a observação aparece aberta, com o texto formatado à mostra e um
-  // "Exibir mais" quando é longa demais (em vez de uma linha só de preview).
-  variant?: "icon" | "field" | "block";
+  variant?: "icon" | "field";
   alwaysExpanded?: boolean; // pula o popover pequeno e abre direto no modal grande
 }) {
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const [expanded, setExpanded] = useState(false);
-  const [blockOpen, setBlockOpen] = useState(false);
-  const [overflowing, setOverflowing] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
-  const blockRef = useRef<HTMLDivElement>(null);
   const preview = stripHtml(value ?? "");
-
-  // Só mostra o "Exibir mais" se o texto realmente não coube na altura recolhida.
-  useLayoutEffect(() => {
-    if (variant !== "block") return;
-    const el = blockRef.current;
-    if (!el) return;
-    setOverflowing(el.scrollHeight > el.clientHeight + 2);
-  }, [variant, value, blockOpen]);
 
   function toggleOpen(e: React.MouseEvent) {
     e.stopPropagation();
@@ -186,43 +173,6 @@ export function CommentButton({
       onClose={() => setExpanded(false)}
     />
   ) : null;
-
-  if (variant === "block") {
-    return (
-      <>
-        <div className="comment-block">
-          <div
-            ref={blockRef}
-            className={"comment-block-body" + (blockOpen ? " open" : "") + (overflowing && !blockOpen ? " faded" : "")}
-            role="button"
-            tabIndex={0}
-            aria-label={ariaLabel}
-            title="Clique pra editar"
-            onClick={() => setExpanded(true)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") setExpanded(true);
-            }}
-          >
-            {value ? (
-              <div className="rte-content" dangerouslySetInnerHTML={{ __html: value }} />
-            ) : (
-              <span className="comment-block-placeholder">{placeholder}</span>
-            )}
-          </div>
-          {overflowing || blockOpen ? (
-            <button
-              type="button"
-              className={"comment-block-toggle" + (blockOpen ? " open" : "")}
-              onClick={() => setBlockOpen((o) => !o)}
-            >
-              <ChevronIcon /> {blockOpen ? "Exibir menos" : "Exibir mais"}
-            </button>
-          ) : null}
-        </div>
-        {modal}
-      </>
-    );
-  }
 
   return (
     <>
@@ -255,15 +205,7 @@ export function CommentButton({
           }}
         />
       )}
-      {expanded && (
-        <CommentModal
-          initialValue={value ?? ""}
-          placeholder={placeholder}
-          title={title ?? ariaLabel}
-          onSave={onSave}
-          onClose={() => setExpanded(false)}
-        />
-      )}
+      {modal}
     </>
   );
 }

@@ -101,11 +101,14 @@ export function RichTextEditor({
   onChange,
   placeholder,
   autoFocus,
+  hideToolbar = false,
 }: {
   value: string;
   onChange: (html: string) => void;
   placeholder?: string;
   autoFocus?: boolean;
+  // No campo de observação inline a barra só aparece quando o campo tem foco.
+  hideToolbar?: boolean;
 }) {
   const [highlightAnchor, setHighlightAnchor] = useState<DOMRect | null>(null);
   const highlightBtnRef = useRef<HTMLButtonElement>(null);
@@ -157,7 +160,13 @@ export function RichTextEditor({
 
   return (
     <div className="rte">
-      <div className="rte-toolbar">
+      {/* preventDefault no mousedown: sem isso, clicar num botão tira o foco do
+          editor — o que fecharia a barra no modo "aparece só com foco". */}
+      <div
+        className="rte-toolbar"
+        hidden={hideToolbar}
+        onMouseDown={(e) => e.preventDefault()}
+      >
         <button
           type="button"
           className={"rte-btn" + (editor.isActive("bold") ? " active" : "")}

@@ -9,7 +9,7 @@ import { TimerButton } from "./TimerButton";
 import { StatusPicker } from "./StatusPicker";
 import { MinutesPicker, TimePicker } from "./TimePicker";
 import { ReminderDateButton } from "./RemindersView";
-import { CommentButton } from "./CommentButton";
+import { NoteField } from "./NoteField";
 import {
   BellIcon,
   BoltIcon,
@@ -747,16 +747,12 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
         <span className="prop-label">
           <CommentIcon /> Observação
         </span>
-        <CommentButton
-          variant="block"
-          alwaysExpanded
-          value={vals.note || null}
-          placeholder="Clique pra escrever ou colar um texto..."
+        <NoteField
+          value={vals.note}
+          placeholder="Escreva ou cole um texto aqui..."
           ariaLabel="Observação da tarefa"
-          onSave={(text) => {
-            board.updateTaskNote(t.id, text);
-            setVals((v) => ({ ...v, note: text }));
-          }}
+          onChange={(html) => setVals((v) => ({ ...v, note: html }))}
+          onPersist={(html) => board.updateTaskNote(t.id, html)}
         />
       </div>
       <div className="edit-actions">

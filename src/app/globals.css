@@ -785,28 +785,33 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .prop-value > .attachment-field-btn.has-attachments{ color:var(--accent); }
 .prop-value input[type="text"]::placeholder{ color:var(--text-faint); }
 
-/* Observação aberta, com "Exibir mais" quando o texto é longo */
+/* Observação, no rodapé do formulário de edição */
 .edit-note{ display:flex; flex-direction:column; gap:5px; border-top:1px solid var(--border); padding-top:9px; margin-bottom:10px; }
-.comment-block{ display:flex; flex-direction:column; align-items:flex-start; gap:5px; }
-.comment-block-body{
-  position:relative; width:100%; box-sizing:border-box; overflow:hidden; cursor:text;
-  border:1px solid transparent; border-radius:8px; padding:6px 8px;
-}
-.comment-block-body:hover{ border-color:var(--border); }
-.comment-block-body:not(.open){ max-height:150px; }
-.comment-block-body.faded::after{
+/* Observação: escreve direto no campo, sem pop-up. Sem moldura no repouso —
+   a barra de formatação e a borda só aparecem quando o campo tem foco. */
+.note-field{ position:relative; display:flex; flex-direction:column; align-items:stretch; gap:5px; }
+.note-field-box{ position:relative; }
+.note-field-box.collapsed{ max-height:150px; overflow:hidden; }
+.note-field-box.faded::after{
   content:""; position:absolute; left:0; right:0; bottom:0; height:44px; pointer-events:none;
   background:linear-gradient(to bottom, transparent, var(--surface));
 }
-.comment-block-placeholder{ font-size:12.5px; color:var(--text-faint); }
-.comment-block-toggle{
+.note-field .rte{ border-color:transparent; background:transparent; overflow:visible; }
+.note-field:focus-within .rte{ border-color:var(--border-strong); background:var(--bg); overflow:hidden; }
+.note-field .rte-editor{ min-height:auto; padding:6px 8px; overflow:visible; }
+/* espaço reservado pro ícone de expandir, que fica por cima do canto direito */
+.note-field .rte-toolbar{ padding-right:32px; }
+.note-field:focus-within .rte-editor{ min-height:120px; }
+.note-field-expand{ position:absolute; top:2px; right:2px; z-index:2; color:var(--text-faint); }
+.note-field-expand:hover{ color:var(--text); background:var(--surface-2); }
+.note-field-toggle{
   display:inline-flex; align-items:center; gap:5px; align-self:center;
   font-size:11.5px; color:var(--text-muted);
   background:var(--surface-2); border:1px solid var(--border); border-radius:999px; padding:3px 11px;
 }
-.comment-block-toggle:hover{ color:var(--text); border-color:var(--border-strong); }
-.comment-block-toggle svg{ width:12px; height:12px; transition:transform 0.15s ease; }
-.comment-block-toggle.open svg{ transform:rotate(180deg); }
+.note-field-toggle:hover{ color:var(--text); border-color:var(--border-strong); }
+.note-field-toggle svg{ width:12px; height:12px; transition:transform 0.15s ease; }
+.note-field-toggle.open svg{ transform:rotate(180deg); }
 .edit-field{ display:flex; flex-direction:column; gap:4px; min-width:0; }
 .edit-field-wide{ grid-column:span 2; }
 .edit-field-full{ grid-column:1 / -1; }
@@ -1389,6 +1394,8 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   display:flex; align-items:center; gap:2px; flex-wrap:wrap; padding:6px 8px;
   border-bottom:1px solid var(--border); background:var(--surface);
 }
+/* display:flex acima ganha do [hidden] do navegador — precisa ser explícito */
+.rte-toolbar[hidden]{ display:none; }
 .rte-btn{
   display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px;
   border-radius:6px; color:var(--text-muted); flex:none;
