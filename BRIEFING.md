@@ -270,6 +270,33 @@ chegaram:
   se depois de usar o botão ainda achar que tem algo torto, mandar novo
   print apontando onde.
 
+## Agendamento dos lembretes sai do GitHub e vai pro Supabase (04/09)
+
+- **Por que mudou**: o workflow do GitHub Actions estava agendado a cada
+  10 minutos, mas o GitHub rodou de verdade às 21:02, 23:13, 00:58,
+  05:30 e 09:53 — intervalos de 2 a 4 horas. O cron gratuito do GitHub é
+  engolido quando a fila está cheia; pra lembrete com horário isso é
+  inútil. E todas as execuções falhavam, porque as configurações
+  `FARO_APP_URL` e `CRON_SECRET` nunca foram criadas lá
+  (`curl: (3) URL rejected: No host part in the URL`).
+- **Novo desenho**: `pg_cron` + `pg_net` no próprio Supabase (as duas
+  extensões já estavam disponíveis no projeto, só não instaladas). O
+  banco chama `POST /api/whatsapp/dispatch-reminders` de minuto em
+  minuto, com o `CRON_SECRET` no header. Some a dependência do GitHub e
+  o workflow foi removido.
+- **Configuração que ficou com o Leandro** (não dá pra fazer por API):
+  `SUPABASE_SERVICE_ROLE_KEY` e `CRON_SECRET` como variáveis de ambiente
+  na Vercel, e o template `lembrete_faro` no WhatsApp Manager.
+- **Template**: o Meta recusou `🔔 Lembrete: {{1}}` — variável não pode
+  ficar no fim do texto, e o corpo era curto demais pra quantidade de
+  variáveis. Aprovado como: `🔔 Lembrete do seu app FARO: {{1}}. Esse é
+  o aviso que você programou para esse compromisso.`
+- **Chave do Supabase**: o painel novo mostra "Publishable key" e
+  "Secret keys" no lugar de anon/service_role. A que serve é a **Secret
+  key** (`sb_secret_...`), que ignora RLS; a publishable respeita RLS e
+  o cron não leria lembrete nenhum. O nome da variável no código
+  continua `SUPABASE_SERVICE_ROLE_KEY`.
+
 ## Observação vira campo de digitação direta (03/09)
 
 Ajuste final pedido pelo Leandro sobre a Observação: "eu tiraria essa
