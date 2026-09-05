@@ -26,31 +26,59 @@ export async function POST(req: NextRequest) {
   }
   const headers = { Authorization: `Bearer ${token}` };
 
-  // A WABA pode vir na URL (?waba=...) ou ser descoberta a partir do número.
-  let wabaId = req.nextUrl.searchParams.get("waba");
-  const phoneRes = await fetch(
-    `${GRAPH}/${phoneNumberId}?fields=id,display_phone_number,verified_name,whatsapp_business_account`,
-    { headers }
-  );
+  const phoneRes = await fetch(`${GRAPH}/${phoneNumberId}?fields=id,display_phone_number,verified_name`, {
+    headers,
+  });
   const phone = await phoneRes.json().catch(() => null);
-  if (!wabaId) wabaId = phone?.whatsapp_business_account?.id ?? null;
 
-  if (!wabaId) {
+  // O nó do número não expõe a conta (WABA). O debug_token expõe: as permissões
+  // do token vêm com os ids das contas a que ele dá acesso.
+  const fromUrl = req.nextUrl.searchParams.get("waba");
+  let wabaIds: string[] = fromUrl ? [fromUrl] : [];
+  let debug: unknown = null;
+  if (!wabaIds.length) {
+    const dbgRes = await fetch(`${GRAPH}/debug_token?input_token=${token}`, { headers });
+    const dbg = await dbgRes.json().catch(() => null);
+    debug = dbg?.data?.error ?? dbg?.error ?? null;
+    const scopes: { scope: string; target_ids?: string[] }[] = dbg?.data?.granular_scopes ?? [];
+    wabaIds = [
+      ...new Set(
+        scopes
+          .filter((g) => g.scope.startsWith("whatsapp_business"))
+          .flatMap((g) => g.target_ids ?? [])
+      ),
+    ];
+  }
+
+  if (!wabaIds.length) {
     return NextResponse.json({
       numero: phone,
-      erro: "Não consegui descobrir a conta (WABA) do número. Chame de novo com ?waba=<id>.",
+      debug,
+      erro: "Não achei nenhuma conta (WABA) no token. Chame de novo com ?waba=<id>.",
     });
   }
 
-  const tplRes = await fetch(
-    `${GRAPH}/${wabaId}/message_templates?fields=name,language,status,category&limit=50`,
-    { headers }
-  );
-  const templates = await tplRes.json().catch(() => null);
+  const contas = [];
+  for (const wabaId of wabaIds) {
+    const tplRes = await fetch(
+      `${GRAPH}/${wabaId}/message_templates?fields=name,language,status,category&limit=50`,
+      { headers }
+    );
+    const tpl = await tplRes.json().catch(() => null);
+    contas.push({
+      waba: wabaId,
+      templates:
+        tpl?.data?.map((t: { name: string; language: string; status: string; category: string }) => ({
+          nome: t.name,
+          idioma: t.language,
+          status: t.status,
+          categoria: t.category,
+        })) ?? tpl,
+    });
+  }
 
   return NextResponse.json({
     numero: { id: phone?.id, telefone: phone?.display_phone_number, nome: phone?.verified_name },
-    waba: wabaId,
-    templates: templates?.data ?? templates,
+    contas,
   });
 }
