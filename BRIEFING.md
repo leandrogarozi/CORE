@@ -290,11 +290,19 @@ chegaram:
   **Vencidos continua sempre aberto**, de propósito — é o que precisa de
   ação.
 - **Arrasto na lista de tarefas**: já existia, mas era invisível. O que
-  faltava era sinal. Agora o punho tem tooltip "Arraste pra reordenar",
+  faltava era sinal. Agora o punho tem tooltip "Arraste pra reordenar" e
   a linha de destino aparece marcada em azul (`.drop-target`) enquanto
-  se arrasta, e o punho fica apagado (em vez de invisível) quando o
-  botão "⚡ Rápidas primeiro" está ligado — porque nesse modo a ordem é
-  calculada e o arrasto não vale; o tooltip explica isso.
+  se arrasta.
+- **Arrasto com "⚡ Rápidas primeiro" ligado** (ajuste pedido logo em
+  seguida): antes o modo desligava o arrasto da lista inteira. Agora a
+  regra é por linha — **tarefa com raio não arrasta** (a posição dela vem
+  da quantidade de raios), **tarefa sem raio arrasta normalmente**. Com o
+  botão desligado, tudo arrasta como sempre.
+  Detalhe importante da implementação: nesse modo a reordenação mexe só
+  na sequência das tarefas sem raio, mantendo as ⚡ nos lugares que já
+  ocupavam na ordem real. Se o `sort_order` fosse reescrito a partir da
+  ordem de exibição, o simples ato de arrastar uma tarefa jogaria as ⚡
+  pro topo em definitivo, bagunçando a ordem manual ao desligar o botão.
 
 ## Conferência de "está tudo salvo?" (04/09)
 

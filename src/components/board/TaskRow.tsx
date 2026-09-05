@@ -329,7 +329,11 @@ export function TaskRow({
         ) : (
           <span
             className={"drag-handle" + (draggable ? "" : " disabled")}
-            title={draggable ? "Arraste pra reordenar" : "Desative o \u26a1 Rápidas primeiro pra reordenar arrastando"}
+            title={
+              draggable
+                ? "Arraste pra reordenar"
+                : "Com \u26a1 Rápidas primeiro ligado, a posição das tarefas com raio vem dos raios — as sem raio continuam livres pra arrastar"
+            }
           >
             {Array.from({ length: 6 }).map((_, i) => (
               <span key={i} />

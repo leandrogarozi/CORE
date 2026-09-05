@@ -77,20 +77,56 @@ export function TaskListCard({
   const [overId, setOverId] = useState<string | null>(null);
   const [inputVal, setInputVal] = useState("");
   const items = sortForDisplay(tasks, sortByQuick);
-  const draggable = !sortByQuick;
 
-  function handleDrop() {
-    if (!draggingId) return;
-    const ids = items.map((t) => t.id);
-    const fromIdx = ids.indexOf(draggingId);
-    let toIdx = overId ? ids.indexOf(overId) : ids.length - 1;
-    if (fromIdx === -1) return;
-    if (toIdx === -1) toIdx = ids.length - 1;
-    ids.splice(fromIdx, 1);
-    ids.splice(toIdx, 0, draggingId);
-    board.reorderBucket(bucketKey, ids);
+  // Com "Rápidas primeiro" ligado, a posição das tarefas ⚡ é calculada pelo
+  // número de raios — arrastar elas não teria efeito. As sem raio continuam
+  // livres pra reordenar; a ordem delas é respeitada quando o botão é desligado.
+  const canDrag = (t: Task) => !sortByQuick || (t.quick || 0) === 0;
+
+  function resetDrag() {
     setDraggingId(null);
     setOverId(null);
+  }
+
+  function handleDrop() {
+    if (!draggingId) return resetDrag();
+    const dragged = tasks.find((t) => t.id === draggingId);
+    if (!dragged || !canDrag(dragged)) return resetDrag();
+
+    if (!sortByQuick) {
+      const ids = items.map((t) => t.id);
+      const fromIdx = ids.indexOf(draggingId);
+      let toIdx = overId ? ids.indexOf(overId) : ids.length - 1;
+      if (fromIdx === -1) return resetDrag();
+      if (toIdx === -1) toIdx = ids.length - 1;
+      ids.splice(fromIdx, 1);
+      ids.splice(toIdx, 0, draggingId);
+      board.reorderBucket(bucketKey, ids);
+      return resetDrag();
+    }
+
+    // Modo "rápidas primeiro": mexe só na sequência das tarefas sem raio, mantendo
+    // as ⚡ nas posições que já ocupavam na ordem real (senão o simples ato de
+    // arrastar reescreveria a ordem manual de todo mundo pela ordem de exibição).
+    const over = overId ? tasks.find((t) => t.id === overId) : null;
+    if (over && !canDrag(over)) return resetDrag();
+
+    const base = [...tasks].sort((a, b) => (a.order || 0) - (b.order || 0));
+    const slots = base.map((t, i) => ({ t, i })).filter((s) => canDrag(s.t)).map((s) => s.i);
+    const movable = slots.map((i) => base[i].id);
+    const fromIdx = movable.indexOf(draggingId);
+    let toIdx = over ? movable.indexOf(over.id) : movable.length - 1;
+    if (fromIdx === -1) return resetDrag();
+    if (toIdx === -1) toIdx = movable.length - 1;
+    movable.splice(fromIdx, 1);
+    movable.splice(toIdx, 0, draggingId);
+
+    const ids = base.map((t) => t.id);
+    slots.forEach((pos, k) => {
+      ids[pos] = movable[k];
+    });
+    board.reorderBucket(bucketKey, ids);
+    resetDrag();
   }
 
   async function handleAdd() {
@@ -136,16 +172,13 @@ export function TaskListCard({
             <TaskRow
               key={t.id}
               task={t}
-              draggable={draggable}
+              draggable={canDrag(t)}
               dragging={draggingId === t.id}
-              dropTarget={!!draggingId && overId === t.id && draggingId !== t.id}
+              dropTarget={!!draggingId && overId === t.id && draggingId !== t.id && canDrag(t)}
               onDragStart={setDraggingId}
               onDragOverRow={setOverId}
               onDrop={handleDrop}
-              onDragEnd={() => {
-                setDraggingId(null);
-                setOverId(null);
-              }}
+              onDragEnd={resetDrag}
               gridTemplate={columns.gridTemplate}
             />
           ))}
