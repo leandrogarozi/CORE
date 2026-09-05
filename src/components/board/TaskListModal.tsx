@@ -8,7 +8,18 @@ function fmtShortDate(iso: string | null) {
   return `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
 }
 
-export function TaskListModal({ title, tasks, onClose }: { title: string; tasks: Task[]; onClose: () => void }) {
+export function TaskListModal({
+  title,
+  tasks,
+  onClose,
+  onSelect,
+}: {
+  title: string;
+  tasks: Task[];
+  onClose: () => void;
+  // Quando informado, cada linha vira clicável e leva pra tarefa.
+  onSelect?: (task: Task) => void;
+}) {
   return (
     <>
       <div className="modal-backdrop" onClick={onClose} />
@@ -19,14 +30,32 @@ export function TaskListModal({ title, tasks, onClose }: { title: string; tasks:
         </div>
         <div className="task-list-modal-body">
           {!tasks.length && <div className="empty-row">Nenhuma tarefa aqui.</div>}
-          {tasks.map((t) => (
-            <div className="task-list-modal-row" key={t.id}>
-              <span className="task-list-modal-date mono">{fmtShortDate(t.date)}</span>
-              <span className="task-list-modal-title">{t.title}</span>
-              <CategoryChip category={t.category} />
-              {t.category2 && <CategoryChip category={t.category2} />}
-            </div>
-          ))}
+          {tasks.map((t) =>
+            onSelect ? (
+              <button
+                type="button"
+                className="task-list-modal-row clickable"
+                key={t.id}
+                title="Abrir essa tarefa no dia dela"
+                onClick={() => {
+                  onSelect(t);
+                  onClose();
+                }}
+              >
+                <span className="task-list-modal-date mono">{fmtShortDate(t.date)}</span>
+                <span className="task-list-modal-title">{t.title}</span>
+                <CategoryChip category={t.category} />
+                {t.category2 && <CategoryChip category={t.category2} />}
+              </button>
+            ) : (
+              <div className="task-list-modal-row" key={t.id}>
+                <span className="task-list-modal-date mono">{fmtShortDate(t.date)}</span>
+                <span className="task-list-modal-title">{t.title}</span>
+                <CategoryChip category={t.category} />
+                {t.category2 && <CategoryChip category={t.category2} />}
+              </div>
+            )
+          )}
         </div>
         <button type="button" className="btn btn-ghost scope-cancel" onClick={onClose}>
           Fechar

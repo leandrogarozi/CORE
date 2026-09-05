@@ -270,6 +270,28 @@ chegaram:
   se depois de usar o botão ainda achar que tem algo torto, mandar novo
   print apontando onde.
 
+## Atrasadas: contagem no botão Dashboard e atalho pra tarefa (05/09)
+
+Pedido: "assim como nos lembretes aparece o número vermelho em cima do
+sininho, queria no botão Dashboard o número de tasks atrasadas; e ao
+clicar no campo de atrasadas dentro do dash, abrir a lista — clicando
+numa delas, ir pro dia com a task aberta".
+
+- **Contagem no botão Dashboard**, com a mesma regra do card "Atrasadas"
+  (`!done && date && date < hoje`), pro número bater com o do Dashboard.
+  Diferença de forma em relação ao sininho: o selo fica **ao lado do
+  texto**, não flutuando no canto — o `.view-toggle` tem
+  `overflow:hidden` pra manter os cantos arredondados do grupo, então um
+  selo flutuante sairia cortado.
+- **Card "Atrasadas" virou botão** e abre a mesma lista que a legenda de
+  status já abria (`TaskListModal`). Fica desabilitado quando o número é
+  zero.
+- **Linhas da lista viraram atalho**: clicar leva pro dia da tarefa e
+  abre ela em edição. Reusa o que a busca já fazia (`goToTask` +
+  `requestFocus`), exposto pro Dashboard por um handler novo no contexto
+  (`openTaskInDay`), no mesmo padrão do `openProject` — quem sabe
+  navegar é o BoardApp, as telas de dentro só pedem.
+
 ## Cronômetro somando, seções de Lembretes e arrasto na home (05/09)
 
 - **Cronômetro em bloco com etiquetas somava errado (bug)**: num bloco

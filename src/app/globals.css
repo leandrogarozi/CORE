@@ -191,6 +191,9 @@ a{ color:inherit; }
 .task-list-modal-body{ display:flex; flex-direction:column; gap:2px; max-height:50vh; overflow-y:auto; margin:12px 0; }
 .task-list-modal-row{ display:flex; align-items:center; gap:10px; padding:7px 4px; border-bottom:1px solid var(--border); font-size:12.5px; }
 .task-list-modal-row:last-child{ border-bottom:none; }
+/* linha que leva pra tarefa (lista de atrasadas do Dashboard) */
+.task-list-modal-row.clickable{ width:100%; text-align:left; cursor:pointer; border-radius:6px; }
+.task-list-modal-row.clickable:hover{ background:var(--surface-2); }
 .task-list-modal-date{ font-size:10.5px; color:var(--text-faint); flex:none; width:36px; }
 .task-list-modal-title{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .modal-title{ font-weight:700; font-size:15px; display:flex; align-items:center; gap:6px; }
@@ -390,6 +393,15 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .reminders-btn-bell{ position:relative; display:flex; align-items:center; justify-content:center; flex:none; }
 .reminders-btn-bell.due-today{ color:var(--book-yellow); }
 .reminders-btn-bell.overdue{ color:var(--danger); }
+/* Contagem vermelha de atrasadas no botão Dashboard. Fica ao lado do texto (e não
+   flutuando no canto como no sininho) porque o .view-toggle tem overflow:hidden
+   pra manter os cantos arredondados do grupo — um selo flutuante seria cortado. */
+.view-toggle-btn{ display:inline-flex; align-items:center; gap:6px; }
+.view-toggle-count{
+  min-width:15px; height:15px; padding:0 4px;
+  border-radius:999px; background:var(--danger); color:#fff; font-size:9px; font-weight:700;
+  display:inline-flex; align-items:center; justify-content:center; line-height:1;
+}
 .reminders-btn-count{
   position:absolute; top:-6px; right:-7px; min-width:13px; height:13px; padding:0 3px;
   border-radius:999px; background:var(--danger); color:#fff; font-size:8.5px; font-weight:700;
@@ -568,6 +580,9 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 }
 .dash-stat-value{ font-size:21px; font-weight:700; line-height:1.15; }
 .dash-stat-card.danger .dash-stat-value{ color:var(--danger); }
+.dash-stat-card.clickable{ cursor:pointer; text-align:left; }
+.dash-stat-card.clickable:hover:not(:disabled){ border-color:var(--danger); }
+.dash-stat-card.clickable:disabled{ cursor:default; }
 .dash-stat-label{ font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-faint); margin-top:3px; }
 
 .dash-charts{ column-count:3; column-gap:12px; }

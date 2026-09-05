@@ -69,7 +69,7 @@ function eachDateInRange(fromISO: string, toISO: string): string[] {
 }
 
 export function Dashboard() {
-  const { board } = useBoardCtx();
+  const { board, openTaskInDay } = useBoardCtx();
   const [period, setPeriod] = useState<Period>("week");
   const [dayAnchor, setDayAnchor] = useState(() => todayISO());
   const [weekAnchor, setWeekAnchor] = useState(() => mondayOf(new Date()));
@@ -228,10 +228,16 @@ export function Dashboard() {
       </div>
 
       <div className="dash-stats">
-        <div className="dash-stat-card danger">
+        <button
+          type="button"
+          className="dash-stat-card danger clickable"
+          title={stats.overdueCount > 0 ? "Ver as tarefas atrasadas" : undefined}
+          disabled={stats.overdueCount === 0}
+          onClick={() => setModal({ title: "Atrasadas", tasks: stats.overdueTasks })}
+        >
           <div className="dash-stat-value">{stats.overdueCount}</div>
           <div className="dash-stat-label">Atrasadas</div>
-        </div>
+        </button>
         <div className="dash-stat-card">
           <div className="dash-stat-value">{stats.noDateCount}</div>
           <div className="dash-stat-label">Sem data</div>
@@ -407,7 +413,14 @@ export function Dashboard() {
         </div>
       </div>
 
-      {modal && <TaskListModal title={modal.title} tasks={modal.tasks} onClose={() => setModal(null)} />}
+      {modal && (
+        <TaskListModal
+          title={modal.title}
+          tasks={modal.tasks}
+          onSelect={openTaskInDay}
+          onClose={() => setModal(null)}
+        />
+      )}
     </div>
   );
 }

@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactElement, type ReactNode } from "react";
 import { useBoard, type UseBoard } from "@/lib/board/use-board";
 import { useColumnWidths, type UseColumnWidths } from "@/lib/board/column-widths";
-import type { ScopeChoice } from "@/lib/types";
+import type { ScopeChoice, Task } from "@/lib/types";
 
 interface ScopeModalState {
   open: boolean;
@@ -36,6 +36,10 @@ interface BoardCtxValue {
   columns: UseColumnWidths;
   openProject: (id: string) => void;
   setOpenProjectHandler: (fn: ((id: string) => void) | null) => void;
+  // Leva pro dia da tarefa e abre ela em edição — quem sabe navegar é o BoardApp,
+  // então ele registra o handler e as telas de dentro (Dashboard) só chamam.
+  openTaskInDay: (task: Task) => void;
+  setOpenTaskInDayHandler: (fn: ((task: Task) => void) | null) => void;
   focusRequest: FocusRequest | null;
   requestFocus: (req: FocusRequest) => void;
   consumeFocusRequest: (kind: FocusRequest["kind"], id: string) => void;
@@ -81,6 +85,13 @@ export function BoardProvider({ userId, children }: { userId: string; children: 
   }, []);
 
   const [openProjectHandler, setOpenProjectHandler] = useState<((id: string) => void) | null>(null);
+  const [openTaskInDayHandler, setOpenTaskInDayHandler] = useState<((task: Task) => void) | null>(null);
+  const openTaskInDay = useCallback(
+    (task: Task) => {
+      openTaskInDayHandler?.(task);
+    },
+    [openTaskInDayHandler]
+  );
   const openProject = useCallback(
     (id: string) => {
       openProjectHandler?.(id);
@@ -109,6 +120,8 @@ export function BoardProvider({ userId, children }: { userId: string; children: 
         columns,
         openProject,
         setOpenProjectHandler,
+        openTaskInDay,
+        setOpenTaskInDayHandler,
         focusRequest,
         requestFocus,
         consumeFocusRequest,

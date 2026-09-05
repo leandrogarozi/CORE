@@ -36,7 +36,8 @@ import { dateFromISO, longLabel, mondayOf, todayISO } from "@/lib/date-utils";
 import type { Task } from "@/lib/types";
 
 function BoardShell() {
-  const { board, sortByQuick, setSortByQuick, setOpenProjectHandler, requestFocus } = useBoardCtx();
+  const { board, sortByQuick, setSortByQuick, setOpenProjectHandler, setOpenTaskInDayHandler, requestFocus } =
+    useBoardCtx();
   const [viewMode, setViewMode] = useState<ViewMode>("day");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { wide, toggleWide } = useWideLayout("faro-wide-layout");
@@ -63,6 +64,17 @@ function BoardShell() {
     setOpenProjectHandler(() => goToProject);
     return () => setOpenProjectHandler(null);
   }, [setOpenProjectHandler]);
+
+  // Clique numa tarefa atrasada no Dashboard: vai pro dia dela e abre a edição.
+  useEffect(() => {
+    function openTaskInDay(task: Task) {
+      goToTask(task);
+      requestFocus({ kind: "task", id: task.id });
+    }
+    setOpenTaskInDayHandler(() => openTaskInDay);
+    return () => setOpenTaskInDayHandler(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setOpenTaskInDayHandler, requestFocus]);
 
   function goToday() {
     setWeekAnchor(mondayOf(new Date()));
@@ -123,6 +135,8 @@ function BoardShell() {
   }, []);
 
   const backlogTasks = board.state.tasks.filter((t) => !t.date);
+  // Mesma regra do card "Atrasadas" do Dashboard, pra o número bater com ele.
+  const overdueTaskCount = board.state.tasks.filter((t) => !t.done && t.date && t.date < todayISO()).length;
   const dayTasks = board.state.tasks.filter((t) => t.date === selectedDate);
 
   return (
@@ -262,9 +276,13 @@ function BoardShell() {
               <button
                 type="button"
                 className={"view-toggle-btn" + (viewMode === "dashboard" ? " active" : "")}
+                title={overdueTaskCount > 0 ? `${overdueTaskCount} tarefa(s) atrasada(s)` : undefined}
                 onClick={() => setViewMode(viewMode === "dashboard" ? "day" : "dashboard")}
               >
                 Dashboard
+                {overdueTaskCount > 0 && (
+                  <span className="view-toggle-count">{overdueTaskCount > 9 ? "9+" : overdueTaskCount}</span>
+                )}
               </button>
             </div>
             <RemindersButton onOpenFull={() => setViewMode("reminders")} />
