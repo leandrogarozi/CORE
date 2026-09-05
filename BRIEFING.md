@@ -270,6 +270,32 @@ chegaram:
   se depois de usar o botão ainda achar que tem algo torto, mandar novo
   print apontando onde.
 
+## Cronômetro somando, seções de Lembretes e arrasto na home (05/09)
+
+- **Cronômetro em bloco com etiquetas somava errado (bug)**: num bloco
+  que usa lista de intervenções (Piscina, por exemplo), o dia é guardado
+  como uma lista de entradas + um total. O cronômetro só engordava o
+  total e não criava entrada nenhuma; e `addBlockLogEntry` recalculava o
+  total como `soma das entradas`. Resultado: o tempo cronometrado sumia
+  na primeira vez que uma entrada era adicionada ou removida — e pro
+  Leandro parecia que o segundo play "substituía" o primeiro registro do
+  dia. Três correções: parar o cronômetro num bloco desses **cria uma
+  intervenção própria** (etiqueta "Cronômetro", com os minutos
+  medidos); adicionar entrada passou a **somar** ao total existente em
+  vez de recalcular; remover entrada **subtrai** só os minutos dela.
+  Agora dois usos no mesmo dia aparecem como duas intervenções.
+- **Agendados e Concluídos viraram seções recolhíveis** em Lembretes
+  (novo `CollapsibleReminderSection`), com contagem no cabeçalho e a
+  preferência salva no navegador. Concluídos começa **fechado**.
+  **Vencidos continua sempre aberto**, de propósito — é o que precisa de
+  ação.
+- **Arrasto na lista de tarefas**: já existia, mas era invisível. O que
+  faltava era sinal. Agora o punho tem tooltip "Arraste pra reordenar",
+  a linha de destino aparece marcada em azul (`.drop-target`) enquanto
+  se arrasta, e o punho fica apagado (em vez de invisível) quando o
+  botão "⚡ Rápidas primeiro" está ligado — porque nesse modo a ordem é
+  calculada e o arrasto não vale; o tooltip explica isso.
+
 ## Conferência de "está tudo salvo?" (04/09)
 
 O Leandro perguntou como ter certeza de que o dia inteiro de uso ficou

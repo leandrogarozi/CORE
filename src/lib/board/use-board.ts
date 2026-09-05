@@ -43,6 +43,8 @@ import {
 import { isoAddDays, occurrenceDates, todayISO } from "@/lib/date-utils";
 import { isRecurringReminder, nextReminderOccurrenceDate } from "@/lib/board/reminder-alerts";
 import { reportSaveError } from "@/lib/board/error-toast";
+
+const TIMER_ENTRY_NOTE = "Cronômetro";
 import type {
   ActiveTimer,
   Attachment,
@@ -1478,7 +1480,10 @@ export function useBoard(userId: string | null) {
       if (!userId || !note || minutes <= 0) return;
       const block = stateRef.current.fixedBlocks.find((b) => b.id === blockId);
       const entries: DayLogEntry[] = [...(block?.logs[iso]?.entries ?? []), { id: uid(), note, minutes }];
-      const trackedSeconds = entries.reduce((sum, e) => sum + e.minutes, 0) * 60;
+      // Soma em cima do total que já existia em vez de recalcular a partir das
+      // entradas: tempo cronometrado que ainda não virou entrada (registro antigo)
+      // seria apagado por esse recálculo.
+      const trackedSeconds = (block?.logs[iso]?.trackedSeconds ?? 0) + minutes * 60;
       const summaryNote = Array.from(new Set(entries.map((e) => e.note))).join(", ");
       const newEntry = entries[entries.length - 1];
       apply((s) => ({
@@ -1503,8 +1508,9 @@ export function useBoard(userId: string | null) {
   const deleteBlockLogEntry = useCallback(
     (blockId: string, iso: string, entryId: string) => {
       const block = stateRef.current.fixedBlocks.find((b) => b.id === blockId);
+      const removed = (block?.logs[iso]?.entries ?? []).find((e) => e.id === entryId);
       const entries = (block?.logs[iso]?.entries ?? []).filter((e) => e.id !== entryId);
-      const trackedSeconds = entries.reduce((sum, e) => sum + e.minutes, 0) * 60;
+      const trackedSeconds = Math.max(0, (block?.logs[iso]?.trackedSeconds ?? 0) - (removed?.minutes ?? 0) * 60);
       const summaryNote = Array.from(new Set(entries.map((e) => e.note))).join(", ");
       apply((s) => ({
         ...s,
@@ -1533,6 +1539,9 @@ export function useBoard(userId: string | null) {
   );
 
   // ---------- timer ----------
+  // Nome da intervenção criada quando o cronômetro para num bloco que usa lista
+  // de entradas — o cronômetro não sabe qual etiqueta o Leandro escolheria.
+
   const findTrackable = useCallback((kind: TimerKind, id: string) => {
     if (kind === "task") return stateRef.current.tasks.find((x) => x.id === id);
     const list = kind === "habit" ? stateRef.current.habits : stateRef.current.fixedBlocks;
@@ -1566,15 +1575,55 @@ export function useBoard(userId: string | null) {
         const item = stateRef.current[listKey].find((x) => x.id === at.itemId);
         const prevSeconds = item?.logs[at.logDate]?.trackedSeconds || 0;
         const trackedSeconds = prevSeconds + elapsed;
+
+        // Bloco com opções de nota (Piscina, por exemplo) guarda o dia como uma
+        // LISTA de intervenções. Antes o cronômetro só engordava o total e não
+        // criava entrada nenhuma — daí, no dia em que já havia um registro, o
+        // segundo play parecia substituir o primeiro em vez de somar. Agora cada
+        // parada de cronômetro vira uma intervenção própria na lista do dia.
+        const entriesMode = kind === "block" && (item?.noteOptions?.length ?? 0) > 0;
+        const minutes = Math.round(elapsed / 60);
+        const newEntry: DayLogEntry | null =
+          entriesMode && minutes >= 1 ? { id: uid(), note: TIMER_ENTRY_NOTE, minutes } : null;
+        const entries = newEntry ? [...(item?.logs[at.logDate]?.entries ?? []), newEntry] : undefined;
+        const summaryNote = entries ? Array.from(new Set(entries.map((e) => e.note))).join(", ") : undefined;
+
         apply((s) => ({
           ...s,
           [listKey]: s[listKey].map((x) =>
             x.id === at.itemId
-              ? { ...x, logs: { ...x.logs, [at.logDate]: { ...x.logs[at.logDate], checked: true, trackedSeconds } } }
+              ? {
+                  ...x,
+                  logs: {
+                    ...x.logs,
+                    [at.logDate]: {
+                      ...x.logs[at.logDate],
+                      checked: true,
+                      trackedSeconds,
+                      ...(entries ? { entries, note: summaryNote ?? null } : {}),
+                    },
+                  },
+                }
               : x
           ),
         }));
-        upsertRecurringLog(kind, at.itemId, at.logDate, trackedSeconds, userId);
+
+        if (newEntry) {
+          supabase
+            .from("fixed_block_log_entries")
+            .insert({
+              id: newEntry.id,
+              user_id: userId,
+              block_id: at.itemId,
+              log_date: at.logDate,
+              note: newEntry.note,
+              minutes: newEntry.minutes,
+            })
+            .then(({ error }) => {
+              if (error) reportSaveError("stopTimer entrada do bloco", error);
+            });
+        }
+        upsertRecurringLog(kind, at.itemId, at.logDate, trackedSeconds, userId, summaryNote);
       }
     },
     [apply, supabase, upsertRecurringLog, userId]

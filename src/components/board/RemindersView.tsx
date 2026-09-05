@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { AttachmentsButton } from "./AttachmentsButton";
@@ -8,6 +8,7 @@ import { CommentButton } from "./CommentButton";
 import {
   BellIcon,
   CheckIcon,
+  ChevronIcon,
   EraserIcon,
   ExpandIcon,
   RepeatIcon,
@@ -272,6 +273,63 @@ export function ReminderDateButton({
           document.body
         )}
     </>
+  );
+}
+
+// Agendados e Concluídos podem ser recolhidos pra tirar volume da tela; os
+// Vencidos ficam sempre abertos de propósito, porque são o que precisa de ação.
+function CollapsibleReminderSection({
+  storageKey,
+  label,
+  labelClass,
+  count,
+  reminders,
+  icon,
+  defaultOpen = true,
+}: {
+  storageKey: string;
+  label: string;
+  labelClass: string;
+  count: number;
+  reminders: Reminder[];
+  icon?: ReactNode;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(() => {
+    if (typeof window === "undefined") return defaultOpen;
+    const saved = localStorage.getItem(storageKey);
+    return saved === null ? defaultOpen : saved === "1";
+  });
+
+  function toggle() {
+    setOpen((v) => {
+      localStorage.setItem(storageKey, v ? "0" : "1");
+      return !v;
+    });
+  }
+
+  return (
+    <div className="list-card">
+      <button
+        type="button"
+        className={`list-card-section-label section-toggle ${labelClass}` + (open ? " open" : "")}
+        aria-expanded={open}
+        onClick={toggle}
+      >
+        {icon}
+        {label}
+        <span className="meetings-group-count">{count}</span>
+        <ChevronIcon />
+      </button>
+      {open && (
+        <div className="task-table-scroll">
+          <ReminderTableHeader />
+          {reminders.map((r) => (
+            <ReminderRow key={r.id} reminder={r} />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -835,25 +893,25 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
         )}
 
         {pending.length > 0 && (
-          <div className="list-card">
-            <div className="task-table-scroll">
-              <ReminderTableHeader />
-              {pending.map((r) => (
-                <ReminderRow key={r.id} reminder={r} />
-              ))}
-            </div>
-          </div>
+          <CollapsibleReminderSection
+            storageKey="faro-lembretes-agendados"
+            label="Agendados"
+            labelClass="pending-label"
+            count={pending.length}
+            reminders={pending}
+          />
         )}
 
         {done.length > 0 && (
-          <div className="list-card">
-            <div className="task-table-scroll">
-              <ReminderTableHeader />
-              {done.map((r) => (
-                <ReminderRow key={r.id} reminder={r} />
-              ))}
-            </div>
-          </div>
+          <CollapsibleReminderSection
+            storageKey="faro-lembretes-concluidos"
+            label="Concluídos"
+            labelClass="done-label"
+            count={done.length}
+            defaultOpen={false}
+            reminders={done}
+            icon={<CheckIcon />}
+          />
         )}
       </div>
     </div>

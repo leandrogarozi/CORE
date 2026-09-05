@@ -138,9 +138,14 @@ export function TaskListCard({
               task={t}
               draggable={draggable}
               dragging={draggingId === t.id}
+              dropTarget={!!draggingId && overId === t.id && draggingId !== t.id}
               onDragStart={setDraggingId}
               onDragOverRow={setOverId}
               onDrop={handleDrop}
+              onDragEnd={() => {
+                setDraggingId(null);
+                setOverId(null);
+              }}
               gridTemplate={columns.gridTemplate}
             />
           ))}

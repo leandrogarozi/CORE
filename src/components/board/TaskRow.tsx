@@ -236,12 +236,25 @@ interface TaskRowProps {
   onDragStart?: (id: string) => void;
   onDragOverRow?: (id: string) => void;
   onDrop?: () => void;
+  onDragEnd?: () => void;
   dragging?: boolean;
+  dropTarget?: boolean;
   gridTemplate: string;
   position?: number; // quando definido, mostra 1/2/3... no lugar dos pontinhos de arrastar (ex.: etapas de um Projeto)
 }
 
-export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop, dragging, gridTemplate, position }: TaskRowProps) {
+export function TaskRow({
+  task: t,
+  draggable,
+  onDragStart,
+  onDragOverRow,
+  onDrop,
+  onDragEnd,
+  dragging,
+  dropTarget,
+  gridTemplate,
+  position,
+}: TaskRowProps) {
   const { board, askScope, askConfirm, openProject, focusRequest, consumeFocusRequest } = useBoardCtx();
   const [editing, setEditing] = useState(false);
   const hasReminder = board.state.reminders.some((r) => r.taskId === t.id);
@@ -286,7 +299,13 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
 
   return (
     <div
-      className={"task-row" + (t.done ? " done" : "") + (isOverdue(t) ? " overdue" : "") + (dragging ? " dragging" : "")}
+      className={
+        "task-row" +
+        (t.done ? " done" : "") +
+        (isOverdue(t) ? " overdue" : "") +
+        (dragging ? " dragging" : "") +
+        (dropTarget ? " drop-target" : "")
+      }
       style={{ gridTemplateColumns: gridTemplate }}
       draggable={draggable}
       data-id={t.id}
@@ -299,6 +318,7 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
         e.preventDefault();
         onDrop?.();
       }}
+      onDragEnd={() => onDragEnd?.()}
     >
       <span className="row-lead-cell">
         {position !== undefined ? (
@@ -307,7 +327,10 @@ export function TaskRow({ task: t, draggable, onDragStart, onDragOverRow, onDrop
             <span className="task-row-order-num mono">{position}</span>
           </span>
         ) : (
-          <span className={"drag-handle" + (draggable ? "" : " disabled")} aria-hidden="true">
+          <span
+            className={"drag-handle" + (draggable ? "" : " disabled")}
+            title={draggable ? "Arraste pra reordenar" : "Desative o \u26a1 Rápidas primeiro pra reordenar arrastando"}
+          >
             {Array.from({ length: 6 }).map((_, i) => (
               <span key={i} />
             ))}
