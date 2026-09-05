@@ -289,6 +289,14 @@ que vai te mudar daqui pra frente?
   aprendizado voltar à cabeça depois; sem esse destaque viraria rodapé.
 - Card recolhido mostra a pergunta como prévia; aberto mostra tudo.
   Exclusão é soft delete, como tarefas e lembretes.
+- **Botão Salvar com estado** (pedido do Leandro pra saber que registrou):
+  o card guarda rascunhos do que está na tela e compara com o que está
+  gravado. Enquanto houver diferença, aparece "Alteração ainda não
+  salva" + botão **Salvar** em destaque e uma bolinha no cabeçalho (que
+  se vê mesmo com o card recolhido); depois de salvar vira "Tudo salvo"
+  + **✓ Salvo** desabilitado, igual ao botão de salvar de Projetos. O
+  auto-save continua por baixo como rede de segurança — o botão informa
+  o estado real, não substitui a gravação automática.
 - **Banco**: tabela `synapses` (title, learning, questions, source,
   created_at, deleted_at) com RLS por usuário.
 - **Intenção declarada, ainda não implementada**: isso também vira
@@ -308,8 +316,9 @@ numa delas, ir pro dia com a task aberta".
 
 - **Contagem no botão Dashboard**, com a mesma regra do card "Atrasadas"
   (`!done && date && date < hoje`), pro número bater com o do Dashboard.
-  O selo é o mesmo do sininho: pequeno, flutuando no canto superior
-  direito. Pra isso o `.view-toggle` perdeu o `overflow:hidden` (que
+  O selo é o mesmo do sininho: pequeno, no canto superior direito do
+  botão, logo acima do "d" final de Dashboard — sem cobrir a perninha da
+  letra. Pra isso o `.view-toggle` perdeu o `overflow:hidden` (que
   cortava o selo) e o arredondamento do grupo passou a vir das pontas
   dos próprios botões.
 - **Card "Atrasadas" virou botão** e abre a mesma lista que a legenda de

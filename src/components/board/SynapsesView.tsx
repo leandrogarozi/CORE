@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { NoteField } from "./NoteField";
-import { BoltIcon, ChevronIcon, TrashIcon } from "./icons";
+import { BoltIcon, CheckIcon, ChevronIcon, TrashIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { stripHtml } from "@/lib/rich-text";
 import type { Synapse } from "@/lib/types";
@@ -18,15 +18,35 @@ function fmtDate(iso: string) {
 function SynapseCard({ synapse }: { synapse: Synapse }) {
   const { board, askConfirm } = useBoardCtx();
   const [open, setOpen] = useState(false);
-  const [titleDraft, setTitleDraft] = useState<string | null>(null);
 
-  const learningPreview = stripHtml(synapse.learning);
+  // Rascunhos locais: o que está na tela. O botão Salvar compara com o que está
+  // gravado (o próprio `synapse`) — então "Salvo" só aparece quando os dois são
+  // iguais de verdade, e não porque um temporizador disse que sim.
+  const [title, setTitle] = useState(synapse.title);
+  const [learning, setLearning] = useState(synapse.learning);
+  const [questions, setQuestions] = useState(synapse.questions);
+  const [source, setSource] = useState(synapse.source ?? "");
+
+  const cleanTitle = title.trim() || synapse.title;
+  const cleanSource = source.trim() || null;
+  const dirty =
+    cleanTitle !== synapse.title ||
+    learning !== synapse.learning ||
+    questions !== synapse.questions ||
+    cleanSource !== synapse.source;
+
   const questionsPreview = stripHtml(synapse.questions);
+  const learningPreview = stripHtml(synapse.learning);
 
-  function commitTitle() {
-    const next = (titleDraft ?? "").trim();
-    setTitleDraft(null);
-    if (next && next !== synapse.title) board.updateSynapse(synapse.id, { title: next });
+  function save() {
+    if (!dirty) return;
+    board.updateSynapse(synapse.id, {
+      title: cleanTitle,
+      learning,
+      questions,
+      source: cleanSource,
+    });
+    setTitle(cleanTitle);
   }
 
   return (
@@ -44,15 +64,15 @@ function SynapseCard({ synapse }: { synapse: Synapse }) {
           <input
             type="text"
             className="synapse-card-title"
-            value={titleDraft ?? synapse.title}
-            onChange={(e) => setTitleDraft(e.target.value)}
-            onBlur={commitTitle}
-            onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && save()}
           />
           {!open && (questionsPreview || learningPreview) && (
             <span className="synapse-card-preview">{questionsPreview || learningPreview}</span>
           )}
         </div>
+        {dirty && <span className="synapse-dirty-dot" title="Tem alteração não salva" />}
         <span className="synapse-card-date mono">{fmtDate(synapse.createdAt)}</span>
         <button
           type="button"
@@ -71,10 +91,10 @@ function SynapseCard({ synapse }: { synapse: Synapse }) {
           <label className="synapse-field">
             <span className="synapse-field-label">Qual a nova sinapse — o aprendizado?</span>
             <NoteField
-              value={synapse.learning}
+              value={learning}
               placeholder="O que aconteceu e o que isso te ensinou..."
               ariaLabel="Aprendizado da sinapse"
-              onChange={() => {}}
+              onChange={setLearning}
               onPersist={(html) => board.updateSynapse(synapse.id, { learning: html })}
             />
           </label>
@@ -82,10 +102,10 @@ function SynapseCard({ synapse }: { synapse: Synapse }) {
           <label className="synapse-field synapse-field-question">
             <span className="synapse-field-label">Qual a pergunta que esse aprendizado gera?</span>
             <NoteField
-              value={synapse.questions}
+              value={questions}
               placeholder="A pergunta que te reconecta com esse aprendizado..."
               ariaLabel="Perguntas da sinapse"
-              onChange={() => {}}
+              onChange={setQuestions}
               onPersist={(html) => board.updateSynapse(synapse.id, { questions: html })}
             />
           </label>
@@ -95,14 +115,31 @@ function SynapseCard({ synapse }: { synapse: Synapse }) {
             <input
               type="text"
               className="synapse-source-input"
-              defaultValue={synapse.source ?? ""}
+              value={source}
               placeholder="Conversa, livro, filme, aula..."
-              onBlur={(e) => {
-                const next = e.target.value.trim() || null;
-                if (next !== synapse.source) board.updateSynapse(synapse.id, { source: next });
-              }}
+              onChange={(e) => setSource(e.target.value)}
             />
           </label>
+
+          <div className="edit-actions synapse-card-actions">
+            <span className="synapse-save-hint">
+              {dirty ? "Alteração ainda não salva" : "Tudo salvo"}
+            </span>
+            <button
+              type="button"
+              className={"btn" + (dirty ? " btn-accent" : " btn-ghost saved-btn")}
+              disabled={!dirty}
+              onClick={save}
+            >
+              {dirty ? (
+                "Salvar"
+              ) : (
+                <>
+                  <CheckIcon /> Salvo
+                </>
+              )}
+            </button>
+          </div>
         </div>
       )}
     </div>

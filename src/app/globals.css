@@ -400,10 +400,9 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 /* Contagem vermelha de atrasadas no botão Dashboard — mesmo selo do sininho */
 .view-toggle-btn{ position:relative; }
 .view-toggle-count{
-  position:absolute; top:-6px; right:-7px; min-width:13px; height:13px; padding:0 3px;
-  border-radius:999px; background:var(--danger); color:#fff; font-size:8.5px; font-weight:700;
+  position:absolute; top:0; right:1px; min-width:12px; height:12px; padding:0 3px;
+  border-radius:999px; background:var(--danger); color:#fff; font-size:8px; font-weight:700;
   display:flex; align-items:center; justify-content:center; line-height:1;
-  border:1.5px solid var(--surface);
 }
 .reminders-btn-count{
   position:absolute; top:-6px; right:-7px; min-width:13px; height:13px; padding:0 3px;
@@ -1434,6 +1433,12 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   border-radius:10px; padding:9px 11px;
 }
 .synapse-field-question .synapse-field-label{ color:var(--accent); }
+.synapse-card-actions{ justify-content:space-between; align-items:center; margin-top:2px; }
+.synapse-save-hint{ font-size:11px; color:var(--text-faint); }
+/* bolinha no cabeçalho avisa que o card tem alteração pendente mesmo recolhido */
+.synapse-dirty-dot{
+  flex:none; width:7px; height:7px; border-radius:50%; background:var(--accent);
+}
 .synapse-source-input{
   width:100%; box-sizing:border-box; background:var(--surface); border:1px solid var(--border-strong);
   border-radius:7px; padding:6px 8px; font-size:12.5px; color:var(--text);
