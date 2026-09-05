@@ -21,6 +21,8 @@ import {
   reminderToUpdateRow,
   rowToActiveTimer,
   rowToBook,
+  rowToSynapse,
+  synapseToInsertRow,
   rowToChecklist,
   rowToDailyLog,
   rowToDietMeal,
@@ -67,6 +69,7 @@ import type {
   Reminder,
   ScopeChoice,
   Settings,
+  Synapse,
   Task,
   TaskSeries,
   TaskStatus,
@@ -84,6 +87,7 @@ const EMPTY_STATE: BoardState = {
   taskSeries: [],
   taskStatuses: [],
   books: [],
+  synapses: [],
   reminders: [],
   trashedReminders: [],
   medications: [],
@@ -166,6 +170,7 @@ export function useBoard(userId: string | null) {
       seriesRes,
       taskStatusesRes,
       booksRes,
+      synapsesRes,
       remindersRes,
       trashedRemindersRes,
       medicationsRes,
@@ -188,6 +193,7 @@ export function useBoard(userId: string | null) {
       supabase.from("task_series").select("*"),
       supabase.from("task_statuses").select("*").order("sort_order"),
       supabase.from("books").select("*").order("created_at"),
+      supabase.from("synapses").select("*").is("deleted_at", null).order("created_at", { ascending: false }),
       supabase.from("reminders").select("*").is("deleted_at", null).order("created_at"),
       supabase.from("reminders").select("*").not("deleted_at", "is", null),
       supabase.from("medications").select("*").order("created_at"),
@@ -214,6 +220,7 @@ export function useBoard(userId: string | null) {
       taskSeries: (seriesRes.data ?? []).map(rowToSeries),
       taskStatuses: (taskStatusesRes.data ?? []).map(rowToTaskStatus),
       books: (booksRes.data ?? []).map(rowToBook),
+      synapses: (synapsesRes.data ?? []).map(rowToSynapse),
       reminders: (remindersRes.data ?? []).map(rowToReminder),
       trashedReminders: (trashedRemindersRes.data ?? []).map(rowToReminder),
       medications: (medicationsRes.data ?? []).map(rowToMedication),
@@ -819,6 +826,59 @@ export function useBoard(userId: string | null) {
   );
 
   // ---------- books ----------
+  // ---------- novas sinapses ----------
+  const addSynapse = useCallback(
+    async (title: string): Promise<string | null> => {
+      if (!userId || !title.trim()) return null;
+      const sy: Synapse = {
+        id: uid(),
+        title: title.trim(),
+        learning: "",
+        questions: "",
+        source: null,
+        createdAt: new Date().toISOString(),
+      };
+      apply((s) => ({ ...s, synapses: [sy, ...s.synapses] }));
+      const { error } = await supabase.from("synapses").insert(synapseToInsertRow(sy, userId));
+      if (error) {
+        reportSaveError("addSynapse", error);
+        apply((s) => ({ ...s, synapses: s.synapses.filter((x) => x.id !== sy.id) }));
+        return null;
+      }
+      return sy.id;
+    },
+    [apply, supabase, userId]
+  );
+
+  const updateSynapse = useCallback(
+    (id: string, patch: Partial<Pick<Synapse, "title" | "learning" | "questions" | "source">>) => {
+      apply((s) => ({ ...s, synapses: s.synapses.map((x) => (x.id === id ? { ...x, ...patch } : x)) }));
+      supabase
+        .from("synapses")
+        .update({ ...patch, updated_at: new Date().toISOString() })
+        .eq("id", id)
+        .then(({ error }) => {
+          if (error) reportSaveError("updateSynapse", error);
+        });
+    },
+    [apply, supabase]
+  );
+
+  // Soft delete, igual tarefas e lembretes — nada some do banco de verdade.
+  const deleteSynapse = useCallback(
+    (id: string) => {
+      apply((s) => ({ ...s, synapses: s.synapses.filter((x) => x.id !== id) }));
+      supabase
+        .from("synapses")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", id)
+        .then(({ error }) => {
+          if (error) reportSaveError("deleteSynapse", error);
+        });
+    },
+    [apply, supabase]
+  );
+
   const addBook = useCallback(
     (title: string) => {
       if (!userId || !title.trim()) return;
@@ -2022,6 +2082,9 @@ export function useBoard(userId: string | null) {
     updateTaskStatus,
     deleteTaskStatus,
     reorderTaskStatuses,
+    addSynapse,
+    updateSynapse,
+    deleteSynapse,
     addBook,
     updateBook,
     deleteBook,

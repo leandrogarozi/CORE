@@ -15,6 +15,7 @@ import { RecurringSection } from "./RecurringSection";
 import { SettingsView } from "./SettingsView";
 import { BooksView } from "./BooksView";
 import { RemindersView, RemindersButton } from "./RemindersView";
+import { SynapsesView } from "./SynapsesView";
 import { MedicationsView } from "./MedicationsView";
 import { ChecklistsView } from "./ChecklistsView";
 import { DietView } from "./DietView";
@@ -210,6 +211,8 @@ function BoardShell() {
         <ProfileView onBack={() => setViewMode("day")} />
       ) : viewMode === "books" ? (
         <BooksView onBack={() => setViewMode("day")} />
+      ) : viewMode === "synapses" ? (
+        <SynapsesView onBack={() => setViewMode("day")} />
       ) : viewMode === "reminders" ? (
         <RemindersView onBack={() => setViewMode("day")} onOpenMeetings={() => setViewMode("meetings")} />
       ) : viewMode === "medications" ? (

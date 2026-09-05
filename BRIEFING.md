@@ -270,6 +270,35 @@ chegaram:
   se depois de usar o botão ainda achar que tem algo torto, mandar novo
   print apontando onde.
 
+## Novas Sinapses (05/09)
+
+Ideia do Leandro, com as palavras dele: em cursos de autodesenvolvimento
+existem jargões ("que fichas caem?", "pega o código"). Ele quis criar o
+dele: **"Qual a nova sinapse?"** — quando uma ideia surge, quando uma
+mensagem entra forte, a pergunta é: qual a mudança que aconteceu agora e
+que vai te mudar daqui pra frente?
+
+- **Nova seção no menu lateral**, com a explicação no topo: novas
+  sinapses são pra anotar aprendizados e percepções que geram novas
+  crenças, e **toda sinapse tem uma pergunta que a conecta**.
+- **Estrutura de cada sinapse**: nome (dado na criação), o aprendizado, a
+  pergunta que ele gera e, opcional, de onde veio (conversa, livro,
+  filme). Aprendizado e pergunta usam o editor de texto do app, com
+  negrito, marca-texto e listas.
+- **A pergunta tem faixa própria** no card, em destaque — é ela que faz o
+  aprendizado voltar à cabeça depois; sem esse destaque viraria rodapé.
+- Card recolhido mostra a pergunta como prévia; aberto mostra tudo.
+  Exclusão é soft delete, como tarefas e lembretes.
+- **Banco**: tabela `synapses` (title, learning, questions, source,
+  created_at, deleted_at) com RLS por usuário.
+- **Intenção declarada, ainda não implementada**: isso também vira
+  alimento pra IA do FARO — ela conhecer o Leandro, saber fazer as
+  perguntas certas e relembrar aprendizados na hora certa. Fica anotado
+  aqui como próximo passo natural dessa aba.
+- **Primeira sinapse já cadastrada** ("Qual o personagem?"), com o
+  aprendizado do Alberto/Febracis + o filme "De férias com você" e as 5
+  perguntas que ele escreveu.
+
 ## Atrasadas: contagem no botão Dashboard e atalho pra tarefa (05/09)
 
 Pedido: "assim como nos lembretes aparece o número vermelho em cima do
@@ -279,10 +308,10 @@ numa delas, ir pro dia com a task aberta".
 
 - **Contagem no botão Dashboard**, com a mesma regra do card "Atrasadas"
   (`!done && date && date < hoje`), pro número bater com o do Dashboard.
-  Diferença de forma em relação ao sininho: o selo fica **ao lado do
-  texto**, não flutuando no canto — o `.view-toggle` tem
-  `overflow:hidden` pra manter os cantos arredondados do grupo, então um
-  selo flutuante sairia cortado.
+  O selo é o mesmo do sininho: pequeno, flutuando no canto superior
+  direito. Pra isso o `.view-toggle` perdeu o `overflow:hidden` (que
+  cortava o selo) e o arredondamento do grupo passou a vir das pontas
+  dos próprios botões.
 - **Card "Atrasadas" virou botão** e abre a mesma lista que a legenda de
   status já abria (`TaskListModal`). Fica desabilitado quando o número é
   zero.

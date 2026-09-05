@@ -567,6 +567,42 @@ export type Database = {
         }
         Relationships: []
       }
+      synapses: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          id: string
+          learning: string
+          questions: string
+          source: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          id: string
+          learning?: string
+          questions?: string
+          source?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          learning?: string
+          questions?: string
+          source?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       task_series: {
         Row: {
           category: string

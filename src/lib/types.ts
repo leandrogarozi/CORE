@@ -219,6 +219,20 @@ export interface Book {
   order: number; // fila de leitura dentro do grupo (ex.: "Para ler") — arrastar pra reordenar
 }
 
+/**
+ * Nova Sinapse: um aprendizado que muda uma crença, guardado junto com a pergunta
+ * que reconecta com ele. A pergunta é a parte que faz a sinapse ser lembrada —
+ * sem ela vira só mais uma anotação.
+ */
+export interface Synapse {
+  id: string;
+  title: string; // o "nome" da sinapse, ex.: "Qual o personagem?"
+  learning: string; // HTML — o aprendizado em si
+  questions: string; // HTML — a(s) pergunta(s) que o aprendizado gera
+  source: string | null; // de onde veio (conversa, livro, filme...)
+  createdAt: string;
+}
+
 export type ReminderStatus = "pending" | "waiting" | "done";
 
 export interface Reminder {
@@ -296,6 +310,7 @@ export interface BoardState {
   taskSeries: TaskSeries[];
   taskStatuses: TaskStatus[];
   books: Book[];
+  synapses: Synapse[];
   reminders: Reminder[];
   trashedReminders: Reminder[]; // lembretes excluídos (soft delete) — Lixeira
   medications: Medication[];

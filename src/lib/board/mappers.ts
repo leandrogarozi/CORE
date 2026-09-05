@@ -21,6 +21,7 @@ import type {
   Reminder,
   ReminderStatus,
   Settings,
+  Synapse,
   Task,
   TaskSeries,
   TaskStatus,
@@ -315,6 +316,28 @@ export function rowToActiveTimer(row: ActiveTimerRow): ActiveTimer {
     itemId: row.item_id,
     logDate: row.log_date,
     startedAt: new Date(row.started_at).getTime(),
+  };
+}
+
+export function rowToSynapse(row: Tables<"synapses">): Synapse {
+  return {
+    id: row.id,
+    title: row.title,
+    learning: row.learning,
+    questions: row.questions,
+    source: row.source,
+    createdAt: row.created_at,
+  };
+}
+
+export function synapseToInsertRow(sy: Synapse, userId: string): TablesInsert<"synapses"> {
+  return {
+    id: sy.id,
+    user_id: userId,
+    title: sy.title,
+    learning: sy.learning,
+    questions: sy.questions,
+    source: sy.source,
   };
 }
 

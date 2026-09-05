@@ -378,7 +378,11 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 }
 .reminder-filter-bar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
 .reminder-filter-label{ font-size:11.5px; color:var(--text-faint); flex:none; }
-.view-toggle{ display:flex; border:1px solid var(--border-strong); border-radius:8px; overflow:hidden; flex:none; }
+/* overflow visível pro selo de contagem poder flutuar no canto do botão (como no
+   sininho); o arredondamento do grupo passa a vir das pontas dos próprios botões. */
+.view-toggle{ display:flex; border:1px solid var(--border-strong); border-radius:8px; flex:none; }
+.view-toggle-btn:first-child{ border-radius:7px 0 0 7px; }
+.view-toggle-btn:last-child{ border-radius:0 7px 7px 0; }
 .view-toggle-btn{ padding:0 12px; height:30px; font-size:12px; font-weight:500; color:var(--text-muted); background:var(--surface); }
 .view-toggle-btn + .view-toggle-btn{ border-left:1px solid var(--border-strong); }
 .view-toggle-btn.active{ background:var(--accent-soft); color:var(--accent); }
@@ -393,14 +397,13 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .reminders-btn-bell{ position:relative; display:flex; align-items:center; justify-content:center; flex:none; }
 .reminders-btn-bell.due-today{ color:var(--book-yellow); }
 .reminders-btn-bell.overdue{ color:var(--danger); }
-/* Contagem vermelha de atrasadas no botão Dashboard. Fica ao lado do texto (e não
-   flutuando no canto como no sininho) porque o .view-toggle tem overflow:hidden
-   pra manter os cantos arredondados do grupo — um selo flutuante seria cortado. */
-.view-toggle-btn{ display:inline-flex; align-items:center; gap:6px; }
+/* Contagem vermelha de atrasadas no botão Dashboard — mesmo selo do sininho */
+.view-toggle-btn{ position:relative; }
 .view-toggle-count{
-  min-width:15px; height:15px; padding:0 4px;
-  border-radius:999px; background:var(--danger); color:#fff; font-size:9px; font-weight:700;
-  display:inline-flex; align-items:center; justify-content:center; line-height:1;
+  position:absolute; top:-6px; right:-7px; min-width:13px; height:13px; padding:0 3px;
+  border-radius:999px; background:var(--danger); color:#fff; font-size:8.5px; font-weight:700;
+  display:flex; align-items:center; justify-content:center; line-height:1;
+  border:1.5px solid var(--surface);
 }
 .reminders-btn-count{
   position:absolute; top:-6px; right:-7px; min-width:13px; height:13px; padding:0 3px;
@@ -1375,6 +1378,65 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 @media (max-width:640px){
   .cal-day{ min-height:44px; padding:4px; }
   .cal-weekday{ font-size:9px; }
+}
+
+/* Novas Sinapses */
+.synapse-intro{
+  background:color-mix(in srgb, var(--accent) 6%, var(--surface));
+  border:1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  border-radius:12px; padding:14px 16px; margin-bottom:14px;
+}
+.synapse-intro-title{
+  display:flex; align-items:center; gap:7px;
+  font-size:13.5px; font-weight:700; color:var(--accent); margin-bottom:6px;
+}
+.synapse-intro-title svg{ width:15px; height:15px; }
+.synapse-intro p{ font-size:12.5px; line-height:1.55; color:var(--text-muted); }
+.synapse-list{ display:flex; flex-direction:column; gap:10px; margin-top:12px; }
+.synapse-card{
+  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  box-shadow:var(--shadow); overflow:hidden;
+}
+.synapse-card.open{ border-color:var(--border-strong); }
+.synapse-card-head{ display:flex; align-items:center; gap:8px; padding:10px 12px; }
+.synapse-card-toggle{
+  flex:none; display:flex; align-items:center; justify-content:center;
+  width:22px; height:22px; border-radius:6px; color:var(--text-faint);
+}
+.synapse-card-toggle svg{ width:13px; height:13px; transition:transform 0.15s ease; transform:rotate(-90deg); }
+.synapse-card.open .synapse-card-toggle svg{ transform:rotate(0deg); }
+.synapse-card-toggle:hover{ background:var(--surface-2); color:var(--text); }
+.synapse-card-headings{ display:flex; flex-direction:column; gap:2px; min-width:0; flex:1; }
+.synapse-card-title{
+  width:100%; background:transparent; border:1px solid transparent; border-radius:7px;
+  padding:3px 6px; font-size:14px; font-weight:600; color:var(--text);
+}
+.synapse-card-title:hover{ border-color:var(--border); }
+.synapse-card-title:focus{ outline:none; border-color:var(--accent); background:var(--surface-2); }
+.synapse-card-preview{
+  font-size:11.5px; color:var(--text-faint); padding-left:7px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.synapse-card-date{ font-size:10.5px; color:var(--text-faint); flex:none; }
+.synapse-card-body{
+  display:flex; flex-direction:column; gap:12px;
+  padding:4px 14px 14px; border-top:1px solid var(--border);
+}
+.synapse-field{ display:flex; flex-direction:column; gap:4px; }
+.synapse-field-label{
+  font-size:10px; text-transform:uppercase; letter-spacing:0.05em;
+  font-weight:700; color:var(--text-faint);
+}
+/* A pergunta é o coração da sinapse — ganha faixa própria pra não virar rodapé */
+.synapse-field-question{
+  background:color-mix(in srgb, var(--accent) 5%, var(--surface));
+  border:1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  border-radius:10px; padding:9px 11px;
+}
+.synapse-field-question .synapse-field-label{ color:var(--accent); }
+.synapse-source-input{
+  width:100%; box-sizing:border-box; background:var(--surface); border:1px solid var(--border-strong);
+  border-radius:7px; padding:6px 8px; font-size:12.5px; color:var(--text);
 }
 
 /* FARO mascot */
