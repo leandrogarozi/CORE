@@ -49,6 +49,9 @@ export function TaskSearch({ onNavigate }: { onNavigate: (result: SearchResult) 
   const pos = useClampedPopoverPos(anchorRect, popRef);
 
   const q = query.trim().toLowerCase();
+  // Colar o ID com cerquilha ("#K7QF3M") é o jeito mais natural de escrever ele
+  // numa anotação, então a busca aceita das duas formas.
+  const qCode = q.startsWith("#") ? q.slice(1) : q;
   const open = anchorRect !== null;
   const showResults = q !== "" || scope === "lixeira";
 
@@ -56,13 +59,17 @@ export function TaskSearch({ onNavigate }: { onNavigate: (result: SearchResult) 
   if (showResults) {
     if (scope === "total" || scope === "tasks") {
       for (const t of board.state.tasks) {
+        // O ID casa por igualdade (não por pedaço): digitar "AB" não pode
+        // devolver toda tarefa cujo código tem "AB" no meio.
+        const inCode = t.code !== "" && t.code.toLowerCase() === qCode;
         const inTitle = t.title.toLowerCase().includes(q);
         const inNote = t.note.toLowerCase().includes(q);
-        if (!inTitle && !inNote) continue;
+        if (!inCode && !inTitle && !inNote) continue;
+        const whenLabel = t.date ? longLabel(t.date) : "Sem data";
         results.push({
           kind: "task",
           task: t,
-          subtitle: inTitle ? (t.date ? longLabel(t.date) : "Sem data") : `nota: ${snippet(t.note, q)}`,
+          subtitle: inCode || inTitle ? whenLabel : `nota: ${snippet(t.note, q)}`,
         });
       }
     }
@@ -208,6 +215,11 @@ export function TaskSearch({ onNavigate }: { onNavigate: (result: SearchResult) 
                 <button type="button" key={`${r.kind}-${key}`} className="search-result" onClick={() => select(r)}>
                   <span className="search-result-kind">{KIND_LABEL[r.kind]}</span>
                   <span className="search-result-title">{title}</span>
+                  {r.kind === "task" && r.task.code && (
+                    <span className="search-result-code mono" title="ID da tarefa">
+                      {r.task.code}
+                    </span>
+                  )}
                   <span className="search-result-date">{r.subtitle}</span>
                 </button>
               );

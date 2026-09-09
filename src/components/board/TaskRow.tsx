@@ -19,7 +19,10 @@ import {
   DuplicateIcon,
   EraserIcon,
   FlagIcon,
+  ChecklistIcon,
+  CheckIcon,
   FolderIcon,
+  HashIcon,
   PaperclipIcon,
   RepeatIcon,
   TagIcon,
@@ -259,7 +262,10 @@ export function TaskRow({
   const [editing, setEditing] = useState(false);
   const hasReminder = board.state.reminders.some((r) => r.taskId === t.id);
   const hasAttachment = board.state.attachmentKeys.has(`task:${t.id}`);
-  const openPautas = isMeetingTask(t) ? countOpenChecklistItems(t.note) : 0;
+  // Tópico em aberto é caixinha não marcada na observação — vale pra qualquer
+  // tarefa, não só reunião (antes só reunião mostrava o selo).
+  const openTopics = countOpenChecklistItems(t.note);
+  const isMeeting = isMeetingTask(t);
 
   useEffect(() => {
     if (focusRequest?.kind === "task" && focusRequest.id === t.id) {
@@ -364,11 +370,18 @@ export function TaskRow({
         <button type="button" className="row-title" title={t.title} onClick={() => setEditing(true)}>
           {t.title}
         </button>
-        {(openPautas > 0 || hasReminder || t.note.trim() || hasAttachment) && (
+        {(openTopics > 0 || hasReminder || t.note.trim() || hasAttachment) && (
           <span className="row-badges">
-            {openPautas > 0 && (
-              <span className="task-badge task-pautas-badge" title={`${openPautas} pauta(s) em aberto nessa reunião`}>
-                <UsersGroupIcon /> {openPautas}
+            {openTopics > 0 && (
+              <span
+                className="task-badge task-pautas-badge"
+                title={
+                  isMeeting
+                    ? `${openTopics} pauta(s) em aberto nessa reunião`
+                    : `${openTopics} tópico(s) em aberto nessa tarefa`
+                }
+              >
+                {isMeeting ? <UsersGroupIcon /> : <ChecklistIcon />} {openTopics}
               </span>
             )}
             {hasReminder && (
@@ -588,6 +601,52 @@ function TaskWhenButton({ date, time, endDate, endTime, onSave }: TaskWhenFields
   );
 }
 
+// O código curto da tarefa. Serve pra colar num lembrete ou numa anotação e
+// depois achar a tarefa pela busca — por isso é só leitura (quem gera é a
+// criação da tarefa) e fica selecionável, pra funcionar mesmo se o navegador
+// negar a área de transferência.
+function TaskCodeField({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  if (!code) return <span className="task-code-empty">tarefa antiga, sem ID</span>;
+
+  async function copy() {
+    inputRef.current?.select();
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      // Sem permissão pra área de transferência: o texto fica selecionado pra
+      // copiar pelo teclado.
+    }
+  }
+
+  return (
+    <span className="task-code-field">
+      <input
+        ref={inputRef}
+        type="text"
+        className="task-code-input mono"
+        value={code}
+        readOnly
+        aria-label="ID da tarefa"
+        onFocus={(e) => e.currentTarget.select()}
+      />
+      <button
+        type="button"
+        className={"icon-btn" + (copied ? " task-code-copied" : "")}
+        title="Copiar o ID pra colar num lembrete ou numa anotação"
+        onClick={copy}
+      >
+        {copied ? <CheckIcon /> : <DuplicateIcon />}
+      </button>
+      {copied && <span className="task-code-copied-hint">Copiado</span>}
+    </span>
+  );
+}
+
 function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
   const { board, askScope } = useBoardCtx();
   const currentSeries = t.seriesId ? board.state.taskSeries.find((s) => s.id === t.seriesId) : null;
@@ -639,6 +698,14 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
       {/* Lista de propriedades no estilo "ícone + nome + valor", em duas colunas:
           os campos ficam alinhados e discretos, sem virar um monte de caixas. */}
       <div className="prop-list">
+        <div className="prop-row">
+          <span className="prop-label">
+            <HashIcon /> ID
+          </span>
+          <div className="prop-value">
+            <TaskCodeField code={t.code} />
+          </div>
+        </div>
         <div className="prop-row">
           <span className="prop-label">
             <WeekIcon /> Quando

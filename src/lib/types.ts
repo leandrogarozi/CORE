@@ -28,6 +28,9 @@ export const DEFAULT_TAG_COLORS: Record<Category, { hex: string; alpha: number }
 
 export interface Task {
   id: string;
+  // Código curto (6 caracteres) pra copiar e colar em lembretes e anotações, e
+  // depois achar a tarefa pela busca. Vazio só em tarefa antiga sem código.
+  code: string;
   title: string;
   category: Category;
   category2: Category | null; // segunda tag opcional (ex.: Trabalho + Reunião), não conta pro relatório em dobro sozinha
@@ -282,12 +285,22 @@ export interface ChecklistItem {
   toBuy: boolean; // precisa comprar antes (ex.: supermercado) — separa da lista de itens pra levar/arrumar
 }
 
+export interface ChecklistExpense {
+  id: string;
+  label: string; // no que foi gasto, ex.: "Hotel", "Gasolina"
+  amountCents: number; // em centavos, pra não somar centavo errado com float
+  date: string | null; // ISO date — quando gastou; null = sem data
+}
+
 export interface Checklist {
   id: string;
   title: string;
   type: string; // livre, ex.: "viagem", "trabalho"
   items: ChecklistItem[];
   createdAt: string; // ISO date
+  expensesEnabled: boolean; // liga a aba Gastos desse checklist
+  expenses: ChecklistExpense[];
+  budgetCents: number | null; // quanto planejou gastar — opcional, só pra comparar
 }
 
 export interface DietMeal {

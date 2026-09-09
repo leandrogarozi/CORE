@@ -270,6 +270,87 @@ chegaram:
   se depois de usar o botão ainda achar que tem algo torto, mandar novo
   print apontando onde.
 
+## ID da tarefa, tópicos abertos e gastos no checklist (09/09)
+
+Três pedidos do Leandro numa leva só, feitos enquanto a configuração do
+WhatsApp está parada (semana de curso imerso).
+
+### 1. ID curto em toda tarefa
+
+Pedido: "gostaria de colocar um ID em cada task — sempre que criar, criar
+um ID junto. 5 a 6 caracteres. A ideia é poder copiar esse ID pra colocar
+em lembretes, anotações, e na hora que eu quiser pesquisar essa task fica
+mais fácil de encontrá-la".
+
+- **6 caracteres**, alfabeto `23456789ABCDEFGHJKMNPQRSTUVWXYZ` — sem
+  `0/O/1/I/L` de propósito: o código existe pra ser lido na tela e digitado
+  de novo na busca, e esses são justamente os que se confundem.
+- **Único por usuário** (índice único em `tasks(user_id, code)`), não
+  global: o código só precisa achar a tarefa dentro do FARO dele.
+- **Nasce com a tarefa** nos cinco caminhos de criação (adicionar na
+  lista, adicionar como etapa de projeto, duplicar, ocorrência de
+  repetição, reunião com cronômetro). Duplicar gera código **novo** — é
+  outra tarefa. O banco ainda tem `default public.faro_task_code()` como
+  rede de segurança, pro caso de algum caminho futuro esquecer.
+- As 132 tarefas que já existiam foram preenchidas na migração.
+- **Onde aparece**: primeira linha do formulário de edição (`# ID`), num
+  campo só de leitura mas selecionável, com botão de copiar ao lado (vira
+  ✓ verde + "Copiado"). Selecionável de propósito: se o navegador negar a
+  área de transferência, ainda dá pra copiar pelo teclado.
+- **Busca**: casa por igualdade (digitar "AB" não devolve toda tarefa com
+  "AB" no meio do código) e aceita com ou sem cerquilha (`#K7QF3M`). Cada
+  resultado de tarefa mostra o código. Como a busca de lembretes/notas já
+  é por trecho, colar o ID numa anotação faz a busca achar **os dois** — a
+  tarefa e a anotação que fala dela, que é exatamente o uso pretendido.
+- O código **não entra no update** de edição de tarefa: uma vez sorteado,
+  não muda.
+
+### 2. Tópicos abertos: selo em qualquer tarefa + bloco no Dashboard
+
+Antes só reunião mostrava o selo de pautas em aberto. Agora qualquer
+tarefa com caixinha não marcada na observação mostra o selo (ícone de
+lista pra tarefa comum, ícone de reunião pra reunião — o tooltip fala
+"tópico" ou "pauta" conforme o caso).
+
+- **Novo bloco no Dashboard: "Tópicos abertos"**. O número é o total de
+  tópicos em aberto; clicar abre a lista das tarefas que os têm, das mais
+  antigas pras mais novas (as sem data no fim), e clicar numa delas abre a
+  tarefa no dia dela — mesmo caminho já usado por "Atrasadas".
+- Blocos clicáveis que não são de alerta agora ficam com a borda na cor de
+  destaque no hover; só "Atrasadas" continua vermelho.
+
+### 3. Aba de gastos dentro do checklist
+
+Pedido: "uma aba dentro dos checklists onde podemos anotar quanto gastamos
+em determinada viagem — ter a opção de ativar esse campo e registrar os
+gastos".
+
+- O checklist aberto agora tem duas abas: **Itens** (o que já existia) e
+  **Gastos**.
+- A aba Gastos começa **desligada**: tem uma chave "Registrar os gastos
+  dessa viagem". Sem ligar, nada de dinheiro aparece — quem não usa não
+  vê.
+- Cada gasto tem data, descrição e valor, todos editáveis no lugar (errar
+  o valor é comum demais pra obrigar a refazer o lançamento). Tem também
+  um "Planejado gastar" opcional, e o rodapé mostra o total e se ainda
+  cabe ou se passou do planejado (em vermelho).
+- **Dinheiro é guardado em centavos** (inteiro), nunca em ponto flutuante.
+  O campo aceita o que a pessoa realmente digita: "120", "120,50",
+  "1.234,56", "R$ 89,90" — e entende que em "1.500" o ponto é milhar.
+- O total aparece também no cabeçalho do checklist, ao lado do `6/14` dos
+  itens, e dá pra mandar o resumo dos gastos pro WhatsApp como já dava com
+  a lista de compras.
+- **Duplicar um checklist** mantém a aba ligada e o valor planejado, mas
+  começa **sem gasto nenhum** — duplicar é preparar a próxima viagem.
+- **Banco**: `checklists` ganhou `expenses_enabled`, `expenses` (jsonb) e
+  `expenses_budget_cents`.
+
+### Ícones
+
+`MoneyIcon` veio do pacote (`Interface/Credit_Card_01.svg`), como manda a
+regra. `HashIcon` (a cerquilha do ID) é custom — o pacote não tem
+cerquilha, mesma exceção do `PillIcon`.
+
 ## Novas Sinapses (05/09)
 
 Ideia do Leandro, com as palavras dele: em cursos de autodesenvolvimento

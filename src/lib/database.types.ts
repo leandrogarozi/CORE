@@ -80,6 +80,9 @@ export type Database = {
       checklists: {
         Row: {
           created_at: string
+          expenses: Json
+          expenses_budget_cents: number | null
+          expenses_enabled: boolean
           id: string
           items: Json
           title: string
@@ -88,6 +91,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          expenses?: Json
+          expenses_budget_cents?: number | null
+          expenses_enabled?: boolean
           id?: string
           items?: Json
           title: string
@@ -96,6 +102,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          expenses?: Json
+          expenses_budget_cents?: number | null
+          expenses_enabled?: boolean
           id?: string
           items?: Json
           title?: string
@@ -686,6 +695,7 @@ export type Database = {
           category: string
           category2: string | null
           client: string | null
+          code: string | null
           created_at: string
           date: string | null
           deleted_at: string | null
@@ -712,6 +722,7 @@ export type Database = {
           category: string
           category2?: string | null
           client?: string | null
+          code?: string | null
           created_at?: string
           date?: string | null
           deleted_at?: string | null
@@ -738,6 +749,7 @@ export type Database = {
           category?: string
           category2?: string | null
           client?: string | null
+          code?: string | null
           created_at?: string
           date?: string | null
           deleted_at?: string | null

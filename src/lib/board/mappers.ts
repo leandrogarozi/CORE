@@ -7,6 +7,7 @@ import type {
   BookStatus,
   Category,
   Checklist,
+  ChecklistExpense,
   ChecklistItem,
   DailyLog,
   DayLog,
@@ -52,6 +53,7 @@ type AttachmentRow = Tables<"attachments">;
 export function rowToTask(row: TaskRow): Task {
   return {
     id: row.id,
+    code: row.code ?? "",
     title: row.title,
     category: row.category as Category,
     category2: row.category2 as Category | null,
@@ -104,6 +106,9 @@ export function taskToInsertRow(t: Task, userId: string): TablesInsert<"tasks"> 
   return {
     id: t.id,
     user_id: userId,
+    // Sem código no objeto (tarefa antiga), deixa o banco aplicar o default em
+    // vez de gravar vazio — assim toda tarefa nova tem código de qualquer jeito.
+    code: t.code || undefined,
     title: t.title,
     category: t.category,
     category2: t.category2,
@@ -516,6 +521,9 @@ export function rowToChecklist(row: ChecklistRow): Checklist {
     type: row.type,
     items: ((row.items as unknown as ChecklistItem[] | null) ?? []),
     createdAt: row.created_at.slice(0, 10),
+    expensesEnabled: row.expenses_enabled,
+    expenses: ((row.expenses as unknown as ChecklistExpense[] | null) ?? []),
+    budgetCents: row.expenses_budget_cents,
   };
 }
 
@@ -526,6 +534,9 @@ export function checklistToInsertRow(c: Checklist, userId: string): TablesInsert
     title: c.title,
     type: c.type,
     items: c.items as unknown as Json,
+    expenses_enabled: c.expensesEnabled,
+    expenses: c.expenses as unknown as Json,
+    expenses_budget_cents: c.budgetCents,
   };
 }
 
@@ -534,6 +545,9 @@ export function checklistToUpdateRow(c: Partial<Checklist>): TablesUpdate<"check
   if (c.title !== undefined) row.title = c.title;
   if (c.type !== undefined) row.type = c.type;
   if (c.items !== undefined) row.items = c.items as unknown as Json;
+  if (c.expensesEnabled !== undefined) row.expenses_enabled = c.expensesEnabled;
+  if (c.expenses !== undefined) row.expenses = c.expenses as unknown as Json;
+  if (c.budgetCents !== undefined) row.expenses_budget_cents = c.budgetCents;
   return row;
 }
 

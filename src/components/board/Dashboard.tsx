@@ -17,6 +17,7 @@ import {
 } from "@/lib/date-utils";
 import { CATEGORY_LABEL, isFeatureEnabled, type Category, type Priority, type Task } from "@/lib/types";
 import { moodByValue } from "@/lib/mood";
+import { countOpenChecklistItems } from "@/lib/rich-text";
 import { TaskListModal } from "./TaskListModal";
 
 type Period = "day" | "week" | "month";
@@ -85,6 +86,16 @@ export function Dashboard() {
     const overdueTasks = s.tasks.filter((t) => !t.done && t.date && t.date < today);
     const overdueCount = overdueTasks.length;
     const noDateCount = s.tasks.filter((t) => !t.date).length;
+
+    // Tópico em aberto = caixinha não marcada na observação da tarefa (pauta de
+    // reunião ou lista de qualquer tarefa). Mais antigas primeiro — são as que
+    // estão esperando há mais tempo; as sem data vão pro fim.
+    const withTopics = s.tasks
+      .map((t) => ({ task: t, open: countOpenChecklistItems(t.note) }))
+      .filter((x) => x.open > 0)
+      .sort((a, b) => (a.task.date ?? "9999-99-99").localeCompare(b.task.date ?? "9999-99-99"));
+    const openTopicTasks = withTopics.map((x) => x.task);
+    const openTopicTotal = withTopics.reduce((sum, x) => sum + x.open, 0);
     const doneInPeriod = s.tasks.filter((t) => t.done && t.date && t.date >= fromISO && t.date <= toISO);
     const pendingInPeriod = s.tasks.filter((t) => !t.done && t.date && t.date >= fromISO && t.date <= toISO);
 
@@ -139,6 +150,8 @@ export function Dashboard() {
     return {
       overdueCount,
       overdueTasks,
+      openTopicTasks,
+      openTopicTotal,
       noDateCount,
       doneCount: doneInPeriod.length,
       pendingCount: pendingInPeriod.length,
@@ -237,6 +250,20 @@ export function Dashboard() {
         >
           <div className="dash-stat-value">{stats.overdueCount}</div>
           <div className="dash-stat-label">Atrasadas</div>
+        </button>
+        <button
+          type="button"
+          className="dash-stat-card clickable"
+          title={
+            stats.openTopicTotal > 0
+              ? `${stats.openTopicTotal} tópico(s) em aberto em ${stats.openTopicTasks.length} tarefa(s) — clique pra ver a lista`
+              : undefined
+          }
+          disabled={stats.openTopicTotal === 0}
+          onClick={() => setModal({ title: "Tarefas com tópicos abertos", tasks: stats.openTopicTasks })}
+        >
+          <div className="dash-stat-value">{stats.openTopicTotal}</div>
+          <div className="dash-stat-label">Tópicos abertos</div>
         </button>
         <div className="dash-stat-card">
           <div className="dash-stat-value">{stats.noDateCount}</div>

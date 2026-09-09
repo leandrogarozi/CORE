@@ -133,6 +133,18 @@ function uid(): string {
   return crypto.randomUUID();
 }
 
+// Mesmo alfabeto do default do banco (public.faro_task_code): sem 0/O/1/I/L, pra
+// não dar dúvida na hora de ler o código na tela ou digitar de novo na busca.
+const TASK_CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
+
+function randomTaskCode(): string {
+  let out = "";
+  for (let i = 0; i < 6; i++) {
+    out += TASK_CODE_ALPHABET[Math.floor(Math.random() * TASK_CODE_ALPHABET.length)];
+  }
+  return out;
+}
+
 const ATTACHMENT_EXTRACTABLE_MIME = new Set([
   "application/pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -278,6 +290,21 @@ export function useBoard(userId: string | null) {
     return notDone[0]?.id ?? statuses[0]?.id ?? null;
   }, []);
 
+  // Sorteia um código que ainda não está em uso (contando a Lixeira: uma tarefa
+  // restaurada não pode colidir com outra criada depois). O banco tem índice
+  // único como rede de segurança.
+  const newTaskCode = useCallback(() => {
+    const usados = new Set([
+      ...stateRef.current.tasks.map((t) => t.code),
+      ...stateRef.current.trashedTasks.map((t) => t.code),
+    ]);
+    for (let i = 0; i < 50; i++) {
+      const code = randomTaskCode();
+      if (!usados.has(code)) return code;
+    }
+    return randomTaskCode();
+  }, []);
+
   const nextOrder = useCallback((bucketKey: string) => {
     const xs = stateRef.current.tasks.filter((t) => bucketOf(t) === bucketKey);
     if (!xs.length) return 0;
@@ -294,6 +321,7 @@ export function useBoard(userId: string | null) {
       if (!userId || !title.trim()) return false;
       const t: Task = {
         id: uid(),
+        code: newTaskCode(),
         title: title.trim(),
         category: "sem_categoria",
         category2: null,
@@ -324,7 +352,7 @@ export function useBoard(userId: string | null) {
       }
       return true;
     },
-    [apply, defaultStatusId, nextOrder, supabase, userId]
+    [apply, defaultStatusId, newTaskCode, nextOrder, supabase, userId]
   );
 
   const setTaskStatus = useCallback(
@@ -421,6 +449,9 @@ export function useBoard(userId: string | null) {
       const clone: Task = {
         ...t,
         id: uid(),
+        // Cópia é outra tarefa: código novo, senão duas tarefas responderiam à
+        // mesma busca (e o banco recusaria o segundo insert).
+        code: newTaskCode(),
         done: false,
         order: myOrder + 1,
         durationMin: null,
@@ -441,7 +472,7 @@ export function useBoard(userId: string | null) {
         if (error) reportSaveError("duplicateTask", error);
       });
     },
-    [apply, defaultStatusId, supabase, userId]
+    [apply, defaultStatusId, newTaskCode, supabase, userId]
   );
 
   const deleteTask = useCallback(
@@ -711,6 +742,7 @@ export function useBoard(userId: string | null) {
           if (exists || alreadyQueued) return;
           created.push({
             id: uid(),
+            code: newTaskCode(),
             title: series.title,
             category: series.category,
             category2: series.category2,
@@ -743,7 +775,7 @@ export function useBoard(userId: string | null) {
           if (error) reportSaveError("ensureOccurrencesInView", error);
         });
     },
-    [apply, defaultStatusId, nextOrder, supabase, userId]
+    [apply, defaultStatusId, newTaskCode, nextOrder, supabase, userId]
   );
 
   // ---------- task statuses ----------
@@ -1027,6 +1059,7 @@ export function useBoard(userId: string | null) {
       const project = stateRef.current.projects.find((p) => p.id === projectId);
       const t: Task = {
         id: uid(),
+        code: newTaskCode(),
         title: title.trim(),
         category: project?.defaultCategory ?? "sem_categoria",
         category2: project?.defaultCategory2 ?? null,
@@ -1057,7 +1090,7 @@ export function useBoard(userId: string | null) {
       }
       return true;
     },
-    [apply, defaultStatusId, supabase, userId]
+    [apply, defaultStatusId, newTaskCode, supabase, userId]
   );
 
   // ---------- reminders ----------
@@ -1334,6 +1367,9 @@ export function useBoard(userId: string | null) {
         type: type.trim() || "viagem",
         items: [],
         createdAt: todayISO(),
+        expensesEnabled: false,
+        expenses: [],
+        budgetCents: null,
       };
       apply((s) => ({ ...s, checklists: [...s.checklists, c] }));
       supabase.from("checklists").insert(checklistToInsertRow(c, userId)).then(({ error }) => {
@@ -1344,7 +1380,10 @@ export function useBoard(userId: string | null) {
   );
 
   const updateChecklist = useCallback(
-    (id: string, patch: Partial<Pick<Checklist, "title" | "type" | "items">>) => {
+    (
+      id: string,
+      patch: Partial<Pick<Checklist, "title" | "type" | "items" | "expensesEnabled" | "expenses" | "budgetCents">>
+    ) => {
       apply((s) => ({ ...s, checklists: s.checklists.map((c) => (c.id === id ? { ...c, ...patch } : c)) }));
       supabase.from("checklists").update(checklistToUpdateRow(patch)).eq("id", id).then(({ error }) => {
         if (error) reportSaveError("updateChecklist", error);
@@ -1374,6 +1413,11 @@ export function useBoard(userId: string | null) {
         type: src.type,
         items: src.items.map((i): ChecklistItem => ({ id: uid(), text: i.text, checked: false, toBuy: false })),
         createdAt: todayISO(),
+        // Copiar um checklist é preparar a próxima viagem: mantém a aba de gastos
+        // ligada e o quanto planejou gastar, mas começa sem gasto nenhum.
+        expensesEnabled: src.expensesEnabled,
+        expenses: [],
+        budgetCents: src.budgetCents,
       };
       apply((s) => ({ ...s, checklists: [...s.checklists, copy] }));
       supabase.from("checklists").insert(checklistToInsertRow(copy, userId)).then(({ error }) => {
@@ -1722,6 +1766,7 @@ export function useBoard(userId: string | null) {
       const time = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
       const t: Task = {
         id: uid(),
+        code: newTaskCode(),
         title: title.trim(),
         category: "sem_categoria",
         category2: "reuniao",
@@ -1755,7 +1800,7 @@ export function useBoard(userId: string | null) {
           if (error) reportSaveError("startMeeting timer", error);
         });
     },
-    [apply, defaultStatusId, nextOrder, supabase, userId]
+    [apply, defaultStatusId, newTaskCode, nextOrder, supabase, userId]
   );
 
   const bumpExpectedDuration = useCallback(

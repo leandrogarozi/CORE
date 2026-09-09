@@ -119,6 +119,10 @@ a{ color:inherit; }
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
 .search-empty{ padding:10px 8px; font-size:12px; color:var(--text-faint); font-style:italic; }
+.search-result-code{
+  flex:none; font-size:10.5px; font-weight:600; letter-spacing:0.06em; color:var(--text-faint);
+  background:var(--surface-2); border:1px solid var(--border); border-radius:5px; padding:1px 5px;
+}
 .search-result-trash{ cursor:default; }
 .search-result-trash .search-result-date{ max-width:none; }
 .search-result-trash-actions{ display:flex; align-items:center; gap:4px; flex:none; }
@@ -583,7 +587,8 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .dash-stat-value{ font-size:21px; font-weight:700; line-height:1.15; }
 .dash-stat-card.danger .dash-stat-value{ color:var(--danger); }
 .dash-stat-card.clickable{ cursor:pointer; text-align:left; }
-.dash-stat-card.clickable:hover:not(:disabled){ border-color:var(--danger); }
+.dash-stat-card.clickable:hover:not(:disabled){ border-color:var(--accent); }
+.dash-stat-card.danger.clickable:hover:not(:disabled){ border-color:var(--danger); }
 .dash-stat-card.clickable:disabled{ cursor:default; }
 .dash-stat-label{ font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-faint); margin-top:3px; }
 
@@ -805,6 +810,21 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .prop-value > .reminder-date-btn span{ overflow:visible; white-space:normal; }
 .prop-value > .attachment-field-btn.has-attachments{ color:var(--accent); }
 .prop-value input[type="text"]::placeholder{ color:var(--text-faint); }
+
+/* ID da tarefa: só leitura, mas selecionável — dá pra copiar pelo botão ou
+   pelo teclado. */
+.task-code-field{ display:flex; align-items:center; gap:4px; min-width:0; }
+.task-code-input{
+  width:74px; flex:none; background:var(--surface-2); border:1px solid var(--border);
+  border-radius:6px; padding:4px 6px; font-size:12.5px; font-weight:600;
+  letter-spacing:0.08em; color:var(--text); cursor:text;
+}
+.task-code-input:focus{ outline:none; border-color:var(--accent); }
+.task-code-field .icon-btn{ padding:3px; }
+.task-code-field .icon-btn svg{ width:12px; height:12px; }
+.task-code-field .icon-btn.task-code-copied{ color:var(--success); }
+.task-code-copied-hint{ font-size:10.5px; color:var(--success); white-space:nowrap; }
+.task-code-empty{ font-size:11.5px; color:var(--text-faint); }
 
 /* Observação, no rodapé do formulário de edição */
 .edit-note{ display:flex; flex-direction:column; gap:5px; border-top:1px solid var(--border); padding-top:9px; margin-bottom:10px; }
@@ -1328,6 +1348,47 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .checklist-actions .btn{ display:inline-flex; align-items:center; gap:6px; font-size:11.5px; padding:6px 10px; }
 .checklist-actions .btn svg{ width:12px; height:12px; }
 .checklist-type-input{ width:120px; flex:none; }
+.checklist-spent{ font-size:11px; font-weight:600; color:var(--accent); flex:none; white-space:nowrap; }
+
+/* Abas do checklist: os itens de sempre e os gastos da viagem. */
+.checklist-tabs{ display:flex; gap:4px; margin-bottom:8px; border-bottom:1px solid var(--border); }
+.checklist-tab{
+  display:inline-flex; align-items:center; gap:6px; background:none; border:none;
+  border-bottom:2px solid transparent; margin-bottom:-1px; padding:5px 9px;
+  font:inherit; font-size:11.5px; color:var(--text-faint); cursor:pointer;
+}
+.checklist-tab:hover{ color:var(--text); }
+.checklist-tab.active{ color:var(--accent); border-bottom-color:var(--accent); }
+.checklist-tab svg{ width:12px; height:12px; }
+.checklist-tab-count{ font-size:10.5px; opacity:0.85; }
+
+.checklist-expenses{ display:flex; flex-direction:column; gap:6px; }
+.checklist-expenses-switch{ display:flex; align-items:center; gap:9px; font-size:12px; color:var(--text); }
+.checklist-expense-planned{ display:flex; align-items:center; gap:8px; margin:2px 0 4px; }
+.checklist-expense-planned-label{ font-size:11.5px; color:var(--text-faint); }
+/* Valor em reais não cabe nos 70px do .budget-input padrão. */
+.checklist-expense-planned .budget-input{ width:96px; text-align:right; }
+.checklist-expense-row, .checklist-expense-add{ display:flex; align-items:center; gap:6px; padding:2px 0; }
+.checklist-expense-add{ padding-top:6px; border-top:1px solid var(--border); margin-top:2px; }
+.checklist-expense-date{
+  width:104px; flex:none; background:var(--surface); border:1px solid var(--border-strong);
+  border-radius:7px; padding:5px 6px; font-size:11.5px; color:var(--text);
+}
+.checklist-expense-label{
+  flex:1; min-width:0; background:transparent; border:1px solid transparent; border-radius:6px;
+  padding:5px 6px; font-size:12px; color:var(--text);
+}
+.checklist-expense-label:hover{ background:var(--surface-2); border-color:var(--border); }
+.checklist-expense-label:focus{ outline:none; background:var(--surface-2); border-color:var(--accent); }
+.checklist-expense-amount{ width:86px; flex:none; text-align:right; }
+.checklist-expense-add-btn{ flex:none; font-size:11.5px; padding:6px 12px; }
+.checklist-expense-total{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  margin-top:6px; padding-top:7px; border-top:1px solid var(--border-strong); font-size:12px;
+}
+.checklist-expense-total strong{ font-size:14px; }
+.checklist-expense-left{ font-size:11px; color:var(--text-faint); text-align:right; }
+.checklist-expense-left.over{ color:var(--danger); }
 
 /* reuniões / avisos de timer */
 .timer-nudge-stack{
