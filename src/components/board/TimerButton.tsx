@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { PauseIcon, PlayIcon } from "./icons";
 import { fmtClock } from "@/lib/date-utils";
-import type { ActiveTimer, RecurringItem, Task, TimerKind } from "@/lib/types";
+import { taskSecondsOnDay } from "@/lib/board/task-time";
+import type { ActiveTimer, BoardState, RecurringItem, Task, TimerKind } from "@/lib/types";
 
 function useElapsedSeconds(startedAt: number | undefined) {
   const [elapsed, setElapsed] = useState(0);
@@ -21,13 +22,17 @@ function useElapsedSeconds(startedAt: number | undefined) {
   return elapsed;
 }
 
+// O relógio ao vivo mostra o tempo DO DIA, não o acumulado da tarefa inteira:
+// a pergunta enquanto se trabalha é "quanto já fiz nisso hoje". Hábitos e blocos
+// já funcionavam assim; a tarefa passou a funcionar igual.
 function baseTrackedSeconds(
+  state: BoardState,
   item: Task | RecurringItem | undefined,
   kind: TimerKind,
   logDate: string
 ): number {
   if (!item) return 0;
-  if (kind === "task") return (item as Task).trackedSeconds;
+  if (kind === "task") return taskSecondsOnDay(state, (item as Task).id, logDate);
   return (item as RecurringItem).logs[logDate]?.trackedSeconds ?? 0;
 }
 
@@ -37,7 +42,7 @@ export function TimerButton({ kind, id, logDate }: { kind: TimerKind; id: string
   const running = !!at;
   const item = board.findTrackable(kind, id);
   const sessionElapsed = useElapsedSeconds(at?.startedAt);
-  const totalElapsed = baseTrackedSeconds(item, kind, logDate) + sessionElapsed;
+  const totalElapsed = baseTrackedSeconds(board.state, item, kind, logDate) + sessionElapsed;
 
   return (
     <span className="timer-wrap">
@@ -62,7 +67,7 @@ function ActiveTimerBadgeItem({ at }: { at: ActiveTimer }) {
   const sessionElapsed = useElapsedSeconds(at.startedAt);
   const item = board.findTrackable(at.kind, at.itemId);
   const label = item ? ("title" in item ? item.title : item.name) : at.kind === "task" ? "Tarefa" : at.kind === "habit" ? "Hábito" : "Bloco fixo";
-  const totalElapsed = baseTrackedSeconds(item, at.kind, at.logDate) + sessionElapsed;
+  const totalElapsed = baseTrackedSeconds(board.state, item, at.kind, at.logDate) + sessionElapsed;
 
   return (
     <div className="active-timer-badge">

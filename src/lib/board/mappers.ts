@@ -26,6 +26,7 @@ import type {
   Task,
   TaskSeries,
   TaskStatus,
+  TaskTimeEntry,
   TimerKind,
 } from "@/lib/types";
 import { DEFAULT_TAG_COLORS } from "@/lib/types";
@@ -37,6 +38,7 @@ type HabitLogRow = Tables<"habit_logs">;
 type BlockLogRow = Tables<"fixed_block_logs">;
 type BlockLogEntryRow = Tables<"fixed_block_log_entries">;
 type SeriesRow = Tables<"task_series">;
+type TaskTimeEntryRow = Tables<"task_time_entries">;
 type TaskStatusRow = Tables<"task_statuses">;
 type SettingsRow = Tables<"settings">;
 type ActiveTimerRow = Tables<"active_timer">;
@@ -129,6 +131,15 @@ export function taskToInsertRow(t: Task, userId: string): TablesInsert<"tasks"> 
     deleted_at: t.deletedAt,
     project_id: t.projectId,
     client: t.client,
+  };
+}
+
+export function rowToTaskTimeEntry(row: TaskTimeEntryRow): TaskTimeEntry {
+  return {
+    id: row.id,
+    taskId: row.task_id,
+    date: row.log_date,
+    seconds: row.seconds,
   };
 }
 

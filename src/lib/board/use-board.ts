@@ -24,6 +24,7 @@ import {
   rowToSynapse,
   synapseToInsertRow,
   rowToChecklist,
+  rowToTaskTimeEntry,
   rowToDailyLog,
   rowToDietMeal,
   rowToMedication,
@@ -56,6 +57,7 @@ import type {
   Category,
   Checklist,
   ChecklistItem,
+  TaskTimeEntry,
   DailyLog,
   DayLog,
   DayLogEntry,
@@ -79,6 +81,7 @@ import { DEFAULT_TAG_COLORS } from "@/lib/types";
 
 const EMPTY_STATE: BoardState = {
   tasks: [],
+  taskTimeEntries: [],
   trashedTasks: [],
   projects: [],
   habits: [],
@@ -172,6 +175,7 @@ export function useBoard(userId: string | null) {
     setLoading(true);
     const [
       tasksRes,
+      taskTimeEntriesRes,
       trashedTasksRes,
       projectsRes,
       habitsRes,
@@ -195,6 +199,7 @@ export function useBoard(userId: string | null) {
       attachmentKeysRes,
     ] = await Promise.all([
       supabase.from("tasks").select("*").is("deleted_at", null).order("sort_order"),
+      supabase.from("task_time_entries").select("*").order("log_date"),
       supabase.from("tasks").select("*").not("deleted_at", "is", null),
       supabase.from("projects").select("*").order("created_at"),
       supabase.from("habits").select("*").order("sort_order"),
@@ -225,6 +230,7 @@ export function useBoard(userId: string | null) {
 
     const next: BoardState = {
       tasks: (tasksRes.data ?? []).map(rowToTask),
+      taskTimeEntries: (taskTimeEntriesRes.data ?? []).map(rowToTaskTimeEntry),
       trashedTasks: (trashedTasksRes.data ?? []).map(rowToTask),
       projects: (projectsRes.data ?? []).map(rowToProject),
       habits: buildRecurring(habitsRes.data ?? [], habitLogsRes.data ?? [], "habit_id"),
@@ -1642,6 +1648,76 @@ export function useBoard(userId: string | null) {
     [apply, supabase, userId, upsertRecurringLog, deleteRecurringLog]
   );
 
+  // ---------- tempo por dia das tarefas ----------
+  // O tempo mora no dia em que foi trabalhado, não na tarefa: mover a tarefa de
+  // dia não pode levar junto as horas de ontem. tasks.tracked_seconds continua
+  // existindo, mas como espelho da soma — quem manda é a lista por dia.
+  const writeTaskTime = useCallback(
+    async (taskId: string, iso: string, seconds: number) => {
+      if (!userId || !iso) return;
+      const clean = Math.max(0, Math.round(seconds));
+      const existing = stateRef.current.taskTimeEntries.find((e) => e.taskId === taskId && e.date === iso);
+      const entryId = existing?.id ?? uid();
+
+      // Dia zerado não vira linha de zero: some da lista.
+      const entries: TaskTimeEntry[] =
+        clean === 0
+          ? stateRef.current.taskTimeEntries.filter((e) => !(e.taskId === taskId && e.date === iso))
+          : existing
+            ? stateRef.current.taskTimeEntries.map((e) => (e.id === existing.id ? { ...e, seconds: clean } : e))
+            : [...stateRef.current.taskTimeEntries, { id: entryId, taskId, date: iso, seconds: clean }];
+
+      const total = entries.filter((e) => e.taskId === taskId).reduce((sum, e) => sum + e.seconds, 0);
+      apply((s) => ({
+        ...s,
+        taskTimeEntries: entries,
+        tasks: s.tasks.map((t) => (t.id === taskId ? { ...t, trackedSeconds: total } : t)),
+      }));
+
+      if (clean === 0) {
+        if (existing) {
+          const { error } = await supabase.from("task_time_entries").delete().eq("id", existing.id);
+          if (error) reportSaveError("apagar tempo do dia", error);
+        }
+      } else {
+        const { error } = await supabase.from("task_time_entries").upsert(
+          {
+            id: entryId,
+            user_id: userId,
+            task_id: taskId,
+            log_date: iso,
+            seconds: clean,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "task_id,log_date" }
+        );
+        if (error) reportSaveError("gravar tempo do dia", error);
+      }
+
+      const { error } = await supabase.from("tasks").update({ tracked_seconds: total }).eq("id", taskId);
+      if (error) reportSaveError("atualizar total da tarefa", error);
+    },
+    [apply, supabase, userId]
+  );
+
+  // Soma tempo num dia (é o que o cronômetro faz ao parar).
+  const addTaskTime = useCallback(
+    (taskId: string, iso: string, seconds: number) => {
+      const atual = stateRef.current.taskTimeEntries.find((e) => e.taskId === taskId && e.date === iso)?.seconds ?? 0;
+      void writeTaskTime(taskId, iso, atual + seconds);
+    },
+    [writeTaskTime]
+  );
+
+  // Define o tempo de um dia na mão (corrigir lançamento, ou lançar um dia que
+  // ficou sem cronômetro). Minutos = 0 apaga o dia.
+  const setTaskTimeMinutes = useCallback(
+    (taskId: string, iso: string, minutes: number) => {
+      void writeTaskTime(taskId, iso, Math.max(0, Math.round(minutes)) * 60);
+    },
+    [writeTaskTime]
+  );
+
   // ---------- timer ----------
   // Nome da intervenção criada quando o cronômetro para num bloco que usa lista
   // de entradas — o cronômetro não sabe qual etiqueta o Leandro escolheria.
@@ -1657,22 +1733,12 @@ export function useBoard(userId: string | null) {
       if (!userId) return;
       const elapsed = Math.max(0, Math.floor((Date.now() - at.startedAt) / 1000));
       if (at.kind === "task") {
-        const t = stateRef.current.tasks.find((x) => x.id === at.itemId);
-        if (t) {
-          const trackedSeconds = t.trackedSeconds + elapsed;
-          const durationMin = Math.round(trackedSeconds / 60);
-          apply((s) => ({
-            ...s,
-            tasks: s.tasks.map((x) => (x.id === at.itemId ? { ...x, trackedSeconds, durationMin } : x)),
-          }));
-          supabase
-            .from("tasks")
-            .update({ tracked_seconds: trackedSeconds, duration_minutes: durationMin })
-            .eq("id", at.itemId)
-            .then(({ error }) => {
-              if (error) reportSaveError("stopTimer task", error);
-            });
-        }
+        // Cai no dia em que o cronômetro COMEÇOU (at.logDate) — é o mesmo
+        // critério de hábitos e blocos. Cronômetro que atravessa a meia-noite
+        // fica todo no dia em que começou, em vez de rachar em dois.
+        // A duração digitada não é mais sobrescrita: ela é a previsão do
+        // Leandro, o tempo real agora tem lugar próprio.
+        addTaskTime(at.itemId, at.logDate, elapsed);
       } else {
         const kind = at.kind;
         const listKey = listKeyFor(kind);
@@ -1730,7 +1796,7 @@ export function useBoard(userId: string | null) {
         upsertRecurringLog(kind, at.itemId, at.logDate, trackedSeconds, userId, summaryNote);
       }
     },
-    [apply, supabase, upsertRecurringLog, userId]
+    [addTaskTime, apply, supabase, upsertRecurringLog, userId]
   );
 
   const toggleTimer = useCallback(
@@ -2110,6 +2176,7 @@ export function useBoard(userId: string | null) {
       state.activeTimers.some((at) => at.kind === kind && at.itemId === id),
     findTrackable,
     addTask,
+    setTaskTimeMinutes,
     setTaskStatus,
     setQuick,
     setPriority,

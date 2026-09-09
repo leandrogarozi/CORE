@@ -45,6 +45,9 @@ export interface Task {
   done: boolean;
   order: number;
   seriesId: string | null;
+  // Soma do tempo de todos os dias (ver TaskTimeEntry). É espelho: quem manda é
+  // a lista por dia. Fica aqui pra somar projeto e mostrar o total sem varrer
+  // as entradas toda hora.
   trackedSeconds: number;
   quick: number; // 0-3
   statusId: string | null;
@@ -57,6 +60,16 @@ export interface Task {
 // pelo botão rápido (category2) quanto marcada manualmente na edição (category).
 export function isMeetingTask(t: Pick<Task, "category" | "category2">): boolean {
   return t.category === "reuniao" || t.category2 === "reuniao";
+}
+
+// Tempo trabalhado numa tarefa em UM dia. O tempo mora no dia, não na tarefa:
+// jogar a tarefa pra amanhã não pode levar junto as horas de hoje — foi hoje
+// que o trabalho aconteceu. Uma linha por tarefa + dia.
+export interface TaskTimeEntry {
+  id: string;
+  taskId: string;
+  date: string; // ISO date
+  seconds: number;
 }
 
 export type ProjectStatus = "active" | "done" | "cancelled";
@@ -315,6 +328,7 @@ export interface DietMeal {
 
 export interface BoardState {
   tasks: Task[];
+  taskTimeEntries: TaskTimeEntry[]; // tempo por dia das tarefas
   trashedTasks: Task[]; // tarefas excluídas (soft delete) — Lixeira
   projects: Project[]; // PDA — planos de ação com tarefas vinculadas como etapas
   habits: RecurringItem[];

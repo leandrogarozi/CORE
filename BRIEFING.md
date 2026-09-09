@@ -270,6 +270,69 @@ chegaram:
   se depois de usar o botão ainda achar que tem algo torto, mandar novo
   print apontando onde.
 
+## Tempo da tarefa passa a ser por dia (09/09)
+
+Problema levantado pelo Leandro, nas palavras dele: "trabalho numa task
+hoje, não termino, jogo ela pra amanhã e volto a trabalhar. O tempo total
+cai tudo num dia só. A ideia é registrar horas por dia".
+
+**O que estava errado** (dois problemas, não um):
+
+1. `tasks.tracked_seconds` era um número único na tarefa — o tempo morava
+   na tarefa, não no dia. Mover a tarefa de dia não duplicava o tempo:
+   **mudava ele de lugar**. O dia de origem *perdia* as horas.
+2. O Painel de Horas só contava tarefa **concluída** com duração. Tarefa
+   trabalhada e não terminada não aparecia em dia nenhum — só entrava na
+   conta no dia em que fosse concluída, e aí inteira, de uma vez.
+
+Além disso o cronômetro **sobrescrevia** o campo Duração com o total
+acumulado: previsão e tempo real dividiam a mesma coluna.
+
+**A solução**: tarefa ganhou o mesmo modelo que hábitos e blocos fixos já
+tinham — tempo por dia. Tabela `task_time_entries` (uma linha por tarefa +
+dia), com RLS por usuário.
+
+- **O cronômetro grava no dia em que começou** (`ActiveTimer.logDate`, que
+  já existia e era ignorado no caminho da tarefa). Cronômetro que
+  atravessa a meia-noite fica todo no dia em que começou — mesmo critério
+  de hábitos e blocos, em vez de rachar em dois.
+- **Mover a tarefa de dia não mexe em nada** do que já foi registrado.
+- **`tasks.tracked_seconds` continua existindo, como espelho da soma.**
+  Foi decisão de projeto: assim o total da tarefa, o total do projeto e o
+  botão do cronômetro seguiram funcionando sem alteração, e a mudança fica
+  reversível (a coluna antiga nunca é reescrita de forma destrutiva).
+- **Duração deixou de ser sobrescrita** pelo cronômetro: voltou a ser só a
+  previsão que o Leandro digita.
+- **O relógio ao vivo mostra o tempo do dia**, não o acumulado da tarefa
+  inteira — a pergunta enquanto se trabalha é "quanto já fiz nisso hoje".
+- **Campo "Tempo" na edição da tarefa**: mostra "4h00 em 2 dias" e abre a
+  lista dia a dia, onde dá pra corrigir minutos, apagar um dia ou lançar
+  um dia que ficou sem cronômetro. Lançar num dia que já tem tempo
+  **soma** (não substitui) — mesma lição das intervenções do bloco.
+
+**A regra de contagem mora num lugar só** (`src/lib/board/task-time.ts`),
+usada pelo Painel de Horas e pelo Dashboard — se cada um tivesse a sua, os
+dois números do app discordariam mais cedo ou mais tarde. Ela conta:
+
+1. o tempo lançado no dia, **com a tarefa concluída ou não**; mais
+2. a duração digitada de tarefa concluída que **não tem nenhum tempo
+   lançado**, pra continuar valendo o que já era contado antes. Tarefa com
+   tempo lançado ignora a duração digitada, senão o mesmo trabalho contaria
+   duas vezes.
+
+Testada com o cenário exato do Leandro (9 verificações, todas passaram),
+incluindo: o dia de origem mantém as horas depois da tarefa ser movida e
+trabalhada de novo, e a semana inteira soma tudo uma vez só.
+
+**Migração**: as 54 entradas de tempo que já existiam foram para o dia da
+tarefa (ou o dia de criação, quando sem data) — 80,4h antes, 80,4h depois,
+nenhuma tarefa sem entrada.
+
+**Efeito colateral avisado**: relatórios de períodos passados mudam um
+pouco, porque o tempo agora cai no dia em que foi trabalhado em vez do dia
+em que a tarefa está marcada. É o conserto, mas semanas antigas leem
+diferente.
+
 ## ID da tarefa, tópicos abertos e gastos no checklist (09/09)
 
 Três pedidos do Leandro numa leva só, feitos enquanto a configuração do

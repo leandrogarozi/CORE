@@ -3,20 +3,24 @@
 import { useBoardCtx } from "./board-context";
 import { fmtHM, longLabel, todayISO } from "@/lib/date-utils";
 import { CATEGORY_LABEL, type Category } from "@/lib/types";
+import { taskMinutesInRange } from "@/lib/board/task-time";
 
 export function minutesForDate(
   state: ReturnType<typeof useBoardCtx>["board"]["state"],
   iso: string
 ) {
+  // Tempo de tarefa vem da regra única (ver task-time.ts): o que foi lançado
+  // NESSE dia — mesmo que a tarefa ainda esteja em aberto ou tenha sido movida
+  // pra outro dia depois — mais a duração digitada de tarefa concluída que não
+  // tem tempo lançado nenhum.
+  const taskTime = taskMinutesInRange(state, iso, iso);
+  const taskMin = taskTime.total;
+  const byCategory: Partial<Record<Category, number>> = taskTime.byCategory;
+
   const dayTasks = state.tasks.filter((t) => t.date === iso);
-  const doneWithDuration = dayTasks.filter((t) => t.done && t.durationMin);
-  const taskMin = doneWithDuration.reduce((s, t) => s + (t.durationMin || 0), 0);
-  const pendingWithDuration = dayTasks.filter((t) => !t.done && t.durationMin).length;
-  const doneNoDuration = dayTasks.filter((t) => t.done && !t.durationMin).length;
-  const byCategory: Partial<Record<Category, number>> = {};
-  doneWithDuration.forEach((t) => {
-    byCategory[t.category] = (byCategory[t.category] || 0) + (t.durationMin || 0);
-  });
+  const semTempoLancado = (id: string) => !state.taskTimeEntries.some((e) => e.taskId === id && e.seconds > 0);
+  const pendingWithDuration = dayTasks.filter((t) => !t.done && t.durationMin && semTempoLancado(t.id)).length;
+  const doneNoDuration = dayTasks.filter((t) => t.done && !t.durationMin && semTempoLancado(t.id)).length;
   const trackedMinutesFor = (item: { logs: Record<string, { checked: boolean; trackedSeconds: number }> }) => {
     const log = item.logs[iso];
     if (!log?.checked) return 0;
@@ -89,7 +93,8 @@ export function HoursPanel({ selectedDate }: { selectedDate: string }) {
         )}
         {!showBreakdown && (
           <div className="hp-empty">
-            O painel conta tarefas concluídas (com duração), e hábitos/blocos fixos marcados no dia.
+            O painel conta o tempo cronometrado ou lançado nesse dia, tarefas concluídas com duração e
+            hábitos/blocos fixos marcados no dia.
           </div>
         )}
         {stats.doneNoDuration > 0 && (

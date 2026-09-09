@@ -18,6 +18,7 @@ import {
 import { CATEGORY_LABEL, isFeatureEnabled, type Category, type Priority, type Task } from "@/lib/types";
 import { moodByValue } from "@/lib/mood";
 import { countOpenChecklistItems } from "@/lib/rich-text";
+import { taskMinutesInRange } from "@/lib/board/task-time";
 import { BookIcon, ChartIcon, ChecklistIcon, CheckCircleIcon, ClockIcon, WarningIcon, WeekIcon } from "./icons";
 import { TaskListModal } from "./TaskListModal";
 
@@ -100,14 +101,12 @@ export function Dashboard() {
     const doneInPeriod = s.tasks.filter((t) => t.done && t.date && t.date >= fromISO && t.date <= toISO);
     const pendingInPeriod = s.tasks.filter((t) => !t.done && t.date && t.date >= fromISO && t.date <= toISO);
 
-    const byCategory: Partial<Record<Category, number>> = {};
-    let taskMinTotal = 0;
-    doneInPeriod.forEach((t) => {
-      if (t.durationMin) {
-        byCategory[t.category] = (byCategory[t.category] || 0) + t.durationMin;
-        taskMinTotal += t.durationMin;
-      }
-    });
+    // Mesma regra do Painel de Horas (task-time.ts): o tempo entra no período em
+    // que foi trabalhado, não no dia em que a tarefa está marcada. Antes, mover
+    // uma tarefa de dia mudava de lugar todo o histórico dela.
+    const taskTime = taskMinutesInRange(s, fromISO, toISO);
+    const byCategory: Partial<Record<Category, number>> = taskTime.byCategory;
+    const taskMinTotal = taskTime.total;
 
     const days = eachDateInRange(fromISO, toISO);
     const habitStats = s.habits

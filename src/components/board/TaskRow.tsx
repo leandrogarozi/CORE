@@ -24,6 +24,7 @@ import {
   FolderIcon,
   HashIcon,
   PaperclipIcon,
+  PlayCircleIcon,
   RepeatIcon,
   TagIcon,
   TrashIcon,
@@ -32,7 +33,8 @@ import {
   WarningIcon,
   WeekIcon,
 } from "./icons";
-import { fmtDayMonth, todayISO } from "@/lib/date-utils";
+import { fmtDayMonth, fmtHM, todayISO } from "@/lib/date-utils";
+import { taskEntriesOf } from "@/lib/board/task-time";
 import { countOpenChecklistItems } from "@/lib/rich-text";
 import { CATEGORY_LABEL, isMeetingTask, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
 import type { TaskEditFields } from "@/lib/board/use-board";
@@ -601,6 +603,159 @@ function TaskWhenButton({ date, time, endDate, endTime, onSave }: TaskWhenFields
   );
 }
 
+// Uma linha da lista de tempo por dia. O campo de minutos guarda rascunho e só
+// grava ao sair ou no Enter: gravar a cada tecla mandaria "1", "12" e "120" pro
+// banco enquanto ele digita 120.
+function TaskTimeDayRow({
+  dateISO,
+  seconds,
+  onCommit,
+}: {
+  dateISO: string;
+  seconds: number;
+  onCommit: (minutes: number) => void;
+}) {
+  const minutes = Math.round(seconds / 60);
+  const [draft, setDraft] = useState<string | null>(null);
+
+  function commit() {
+    if (draft === null) return;
+    const val = Math.round(Number(draft.replace(",", ".")));
+    if (Number.isFinite(val) && val >= 0 && val !== minutes) onCommit(val);
+    setDraft(null);
+  }
+
+  return (
+    <div className="task-time-row">
+      <span className="task-time-day mono">{fmtDayMonth(dateISO)}</span>
+      <input
+        type="number"
+        min={0}
+        className="budget-input task-time-min mono"
+        value={draft ?? String(minutes)}
+        aria-label={`Minutos em ${fmtDayMonth(dateISO)}`}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+      />
+      <span className="task-time-unit">min</span>
+      <span className="task-time-hm mono">{fmtHM(minutes)}</span>
+      <button
+        type="button"
+        className="icon-btn danger-hover"
+        title="Apagar o tempo desse dia"
+        onClick={() => onCommit(0)}
+      >
+        <TrashIcon />
+      </button>
+    </div>
+  );
+}
+
+// Tempo trabalhado na tarefa, dia a dia. É a resposta pro caso de trabalhar
+// hoje, não terminar e jogar a tarefa pra amanhã: cada dia guarda as suas
+// horas, e mover a tarefa não mexe no que já passou.
+function TaskTimeButton({ taskId }: { taskId: string }) {
+  const { board } = useBoardCtx();
+  const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
+  const [newDate, setNewDate] = useState(() => todayISO());
+  const [newMinutes, setNewMinutes] = useState("");
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const popRef = useRef<HTMLDivElement>(null);
+  const pos = useClampedPopoverPos(anchorRect, popRef);
+  const open = anchorRect !== null;
+
+  const entries = taskEntriesOf(board.state, taskId);
+  const totalMin = Math.round(entries.reduce((sum, e) => sum + e.seconds, 0) / 60);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDocPointerDown(e: MouseEvent) {
+      if (popRef.current?.contains(e.target as Node) || btnRef.current?.contains(e.target as Node)) return;
+      setAnchorRect(null);
+    }
+    window.addEventListener("mousedown", onDocPointerDown);
+    return () => window.removeEventListener("mousedown", onDocPointerDown);
+  }, [open]);
+
+  function lancar() {
+    const min = Math.round(Number(newMinutes.replace(",", ".")));
+    if (!newDate || !Number.isFinite(min) || min <= 0) return;
+    // Soma no dia em vez de substituir: lançar 30min num dia que já tem 1h vira
+    // 1h30, que é o que se espera de quem está registrando mais uma sessão.
+    const atual = entries.find((e) => e.date === newDate);
+    board.setTaskTimeMinutes(taskId, newDate, Math.round((atual?.seconds ?? 0) / 60) + min);
+    setNewMinutes("");
+  }
+
+  const label = totalMin > 0 ? `${fmtHM(totalMin)} em ${entries.length} dia${entries.length > 1 ? "s" : ""}` : null;
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        className={"reminder-date-btn" + (label ? " has-date" : "")}
+        title="Tempo trabalhado, dia a dia"
+        onClick={() => setAnchorRect(anchorRect ? null : btnRef.current?.getBoundingClientRect() ?? null)}
+      >
+        <ClockIcon />
+        <span className={label ? undefined : "reminder-date-empty"}>{label ?? "Nenhum tempo lançado"}</span>
+      </button>
+      {open &&
+        createPortal(
+          <div className="daylog-popover task-time-pop" ref={popRef} style={{ top: pos.top, left: pos.left }}>
+            <span className="edit-field-label">Tempo por dia</span>
+            {!entries.length && <div className="hp-empty">Nada lançado ainda.</div>}
+            {entries.map((e) => (
+              <TaskTimeDayRow
+                key={e.id}
+                dateISO={e.date}
+                seconds={e.seconds}
+                onCommit={(min) => board.setTaskTimeMinutes(taskId, e.date, min)}
+              />
+            ))}
+            <div className="task-time-row task-time-add">
+              <input
+                type="date"
+                className="task-time-date"
+                value={newDate}
+                aria-label="Dia do lançamento"
+                onChange={(e) => setNewDate(e.target.value)}
+              />
+              <input
+                type="number"
+                min={0}
+                className="budget-input task-time-min mono"
+                placeholder="0"
+                value={newMinutes}
+                aria-label="Minutos a lançar"
+                onChange={(e) => setNewMinutes(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && lancar()}
+              />
+              <span className="task-time-unit">min</span>
+              <button type="button" className="btn btn-accent task-time-add-btn" onClick={lancar}>
+                Lançar
+              </button>
+            </div>
+            {totalMin > 0 && (
+              <div className="task-time-total">
+                <span>Total</span>
+                <strong className="mono">{fmtHM(totalMin)}</strong>
+              </div>
+            )}
+            <div className="edit-actions">
+              <button type="button" className="btn btn-ghost" onClick={() => setAnchorRect(null)}>
+                Fechar
+              </button>
+            </div>
+          </div>,
+          document.body
+        )}
+    </>
+  );
+}
+
 // O código curto da tarefa. Serve pra colar num lembrete ou numa anotação e
 // depois achar a tarefa pela busca — por isso é só leitura (quem gera é a
 // criação da tarefa) e fica selecionável, pra funcionar mesmo se o navegador
@@ -761,6 +916,14 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
               onChange={(m) => setVals((v) => ({ ...v, durationMin: m }))}
               onClear={() => setVals((v) => ({ ...v, durationMin: null }))}
             />
+          </div>
+        </div>
+        <div className="prop-row">
+          <span className="prop-label">
+            <PlayCircleIcon /> Tempo
+          </span>
+          <div className="prop-value">
+            <TaskTimeButton taskId={t.id} />
           </div>
         </div>
         {isMeetingTask(vals) && (
