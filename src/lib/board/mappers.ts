@@ -22,6 +22,7 @@ import type {
   Reminder,
   ReminderStatus,
   Settings,
+  StudyPlan,
   Synapse,
   Task,
   TaskSeries,
@@ -39,6 +40,7 @@ type BlockLogRow = Tables<"fixed_block_logs">;
 type BlockLogEntryRow = Tables<"fixed_block_log_entries">;
 type SeriesRow = Tables<"task_series">;
 type TaskTimeEntryRow = Tables<"task_time_entries">;
+type StudyPlanRow = Tables<"study_plans">;
 type TaskStatusRow = Tables<"task_statuses">;
 type SettingsRow = Tables<"settings">;
 type ActiveTimerRow = Tables<"active_timer">;
@@ -70,6 +72,8 @@ export function rowToTask(row: TaskRow): Task {
     done: row.done,
     order: row.sort_order,
     seriesId: row.series_id,
+    studyPlanId: row.study_plan_id,
+    challenging: row.challenging,
     trackedSeconds: row.tracked_seconds,
     quick: row.quick,
     statusId: row.status_id,
@@ -95,6 +99,8 @@ export function taskToRow(t: Partial<Task> & { id: string }, userId: string): Ta
   if (t.done !== undefined) row.done = t.done;
   if (t.order !== undefined) row.sort_order = t.order;
   if (t.seriesId !== undefined) row.series_id = t.seriesId;
+  if (t.studyPlanId !== undefined) row.study_plan_id = t.studyPlanId;
+  if (t.challenging !== undefined) row.challenging = t.challenging;
   // tracked_seconds de propósito FORA daqui: ele é espelho da soma do tempo por
   // dia e quem escreve é writeTaskTime. Se a edição da tarefa também mandasse
   // esse campo, um total velho em memória poderia sobrescrever o certo.
@@ -127,6 +133,8 @@ export function taskToInsertRow(t: Task, userId: string): TablesInsert<"tasks"> 
     done: t.done,
     sort_order: t.order,
     series_id: t.seriesId,
+    study_plan_id: t.studyPlanId,
+    challenging: t.challenging,
     tracked_seconds: t.trackedSeconds,
     quick: t.quick,
     status_id: t.statusId,
@@ -143,6 +151,56 @@ export function rowToTaskTimeEntry(row: TaskTimeEntryRow): TaskTimeEntry {
     date: row.log_date,
     seconds: row.seconds,
   };
+}
+
+export function rowToStudyPlan(row: StudyPlanRow): StudyPlan {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    totalMinutes: row.total_minutes,
+    sessionMinutes: row.session_minutes,
+    weekDays: row.week_days ?? [],
+    startDate: row.start_date,
+    deadline: row.deadline,
+    status: row.status as StudyPlan["status"],
+    category: row.category as Category,
+    category2: row.category2 as Category | null,
+    createdAt: row.created_at.slice(0, 10),
+  };
+}
+
+export function studyPlanToInsertRow(p: StudyPlan, userId: string): TablesInsert<"study_plans"> {
+  return {
+    id: p.id,
+    user_id: userId,
+    name: p.name,
+    description: p.description,
+    total_minutes: p.totalMinutes,
+    session_minutes: p.sessionMinutes,
+    week_days: p.weekDays,
+    start_date: p.startDate,
+    deadline: p.deadline,
+    status: p.status,
+    category: p.category,
+    category2: p.category2,
+  };
+}
+
+export function studyPlanToUpdateRow(p: Partial<StudyPlan>): TablesUpdate<"study_plans"> {
+  const row: TablesUpdate<"study_plans"> = {};
+  if (p.name !== undefined) row.name = p.name;
+  if (p.description !== undefined) row.description = p.description;
+  if (p.totalMinutes !== undefined) row.total_minutes = p.totalMinutes;
+  if (p.sessionMinutes !== undefined) row.session_minutes = p.sessionMinutes;
+  if (p.weekDays !== undefined) row.week_days = p.weekDays;
+  if (p.startDate !== undefined) row.start_date = p.startDate;
+  if (p.deadline !== undefined) row.deadline = p.deadline;
+  if (p.status !== undefined) row.status = p.status;
+  if (p.category !== undefined) row.category = p.category;
+  if (p.category2 !== undefined) row.category2 = p.category2;
+  row.updated_at = new Date().toISOString();
+  return row;
 }
 
 export function rowToTaskStatus(row: TaskStatusRow): TaskStatus {

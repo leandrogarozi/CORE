@@ -45,6 +45,11 @@ export interface Task {
   done: boolean;
   order: number;
   seriesId: string | null;
+  studyPlanId: string | null; // sessão de um plano de estudo
+  // "Desafiadora" não é o mesmo que prioridade alta: é a tarefa da qual se foge.
+  // Adiar uma dessas pede um motivo — é o que revela o padrão do que está sendo
+  // evitado.
+  challenging: boolean;
   // Soma do tempo de todos os dias (ver TaskTimeEntry). É espelho: quem manda é
   // a lista por dia. Fica aqui pra somar projeto e mostrar o total sem varrer
   // as entradas toda hora.
@@ -70,6 +75,26 @@ export interface TaskTimeEntry {
   taskId: string;
   date: string; // ISO date
   seconds: number;
+}
+
+export type StudyPlanStatus = "ativo" | "pausado" | "concluido";
+
+// Plano de estudo: um compromisso grande (matéria da pós, mentoria) que o app
+// quebra em sessões diárias. O que resolve a ansiedade não é cadastrar — é a
+// conta: quanto por dia pra caber no prazo, e quando termina no ritmo atual.
+export interface StudyPlan {
+  id: string;
+  name: string;
+  description: string;
+  totalMinutes: number | null; // tamanho estimado do estudo inteiro
+  sessionMinutes: number; // quanto dura cada sessão (o "40 a 60 min por dia")
+  weekDays: number[]; // 0=dom .. 6=sáb — em quais dias estudar
+  startDate: string | null;
+  deadline: string | null;
+  status: StudyPlanStatus;
+  category: Category;
+  category2: Category | null;
+  createdAt: string;
 }
 
 export type ProjectStatus = "active" | "done" | "cancelled";
@@ -334,6 +359,7 @@ export interface DietMeal {
 export interface BoardState {
   tasks: Task[];
   taskTimeEntries: TaskTimeEntry[]; // tempo por dia das tarefas
+  studyPlans: StudyPlan[];
   trashedTasks: Task[]; // tarefas excluídas (soft delete) — Lixeira
   projects: Project[]; // PDA — planos de ação com tarefas vinculadas como etapas
   habits: RecurringItem[];

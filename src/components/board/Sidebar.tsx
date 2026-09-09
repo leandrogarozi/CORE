@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { BellIcon, BoltIcon, BookIcon, ChartIcon, ChecklistIcon, FolderIcon, HomeIcon, MealIcon, PillIcon, SettingsIcon, TrashIcon, UsersGroupIcon, WeekIcon } from "./icons";
+import { BellIcon, BoltIcon,
+  BookOpenIcon, BookIcon, ChartIcon, ChecklistIcon, FolderIcon, HomeIcon, MealIcon, PillIcon, SettingsIcon, TrashIcon, UsersGroupIcon, WeekIcon } from "./icons";
 
 export type ViewMode =
   | "day"
@@ -13,6 +14,7 @@ export type ViewMode =
   | "calendar"
   | "reminders"
   | "synapses"
+  | "estudo"
   | "medications"
   | "checklists"
   | "diet"
@@ -91,6 +93,13 @@ export function Sidebar({
             onClick={() => onSelect("synapses")}
           >
             <BoltIcon /> Novas Sinapses
+          </button>
+          <button
+            type="button"
+            className={"sidebar-item" + (viewMode === "estudo" ? " active" : "")}
+            onClick={() => onSelect("estudo")}
+          >
+            <BookOpenIcon /> Plano de Estudo
           </button>
           <button
             type="button"

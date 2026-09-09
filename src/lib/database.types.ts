@@ -770,10 +770,95 @@ export type Database = {
           },
         ]
       }
+      study_plans: {
+        Row: {
+          category: string
+          category2: string | null
+          created_at: string
+          deadline: string | null
+          deleted_at: string | null
+          description: string
+          id: string
+          name: string
+          session_minutes: number
+          start_date: string | null
+          status: string
+          total_minutes: number | null
+          updated_at: string
+          user_id: string
+          week_days: number[]
+        }
+        Insert: {
+          category?: string
+          category2?: string | null
+          created_at?: string
+          deadline?: string | null
+          deleted_at?: string | null
+          description?: string
+          id?: string
+          name: string
+          session_minutes?: number
+          start_date?: string | null
+          status?: string
+          total_minutes?: number | null
+          updated_at?: string
+          user_id: string
+          week_days?: number[]
+        }
+        Update: {
+          category?: string
+          category2?: string | null
+          created_at?: string
+          deadline?: string | null
+          deleted_at?: string | null
+          description?: string
+          id?: string
+          name?: string
+          session_minutes?: number
+          start_date?: string | null
+          status?: string
+          total_minutes?: number | null
+          updated_at?: string
+          user_id?: string
+          week_days?: number[]
+        }
+        Relationships: []
+      }
+      task_postponements: {
+        Row: {
+          created_at: string
+          from_date: string | null
+          id: string
+          reason: string | null
+          task_id: string
+          to_date: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_date?: string | null
+          id?: string
+          reason?: string | null
+          task_id: string
+          to_date?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          from_date?: string | null
+          id?: string
+          reason?: string | null
+          task_id?: string
+          to_date?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           category: string
           category2: string | null
+          challenging: boolean
           client: string | null
           code: string | null
           created_at: string
@@ -792,6 +877,7 @@ export type Database = {
           series_id: string | null
           sort_order: number
           status_id: string | null
+          study_plan_id: string | null
           time: string | null
           title: string
           tracked_seconds: number
@@ -801,6 +887,7 @@ export type Database = {
         Insert: {
           category: string
           category2?: string | null
+          challenging?: boolean
           client?: string | null
           code?: string | null
           created_at?: string
@@ -819,6 +906,7 @@ export type Database = {
           series_id?: string | null
           sort_order?: number
           status_id?: string | null
+          study_plan_id?: string | null
           time?: string | null
           title: string
           tracked_seconds?: number
@@ -828,6 +916,7 @@ export type Database = {
         Update: {
           category?: string
           category2?: string | null
+          challenging?: boolean
           client?: string | null
           code?: string | null
           created_at?: string
@@ -846,6 +935,7 @@ export type Database = {
           series_id?: string | null
           sort_order?: number
           status_id?: string | null
+          study_plan_id?: string | null
           time?: string | null
           title?: string
           tracked_seconds?: number

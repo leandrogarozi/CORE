@@ -270,6 +270,59 @@ chegaram:
   se depois de usar o botão ainda achar que tem algo torto, mandar novo
   print apontando onde.
 
+## Plano de Estudo (09/09)
+
+Dor real do Leandro, nas palavras dele: "vou empurrando os estudos pra lá e
+só executando... esse tipo de coisa vai acumulando e me causa ansiedade".
+Tem 2 matérias da pós atrasadas e mentorias paradas.
+
+**A tese do recurso**: o que resolve a ansiedade não é cadastrar o estudo —
+é **a conta**. Estudo grande vira ansiedade porque não tem tamanho. Se o app
+responde "pra terminar até 30/10 estudando seg/qua/sex são 53 min por dia",
+a montanha vira uma fila finita. Por isso a resposta é o elemento de maior
+destaque no card, acima de qualquer campo de cadastro.
+
+**Duas direções, porque ele precisa das duas:**
+1. Tenho prazo → **quanto por dia?**
+2. Tenho 45 min/dia → **quando termino?** (e o selo "fora do prazo" quando as
+   duas contas não fecham)
+
+- **Tabela `study_plans`**: nome, tamanho total, minutos por sessão, dias da
+  semana, início, prazo, status.
+- **"Distribuir na agenda"** cria as sessões como **tarefas comuns** — com
+  data, cronômetro, tempo por dia e tudo mais. Não é uma agenda paralela: a
+  sessão de estudo compete com as outras tarefas do dia, que é justamente o
+  ponto ("como fazer isso no meio das minhas task").
+- Só cria o que falta: **rodar de novo não duplica**, e dia que já tem sessão
+  desse plano é pulado.
+- Tag **estudo + pessoal** por padrão, como ele pediu.
+- **Sinergia com o tempo por dia**: o progresso do plano é medido pelas
+  entradas de tempo das sessões — o mesmo número que o Painel de Horas conta,
+  não uma contabilidade paralela. A mudança do tempo por dia (feita horas
+  antes) é o que torna o plano mensurável.
+- Excluir um plano manda as sessões **em aberto** pra Lixeira; as concluídas
+  ficam, porque são histórico de estudo que aconteceu. Mesma regra do
+  cancelar projeto.
+
+A matemática mora em `src/lib/board/study-plan.ts`, separada da tela e
+testada (16 verificações). O teste pegou **um erro meu de contagem de
+calendário**, não do código: eu tinha calculado 22 dias de estudo entre
+09/09 e 30/10 em seg/qua/sex, quando são 23 (10 em setembro + 13 em outubro).
+
+### Ainda não feito dessa leva
+
+- **Modo Foco (pomodoro)** e **tag Desafiadora**: as colunas de banco já
+  existem (`tasks.challenging`, `task_postponements`), mas **não têm tela** —
+  ou seja, não dá pra usar ainda.
+- Sobre bloquear a internet no Modo Foco: **um app web não consegue**. O
+  navegador não dá essa permissão pra nenhum site. O que dá pra fazer é tela
+  cheia, o aviso de preparação que ele descreveu e **contar quantas vezes ele
+  saiu da aba durante a sessão** — que, por sinal, é um dado melhor pra IA
+  mapear distração do que o bloqueio seria.
+- O **"plano da alma"** e "perder a noção do que é mais importante" ficaram
+  de fora de propósito: é uma conversa de priorização, não uma tela — e
+  merece ser desenhada separado.
+
 ## Entrada por voz (ditado) — custo zero (09/09)
 
 Pedido do Leandro: mandar áudio em anotações, sinapses, lembretes,

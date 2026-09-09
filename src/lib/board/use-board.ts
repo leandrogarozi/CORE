@@ -25,6 +25,9 @@ import {
   synapseToInsertRow,
   rowToChecklist,
   rowToTaskTimeEntry,
+  rowToStudyPlan,
+  studyPlanToInsertRow,
+  studyPlanToUpdateRow,
   rowToDailyLog,
   rowToDietMeal,
   rowToMedication,
@@ -44,6 +47,7 @@ import {
   taskToRow,
 } from "@/lib/board/mappers";
 import { isoAddDays, occurrenceDates, todayISO } from "@/lib/date-utils";
+import { studyDatesInRange } from "@/lib/board/study-plan";
 import { isRecurringReminder, nextReminderOccurrenceDate } from "@/lib/board/reminder-alerts";
 import { reportSaveError } from "@/lib/board/error-toast";
 
@@ -58,6 +62,7 @@ import type {
   Checklist,
   ChecklistItem,
   TaskTimeEntry,
+  StudyPlan,
   DailyLog,
   DayLog,
   DayLogEntry,
@@ -82,6 +87,7 @@ import { DEFAULT_TAG_COLORS } from "@/lib/types";
 const EMPTY_STATE: BoardState = {
   tasks: [],
   taskTimeEntries: [],
+  studyPlans: [],
   trashedTasks: [],
   projects: [],
   habits: [],
@@ -179,6 +185,7 @@ export function useBoard(userId: string | null) {
     const [
       tasksRes,
       taskTimeEntriesRes,
+      studyPlansRes,
       trashedTasksRes,
       projectsRes,
       habitsRes,
@@ -203,6 +210,7 @@ export function useBoard(userId: string | null) {
     ] = await Promise.all([
       supabase.from("tasks").select("*").is("deleted_at", null).order("sort_order"),
       supabase.from("task_time_entries").select("*").order("log_date"),
+      supabase.from("study_plans").select("*").is("deleted_at", null).order("created_at"),
       supabase.from("tasks").select("*").not("deleted_at", "is", null),
       supabase.from("projects").select("*").order("created_at"),
       supabase.from("habits").select("*").order("sort_order"),
@@ -234,6 +242,7 @@ export function useBoard(userId: string | null) {
     const next: BoardState = {
       tasks: (tasksRes.data ?? []).map(rowToTask),
       taskTimeEntries: (taskTimeEntriesRes.data ?? []).map(rowToTaskTimeEntry),
+      studyPlans: (studyPlansRes.data ?? []).map(rowToStudyPlan),
       trashedTasks: (trashedTasksRes.data ?? []).map(rowToTask),
       projects: (projectsRes.data ?? []).map(rowToProject),
       habits: buildRecurring(habitsRes.data ?? [], habitLogsRes.data ?? [], "habit_id"),
@@ -345,6 +354,8 @@ export function useBoard(userId: string | null) {
         done: false,
         order: nextOrder(bucketKey),
         seriesId: null,
+        studyPlanId: null,
+        challenging: false,
         trackedSeconds: 0,
         quick: 0,
         statusId: defaultStatusId(),
@@ -766,6 +777,8 @@ export function useBoard(userId: string | null) {
             done: false,
             order: nextOrder(iso),
             seriesId: series.id,
+            studyPlanId: null,
+            challenging: false,
             trackedSeconds: 0,
             quick: 0,
             statusId: defaultStatusId(),
@@ -1083,6 +1096,8 @@ export function useBoard(userId: string | null) {
         done: false,
         order,
         seriesId: null,
+        studyPlanId: null,
+        challenging: false,
         trackedSeconds: 0,
         quick: 0,
         statusId: defaultStatusId(),
@@ -1364,6 +1379,144 @@ export function useBoard(userId: string | null) {
       });
     },
     [apply, supabase]
+  );
+
+  // ---------- planos de estudo ----------
+  const addStudyPlan = useCallback(
+    async (name: string): Promise<string | null> => {
+      if (!userId || !name.trim()) return null;
+      const plan: StudyPlan = {
+        id: uid(),
+        name: name.trim(),
+        description: "",
+        totalMinutes: null,
+        sessionMinutes: 45,
+        weekDays: [1, 2, 3, 4, 5],
+        startDate: todayISO(),
+        deadline: null,
+        status: "ativo",
+        category: "estudo",
+        // Segunda tag "pessoal" por padrão, como ele pediu: estudo é
+        // desenvolvimento pessoal e conta nos dois relatórios.
+        category2: "pessoal",
+        createdAt: todayISO(),
+      };
+      apply((st) => ({ ...st, studyPlans: [...st.studyPlans, plan] }));
+      const { error } = await supabase.from("study_plans").insert(studyPlanToInsertRow(plan, userId));
+      if (error) {
+        reportSaveError("addStudyPlan", error);
+        apply((st) => ({ ...st, studyPlans: st.studyPlans.filter((x) => x.id !== plan.id) }));
+        return null;
+      }
+      return plan.id;
+    },
+    [apply, supabase, userId]
+  );
+
+  const updateStudyPlan = useCallback(
+    (id: string, patch: Partial<StudyPlan>) => {
+      apply((st) => ({ ...st, studyPlans: st.studyPlans.map((p) => (p.id === id ? { ...p, ...patch } : p)) }));
+      supabase.from("study_plans").update(studyPlanToUpdateRow(patch)).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("updateStudyPlan", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  // Excluir o plano manda as sessões AINDA EM ABERTO pra Lixeira; as já feitas
+  // ficam, porque são histórico de estudo que aconteceu de verdade. Mesma regra
+  // do cancelar projeto.
+  const deleteStudyPlan = useCallback(
+    (id: string) => {
+      const agora = new Date().toISOString();
+      const emAberto = stateRef.current.tasks.filter((t) => t.studyPlanId === id && !t.done);
+      apply((st) => ({
+        ...st,
+        studyPlans: st.studyPlans.filter((p) => p.id !== id),
+        tasks: st.tasks.filter((t) => !(t.studyPlanId === id && !t.done)),
+        trashedTasks: [...st.trashedTasks, ...emAberto.map((t) => ({ ...t, deletedAt: agora }))],
+      }));
+      supabase.from("study_plans").update({ deleted_at: agora }).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("deleteStudyPlan", error);
+      });
+      if (emAberto.length) {
+        supabase
+          .from("tasks")
+          .update({ deleted_at: agora })
+          .in("id", emAberto.map((t) => t.id))
+          .then(({ error }) => {
+            if (error) reportSaveError("deleteStudyPlan sessões", error);
+          });
+      }
+    },
+    [apply, supabase]
+  );
+
+  // Espalha o estudo pelos dias escolhidos. Só cria o que falta: rodar de novo
+  // não duplica sessão, e dia que já tem sessão desse plano é pulado.
+  const generateStudySessions = useCallback(
+    async (planId: string): Promise<number> => {
+      if (!userId) return 0;
+      const plan = stateRef.current.studyPlans.find((p) => p.id === planId);
+      if (!plan || !plan.weekDays.length) return 0;
+
+      const hoje = todayISO();
+      const inicio = plan.startDate && plan.startDate > hoje ? plan.startDate : hoje;
+      const jaCriadas = stateRef.current.tasks.filter((t) => t.studyPlanId === planId);
+      const diasOcupados = new Set(jaCriadas.map((t) => t.date));
+
+      // Com tamanho total, o alvo é cobrir o estudo inteiro. Sem tamanho, gera
+      // as próximas 4 semanas — dá ritmo sem prometer um fim que não se sabe.
+      const alvo = plan.totalMinutes
+        ? Math.ceil(plan.totalMinutes / Math.max(1, plan.sessionMinutes))
+        : studyDatesInRange(inicio, isoAddDays(inicio, 28), plan.weekDays).length;
+      const faltamCriar = Math.max(0, alvo - jaCriadas.length);
+      if (faltamCriar === 0) return 0;
+
+      const limite = plan.deadline && plan.deadline > inicio ? plan.deadline : isoAddDays(inicio, 730);
+      const datas = studyDatesInRange(inicio, limite, plan.weekDays)
+        .filter((d) => !diasOcupados.has(d))
+        .slice(0, faltamCriar);
+      if (!datas.length) return 0;
+
+      const novas: Task[] = datas.map((date, i) => ({
+        id: uid(),
+        code: newTaskCode(),
+        title: `${plan.name} — sessão ${jaCriadas.length + i + 1}`,
+        category: plan.category,
+        category2: plan.category2,
+        priority: "media",
+        date,
+        time: "",
+        endDate: null,
+        endTime: null,
+        durationMin: null,
+        expectedDurationMin: plan.sessionMinutes,
+        note: "",
+        done: false,
+        order: nextOrder(date) + i,
+        seriesId: null,
+        studyPlanId: plan.id,
+        challenging: false,
+        trackedSeconds: 0,
+        quick: 0,
+        statusId: defaultStatusId(),
+        deletedAt: null,
+        projectId: null,
+        client: null,
+      }));
+
+      apply((st) => ({ ...st, tasks: [...st.tasks, ...novas] }));
+      const { error } = await supabase.from("tasks").insert(novas.map((t) => taskToInsertRow(t, userId)));
+      if (error) {
+        reportSaveError("generateStudySessions", error);
+        const ids = new Set(novas.map((t) => t.id));
+        apply((st) => ({ ...st, tasks: st.tasks.filter((t) => !ids.has(t.id)) }));
+        return 0;
+      }
+      return novas.length;
+    },
+    [apply, defaultStatusId, newTaskCode, nextOrder, supabase, userId]
   );
 
   // ---------- checklists ----------
@@ -1850,6 +2003,8 @@ export function useBoard(userId: string | null) {
         done: false,
         order: nextOrder(today),
         seriesId: null,
+        studyPlanId: null,
+        challenging: false,
         trackedSeconds: 0,
         quick: 0,
         statusId: defaultStatusId(),
@@ -2183,6 +2338,10 @@ export function useBoard(userId: string | null) {
     findTrackable,
     addTask,
     setTaskTimeMinutes,
+    addStudyPlan,
+    updateStudyPlan,
+    deleteStudyPlan,
+    generateStudySessions,
     setTaskStatus,
     setQuick,
     setPriority,
