@@ -611,10 +611,14 @@ function TaskCodeField({ code }: { code: string }) {
 
   if (!code) return <span className="task-code-empty">tarefa antiga, sem ID</span>;
 
+  // Guardado em maiúscula no banco, mostrado e copiado em minúscula — é pra ser
+  // discreto na tela. A busca compara sem diferenciar caixa, então tanto faz.
+  const shown = code.toLowerCase();
+
   async function copy() {
     inputRef.current?.select();
     try {
-      await navigator.clipboard.writeText(code);
+      await navigator.clipboard.writeText(shown);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
     } catch {
@@ -629,7 +633,7 @@ function TaskCodeField({ code }: { code: string }) {
         ref={inputRef}
         type="text"
         className="task-code-input mono"
-        value={code}
+        value={shown}
         readOnly
         aria-label="ID da tarefa"
         onFocus={(e) => e.currentTarget.select()}

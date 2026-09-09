@@ -18,6 +18,7 @@ import {
 import { CATEGORY_LABEL, isFeatureEnabled, type Category, type Priority, type Task } from "@/lib/types";
 import { moodByValue } from "@/lib/mood";
 import { countOpenChecklistItems } from "@/lib/rich-text";
+import { BookIcon, ChartIcon, ChecklistIcon, CheckCircleIcon, ClockIcon, WarningIcon, WeekIcon } from "./icons";
 import { TaskListModal } from "./TaskListModal";
 
 type Period = "day" | "week" | "month";
@@ -249,7 +250,9 @@ export function Dashboard() {
           onClick={() => setModal({ title: "Atrasadas", tasks: stats.overdueTasks })}
         >
           <div className="dash-stat-value">{stats.overdueCount}</div>
-          <div className="dash-stat-label">Atrasadas</div>
+          <div className="dash-stat-label">
+            <WarningIcon /> Atrasadas
+          </div>
         </button>
         <button
           type="button"
@@ -263,27 +266,39 @@ export function Dashboard() {
           onClick={() => setModal({ title: "Tarefas com tópicos abertos", tasks: stats.openTopicTasks })}
         >
           <div className="dash-stat-value">{stats.openTopicTotal}</div>
-          <div className="dash-stat-label">Tópicos abertos</div>
+          <div className="dash-stat-label">
+            <ChecklistIcon /> Tópicos abertos
+          </div>
         </button>
         <div className="dash-stat-card">
           <div className="dash-stat-value">{stats.noDateCount}</div>
-          <div className="dash-stat-label">Sem data</div>
+          <div className="dash-stat-label">
+            <WeekIcon /> Sem data
+          </div>
         </div>
         <div className="dash-stat-card">
           <div className="dash-stat-value">{stats.doneCount}</div>
-          <div className="dash-stat-label">Concluídas no período</div>
+          <div className="dash-stat-label">
+            <CheckCircleIcon /> Concluídas no período
+          </div>
         </div>
         <div className="dash-stat-card">
           <div className="dash-stat-value">{fmtHM(stats.totalMin)}</div>
-          <div className="dash-stat-label">Tempo total</div>
+          <div className="dash-stat-label">
+            <ChartIcon /> Tempo total
+          </div>
         </div>
         <div className="dash-stat-card">
           <div className="dash-stat-value">{fmtHM(stats.workMin)}</div>
-          <div className="dash-stat-label">Horas trabalhadas</div>
+          <div className="dash-stat-label">
+            <ClockIcon /> Horas trabalhadas
+          </div>
         </div>
         <div className="dash-stat-card">
           <div className="dash-stat-value">{fmtHM(stats.studyMin)}</div>
-          <div className="dash-stat-label">Estudo e dev. pessoal</div>
+          <div className="dash-stat-label">
+            <BookIcon /> Estudo e dev. pessoal
+          </div>
         </div>
       </div>
 

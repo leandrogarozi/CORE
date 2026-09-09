@@ -351,6 +351,20 @@ gastos".
 regra. `HashIcon` (a cerquilha do ID) é custom — o pacote não tem
 cerquilha, mesma exceção do `PillIcon`.
 
+### Ajustes logo depois (09/09)
+
+- **ID discreto**: mostrado e copiado em **caixa baixa**, sem negrito, em
+  cinza médio. No banco continua em maiúscula (a busca compara sem
+  diferenciar caixa, então tanto faz) — a caixa baixa é escolha visual: o
+  ID é referência, não informação principal da tarefa.
+- **Ícone em cada bloco do Dashboard**, sempre reaproveitando o ícone que
+  aquela ideia já usa em outro canto do app — não inventar ícone novo pra
+  um bloco: Atrasadas `WarningIcon`, Tópicos abertos `ChecklistIcon` (o
+  mesmo do selo na tarefa, que era o exemplo que o Leandro deu), Sem data
+  `WeekIcon`, Concluídas `CheckCircleIcon`, Tempo total `ChartIcon`, Horas
+  trabalhadas `ClockIcon`, Estudo `BookIcon`. Rótulo de duas linhas: o
+  ícone acompanha a primeira linha, não o meio do bloco.
+
 ## Novas Sinapses (05/09)
 
 Ideia do Leandro, com as palavras dele: em cursos de autodesenvolvimento

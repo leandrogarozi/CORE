@@ -217,7 +217,7 @@ export function TaskSearch({ onNavigate }: { onNavigate: (result: SearchResult) 
                   <span className="search-result-title">{title}</span>
                   {r.kind === "task" && r.task.code && (
                     <span className="search-result-code mono" title="ID da tarefa">
-                      {r.task.code}
+                      {r.task.code.toLowerCase()}
                     </span>
                   )}
                   <span className="search-result-date">{r.subtitle}</span>
