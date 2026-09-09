@@ -333,6 +333,32 @@ pouco, porque o tempo agora cai no dia em que foi trabalhado em vez do dia
 em que a tarefa está marcada. É o conserto, mas semanas antigas leem
 diferente.
 
+### Sobra de 17 minutos na virada do deploy (09/09)
+
+Depois do deploy, a varredura de consistência achou **uma** tarefa com
+`tracked_seconds` (1023s) sem nenhuma entrada por dia — justamente a
+"[App Faro] [Etapa_14] — Registro de tempo em dias consecutivos".
+
+Causa: o cronômetro rodou nela pelo **código antigo**, entre a migração e o
+deploy novo entrar no ar (ou com o bundle velho ainda carregado no
+navegador). O caminho antigo só engordava `tracked_seconds` e não criava
+entrada, então o backfill — que já tinha rodado — não pegou esse tempo.
+
+Conserto: os 17 minutos foram lançados no dia da tarefa (08/09), a mesma
+regra que o backfill usou. Como `updated_at` de `tasks` não tem gatilho, não
+dava pra saber a hora exata em que o cronômetro parou; se o dia estiver
+errado, agora dá pra corrigir em segundos pelo campo **Tempo** da tarefa.
+
+Duas travas pra não repetir:
+
+- `tracked_seconds` saiu do `taskToRow` (mapper de edição). Ele é espelho da
+  soma e **só** `writeTaskTime` escreve nele — antes, salvar uma edição
+  podia empurrar um total velho de memória por cima do certo.
+- Fica registrada a varredura que achou isso, pra repetir depois de toda
+  mudança de modelo de dados:
+  `select count(*) from tasks t where t.tracked_seconds <> coalesce((select sum(e.seconds) from task_time_entries e where e.task_id = t.id), 0)`
+  — tem que dar zero.
+
 ## ID da tarefa, tópicos abertos e gastos no checklist (09/09)
 
 Três pedidos do Leandro numa leva só, feitos enquanto a configuração do

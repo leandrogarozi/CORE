@@ -95,7 +95,9 @@ export function taskToRow(t: Partial<Task> & { id: string }, userId: string): Ta
   if (t.done !== undefined) row.done = t.done;
   if (t.order !== undefined) row.sort_order = t.order;
   if (t.seriesId !== undefined) row.series_id = t.seriesId;
-  if (t.trackedSeconds !== undefined) row.tracked_seconds = t.trackedSeconds;
+  // tracked_seconds de propósito FORA daqui: ele é espelho da soma do tempo por
+  // dia e quem escreve é writeTaskTime. Se a edição da tarefa também mandasse
+  // esse campo, um total velho em memória poderia sobrescrever o certo.
   if (t.quick !== undefined) row.quick = t.quick;
   if (t.statusId !== undefined) row.status_id = t.statusId;
   if (t.deletedAt !== undefined) row.deleted_at = t.deletedAt;
