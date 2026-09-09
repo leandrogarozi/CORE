@@ -273,6 +273,12 @@ export function rowToSettings(row: SettingsRow | null): Settings {
     dietPlan: row?.diet_plan ?? null,
     dietAppOptIn: row?.diet_app_opt_in ?? true,
     dietWhatsappOptIn: row?.diet_whatsapp_opt_in ?? false,
+    whatsappMsgCostUsd: Number(row?.whatsapp_msg_cost_usd ?? 0.008),
+    whatsappMonthlyCapUsd:
+      row?.whatsapp_monthly_cap_usd === null || row?.whatsapp_monthly_cap_usd === undefined
+        ? null
+        : Number(row.whatsapp_monthly_cap_usd),
+    whatsappUsdBrl: Number(row?.whatsapp_usd_brl ?? 5.1),
   };
 }
 

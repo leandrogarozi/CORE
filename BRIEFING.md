@@ -270,6 +270,68 @@ chegaram:
   se depois de usar o botão ainda achar que tem algo torto, mandar novo
   print apontando onde.
 
+## WhatsApp: livro-caixa, trava de gasto e painel de custo (09/09)
+
+Contexto: o caminho gratuito não funcionou (o número de teste da Meta não
+aceita o template `lembrete_faro`, e a conta real está sem forma de
+pagamento). Decisão do Leandro: partir pro pago, mas **sem ser
+surpreendido pelo custo** — "não posso ter muito custo agora, mas preciso
+testar".
+
+### Simulação que embasou a decisão
+
+Template **utility** no Brasil: **US$ 0,008 por mensagem** (dólar a ~R$
+5,08 → **R$ 0,041/mensagem**).
+
+| Volume | Mensagens/mês | Custo/mês |
+|---|---|---|
+| 5/dia | 150 | R$ 6,10 |
+| 15/dia | 450 | R$ 18,29 |
+| 30/dia | 900 | R$ 36,58 |
+
+**Risco a vigiar**: se a Meta reclassificar o template como *marketing*, o
+preço vai a US$ 0,0625 — **8x**. 15/dia viram R$ 143/mês. É o tipo de
+surpresa que o painel existe pra pegar cedo.
+
+Alavanca ainda não testada: mensagem utility dentro de uma janela de 24h
+aberta pelo usuário é gratuita. Se valer na prática, responder o bot uma
+vez por dia derruba boa parte da conta.
+
+### O que foi construído (nada disso depende do cartão)
+
+- **`whatsapp_sends`** — uma linha por mensagem tentada, com sucesso ou
+  falha. **Sem chave estrangeira pro lembrete de propósito**: apagar um
+  lembrete não pode apagar o registro de um gasto que já aconteceu. Essa é
+  a fonte confiável do custo, sem depender de nenhuma API da Meta.
+- **Trava de gasto mensal** (`settings.whatsapp_monthly_cap_usd`, nasce em
+  **US$ 5/mês ≈ 625 mensagens ≈ 20/dia**). A rota de disparo checa o teto
+  **antes de reservar o lembrete**: estourou, a mensagem não sai.
+  - Não vira enxurrada quando o mês virar, porque a janela de alerta é
+    fechada (`nowMs >= alerta && nowMs < horário`): lembrete barrado hoje
+    simplesmente não é avisado, em vez de ficar guardado.
+- **Tarifa e câmbio configuráveis** (`whatsapp_msg_cost_usd`,
+  `whatsapp_usd_brl`) — quando a primeira fatura chegar, calibra na tela
+  sem deploy.
+- **Painel "Custo do WhatsApp"** em Configurações: mensagens no mês, gasto
+  em reais, últimos 4 dias (a cadência que ele pediu), barra do teto,
+  projeção do mês no ritmo atual e aviso de envios que falharam.
+
+### Dois detalhes de implementação que importam
+
+- A virada do mês é calculada **no fuso do usuário** (via
+  `zonedDateTimeToMs`), não em UTC: "dia 1 às 00:00" em São Paulo é 03:00
+  UTC, e montar isso em UTC jogaria as três primeiras horas de todo dia 1º
+  pro mês anterior.
+- A contagem do mês roda **depois** do filtro de lembretes devidos. O cron
+  bate de minuto em minuto; contar antes seriam 1.440 consultas por dia pra
+  não usar o resultado.
+
+### O que ainda depende do Leandro
+
+Cadastrar a forma de pagamento na Meta (login + verificação em duas etapas
++ cartão dele) e apontar `WHATSAPP_PHONE_NUMBER_ID` pro número real. Cinco
+minutos, e nada mais no caminho fica travado esperando.
+
 ## Tempo da tarefa passa a ser por dia (09/09)
 
 Problema levantado pelo Leandro, nas palavras dele: "trabalho numa task

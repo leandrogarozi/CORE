@@ -2,7 +2,20 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { useBoardCtx } from "./board-context";
-import { BellIcon, ChevronIcon, ClockIcon, FlagIcon, HomeIcon, TagIcon, TrashIcon, WaterDropIcon } from "./icons";
+import {
+  BellIcon,
+  ChevronIcon,
+  ClockIcon,
+  FlagIcon,
+  HomeIcon,
+  TagIcon,
+  TrashIcon,
+  WarningIcon,
+  WaterDropIcon,
+  WhatsAppIcon,
+} from "./icons";
+import { createClient } from "@/lib/supabase/client";
+import { fmtBRL } from "@/lib/money";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { CATEGORY_LABEL, OPTIONAL_FEATURES, isFeatureEnabled, type Category, type TaskStatus } from "@/lib/types";
 import type { UseBoard } from "@/lib/board/use-board";
@@ -228,6 +241,166 @@ function PushNotificationsBox() {
   );
 }
 
+// Gasto do WhatsApp. O número confiável é o do FARO, não o da Meta: a rota de
+// disparo grava uma linha por mensagem enviada, então dá pra saber o gasto sem
+// depender de API externa nenhuma — e a trava de teto usa exatamente essa conta.
+function WhatsAppCostBox() {
+  const { board } = useBoardCtx();
+  const { whatsappMsgCostUsd, whatsappMonthlyCapUsd, whatsappUsdBrl } = board.state.settings;
+  // As contagens saem prontas do efeito, não do render: ler o relógio durante a
+  // renderização é impuro (e o React reclama, com razão — o mesmo render daria
+  // resultados diferentes).
+  const [resumo, setResumo] = useState<{ noMes: number; em4Dias: number; falhas: number } | null>(null);
+  const [capInput, setCapInput] = useState<string | null>(null);
+  const [rateInput, setRateInput] = useState<string | null>(null);
+  const [fxInput, setFxInput] = useState<string | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    const agora = new Date();
+    const inicioDoMes = new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString();
+    const quatroDias = new Date(agora.getTime() - 4 * 24 * 3600 * 1000).toISOString();
+    // 60 dias cobrem o mês corrente e o anterior — é tudo que o painel mostra.
+    const desde = new Date(agora.getTime() - 60 * 24 * 3600 * 1000).toISOString();
+    supabase
+      .from("whatsapp_sends")
+      .select("sent_at, ok")
+      .gte("sent_at", desde)
+      .order("sent_at", { ascending: false })
+      .then(({ data }) => {
+        const linhas = data ?? [];
+        const enviadas = linhas.filter((l) => l.ok);
+        setResumo({
+          noMes: enviadas.filter((l) => l.sent_at >= inicioDoMes).length,
+          em4Dias: enviadas.filter((l) => l.sent_at >= quatroDias).length,
+          falhas: linhas.filter((l) => !l.ok && l.sent_at >= inicioDoMes).length,
+        });
+      });
+  }, []);
+
+  const noMes = resumo?.noMes ?? 0;
+  const em4Dias = resumo?.em4Dias ?? 0;
+  const falhas = resumo?.falhas ?? 0;
+
+  const custoMesUsd = noMes * whatsappMsgCostUsd;
+  const custoMesBrl = custoMesUsd * whatsappUsdBrl;
+  const projecaoMesUsd = (em4Dias / 4) * 30 * whatsappMsgCostUsd;
+  const pctDoTeto = whatsappMonthlyCapUsd ? Math.min(100, (custoMesUsd / whatsappMonthlyCapUsd) * 100) : 0;
+  const noTeto = whatsappMonthlyCapUsd !== null && custoMesUsd >= whatsappMonthlyCapUsd;
+
+  function commitCap() {
+    if (capInput === null) return;
+    const limpo = capInput.trim();
+    const valor = limpo === "" ? null : Number(limpo.replace(",", "."));
+    if (limpo === "" || (Number.isFinite(valor) && (valor as number) >= 0)) {
+      board.updateSettings({ whatsappMonthlyCapUsd: valor });
+    }
+    setCapInput(null);
+  }
+
+  function commitNumero(
+    draft: string | null,
+    setDraft: (v: string | null) => void,
+    aplicar: (v: number) => void
+  ) {
+    if (draft === null) return;
+    const valor = Number(draft.trim().replace(",", "."));
+    if (Number.isFinite(valor) && valor > 0) aplicar(valor);
+    setDraft(null);
+  }
+
+  return (
+    <CollapsibleBox title="Custo do WhatsApp" icon={<WhatsAppIcon />}>
+      {resumo === null ? (
+        <div className="hint-text">Carregando os envios...</div>
+      ) : (
+        <>
+          <div className="wa-cost-grid">
+            <div className="wa-cost-card">
+              <div className="wa-cost-value">{noMes}</div>
+              <div className="wa-cost-label">Mensagens no mês</div>
+            </div>
+            <div className="wa-cost-card">
+              <div className="wa-cost-value">{fmtBRL(Math.round(custoMesBrl * 100))}</div>
+              <div className="wa-cost-label">Gasto no mês</div>
+            </div>
+            <div className="wa-cost-card">
+              <div className="wa-cost-value">{em4Dias}</div>
+              <div className="wa-cost-label">Últimos 4 dias</div>
+            </div>
+          </div>
+
+          {whatsappMonthlyCapUsd !== null && (
+            <>
+              <div className="wa-cap-bar">
+                <div className={"wa-cap-fill" + (noTeto ? " over" : "")} style={{ width: `${pctDoTeto}%` }} />
+              </div>
+              <div className={"wa-cap-label" + (noTeto ? " over" : "")}>
+                {noTeto
+                  ? `Teto do mês atingido — nenhuma mensagem nova sai até o mês virar ou o teto subir.`
+                  : `US$ ${custoMesUsd.toFixed(2)} de US$ ${whatsappMonthlyCapUsd.toFixed(2)} do teto · no ritmo dos últimos 4 dias, o mês fecha em US$ ${projecaoMesUsd.toFixed(2)}`}
+              </div>
+            </>
+          )}
+
+          {falhas > 0 && (
+            <div className="wa-cost-warn">
+              <WarningIcon /> {falhas} envio(s) falharam nesse mês. Falha não é cobrada, mas quer dizer que o
+              lembrete não chegou.
+            </div>
+          )}
+
+          <div className="settings-row-standalone">
+            <span className="settings-label">Teto de gasto no mês (US$)</span>
+            <input
+              type="text"
+              inputMode="decimal"
+              className="budget-input"
+              placeholder="sem teto"
+              value={capInput ?? (whatsappMonthlyCapUsd === null ? "" : String(whatsappMonthlyCapUsd))}
+              onChange={(e) => setCapInput(e.target.value)}
+              onBlur={commitCap}
+              onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+            />
+          </div>
+          <div className="settings-row-standalone">
+            <span className="settings-label">Tarifa por mensagem (US$)</span>
+            <input
+              type="text"
+              inputMode="decimal"
+              className="budget-input"
+              value={rateInput ?? String(whatsappMsgCostUsd)}
+              onChange={(e) => setRateInput(e.target.value)}
+              onBlur={() =>
+                commitNumero(rateInput, setRateInput, (v) => board.updateSettings({ whatsappMsgCostUsd: v }))
+              }
+              onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+            />
+          </div>
+          <div className="settings-row-standalone">
+            <span className="settings-label">Dólar (só pra mostrar em reais)</span>
+            <input
+              type="text"
+              inputMode="decimal"
+              className="budget-input"
+              value={fxInput ?? String(whatsappUsdBrl)}
+              onChange={(e) => setFxInput(e.target.value)}
+              onBlur={() => commitNumero(fxInput, setFxInput, (v) => board.updateSettings({ whatsappUsdBrl: v }))}
+              onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+            />
+          </div>
+
+          <div className="hint-text">
+            A conta é a do próprio FARO: cada mensagem enviada vira uma linha no registro, sem depender de
+            nenhuma API da Meta. Quando a primeira fatura chegar, é só ajustar a tarifa aqui pra bater com o
+            valor real — e o teto passa a valer sobre esse número.
+          </div>
+        </>
+      )}
+    </CollapsibleBox>
+  );
+}
+
 export function SettingsView({ onBack }: { onBack: () => void }) {
   const { board } = useBoardCtx();
   const [budgetInput, setBudgetInput] = useState<string | null>(null);
@@ -414,6 +587,8 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
       </CollapsibleBox>
 
       <PushNotificationsBox />
+
+      <WhatsAppCostBox />
     </div>
   );
 }

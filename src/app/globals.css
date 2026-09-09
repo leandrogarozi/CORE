@@ -819,6 +819,22 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 
 /* ID da tarefa: só leitura, mas selecionável — dá pra copiar pelo botão ou
    pelo teclado. */
+/* Painel de custo do WhatsApp, em Configurações */
+.wa-cost-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(96px,1fr)); gap:8px; margin-bottom:10px; }
+.wa-cost-card{ background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:9px 11px; }
+.wa-cost-value{ font-size:18px; font-weight:700; line-height:1.15; }
+.wa-cost-label{ font-size:10px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-faint); margin-top:3px; }
+.wa-cap-bar{ height:6px; border-radius:999px; background:var(--surface-2); overflow:hidden; margin-bottom:5px; }
+.wa-cap-fill{ height:100%; background:var(--accent); border-radius:999px; }
+.wa-cap-fill.over{ background:var(--danger); }
+.wa-cap-label{ font-size:11px; color:var(--text-faint); margin-bottom:10px; }
+.wa-cap-label.over{ color:var(--danger); font-weight:600; }
+.wa-cost-warn{
+  display:flex; align-items:flex-start; gap:6px; font-size:11.5px; color:var(--danger);
+  margin-bottom:10px;
+}
+.wa-cost-warn svg{ width:13px; height:13px; flex:none; margin-top:1px; }
+
 /* Tempo por dia da tarefa (popover do campo "Tempo").
    As larguras precisam vir com a classe do popover junto: .daylog-popover input
    é mais específico do que uma classe sozinha e esticaria tudo pra 100%. */

@@ -539,6 +539,9 @@ export type Database = {
           updated_at: string
           user_id: string
           water_goal_ml: number
+          whatsapp_monthly_cap_usd: number | null
+          whatsapp_msg_cost_usd: number
+          whatsapp_usd_brl: number
         }
         Insert: {
           avatar_url?: string | null
@@ -556,6 +559,9 @@ export type Database = {
           user_id: string
           water_goal_ml?: number
           water_strategies?: string | null
+          whatsapp_monthly_cap_usd?: number | null
+          whatsapp_msg_cost_usd?: number
+          whatsapp_usd_brl?: number
         }
         Update: {
           avatar_url?: string | null
@@ -573,6 +579,42 @@ export type Database = {
           user_id?: string
           water_goal_ml?: number
           water_strategies?: string | null
+          whatsapp_monthly_cap_usd?: number | null
+          whatsapp_msg_cost_usd?: number
+          whatsapp_usd_brl?: number
+        }
+        Relationships: []
+      }
+      whatsapp_sends: {
+        Row: {
+          error: string | null
+          id: string
+          kind: string
+          ok: boolean
+          reminder_id: string | null
+          sent_at: string
+          template: string | null
+          user_id: string
+        }
+        Insert: {
+          error?: string | null
+          id?: string
+          kind?: string
+          ok?: boolean
+          reminder_id?: string | null
+          sent_at?: string
+          template?: string | null
+          user_id: string
+        }
+        Update: {
+          error?: string | null
+          id?: string
+          kind?: string
+          ok?: boolean
+          reminder_id?: string | null
+          sent_at?: string
+          template?: string | null
+          user_id?: string
         }
         Relationships: []
       }

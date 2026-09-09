@@ -160,6 +160,11 @@ export interface Settings {
   dietPlan: string | null; // cadastro livre da dieta (plano, receitas, divisão de macros...)
   dietAppOptIn: boolean; // quer lembretes de refeição dentro do app (aviso "Foco na dieta")
   dietWhatsappOptIn: boolean; // usuário confirmou que quer avisos de refeição também pelo WhatsApp (notifyPhone)
+  // Custo do WhatsApp. Ficam em configuração (e não fixos no código) pra dar pra
+  // calibrar contra a fatura real da Meta sem precisar de deploy.
+  whatsappMsgCostUsd: number; // tarifa por mensagem enviada (utility no Brasil ≈ US$ 0,008)
+  whatsappMonthlyCapUsd: number | null; // teto de gasto no mês; null = sem trava
+  whatsappUsdBrl: number; // câmbio usado só pra mostrar o valor em reais
 }
 
 // Funcionalidades opcionais que podem ser ligadas/desligadas em Configurações.
