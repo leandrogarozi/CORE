@@ -722,6 +722,23 @@ export function UsersGroupIcon() {
   );
 }
 
+// Microfone do ditado por voz. Custom: o pacote de ícones não tem microfone
+// (mesma exceção do PillIcon e do HashIcon).
+export function MicIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none">
+      <rect x="9" y="2.5" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="2" />
+      <path
+        d="M5.5 11a6.5 6.5 0 0013 0M12 17.5V21M9 21h6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 // Cerquilha do código curto da tarefa (o "ID" que dá pra copiar). Custom: o
 // pacote de ícones não tem cerquilha (mesma exceção do PillIcon).
 export function HashIcon() {

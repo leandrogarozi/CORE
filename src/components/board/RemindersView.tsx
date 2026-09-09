@@ -22,6 +22,7 @@ import { TimePicker } from "./TimePicker";
 import { DAY_NAMES, fmtDayMonth, isoAddDays, todayISO } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 import { countOpenChecklistItems } from "@/lib/rich-text";
+import { MicButton } from "./MicButton";
 import { isMeetingTask } from "@/lib/types";
 import { REMINDER_ALERT_PRESETS, isReminderOverdue, isRecurringReminder, reminderTargetMs } from "@/lib/board/reminder-alerts";
 import type { Reminder, ReminderStatus, Repeat } from "@/lib/types";
@@ -851,6 +852,7 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
               onBlur={handleAdd}
             />
+            <MicButton onText={(t) => setNewTitle((v) => (v ? `${v} ${t}` : t))} ariaLabel="Ditar o lembrete" />
           </div>
         </div>
 

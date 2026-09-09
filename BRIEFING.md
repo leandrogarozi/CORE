@@ -270,6 +270,47 @@ chegaram:
   se depois de usar o botão ainda achar que tem algo torto, mandar novo
   print apontando onde.
 
+## Entrada por voz (ditado) — custo zero (09/09)
+
+Pedido do Leandro: mandar áudio em anotações, sinapses, lembretes,
+ferramentas — "isso iria facilitar muito". A ideia veio do app financeiro
+dele, onde falar "gastei 45 reais de mercado no crédito" preencheria o
+formulário sozinho.
+
+**Decisão de arquitetura**: usar o reconhecimento de voz **que o navegador
+já tem** (Web Speech API — a mesma engine do microfone do teclado), e não
+uma API paga de transcrição. Motivo: é de graça, não precisa de chave, não
+precisa de cartão e não adiciona custo por uso num momento em que o
+Leandro está justamente cortando custo. Uma API paga (Whisper e afins) só
+se justifica quando o objetivo passar a ser **interpretar** a fala (extrair
+valor, categoria e data de "gastei 45 no mercado"), que é um passo
+diferente de só transcrever.
+
+- **Hook `useDictation`**: liga o reconhecimento em `pt-BR`, escreve os
+  trechos conforme a fala vai fechando (não espera terminar tudo) e mostra
+  o trecho em andamento como prévia.
+- **Religa sozinho depois do silêncio.** O navegador desliga o
+  reconhecimento após uma pausa curta; sem religar, parar pra pensar no
+  meio da frase mataria o ditado. Só o usuário encerra de verdade.
+- **`MicButton` some quando o navegador não tem suporte** — melhor não
+  existir do que existir quebrado. Nesses casos o microfone do teclado do
+  celular escreve no campo do mesmo jeito.
+- **`onMouseDown` com preventDefault**: sem isso, clicar no microfone tira o
+  foco do campo — e nos campos de "+ adicionar", que salvam ao perder o
+  foco, isso criaria o item antes da pessoa falar.
+- **Onde aparece**: na barra do editor de texto (o que cobre observação da
+  tarefa, sinapses, livros e a caixa grande de uma vez só, com uma
+  integração) e nos campos de "+ adicionar" de tarefa, lembrete e sinapse.
+  No editor, a fala entra **no ponto do cursor** — dá pra falar um trecho,
+  corrigir na mão e voltar a falar.
+- Erros de rotina (`no-speech`, `aborted`) não viram mensagem na tela; só
+  os que pedem ação do usuário (permissão negada, sem microfone).
+
+Testado com um reconhecimento falso (8 verificações): só o trecho fechado
+é escrito, o em andamento fica como prévia, religa depois do silêncio e
+**não** religa depois do stop. O caminho real (permissão + fala) depende de
+teste com voz.
+
 ## WhatsApp: livro-caixa, trava de gasto e painel de custo (09/09)
 
 Contexto: o caminho gratuito não funcionou (o número de teste da Meta não

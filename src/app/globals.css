@@ -819,6 +819,21 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 
 /* ID da tarefa: só leitura, mas selecionável — dá pra copiar pelo botão ou
    pelo teclado. */
+/* Ditado por voz (microfone) */
+.mic-btn.listening{ color:var(--danger); }
+.mic-btn.listening svg{ animation:mic-pulse 1.1s ease-in-out infinite; }
+@keyframes mic-pulse{ 0%,100%{ opacity:1 } 50%{ opacity:0.35 } }
+.mic-live{
+  display:inline-flex; align-items:center; gap:5px; max-width:220px;
+  font-size:11px; color:var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.mic-dot{ width:6px; height:6px; border-radius:50%; background:var(--danger); flex:none; animation:mic-pulse 1.1s ease-in-out infinite; }
+.mic-partial{ font-style:italic; overflow:hidden; text-overflow:ellipsis; }
+.mic-error{ font-size:11px; color:var(--danger); }
+@media (prefers-reduced-motion: reduce){
+  .mic-btn.listening svg, .mic-dot{ animation:none; }
+}
+
 /* Painel de custo do WhatsApp, em Configurações */
 .wa-cost-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(96px,1fr)); gap:8px; margin-bottom:10px; }
 .wa-cost-card{ background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:9px 11px; }

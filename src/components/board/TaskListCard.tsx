@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { TaskRow } from "./TaskRow";
+import { MicButton } from "./MicButton";
 import { TASK_COLUMNS, type ColumnKey } from "@/lib/board/column-widths";
 import type { Task } from "@/lib/types";
 
@@ -153,6 +154,7 @@ export function TaskListCard({
           onKeyDown={(e) => e.key === "Enter" && handleAdd()}
           onBlur={handleAdd}
         />
+        <MicButton onText={(t) => setInputVal((v) => (v ? `${v} ${t}` : t))} ariaLabel="Ditar a tarefa" />
       </div>
       {!items.length && <div className="empty-row">{emptyLabel}</div>}
       {items.length > 0 && (

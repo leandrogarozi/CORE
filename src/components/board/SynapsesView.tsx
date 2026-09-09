@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { NoteField } from "./NoteField";
+import { MicButton } from "./MicButton";
 import { BoltIcon, CheckIcon, ChevronIcon, TrashIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { stripHtml } from "@/lib/rich-text";
@@ -197,6 +198,7 @@ export function SynapsesView({ onBack }: { onBack: () => void }) {
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
               onBlur={handleAdd}
             />
+            <MicButton onText={(t) => setNewTitle((v) => (v ? `${v} ${t}` : t))} ariaLabel="Ditar a sinapse" />
           </div>
         </div>
 

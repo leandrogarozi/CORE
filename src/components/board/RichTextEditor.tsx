@@ -12,6 +12,7 @@ import TaskItem from "@tiptap/extension-task-item";
 import Highlight from "@tiptap/extension-highlight";
 import Placeholder from "@tiptap/extension-placeholder";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
+import { MicButton } from "./MicButton";
 import {
   LinkIcon,
   RtAlignCenterIcon,
@@ -148,6 +149,13 @@ export function RichTextEditor({
       return;
     }
     editor.chain().focus().extendMarkRange("link").setLink({ href: url.trim() }).run();
+  }
+
+  // Insere a fala no ponto do cursor. O espaço no fim evita que a próxima
+  // frase venha colada na anterior.
+  function ditar(texto: string) {
+    if (!editor) return;
+    editor.chain().focus().insertContent(`${texto} `).run();
   }
 
   const headingValue = editor.isActive("heading", { level: 1 })
@@ -291,6 +299,10 @@ export function RichTextEditor({
         >
           <LinkIcon />
         </button>
+        <span className="rte-sep" />
+        {/* Ditar escreve onde o cursor está, como se estivesse digitando —
+            então dá pra falar um trecho, corrigir na mão e voltar a falar. */}
+        <MicButton className="rte-btn" onText={ditar} ariaLabel="Ditar o texto" />
       </div>
       <EditorContent editor={editor} className="rte-editor" />
       {highlightAnchor &&
