@@ -827,17 +827,15 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 /* Evento (compromisso com hora marcada) e cliente na linha da tarefa.
    Azul do evento é só contorno, sem barra lateral: a barra já é do desafio, e
    uma tarefa pode ser as duas coisas ao mesmo tempo. */
-.task-badge.task-event-badge{
-  color:var(--accent); background:var(--accent-soft); border-radius:6px;
-  padding:1px 6px 1px 4px; gap:3px; font-weight:600; white-space:nowrap;
-}
-.task-badge.task-event-badge svg{ width:12px; height:12px; }
+.task-badge.task-event-badge{ color:var(--accent); padding:2px; }
+.task-badge.task-event-badge svg{ width:11px; height:11px; }
 .task-row.is-event .row-title{ font-weight:600; }
 .task-badge.task-client-badge{
-  color:var(--text-muted); background:var(--surface-2); border:1px solid var(--border);
-  border-radius:6px; padding:1px 6px 1px 4px; max-width:170px; min-width:0; gap:4px; white-space:nowrap;
+  font-size:9px; font-weight:600; color:var(--text-muted);
+  background:var(--surface-2); border-radius:4px;
+  padding:1px 6px 1px 4px; max-width:120px; min-width:0; gap:3px; white-space:nowrap;
 }
-.task-badge.task-client-badge svg{ width:11px; height:11px; flex:none; }
+.task-badge.task-client-badge svg{ width:9px; height:9px; flex:none; }
 /* O nome precisa do próprio bloco pra reticências: text-overflow não vale
    direto num container flex. */
 .task-client-name{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -846,10 +844,11 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
    vermelho de "atrasada": âmbar na borda esquerda, escudo no selo. */
 .task-row.challenging{ box-shadow:inset 3px 0 0 var(--challenge); }
 .task-badge.task-challenging-badge{
-  color:var(--challenge); background:var(--challenge-soft); border-radius:6px;
-  padding:1px 6px 1px 4px; gap:3px; font-weight:600; white-space:nowrap;
+  font-size:9px; font-weight:600; color:var(--challenge);
+  background:var(--challenge-soft); border-radius:4px;
+  padding:1px 6px 1px 4px; gap:3px; white-space:nowrap;
 }
-.task-badge.task-challenging-badge svg{ width:12px; height:12px; }
+.task-badge.task-challenging-badge svg{ width:9px; height:9px; }
 .challenging-toggle{ display:flex; align-items:center; gap:9px; min-width:0; }
 .challenging-hint{ font-size:11.5px; color:var(--text-faint); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 

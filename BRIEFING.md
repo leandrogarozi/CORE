@@ -306,11 +306,19 @@ tinha hora **e** cliente foi marcado como evento na migração — é exatamente
 o caso da visita que motivou o pedido. Reunião aberta pelo cronômetro nasce
 como evento (tem hora, tem cliente, está acontecendo).
 
-- **Ícone**: `Calendar/Calendar_Event` do pacote.
-- **Selo azul com o horário** na linha (`📅 14:30`) e título em negrito.
-  Sem barra lateral de propósito: a barra já é da tarefa desafiadora, e uma
-  tarefa pode ser as duas coisas ao mesmo tempo (a reunião de renegociação
-  que ele foge de marcar).
+- **Ícone**: `Calendar/Calendar_Event` do pacote, sozinho — **sem o
+  horário**. A primeira versão mostrava `📅 15:00` e o Leandro pegou na
+  hora: o horário já aparece do lado do sininho, e o mesmo 15:00 duas vezes
+  na linha é ruído.
+- **Escala**: os selos nasceram grandes porque herdaram o tamanho da linha.
+  A escala já estava definida no app e é essa — `.row-time` 10px, `.chip` de
+  categoria 9px. Evento virou indicador puro (ícone 11px, sem caixa, igual
+  ao sininho); cliente e desafiadora viraram chips de 9px, do mesmo tamanho
+  do chip de categoria. **Regra**: marcação nova na linha da tarefa segue
+  essa escala, não inventa uma nova.
+- Título do evento em negrito. Sem barra lateral de propósito: a barra já é
+  da tarefa desafiadora, e uma tarefa pode ser as duas coisas ao mesmo tempo
+  (a reunião de renegociação que ele foge de marcar).
 - **Selo do cliente** com reticências quando o nome é longo. Detalhe de CSS
   que custou uma rodada: `text-overflow` não funciona direto num container
   flex — o nome precisa do próprio `<span>` interno.

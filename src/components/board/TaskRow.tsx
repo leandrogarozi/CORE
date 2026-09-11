@@ -381,10 +381,11 @@ export function TaskRow({
         </button>
         {(t.isEvent || t.client || t.challenging || openTopics > 0 || hasReminder || t.note.trim() || hasAttachment) && (
           <span className="row-badges">
+            {/* Só o ícone: o horário já aparece do lado do sininho, e repetir
+                o mesmo 15:00 duas vezes na linha é ruído. */}
             {t.isEvent && (
               <span className="task-badge task-event-badge" title="Evento — compromisso com hora marcada">
                 <CalendarCheckIcon />
-                {t.time ? ` ${t.time}` : ""}
               </span>
             )}
             {t.client && (
