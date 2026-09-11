@@ -362,6 +362,7 @@ export function useBoard(userId: string | null) {
         seriesId: null,
         studyPlanId: null,
         challenging: false,
+        isEvent: false,
         trackedSeconds: 0,
         quick: 0,
         statusId: defaultStatusId(),
@@ -785,6 +786,7 @@ export function useBoard(userId: string | null) {
             seriesId: series.id,
             studyPlanId: null,
             challenging: false,
+            isEvent: false,
             trackedSeconds: 0,
             quick: 0,
             statusId: defaultStatusId(),
@@ -1104,6 +1106,7 @@ export function useBoard(userId: string | null) {
         seriesId: null,
         studyPlanId: null,
         challenging: false,
+        isEvent: false,
         trackedSeconds: 0,
         quick: 0,
         statusId: defaultStatusId(),
@@ -1388,6 +1391,16 @@ export function useBoard(userId: string | null) {
   );
 
   // ---------- tarefa desafiadora e adiamentos ----------
+  const setIsEvent = useCallback(
+    (id: string, isEvent: boolean) => {
+      apply((st) => ({ ...st, tasks: st.tasks.map((t) => (t.id === id ? { ...t, isEvent } : t)) }));
+      supabase.from("tasks").update({ is_event: isEvent }).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("setIsEvent", error);
+      });
+    },
+    [apply, supabase]
+  );
+
   const setChallenging = useCallback(
     (id: string, challenging: boolean) => {
       apply((st) => ({ ...st, tasks: st.tasks.map((t) => (t.id === id ? { ...t, challenging } : t)) }));
@@ -1549,6 +1562,7 @@ export function useBoard(userId: string | null) {
         seriesId: null,
         studyPlanId: plan.id,
         challenging: false,
+        isEvent: false,
         trackedSeconds: 0,
         quick: 0,
         statusId: defaultStatusId(),
@@ -2056,6 +2070,9 @@ export function useBoard(userId: string | null) {
         seriesId: null,
         studyPlanId: null,
         challenging: false,
+        // Reunião aberta pelo cronômetro tem hora e cliente e está acontecendo
+        // agora: é evento por definição.
+        isEvent: true,
         trackedSeconds: 0,
         quick: 0,
         statusId: defaultStatusId(),
@@ -2390,6 +2407,7 @@ export function useBoard(userId: string | null) {
     addTask,
     setTaskTimeMinutes,
     setChallenging,
+    setIsEvent,
     logPostponement,
     addStudyPlan,
     updateStudyPlan,

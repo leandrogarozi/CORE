@@ -25,6 +25,7 @@ import {
   HashIcon,
   PaperclipIcon,
   PlayCircleIcon,
+  CalendarCheckIcon,
   RepeatIcon,
   ShieldWarningIcon,
   TagIcon,
@@ -315,6 +316,7 @@ export function TaskRow({
         "task-row" +
         (t.done ? " done" : "") +
         (t.challenging && !t.done ? " challenging" : "") +
+        (t.isEvent && !t.done ? " is-event" : "") +
         (isOverdue(t) ? " overdue" : "") +
         (dragging ? " dragging" : "") +
         (dropTarget ? " drop-target" : "")
@@ -377,8 +379,20 @@ export function TaskRow({
         <button type="button" className="row-title" title={t.title} onClick={() => setEditing(true)}>
           {t.title}
         </button>
-        {(t.challenging || openTopics > 0 || hasReminder || t.note.trim() || hasAttachment) && (
+        {(t.isEvent || t.client || t.challenging || openTopics > 0 || hasReminder || t.note.trim() || hasAttachment) && (
           <span className="row-badges">
+            {t.isEvent && (
+              <span className="task-badge task-event-badge" title="Evento — compromisso com hora marcada">
+                <CalendarCheckIcon />
+                {t.time ? ` ${t.time}` : ""}
+              </span>
+            )}
+            {t.client && (
+              <span className="task-badge task-client-badge" title={`Cliente: ${t.client}`}>
+                <UserIcon />
+                <span className="task-client-name">{t.client}</span>
+              </span>
+            )}
             {t.challenging && (
               <span
                 className="task-badge task-challenging-badge"
@@ -830,7 +844,7 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
   const linkedReminder = board.state.reminders.find((r) => r.taskId === t.id) ?? null;
   const clientListId = useId();
   const clientOptions = Array.from(
-    new Set(board.state.tasks.filter((x) => isMeetingTask(x) && x.client).map((x) => x.client as string))
+    new Set(board.state.tasks.filter((x) => x.client).map((x) => x.client as string))
   ).sort();
   const [postponing, setPostponing] = useState<TaskEditFields | null>(null);
   const adiamentos = board.state.taskPostponements.filter((p) => p.taskId === t.id).length;
@@ -928,6 +942,23 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
         </label>
         <div className="prop-row">
           <span className="prop-label">
+            <CalendarCheckIcon /> Evento
+          </span>
+          <div className="prop-value">
+            <label className="challenging-toggle">
+              <ToggleSwitch
+                checked={t.isEvent}
+                ariaLabel="Marcar como evento"
+                onChange={(v) => board.setIsEvent(t.id, v)}
+              />
+              <span className="challenging-hint">
+                {t.isEvent ? "Compromisso com hora marcada" : "Tarefa comum, posso mover"}
+              </span>
+            </label>
+          </div>
+        </div>
+        <div className="prop-row">
+          <span className="prop-label">
             <ShieldWarningIcon /> Desafiadora
           </span>
           <div className="prop-value">
@@ -980,27 +1011,25 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
             <TaskTimeButton taskId={t.id} />
           </div>
         </div>
-        {isMeetingTask(vals) && (
-          <label className="prop-row">
-            <span className="prop-label">
-              <UserIcon /> Cliente
-            </span>
-            <div className="prop-value">
-              <input
-                type="text"
-                list={clientListId}
-                value={vals.client ?? ""}
-                placeholder="Vazio"
-                onChange={(e) => setVals((v) => ({ ...v, client: e.target.value || null }))}
-              />
-              <datalist id={clientListId}>
-                {clientOptions.map((c) => (
-                  <option key={c} value={c} />
-                ))}
-              </datalist>
-            </div>
-          </label>
-        )}
+        <label className="prop-row">
+          <span className="prop-label">
+            <UserIcon /> Cliente
+          </span>
+          <div className="prop-value">
+            <input
+              type="text"
+              list={clientListId}
+              value={vals.client ?? ""}
+              placeholder="Vazio"
+              onChange={(e) => setVals((v) => ({ ...v, client: e.target.value || null }))}
+            />
+            <datalist id={clientListId}>
+              {clientOptions.map((c) => (
+                <option key={c} value={c} />
+              ))}
+            </datalist>
+          </div>
+        </label>
         <label className="prop-row">
           <span className="prop-label">
             <RepeatIcon /> Repete

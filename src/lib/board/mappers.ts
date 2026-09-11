@@ -76,6 +76,7 @@ export function rowToTask(row: TaskRow): Task {
     seriesId: row.series_id,
     studyPlanId: row.study_plan_id,
     challenging: row.challenging,
+    isEvent: row.is_event,
     trackedSeconds: row.tracked_seconds,
     quick: row.quick,
     statusId: row.status_id,
@@ -102,6 +103,7 @@ export function taskToRow(t: Partial<Task> & { id: string }, userId: string): Ta
   if (t.order !== undefined) row.sort_order = t.order;
   if (t.seriesId !== undefined) row.series_id = t.seriesId;
   if (t.studyPlanId !== undefined) row.study_plan_id = t.studyPlanId;
+  if (t.isEvent !== undefined) row.is_event = t.isEvent;
   if (t.challenging !== undefined) row.challenging = t.challenging;
   // tracked_seconds de propósito FORA daqui: ele é espelho da soma do tempo por
   // dia e quem escreve é writeTaskTime. Se a edição da tarefa também mandasse
@@ -137,6 +139,7 @@ export function taskToInsertRow(t: Task, userId: string): TablesInsert<"tasks"> 
     series_id: t.seriesId,
     study_plan_id: t.studyPlanId,
     challenging: t.challenging,
+    is_event: t.isEvent,
     tracked_seconds: t.trackedSeconds,
     quick: t.quick,
     status_id: t.statusId,

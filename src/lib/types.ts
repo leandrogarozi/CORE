@@ -46,6 +46,10 @@ export interface Task {
   order: number;
   seriesId: string | null;
   studyPlanId: string | null; // sessão de um plano de estudo
+  // Evento = compromisso com hora marcada (visita, consulta, reunião), em
+  // oposição a tarefa, que é flexível e pode andar de dia. Marcação explícita:
+  // quase toda tarefa tem data, então "tem data = evento" não distinguiria nada.
+  isEvent: boolean;
   // "Desafiadora" não é o mesmo que prioridade alta: é a tarefa da qual se foge.
   // Adiar uma dessas pede um motivo — é o que revela o padrão do que está sendo
   // evitado.

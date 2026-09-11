@@ -270,6 +270,54 @@ chegaram:
   se depois de usar o botão ainda achar que tem algo torto, mandar novo
   print apontando onde.
 
+## Evento e Cliente em qualquer tarefa (11/09)
+
+Pedido: "tenho uma visita ao cliente pra fazer, gostaria de deixar ela
+identificada com o nome do cliente (acho que já tem uma função assim em
+algum lugar — joga pra cá) e, como tem data definida, ela ficar marcada
+como evento".
+
+### Cliente: a função existia mesmo, estava trancada
+
+O campo `client` já existia, mas o formulário só o mostrava quando a tarefa
+era **reunião** (`isMeetingTask`). A memória dele estava certa. A trava caiu:
+qualquer tarefa pode ter cliente, e a lista de sugestões passa a considerar
+todas as tarefas com cliente, não só as reuniões.
+
+### Evento: explícito, não automático — e os dados decidiram isso
+
+Ele propôs "tem data definida = evento". Antes de implementar, contagem no
+banco dele:
+
+| | |
+|---|---|
+| tarefas | 124 |
+| com data | **112** |
+| com hora | **20** |
+| com cliente | 2 |
+
+"Tem data = evento" marcaria **90% de tudo** — uma marca que vale pra quase
+todo mundo não distingue ninguém. O que separa evento de tarefa não é ter
+data, é **ter hora marcada**: evento é compromisso (visita, consulta,
+reunião) que não se move sozinho; tarefa é flexível e pode andar de dia.
+
+Por isso `tasks.is_event` é **marcação explícita**, não derivada. O que já
+tinha hora **e** cliente foi marcado como evento na migração — é exatamente
+o caso da visita que motivou o pedido. Reunião aberta pelo cronômetro nasce
+como evento (tem hora, tem cliente, está acontecendo).
+
+- **Ícone**: `Calendar/Calendar_Event` do pacote.
+- **Selo azul com o horário** na linha (`📅 14:30`) e título em negrito.
+  Sem barra lateral de propósito: a barra já é da tarefa desafiadora, e uma
+  tarefa pode ser as duas coisas ao mesmo tempo (a reunião de renegociação
+  que ele foge de marcar).
+- **Selo do cliente** com reticências quando o nome é longo. Detalhe de CSS
+  que custou uma rodada: `text-overflow` não funciona direto num container
+  flex — o nome precisa do próprio `<span>` interno.
+
+Isso também é a base pra sincronizar com a agenda do Google depois: o que
+vai pro calendário é **evento**, não tarefa.
+
 ## Tarefa Desafiadora e registro de adiamentos (11/09)
 
 Ideia do Leandro, com as palavras dele: "aquela tarefa ou problema que você

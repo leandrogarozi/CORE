@@ -870,6 +870,7 @@ export type Database = {
           end_time: string | null
           expected_duration_min: number | null
           id: string
+          is_event: boolean
           note: string | null
           priority: string
           project_id: string | null
@@ -899,6 +900,7 @@ export type Database = {
           end_time?: string | null
           expected_duration_min?: number | null
           id?: string
+          is_event?: boolean
           note?: string | null
           priority?: string
           project_id?: string | null
@@ -928,6 +930,7 @@ export type Database = {
           end_time?: string | null
           expected_duration_min?: number | null
           id?: string
+          is_event?: boolean
           note?: string | null
           priority?: string
           project_id?: string | null
