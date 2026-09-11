@@ -27,6 +27,7 @@ import type {
   Task,
   TaskSeries,
   TaskStatus,
+  TaskPostponement,
   TaskTimeEntry,
   TimerKind,
 } from "@/lib/types";
@@ -41,6 +42,7 @@ type BlockLogEntryRow = Tables<"fixed_block_log_entries">;
 type SeriesRow = Tables<"task_series">;
 type TaskTimeEntryRow = Tables<"task_time_entries">;
 type StudyPlanRow = Tables<"study_plans">;
+type TaskPostponementRow = Tables<"task_postponements">;
 type TaskStatusRow = Tables<"task_statuses">;
 type SettingsRow = Tables<"settings">;
 type ActiveTimerRow = Tables<"active_timer">;
@@ -150,6 +152,17 @@ export function rowToTaskTimeEntry(row: TaskTimeEntryRow): TaskTimeEntry {
     taskId: row.task_id,
     date: row.log_date,
     seconds: row.seconds,
+  };
+}
+
+export function rowToTaskPostponement(row: TaskPostponementRow): TaskPostponement {
+  return {
+    id: row.id,
+    taskId: row.task_id,
+    fromDate: row.from_date,
+    toDate: row.to_date,
+    reason: row.reason,
+    createdAt: row.created_at,
   };
 }
 

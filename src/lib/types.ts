@@ -77,6 +77,20 @@ export interface TaskTimeEntry {
   seconds: number;
 }
 
+// Um adiamento registrado. Em tarefa desafiadora o app pede o motivo e a
+// "historinha" (a justificativa que a pessoa conta a si mesma pra não fazer —
+// palavra do próprio Leandro). Nas outras, grava sozinho, sem atrito.
+// O valor está no acúmulo: depois de um mês isso mostra o padrão do que está
+// sendo evitado, com que desculpa e em que dias.
+export interface TaskPostponement {
+  id: string;
+  taskId: string;
+  fromDate: string | null;
+  toDate: string | null;
+  reason: string | null; // "por que está adiando" + a historinha, juntos
+  createdAt: string;
+}
+
 export type StudyPlanStatus = "ativo" | "pausado" | "concluido";
 
 // Plano de estudo: um compromisso grande (matéria da pós, mentoria) que o app
@@ -360,6 +374,7 @@ export interface BoardState {
   tasks: Task[];
   taskTimeEntries: TaskTimeEntry[]; // tempo por dia das tarefas
   studyPlans: StudyPlan[];
+  taskPostponements: TaskPostponement[];
   trashedTasks: Task[]; // tarefas excluídas (soft delete) — Lixeira
   projects: Project[]; // PDA — planos de ação com tarefas vinculadas como etapas
   habits: RecurringItem[];

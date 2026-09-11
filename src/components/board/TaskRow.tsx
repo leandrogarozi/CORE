@@ -26,6 +26,7 @@ import {
   PaperclipIcon,
   PlayCircleIcon,
   RepeatIcon,
+  ShieldWarningIcon,
   TagIcon,
   TrashIcon,
   UserIcon,
@@ -35,6 +36,8 @@ import {
 } from "./icons";
 import { fmtDayMonth, fmtHM, todayISO } from "@/lib/date-utils";
 import { taskEntriesOf } from "@/lib/board/task-time";
+import { PostponeModal } from "./PostponeModal";
+import { ToggleSwitch } from "./ToggleSwitch";
 import { countOpenChecklistItems } from "@/lib/rich-text";
 import { CATEGORY_LABEL, isMeetingTask, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
 import type { TaskEditFields } from "@/lib/board/use-board";
@@ -268,6 +271,7 @@ export function TaskRow({
   // tarefa, não só reunião (antes só reunião mostrava o selo).
   const openTopics = countOpenChecklistItems(t.note);
   const isMeeting = isMeetingTask(t);
+  const adiamentos = board.state.taskPostponements.filter((p) => p.taskId === t.id).length;
 
   useEffect(() => {
     if (focusRequest?.kind === "task" && focusRequest.id === t.id) {
@@ -310,6 +314,7 @@ export function TaskRow({
       className={
         "task-row" +
         (t.done ? " done" : "") +
+        (t.challenging && !t.done ? " challenging" : "") +
         (isOverdue(t) ? " overdue" : "") +
         (dragging ? " dragging" : "") +
         (dropTarget ? " drop-target" : "")
@@ -372,8 +377,21 @@ export function TaskRow({
         <button type="button" className="row-title" title={t.title} onClick={() => setEditing(true)}>
           {t.title}
         </button>
-        {(openTopics > 0 || hasReminder || t.note.trim() || hasAttachment) && (
+        {(t.challenging || openTopics > 0 || hasReminder || t.note.trim() || hasAttachment) && (
           <span className="row-badges">
+            {t.challenging && (
+              <span
+                className="task-badge task-challenging-badge"
+                title={
+                  adiamentos > 0
+                    ? `Tarefa desafiadora — já adiada ${adiamentos}x`
+                    : "Tarefa desafiadora — dessa você não corre"
+                }
+              >
+                <ShieldWarningIcon />
+                {adiamentos > 0 ? ` ${adiamentos}x` : ""}
+              </span>
+            )}
             {openTopics > 0 && (
               <span
                 className="task-badge task-pautas-badge"
@@ -814,6 +832,8 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
   const clientOptions = Array.from(
     new Set(board.state.tasks.filter((x) => isMeetingTask(x) && x.client).map((x) => x.client as string))
   ).sort();
+  const [postponing, setPostponing] = useState<TaskEditFields | null>(null);
+  const adiamentos = board.state.taskPostponements.filter((p) => p.taskId === t.id).length;
   const [vals, setVals] = useState<TaskEditFields>({
     title: t.title,
     category: t.category,
@@ -830,17 +850,30 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
     client: t.client,
   });
 
-  function save() {
-    const finalVals: TaskEditFields = { ...vals, title: vals.title.trim() || t.title, note: vals.note.trim() };
+  // Aplica a edição e, se a data andou pra frente (ou sumiu), registra o
+  // adiamento. Em tarefa desafiadora o registro vem com o motivo e a
+  // historinha — por isso a pergunta acontece ANTES de salvar.
+  function aplicar(finalVals: TaskEditFields, reason: string | null) {
     onDone();
     function doApply(scope: "esta" | "proximas" | "todas" | null) {
       board.saveTaskEdit(t.id, finalVals, scope);
+      board.logPostponement(t.id, t.date, finalVals.date, reason);
     }
     if (t.seriesId) {
       askScope("Essa tarefa faz parte de uma repetição. Aplicar a mudança em:", doApply);
     } else {
       doApply(null);
     }
+  }
+
+  function save() {
+    const finalVals: TaskEditFields = { ...vals, title: vals.title.trim() || t.title, note: vals.note.trim() };
+    const adiando = t.date !== null && (finalVals.date === null || finalVals.date > t.date);
+    if (adiando && t.challenging) {
+      setPostponing(finalVals);
+      return;
+    }
+    aplicar(finalVals, null);
   }
 
   return (
@@ -893,6 +926,27 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
             </select>
           </div>
         </label>
+        <div className="prop-row">
+          <span className="prop-label">
+            <ShieldWarningIcon /> Desafiadora
+          </span>
+          <div className="prop-value">
+            <label className="challenging-toggle">
+              <ToggleSwitch
+                checked={t.challenging}
+                ariaLabel="Marcar como tarefa desafiadora"
+                onChange={(v) => board.setChallenging(t.id, v)}
+              />
+              <span className="challenging-hint">
+                {t.challenging
+                  ? adiamentos > 0
+                    ? `Adiar pede justificativa — já adiada ${adiamentos}x`
+                    : "Adiar pede justificativa"
+                  : "Dessa eu fujo"}
+              </span>
+            </label>
+          </div>
+        </div>
         <div className="prop-row">
           <span className="prop-label">
             <TagIcon /> Categorias
@@ -1024,6 +1078,20 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
           Salvar
         </button>
       </div>
+      {postponing && (
+        <PostponeModal
+          taskTitle={t.title}
+          fromDate={t.date!}
+          toDate={postponing.date}
+          jaAdiada={adiamentos}
+          onCancel={() => setPostponing(null)}
+          onConfirm={(reason) => {
+            const finalVals = postponing;
+            setPostponing(null);
+            aplicar(finalVals, reason);
+          }}
+        />
+      )}
     </div>
   );
 }

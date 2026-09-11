@@ -22,6 +22,10 @@
   --flag-media:#3B82C4;
   --flag-baixa:#2F9E44;
   --success:#2F9E44;
+  /* Desafio: âmbar. Não é o vermelho de atrasada nem o da prioridade alta —
+     "disso eu estou fugindo" é outra informação e precisa de cor própria. */
+  --challenge:#B45309;
+  --challenge-soft:rgba(180,83,9,0.12);
   --danger:#E5484D;
   --book-blue:#3B82C4;
   --book-yellow:#F2B93F;
@@ -39,6 +43,7 @@
     --cat-saude-text:#86D69B; --cat-pessoal-text:#E8A0BE; --cat-familia-text:#6FD6CC;
     --flag-alta:#F0787C; --flag-media:#6FAEE0; --flag-baixa:#5FC97C;
     --success:#5FC97C; --danger:#F0787C;
+    --challenge:#E0A458; --challenge-soft:rgba(224,164,88,0.16);
     --book-blue:#6FAEE0; --book-yellow:#F5C968; --warn-text-mix:white;
     --shadow:0 1px 2px rgba(0,0,0,0.35), 0 4px 16px rgba(0,0,0,0.4);
   }
@@ -819,6 +824,40 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 
 /* ID da tarefa: só leitura, mas selecionável — dá pra copiar pelo botão ou
    pelo teclado. */
+/* Tarefa desafiadora — a marca tem que ser evidente sem competir com o
+   vermelho de "atrasada": âmbar na borda esquerda, escudo no selo. */
+.task-row.challenging{ box-shadow:inset 3px 0 0 var(--challenge); }
+.task-badge.task-challenging-badge{
+  color:var(--challenge); background:var(--challenge-soft); border-color:transparent; font-weight:600;
+}
+.task-badge.task-challenging-badge svg{ width:12px; height:12px; }
+.challenging-toggle{ display:flex; align-items:center; gap:9px; min-width:0; }
+.challenging-hint{ font-size:11.5px; color:var(--text-faint); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* Pedido de justificativa pra adiar */
+.postpone-panel{ max-width:460px; display:flex; flex-direction:column; gap:11px; text-align:left; }
+.postpone-head{ display:flex; align-items:flex-start; gap:10px; }
+.postpone-icon{ display:flex; flex:none; color:var(--challenge); margin-top:1px; }
+.postpone-icon svg{ width:20px; height:20px; }
+.postpone-task{ font-size:12.5px; color:var(--text-muted); margin-top:2px; }
+.postpone-move{
+  display:flex; align-items:center; gap:9px; flex-wrap:wrap;
+  font-size:12px; color:var(--text); background:var(--surface-2);
+  border-radius:8px; padding:7px 10px;
+}
+.postpone-count{ font-size:11px; font-weight:600; color:var(--challenge); }
+.postpone-field{ display:flex; flex-direction:column; gap:5px; }
+.postpone-label{ font-size:12px; font-weight:600; color:var(--text); }
+.postpone-input-row{ display:flex; align-items:flex-start; gap:6px; }
+.postpone-input-row textarea{
+  flex:1; min-width:0; resize:vertical; background:var(--surface); color:var(--text);
+  border:1px solid var(--border-strong); border-radius:8px; padding:7px 9px;
+  font:inherit; font-size:12.5px;
+}
+.postpone-input-row textarea:focus{ outline:none; border-color:var(--accent); }
+.postpone-input-row textarea::placeholder{ color:var(--text-faint); }
+.postpone-hint{ margin:0; font-size:11px; color:var(--text-faint); line-height:1.45; }
+
 /* Plano de estudo */
 .study-list{ display:flex; flex-direction:column; gap:10px; }
 .study-card{ background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); padding:11px 13px; }

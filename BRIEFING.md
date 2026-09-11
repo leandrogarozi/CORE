@@ -270,6 +270,47 @@ chegaram:
   se depois de usar o botão ainda achar que tem algo torto, mandar novo
   print apontando onde.
 
+## Tarefa Desafiadora e registro de adiamentos (11/09)
+
+Ideia do Leandro, com as palavras dele: "aquela tarefa ou problema que você
+quer resolver mas foge dela — uma marcação assim vai fazer o cérebro
+perceber que não pode correr e tem que enfrentar". E o pedido que define o
+recurso: **"a IA perguntar por que estamos fugindo dessa task, e também
+quais historinhas estou contando para não executar"** — historinha, palavra
+dele, é a justificativa que a pessoa conta a si mesma pra continuar adiando.
+
+**Decisão de produto**: são **duas perguntas**, não uma. O motivo é o que a
+pessoa diria em voz alta; a historinha é o que ela conta a si mesma. A
+palavra "historinha" fica na tela justamente porque nomear a desculpa já
+quebra metade dela. O texto não julga e **não bloqueia** — dá pra adiar de
+qualquer jeito. O que não dá é adiar em silêncio.
+
+- **Marca própria, separada de prioridade.** Prioridade alta é "isso é
+  importante"; desafiadora é "disso eu estou fugindo". São informações
+  diferentes e precisam de sinais diferentes.
+- **Ícone**: `Warning/Shield_Warning` do pacote — escudo (enfrentar) com
+  alerta (atenção), que foi exatamente o que ele pediu ("o que poderia
+  simbolizar desafio com atenção").
+- **Cor própria (âmbar, `--challenge`)**, não o vermelho. O vermelho já é
+  "atrasada" e "prioridade alta"; um terceiro significado na mesma cor não
+  se distingue. Barra âmbar na borda esquerda da linha + selo com o escudo.
+- **Contador de adiamentos no próprio selo** ("4x"). Só isso já cria a
+  pressão que ele descreveu, sem precisar de mais nada.
+- **O que conta como adiamento**: empurrar a data pra frente **ou tirar a
+  data** (mandar pro "sem data" é a fuga mais silenciosa que existe).
+  Antecipar não conta. Testado, 11 verificações.
+- **Tarefa comum também registra** o adiamento — mas calada, sem atrito. Só
+  a desafiadora pede o texto. Assim o histórico cobre tudo e a fricção fica
+  onde importa.
+
+O valor está no acúmulo, não em cada registro: depois de algumas semanas a
+tabela `task_postponements` mostra o padrão do que é adiado, com que
+desculpa e em que dias — que é o material que a IA do FARO vai usar depois.
+
+**Modo Foco: descartado** (11/09), decisão do Leandro. Fica anotado que um
+app web não consegue bloquear a internet de qualquer forma; se voltar à
+mesa um dia, o caminho viável é tela cheia + contagem de saídas da aba.
+
 ## Plano de Estudo (09/09)
 
 Dor real do Leandro, nas palavras dele: "vou empurrando os estudos pra lá e

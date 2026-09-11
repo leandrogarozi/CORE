@@ -26,6 +26,7 @@ import {
   rowToChecklist,
   rowToTaskTimeEntry,
   rowToStudyPlan,
+  rowToTaskPostponement,
   studyPlanToInsertRow,
   studyPlanToUpdateRow,
   rowToDailyLog,
@@ -63,6 +64,7 @@ import type {
   ChecklistItem,
   TaskTimeEntry,
   StudyPlan,
+  TaskPostponement,
   DailyLog,
   DayLog,
   DayLogEntry,
@@ -88,6 +90,7 @@ const EMPTY_STATE: BoardState = {
   tasks: [],
   taskTimeEntries: [],
   studyPlans: [],
+  taskPostponements: [],
   trashedTasks: [],
   projects: [],
   habits: [],
@@ -186,6 +189,7 @@ export function useBoard(userId: string | null) {
       tasksRes,
       taskTimeEntriesRes,
       studyPlansRes,
+      postponementsRes,
       trashedTasksRes,
       projectsRes,
       habitsRes,
@@ -211,6 +215,7 @@ export function useBoard(userId: string | null) {
       supabase.from("tasks").select("*").is("deleted_at", null).order("sort_order"),
       supabase.from("task_time_entries").select("*").order("log_date"),
       supabase.from("study_plans").select("*").is("deleted_at", null).order("created_at"),
+      supabase.from("task_postponements").select("*").order("created_at", { ascending: false }),
       supabase.from("tasks").select("*").not("deleted_at", "is", null),
       supabase.from("projects").select("*").order("created_at"),
       supabase.from("habits").select("*").order("sort_order"),
@@ -243,6 +248,7 @@ export function useBoard(userId: string | null) {
       tasks: (tasksRes.data ?? []).map(rowToTask),
       taskTimeEntries: (taskTimeEntriesRes.data ?? []).map(rowToTaskTimeEntry),
       studyPlans: (studyPlansRes.data ?? []).map(rowToStudyPlan),
+      taskPostponements: (postponementsRes.data ?? []).map(rowToTaskPostponement),
       trashedTasks: (trashedTasksRes.data ?? []).map(rowToTask),
       projects: (projectsRes.data ?? []).map(rowToProject),
       habits: buildRecurring(habitsRes.data ?? [], habitLogsRes.data ?? [], "habit_id"),
@@ -1381,6 +1387,51 @@ export function useBoard(userId: string | null) {
     [apply, supabase]
   );
 
+  // ---------- tarefa desafiadora e adiamentos ----------
+  const setChallenging = useCallback(
+    (id: string, challenging: boolean) => {
+      apply((st) => ({ ...st, tasks: st.tasks.map((t) => (t.id === id ? { ...t, challenging } : t)) }));
+      supabase.from("tasks").update({ challenging }).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("setChallenging", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  // Adiar é empurrar pra frente OU tirar a data (mandar pro limbo do "sem
+  // data", que é o jeito mais silencioso de fugir de uma tarefa). Antecipar
+  // não é adiamento e não entra no histórico.
+  const logPostponement = useCallback(
+    (taskId: string, fromDate: string | null, toDate: string | null, reason: string | null) => {
+      if (!userId || !fromDate) return;
+      const adiou = toDate === null || toDate > fromDate;
+      if (!adiou) return;
+      const registro: TaskPostponement = {
+        id: uid(),
+        taskId,
+        fromDate,
+        toDate,
+        reason: reason?.trim() || null,
+        createdAt: new Date().toISOString(),
+      };
+      apply((st) => ({ ...st, taskPostponements: [registro, ...st.taskPostponements] }));
+      supabase
+        .from("task_postponements")
+        .insert({
+          id: registro.id,
+          user_id: userId,
+          task_id: taskId,
+          from_date: fromDate,
+          to_date: toDate,
+          reason: registro.reason,
+        })
+        .then(({ error }) => {
+          if (error) reportSaveError("registrar adiamento", error);
+        });
+    },
+    [apply, supabase, userId]
+  );
+
   // ---------- planos de estudo ----------
   const addStudyPlan = useCallback(
     async (name: string): Promise<string | null> => {
@@ -2338,6 +2389,8 @@ export function useBoard(userId: string | null) {
     findTrackable,
     addTask,
     setTaskTimeMinutes,
+    setChallenging,
+    logPostponement,
     addStudyPlan,
     updateStudyPlan,
     deleteStudyPlan,
