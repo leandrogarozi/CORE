@@ -225,6 +225,7 @@ export function rowToTaskStatus(row: TaskStatusRow): TaskStatus {
     label: row.label,
     color: row.color,
     isDone: row.is_done,
+    isScheduled: row.is_scheduled,
     order: row.sort_order,
   };
 }
@@ -236,6 +237,7 @@ export function taskStatusToInsertRow(s: TaskStatus, userId: string): TablesInse
     label: s.label,
     color: s.color,
     is_done: s.isDone,
+    is_scheduled: s.isScheduled,
     sort_order: s.order,
   };
 }

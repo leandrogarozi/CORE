@@ -708,6 +708,7 @@ export type Database = {
           created_at: string
           id: string
           is_done: boolean
+          is_scheduled: boolean
           label: string
           sort_order: number
           user_id: string
@@ -717,6 +718,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_done?: boolean
+          is_scheduled?: boolean
           label: string
           sort_order?: number
           user_id: string
@@ -726,6 +728,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_done?: boolean
+          is_scheduled?: boolean
           label?: string
           sort_order?: number
           user_id?: string

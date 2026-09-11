@@ -310,9 +310,16 @@ export function useBoard(userId: string | null) {
   // ---------- tasks ----------
   const defaultStatusId = useCallback(() => {
     const statuses = stateRef.current.taskStatuses;
-    const notDone = statuses.filter((s) => !s.isDone).sort((a, b) => a.order - b.order);
-    return notDone[0]?.id ?? statuses[0]?.id ?? null;
+    // O "agendado" fica de fora: tarefa nova nasce no primeiro status de
+    // trabalho, não agendada.
+    const notDone = statuses.filter((s) => !s.isDone && !s.isScheduled).sort((a, b) => a.order - b.order);
+    return notDone[0]?.id ?? statuses.filter((s) => !s.isDone)[0]?.id ?? statuses[0]?.id ?? null;
   }, []);
+
+  const scheduledStatusId = useCallback(
+    () => stateRef.current.taskStatuses.find((s) => s.isScheduled)?.id ?? null,
+    []
+  );
 
   // Sorteia um código que ainda não está em uso (contando a Lixeira: uma tarefa
   // restaurada não pode colidir com outra criada depois). O banco tem índice
@@ -815,7 +822,7 @@ export function useBoard(userId: string | null) {
       const order = stateRef.current.taskStatuses.length
         ? Math.max(...stateRef.current.taskStatuses.map((s) => s.order)) + 1
         : 0;
-      const status: TaskStatus = { id: uid(), label: label.trim(), color, isDone: false, order };
+      const status: TaskStatus = { id: uid(), label: label.trim(), color, isDone: false, isScheduled: false, order };
       apply((s) => ({ ...s, taskStatuses: [...s.taskStatuses, status] }));
       supabase.from("task_statuses").insert(taskStatusToInsertRow(status, userId)).then(({ error }) => {
         if (error) reportSaveError("addTaskStatus", error);
@@ -1391,14 +1398,35 @@ export function useBoard(userId: string | null) {
   );
 
   // ---------- tarefa desafiadora e adiamentos ----------
+  // Marcar como evento leva a tarefa pro status "Agendado" — mas SÓ se ela
+  // ainda estiver no primeiro status (ninguém começou). Tarefa que já está em
+  // andamento, aguardando ou concluída não é mexida: status é fluxo de
+  // trabalho, e sobrescrever apagaria onde a tarefa realmente está.
+  // Desmarcar faz o caminho inverso, e também só a partir do "Agendado".
   const setIsEvent = useCallback(
     (id: string, isEvent: boolean) => {
-      apply((st) => ({ ...st, tasks: st.tasks.map((t) => (t.id === id ? { ...t, isEvent } : t)) }));
-      supabase.from("tasks").update({ is_event: isEvent }).eq("id", id).then(({ error }) => {
-        if (error) reportSaveError("setIsEvent", error);
-      });
+      const tarefa = stateRef.current.tasks.find((t) => t.id === id);
+      const agendado = scheduledStatusId();
+      const inicial = defaultStatusId();
+
+      let statusId = tarefa?.statusId ?? null;
+      if (isEvent && agendado && statusId === inicial) statusId = agendado;
+      else if (!isEvent && agendado && statusId === agendado) statusId = inicial;
+
+      const mudouStatus = statusId !== (tarefa?.statusId ?? null);
+      apply((st) => ({
+        ...st,
+        tasks: st.tasks.map((t) => (t.id === id ? { ...t, isEvent, statusId } : t)),
+      }));
+      supabase
+        .from("tasks")
+        .update(mudouStatus ? { is_event: isEvent, status_id: statusId } : { is_event: isEvent })
+        .eq("id", id)
+        .then(({ error }) => {
+          if (error) reportSaveError("setIsEvent", error);
+        });
     },
-    [apply, supabase]
+    [apply, defaultStatusId, scheduledStatusId, supabase]
   );
 
   const setChallenging = useCallback(

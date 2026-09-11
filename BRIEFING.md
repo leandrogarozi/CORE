@@ -326,6 +326,37 @@ como evento (tem hora, tem cliente, está acontecendo).
 Isso também é a base pra sincronizar com a agenda do Google depois: o que
 vai pro calendário é **evento**, não tarefa.
 
+## Status "Agendado" (11/09)
+
+Ideia do Leandro: "cadastrou evento, fica agendado — até mais fácil depois
+de sincronizar com a agenda". Entra entre "A fazer" e "Em andamento":
+**A fazer → Agendado → Em andamento → Aguardando... → Concluída**.
+
+### Duas decisões que o recurso exigiu
+
+**1. Qual status é o "agendado" é marcado por bandeira, não pelo rótulo.**
+Nova coluna `task_statuses.is_scheduled`, no mesmo padrão do `is_done` que já
+existia. Amarrar no texto "Agendado" quebraria no dia em que ele renomeasse
+o status na tela de Configurações — e renomear status é coisa que a tela
+permite.
+
+**2. Marcar evento só mexe no status se ninguém começou a tarefa.**
+Esse era o risco real: marcar como evento uma tarefa que já está "Em
+andamento" e a marcação automática jogar ela de volta pra "Agendado" —
+apagando onde a tarefa de fato está. A regra:
+
+- marcar evento estando no **primeiro status** → vai pra Agendado
+- marcar evento estando em andamento/aguardando/concluída → **não mexe**
+- desmarcar evento estando em **Agendado** → volta pro primeiro status
+- desmarcar evento em qualquer outro status → **não mexe**
+- se o usuário apagar o status Agendado, nada acontece (degrada em silêncio)
+
+Testado com 10 verificações, incluindo o ciclo "marca evento → começa a
+trabalhar → desmarca evento", que tem que terminar em "Em andamento".
+
+Detalhe: `defaultStatusId` passou a **pular** o status agendado ao escolher
+onde a tarefa nova nasce — senão tarefa nova nasceria agendada.
+
 ## Tarefa Desafiadora e registro de adiamentos (11/09)
 
 Ideia do Leandro, com as palavras dele: "aquela tarefa ou problema que você

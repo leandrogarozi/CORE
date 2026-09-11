@@ -151,6 +151,9 @@ export interface TaskStatus {
   label: string;
   color: string;
   isDone: boolean;
+  // Qual status significa "agendado" é marcado por bandeira, não pelo texto:
+  // amarrar no rótulo quebraria no dia em que o status fosse renomeado.
+  isScheduled: boolean;
   order: number;
 }
 
