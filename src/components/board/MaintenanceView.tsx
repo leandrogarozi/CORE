@@ -292,6 +292,9 @@ function AssetCard({ asset }: { asset: MaintenanceAsset }) {
   const { board, askConfirm } = useBoardCtx();
   const [novoItem, setNovoItem] = useState("");
   const [nomeDraft, setNomeDraft] = useState<string | null>(null);
+  // Nasce recolhido: com dois ou três veículos cadastrados, tudo aberto vira
+  // um paredão e não dá pra achar nada.
+  const [aberto, setAberto] = useState(false);
   const [lendoOdometro, setLendoOdometro] = useState(false);
   const [leitura, setLeitura] = useState("");
 
@@ -316,45 +319,84 @@ function AssetCard({ asset }: { asset: MaintenanceAsset }) {
     setLendoOdometro(false);
   }
 
+  const proximos = itens.filter((i) => maintenanceStatus(i, asset, readings).state === "proximo").length;
+
   return (
-    <div className="maint-asset">
+    <div className={"maint-asset" + (aberto ? " open" : "")}>
       <div className="maint-asset-head">
-        <span className="maint-asset-icon">{asset.kind === "casa" ? <HomeIcon /> : <CarIcon />}</span>
-        <input
-          type="text"
-          className="maint-asset-name"
-          value={nomeDraft ?? asset.name}
-          aria-label="Nome"
-          onChange={(e) => setNomeDraft(e.target.value)}
-          onBlur={() => {
-            const novo = nomeDraft?.trim();
-            if (novo && novo !== asset.name) board.updateMaintenanceAsset(asset.id, { name: novo });
-            setNomeDraft(null);
-          }}
-          onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-        />
+        <button
+          type="button"
+          className="synapse-card-toggle"
+          aria-expanded={aberto}
+          aria-label={aberto ? "Recolher" : "Abrir"}
+          onClick={() => setAberto((v) => !v)}
+        >
+          <ChevronIcon />
+        </button>
+        {/* O ícone também abre e fecha — é o alvo grande, fácil de acertar no
+            celular. */}
+        <button
+          type="button"
+          className="maint-asset-icon"
+          aria-label={aberto ? "Recolher" : "Abrir"}
+          onClick={() => setAberto((v) => !v)}
+        >
+          {asset.kind === "casa" ? <HomeIcon /> : <CarIcon />}
+        </button>
+        {/* Recolhido o nome é botão (clicar abre); aberto vira campo, pra
+            continuar dando pra renomear. */}
+        {aberto ? (
+          <input
+            type="text"
+            className="maint-asset-name"
+            value={nomeDraft ?? asset.name}
+            aria-label="Nome"
+            onChange={(e) => setNomeDraft(e.target.value)}
+            onBlur={() => {
+              const novo = nomeDraft?.trim();
+              if (novo && novo !== asset.name) board.updateMaintenanceAsset(asset.id, { name: novo });
+              setNomeDraft(null);
+            }}
+            onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+          />
+        ) : (
+          <button type="button" className="maint-asset-name as-button" onClick={() => setAberto(true)}>
+            {asset.name}
+          </button>
+        )}
         {vencidos > 0 && <span className="maint-flag vencido">{vencidos} vencido(s)</span>}
+        {!aberto && vencidos === 0 && proximos > 0 && (
+          <span className="maint-flag proximo">{proximos} chegando</span>
+        )}
+        {!aberto && vencidos === 0 && proximos === 0 && itens.length > 0 && (
+          <span className="maint-asset-count">{itens.length} em dia</span>
+        )}
+        {!aberto && precisaConferir && asset.tracksOdometer && (
+          <span className="maint-flag proximo">conferir {asset.odometerUnit}</span>
+        )}
         {asset.tracksOdometer && atual && (
           <span className="maint-odometer mono">
             {fmtKm(atual.reading)} {asset.odometerUnit}
             {ritmo ? ` · ~${Math.round(ritmo)} ${asset.odometerUnit}/dia` : ""}
           </span>
         )}
-        <button
-          type="button"
-          className="icon-btn danger-hover"
-          title="Excluir"
-          onClick={() =>
-            askConfirm(`Excluir "${asset.name}" e todos os itens de manutenção dele?`, () =>
-              board.deleteMaintenanceAsset(asset.id)
-            )
-          }
-        >
-          <TrashIcon />
-        </button>
+        {aberto && (
+          <button
+            type="button"
+            className="icon-btn danger-hover"
+            title="Excluir"
+            onClick={() =>
+              askConfirm(`Excluir "${asset.name}" e todos os itens de manutenção dele?`, () =>
+                board.deleteMaintenanceAsset(asset.id)
+              )
+            }
+          >
+            <TrashIcon />
+          </button>
+        )}
       </div>
 
-      {asset.tracksOdometer && (
+      {aberto && asset.tracksOdometer && (
         <div className={"maint-odo-box" + (precisaConferir ? " due" : "")}>
           {lendoOdometro ? (
             <div className="maint-odo-form">
@@ -406,14 +448,16 @@ function AssetCard({ asset }: { asset: MaintenanceAsset }) {
         </div>
       )}
 
-      <div className="maint-items">
-        {itens.map((i) => (
-          <ItemRow key={i.id} item={i} asset={asset} />
-        ))}
-        {!itens.length && <div className="hp-empty">Nenhum item ainda. Escolha abaixo ou escreva o seu.</div>}
-      </div>
+      {aberto && (
+        <div className="maint-items">
+          {itens.map((i) => (
+            <ItemRow key={i.id} item={i} asset={asset} />
+          ))}
+          {!itens.length && <div className="hp-empty">Nenhum item ainda. Escolha abaixo ou escreva o seu.</div>}
+        </div>
+      )}
 
-      {sugestoes.filter((s) => !jaTem.has(s.name)).length > 0 && (
+      {aberto && sugestoes.filter((s) => !jaTem.has(s.name)).length > 0 && (
         <div className="maint-suggestions">
           <span className="prop-label">Adicionar rápido</span>
           <div className="maint-suggestion-row">
@@ -441,24 +485,26 @@ function AssetCard({ asset }: { asset: MaintenanceAsset }) {
         </div>
       )}
 
-      <div className="quickadd-row maint-quickadd">
-        <span className="quickadd-plus" aria-hidden="true">
-          +
-        </span>
-        <input
-          type="text"
-          className="quickadd-input"
-          placeholder="Outro item de manutenção e pressionar Enter"
-          value={novoItem}
-          onChange={(e) => setNovoItem(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key !== "Enter" || !novoItem.trim()) return;
-            board.addMaintenanceItem(asset.id, novoItem, null, null);
-            setNovoItem("");
-          }}
-        />
-        <MicButton onText={(t) => setNovoItem((v) => (v ? `${v} ${t}` : t))} ariaLabel="Ditar o item" />
-      </div>
+      {aberto && (
+        <div className="quickadd-row maint-quickadd">
+          <span className="quickadd-plus" aria-hidden="true">
+            +
+          </span>
+          <input
+            type="text"
+            className="quickadd-input"
+            placeholder="Outro item de manutenção e pressionar Enter"
+            value={novoItem}
+            onChange={(e) => setNovoItem(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key !== "Enter" || !novoItem.trim()) return;
+              board.addMaintenanceItem(asset.id, novoItem, null, null);
+              setNovoItem("");
+            }}
+          />
+          <MicButton onText={(t) => setNovoItem((v) => (v ? `${v} ${t}` : t))} ariaLabel="Ditar o item" />
+        </div>
+      )}
     </div>
   );
 }

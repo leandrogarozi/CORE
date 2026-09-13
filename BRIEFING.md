@@ -408,6 +408,21 @@ Lição: **campo que o usuário precisa ajustar não pode morar atrás de um
 chevron.** O que está configurado tem que estar à vista, senão ele pede de
 novo o que já existe — e a culpa é da tela.
 
+**3. Cards de ativo nascem recolhidos.** Com mais de um veículo, tudo aberto
+"fica embolado" (palavra dele). Agora cada ativo é uma linha e abre no
+clique — na setinha, no ícone ou no nome.
+
+Conflito que isso criou e como foi resolvido: o nome virou campo editável no
+ajuste anterior, então clicar nele pra recolher mataria a edição. Solução:
+**recolhido o nome é botão (abre); aberto, volta a ser campo.** O mesmo
+elemento muda de papel conforme o estado, em vez de disputar dois cliques.
+
+Recolhido, o card ainda entrega o essencial sem abrir: quantos itens estão
+vencidos (vermelho), quantos estão chegando (âmbar) ou "N em dia", se o
+odômetro precisa ser conferido, e a leitura atual com o ritmo de rodagem. O
+botão de excluir só aparece com o card aberto — evita clique errado numa
+lista de linhas parecidas.
+
 **2. Custo entrou, como registro.** Ele reviu a decisão anterior: "não é
 para calcular o custo aqui nesse aplicativo, mas fica registro o valor
 também". Então `maintenance_services.cost_cents` guarda quanto custou cada

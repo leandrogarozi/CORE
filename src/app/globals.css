@@ -878,15 +878,31 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 
 /* Manutenção */
 .maint-list{ display:flex; flex-direction:column; gap:12px; }
-.maint-asset{ background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); padding:11px 13px; }
-.maint-asset-head{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
-.maint-asset-icon{ display:flex; color:var(--text-faint); flex:none; }
+.maint-asset{
+  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  box-shadow:var(--shadow); padding:9px 13px;
+}
+.maint-asset.open{ padding:11px 13px; }
+/* Recolhido o cabeçalho é a linha inteira: sem margem sobrando embaixo. */
+.maint-asset-head{ display:flex; align-items:center; gap:8px; }
+.maint-asset.open .maint-asset-head{ margin-bottom:8px; }
+.maint-asset .synapse-card-toggle{ flex:none; }
+.maint-asset-icon{
+  display:flex; align-items:center; color:var(--text-faint); flex:none;
+  background:none; border:none; padding:2px; cursor:pointer;
+}
+.maint-asset-icon:hover{ color:var(--accent); }
+.maint-asset-count{ flex:none; font-size:10px; color:var(--text-faint); white-space:nowrap; }
 .maint-asset-name{
   flex:1; min-width:0; font-size:13.5px; font-weight:600; color:var(--text);
   background:transparent; border:1px solid transparent; border-radius:6px; padding:3px 5px;
 }
 .maint-asset-name:hover{ background:var(--surface-2); border-color:var(--border); }
 .maint-asset-name:focus{ outline:none; background:var(--surface-2); border-color:var(--accent); }
+/* Fechado o nome é botão: mesmo tamanho e alinhamento do campo, pra não pular
+   quando abre. */
+.maint-asset-name.as-button{ text-align:left; cursor:pointer; font:inherit; font-size:13.5px; font-weight:600; }
+.maint-asset-name.as-button:hover{ background:var(--surface-2); border-color:var(--border); }
 .maint-odometer{ font-size:10.5px; color:var(--text-faint); flex:none; white-space:nowrap; }
 .maint-flag{ display:inline-flex; align-items:center; gap:3px; flex:none; font-size:9px; font-weight:700; padding:1px 6px; border-radius:4px; text-transform:uppercase; letter-spacing:0.04em; }
 .maint-flag svg{ width:10px; height:10px; }
