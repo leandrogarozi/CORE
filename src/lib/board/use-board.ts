@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import type { TablesUpdate } from "@/lib/database.types";
 import {
   attachmentToInsertRow,
   bookToInsertRow,
@@ -27,6 +28,11 @@ import {
   rowToTaskTimeEntry,
   rowToStudyPlan,
   rowToTaskPostponement,
+  rowToMaintenanceAsset,
+  rowToOdometerReading,
+  rowToMaintenanceItem,
+  rowToMaintenanceService,
+  maintenanceItemToUpdateRow,
   studyPlanToInsertRow,
   studyPlanToUpdateRow,
   rowToDailyLog,
@@ -65,6 +71,9 @@ import type {
   TaskTimeEntry,
   StudyPlan,
   TaskPostponement,
+  MaintenanceAsset,
+  MaintenanceItem,
+  OdometerReading,
   DailyLog,
   DayLog,
   DayLogEntry,
@@ -91,6 +100,10 @@ const EMPTY_STATE: BoardState = {
   taskTimeEntries: [],
   studyPlans: [],
   taskPostponements: [],
+  maintenanceAssets: [],
+  odometerReadings: [],
+  maintenanceItems: [],
+  maintenanceServices: [],
   trashedTasks: [],
   projects: [],
   habits: [],
@@ -190,6 +203,10 @@ export function useBoard(userId: string | null) {
       taskTimeEntriesRes,
       studyPlansRes,
       postponementsRes,
+      maintAssetsRes,
+      odometerRes,
+      maintItemsRes,
+      maintServicesRes,
       trashedTasksRes,
       projectsRes,
       habitsRes,
@@ -216,6 +233,10 @@ export function useBoard(userId: string | null) {
       supabase.from("task_time_entries").select("*").order("log_date"),
       supabase.from("study_plans").select("*").is("deleted_at", null).order("created_at"),
       supabase.from("task_postponements").select("*").order("created_at", { ascending: false }),
+      supabase.from("maintenance_assets").select("*").is("deleted_at", null).order("sort_order"),
+      supabase.from("maintenance_odometer_readings").select("*").order("read_on"),
+      supabase.from("maintenance_items").select("*").is("deleted_at", null).order("sort_order"),
+      supabase.from("maintenance_services").select("*").order("done_on", { ascending: false }),
       supabase.from("tasks").select("*").not("deleted_at", "is", null),
       supabase.from("projects").select("*").order("created_at"),
       supabase.from("habits").select("*").order("sort_order"),
@@ -249,6 +270,10 @@ export function useBoard(userId: string | null) {
       taskTimeEntries: (taskTimeEntriesRes.data ?? []).map(rowToTaskTimeEntry),
       studyPlans: (studyPlansRes.data ?? []).map(rowToStudyPlan),
       taskPostponements: (postponementsRes.data ?? []).map(rowToTaskPostponement),
+      maintenanceAssets: (maintAssetsRes.data ?? []).map(rowToMaintenanceAsset),
+      odometerReadings: (odometerRes.data ?? []).map(rowToOdometerReading),
+      maintenanceItems: (maintItemsRes.data ?? []).map(rowToMaintenanceItem),
+      maintenanceServices: (maintServicesRes.data ?? []).map(rowToMaintenanceService),
       trashedTasks: (trashedTasksRes.data ?? []).map(rowToTask),
       projects: (projectsRes.data ?? []).map(rowToProject),
       habits: buildRecurring(habitsRes.data ?? [], habitLogsRes.data ?? [], "habit_id"),
@@ -1397,6 +1422,214 @@ export function useBoard(userId: string | null) {
     [apply, supabase]
   );
 
+  // ---------- manutenção ----------
+  const addMaintenanceAsset = useCallback(
+    async (name: string, kind: MaintenanceAsset["kind"]): Promise<string | null> => {
+      if (!userId || !name.trim()) return null;
+      const asset: MaintenanceAsset = {
+        id: uid(),
+        name: name.trim(),
+        kind,
+        tracksOdometer: kind === "veiculo",
+        odometerUnit: "km",
+        odometerReminderDays: kind === "veiculo" ? 30 : null,
+        order: stateRef.current.maintenanceAssets.length,
+      };
+      apply((st) => ({ ...st, maintenanceAssets: [...st.maintenanceAssets, asset] }));
+      const { error } = await supabase.from("maintenance_assets").insert({
+        id: asset.id,
+        user_id: userId,
+        name: asset.name,
+        kind: asset.kind,
+        tracks_odometer: asset.tracksOdometer,
+        odometer_unit: asset.odometerUnit,
+        odometer_reminder_days: asset.odometerReminderDays,
+        sort_order: asset.order,
+      });
+      if (error) {
+        reportSaveError("addMaintenanceAsset", error);
+        apply((st) => ({ ...st, maintenanceAssets: st.maintenanceAssets.filter((a) => a.id !== asset.id) }));
+        return null;
+      }
+      return asset.id;
+    },
+    [apply, supabase, userId]
+  );
+
+  const updateMaintenanceAsset = useCallback(
+    (id: string, patch: Partial<MaintenanceAsset>) => {
+      apply((st) => ({
+        ...st,
+        maintenanceAssets: st.maintenanceAssets.map((a) => (a.id === id ? { ...a, ...patch } : a)),
+      }));
+      const row: TablesUpdate<"maintenance_assets"> = {};
+      if (patch.name !== undefined) row.name = patch.name;
+      if (patch.tracksOdometer !== undefined) row.tracks_odometer = patch.tracksOdometer;
+      if (patch.odometerReminderDays !== undefined) row.odometer_reminder_days = patch.odometerReminderDays;
+      supabase.from("maintenance_assets").update(row).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("updateMaintenanceAsset", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  const deleteMaintenanceAsset = useCallback(
+    (id: string) => {
+      const agora = new Date().toISOString();
+      apply((st) => ({
+        ...st,
+        maintenanceAssets: st.maintenanceAssets.filter((a) => a.id !== id),
+        maintenanceItems: st.maintenanceItems.filter((i) => i.assetId !== id),
+      }));
+      supabase.from("maintenance_assets").update({ deleted_at: agora }).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("deleteMaintenanceAsset", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  // Anota o odômetro num dia. Regravar o mesmo dia substitui a leitura em vez de
+  // duplicar — corrigir um número digitado errado tem que ser simples.
+  const addOdometerReading = useCallback(
+    (assetId: string, reading: number, readOn: string) => {
+      if (!userId || !Number.isFinite(reading) || reading < 0) return;
+      const existente = stateRef.current.odometerReadings.find(
+        (r) => r.assetId === assetId && r.readOn === readOn
+      );
+      const nova: OdometerReading = { id: existente?.id ?? uid(), assetId, reading: Math.round(reading), readOn };
+      apply((st) => ({
+        ...st,
+        odometerReadings: existente
+          ? st.odometerReadings.map((r) => (r.id === existente.id ? nova : r))
+          : [...st.odometerReadings, nova],
+      }));
+      supabase
+        .from("maintenance_odometer_readings")
+        .upsert(
+          { id: nova.id, user_id: userId, asset_id: assetId, reading: nova.reading, read_on: readOn },
+          { onConflict: "asset_id,read_on" }
+        )
+        .then(({ error }) => {
+          if (error) reportSaveError("addOdometerReading", error);
+        });
+    },
+    [apply, supabase, userId]
+  );
+
+  const addMaintenanceItem = useCallback(
+    async (
+      assetId: string,
+      name: string,
+      intervalMonths: number | null,
+      intervalDistance: number | null
+    ): Promise<string | null> => {
+      if (!userId || !name.trim()) return null;
+      const item: MaintenanceItem = {
+        id: uid(),
+        assetId,
+        name: name.trim(),
+        intervalMonths,
+        intervalDistance,
+        alertDaysBefore: 15,
+        alertDistanceBefore: 500,
+        lastDoneOn: null,
+        lastDoneOdometer: null,
+        note: "",
+        active: true,
+        order: stateRef.current.maintenanceItems.filter((i) => i.assetId === assetId).length,
+      };
+      apply((st) => ({ ...st, maintenanceItems: [...st.maintenanceItems, item] }));
+      const { error } = await supabase.from("maintenance_items").insert({
+        id: item.id,
+        user_id: userId,
+        asset_id: assetId,
+        name: item.name,
+        interval_months: intervalMonths,
+        interval_distance: intervalDistance,
+        sort_order: item.order,
+      });
+      if (error) {
+        reportSaveError("addMaintenanceItem", error);
+        apply((st) => ({ ...st, maintenanceItems: st.maintenanceItems.filter((i) => i.id !== item.id) }));
+        return null;
+      }
+      return item.id;
+    },
+    [apply, supabase, userId]
+  );
+
+  const updateMaintenanceItem = useCallback(
+    (id: string, patch: Partial<MaintenanceItem>) => {
+      apply((st) => ({
+        ...st,
+        maintenanceItems: st.maintenanceItems.map((i) => (i.id === id ? { ...i, ...patch } : i)),
+      }));
+      supabase.from("maintenance_items").update(maintenanceItemToUpdateRow(patch)).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("updateMaintenanceItem", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  const deleteMaintenanceItem = useCallback(
+    (id: string) => {
+      apply((st) => ({ ...st, maintenanceItems: st.maintenanceItems.filter((i) => i.id !== id) }));
+      supabase.from("maintenance_items").update({ deleted_at: new Date().toISOString() }).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("deleteMaintenanceItem", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  // "Fiz hoje": guarda no histórico E move o item pra frente. O próximo
+  // vencimento não é gravado — é calculado a partir daqui (ver maintenance.ts),
+  // pra não existirem duas verdades sobre a mesma coisa.
+  const registerMaintenanceService = useCallback(
+    (itemId: string, doneOn: string, odometer: number | null, note: string) => {
+      if (!userId) return;
+      const servico = {
+        id: uid(),
+        itemId,
+        doneOn,
+        odometer: odometer !== null && Number.isFinite(odometer) ? Math.round(odometer) : null,
+        note: note.trim(),
+      };
+      apply((st) => ({
+        ...st,
+        maintenanceServices: [servico, ...st.maintenanceServices],
+        maintenanceItems: st.maintenanceItems.map((i) =>
+          i.id === itemId ? { ...i, lastDoneOn: doneOn, lastDoneOdometer: servico.odometer } : i
+        ),
+      }));
+      supabase
+        .from("maintenance_services")
+        .insert({
+          id: servico.id,
+          user_id: userId,
+          item_id: itemId,
+          done_on: doneOn,
+          odometer: servico.odometer,
+          note: servico.note,
+        })
+        .then(({ error }) => {
+          if (error) reportSaveError("registrar serviço", error);
+        });
+      supabase
+        .from("maintenance_items")
+        .update({ last_done_on: doneOn, last_done_odometer: servico.odometer })
+        .eq("id", itemId)
+        .then(({ error }) => {
+          if (error) reportSaveError("atualizar item de manutenção", error);
+        });
+
+      // Fazer o serviço também é uma leitura do odômetro: aproveita pra manter
+      // o ritmo de rodagem atualizado sem pedir o número duas vezes.
+      const item = stateRef.current.maintenanceItems.find((i) => i.id === itemId);
+      if (item && servico.odometer !== null) addOdometerReading(item.assetId, servico.odometer, doneOn);
+    },
+    [addOdometerReading, apply, supabase, userId]
+  );
+
   // ---------- tarefa desafiadora e adiamentos ----------
   // Marcar como evento leva a tarefa pro status "Agendado" — mas SÓ se ela
   // ainda estiver no primeiro status (ninguém começou). Tarefa que já está em
@@ -2434,6 +2667,14 @@ export function useBoard(userId: string | null) {
     findTrackable,
     addTask,
     setTaskTimeMinutes,
+    addMaintenanceAsset,
+    updateMaintenanceAsset,
+    deleteMaintenanceAsset,
+    addOdometerReading,
+    addMaintenanceItem,
+    updateMaintenanceItem,
+    deleteMaintenanceItem,
+    registerMaintenanceService,
     setChallenging,
     setIsEvent,
     logPostponement,

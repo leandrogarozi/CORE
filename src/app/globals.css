@@ -876,6 +876,74 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .postpone-input-row textarea::placeholder{ color:var(--text-faint); }
 .postpone-hint{ margin:0; font-size:11px; color:var(--text-faint); line-height:1.45; }
 
+/* Manutenção */
+.maint-list{ display:flex; flex-direction:column; gap:12px; }
+.maint-asset{ background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); padding:11px 13px; }
+.maint-asset-head{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.maint-asset-icon{ display:flex; color:var(--text-faint); flex:none; }
+.maint-asset-name{ flex:1; min-width:0; font-size:13.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.maint-odometer{ font-size:10.5px; color:var(--text-faint); flex:none; white-space:nowrap; }
+.maint-flag{ display:inline-flex; align-items:center; gap:3px; flex:none; font-size:9px; font-weight:700; padding:1px 6px; border-radius:4px; text-transform:uppercase; letter-spacing:0.04em; }
+.maint-flag svg{ width:10px; height:10px; }
+.maint-flag.vencido{ color:var(--danger); background:color-mix(in srgb, var(--danger) 14%, var(--surface)); }
+.maint-flag.proximo{ color:var(--challenge); background:var(--challenge-soft); }
+
+/* Caixa do odômetro: fica em destaque quando está na hora de conferir, porque
+   sem leitura nova o vencimento por km não tem como ser previsto. */
+.maint-odo-box{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  background:var(--surface-2); border-radius:9px; padding:7px 10px; margin-bottom:9px;
+  font-size:11.5px; color:var(--text-muted);
+}
+.maint-odo-box.due{ background:var(--challenge-soft); color:var(--challenge); }
+.maint-odo-text{ flex:1; min-width:140px; }
+.maint-odo-box .btn{ font-size:11px; padding:4px 9px; flex:none; }
+.maint-odo-form{ display:flex; align-items:center; gap:6px; flex:1; flex-wrap:wrap; }
+.maint-odo-form input{
+  width:120px; background:var(--surface); border:1px solid var(--border-strong);
+  border-radius:7px; padding:5px 8px; font-size:12.5px; color:var(--text);
+}
+.maint-odo-every{ display:flex; align-items:center; gap:4px; font-size:10.5px; color:var(--text-faint); flex:none; }
+.maint-odo-every input{
+  width:46px; background:var(--surface); border:1px solid var(--border);
+  border-radius:6px; padding:2px 5px; font-size:10.5px; color:var(--text); text-align:right;
+}
+
+.maint-items{ display:flex; flex-direction:column; }
+.maint-item{ border-top:1px solid var(--border); padding:7px 0; }
+.maint-item:first-child{ border-top:none; }
+.maint-item-head{ display:flex; align-items:center; gap:7px; }
+.maint-item-name{ font-size:12.5px; font-weight:600; flex:none; }
+.maint-item-resumo{ flex:1; min-width:0; font-size:11px; color:var(--text-faint); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.maint-vencido .maint-item-resumo{ color:var(--danger); }
+.maint-done-btn{ flex:none; font-size:11px; padding:3px 9px; gap:4px; }
+.maint-done-btn svg{ width:11px; height:11px; }
+
+.maint-register{ margin:7px 0 4px; padding:9px 11px; background:var(--surface-2); border-radius:9px; }
+.maint-register-row{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:7px; }
+.maint-register-row label{ display:flex; flex-direction:column; gap:3px; }
+.maint-register-row .maint-grow{ flex:1; min-width:180px; }
+.maint-register-row input{
+  background:var(--surface); border:1px solid var(--border-strong); border-radius:7px;
+  padding:5px 8px; font-size:12.5px; color:var(--text); width:100%; box-sizing:border-box;
+}
+.maint-item-body{ margin-top:7px; padding-top:8px; border-top:1px dashed var(--border); }
+.maint-explain{ font-size:11px; color:var(--text-faint); margin:4px 0 8px; line-height:1.45; }
+.maint-history{ display:flex; flex-direction:column; gap:3px; margin-bottom:8px; }
+.maint-history-row{ display:flex; align-items:center; gap:8px; font-size:11px; color:var(--text-muted); }
+.maint-history-km{ color:var(--text-faint); }
+.maint-history-note{ flex:1; min-width:0; color:var(--text-faint); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+.maint-suggestions{ display:flex; flex-direction:column; gap:5px; margin:9px 0 6px; }
+.maint-suggestion-row{ display:flex; flex-wrap:wrap; gap:5px; }
+.maint-suggestion{
+  font:inherit; font-size:10.5px; color:var(--text-muted); cursor:pointer;
+  background:var(--surface-2); border:1px solid var(--border); border-radius:999px; padding:3px 9px;
+}
+.maint-suggestion:hover{ border-color:var(--accent); color:var(--accent); }
+.maint-quickadd{ border-bottom:none; padding:4px 0 0; }
+.maint-kind-select{ width:100px; flex:none; }
+
 /* Plano de estudo */
 .study-list{ display:flex; flex-direction:column; gap:10px; }
 .study-card{ background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); padding:11px 13px; }

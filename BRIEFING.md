@@ -326,6 +326,79 @@ como evento (tem hora, tem cliente, está acontecendo).
 Isso também é a base pra sincronizar com a agenda do Google depois: o que
 vai pro calendário é **evento**, não tarefa.
 
+## Módulo Manutenção (13/09)
+
+Ideia do Leandro: "troca de óleo do carro e da moto — se troquei hoje,
+cadastra a próxima, tipo quando vence, e aí ele alerta".
+
+### O que faz esse módulo existir
+
+Troca de óleo **não vence por tempo**: vence por **km OU tempo, o que chegar
+primeiro** ("10.000 km ou 1 ano"). Se fosse só tempo, um lembrete recorrente
+a cada 12 meses já resolveria e o módulo não precisaria existir. É a regra do
+"o que vencer primeiro" que justifica tudo aqui.
+
+### A sacada: km vira data
+
+O app não sabe quanto ele rodou. Então: ele anota o odômetro de vez em
+quando, e com **duas ou mais leituras** o app calcula o ritmo de rodagem
+(km/dia) e **projeta a data** em que o km alvo será atingido. Aí o
+vencimento por km vira data — e data o app já sabe avisar.
+
+Com uma leitura só, `distancePerDay` devolve **null** em vez de chutar: um
+ritmo inventado daria uma data errada com cara de certa.
+
+Por isso o **lembrete de conferir o odômetro** (pedido dele, configurável em
+dias por ativo) é parte do motor, não enfeite: sem leitura nova, a previsão
+por km simplesmente não existe. A caixa do odômetro muda de cor quando está
+na hora de conferir.
+
+### Estrutura
+
+- **Ativos** (`maintenance_assets`): Civic, moto, apartamento. Veículo
+  acompanha odômetro; casa não.
+- **Leituras** (`maintenance_odometer_readings`): uma por dia, regravar o
+  mesmo dia substitui em vez de duplicar.
+- **Itens** (`maintenance_items`): intervalo em meses e/ou em km, aviso
+  configurável em dias e em km.
+- **Histórico** (`maintenance_services`): cada serviço feito, com data e km.
+  Registrar um serviço **também vira leitura do odômetro** — assim o ritmo se
+  mantém atualizado sem pedir o número duas vezes.
+- O próximo vencimento **não é gravado**, é calculado a partir do último
+  serviço (ver `src/lib/board/maintenance.ts`). Duas verdades sobre a mesma
+  coisa é como se cria inconsistência.
+
+### Itens já sugeridos (ele pediu campos pré-descritos)
+
+Veículo: óleo, filtros (óleo, ar, combustível, ar-condicionado), rodízio e
+troca de pneus, alinhamento, pastilhas, revisão, IPVA, licenciamento,
+seguro. Casa: ar-condicionado, purificador, caixa d'água, dedetização,
+extintor, gás. Os intervalos são os usuais de mercado e servem de ponto de
+partida — **quem manda é o manual do veículo**, e todo campo é editável.
+
+### Custo ficou de fora — decisão dele
+
+"Não quero nesse momento misturar esse app com app de contas, eu já tenho um
+que estou construindo... ter essas duas funções misturadas acho que pode
+embolar mais." O histórico guarda data e km, sem valor. Se um dia fizer
+sentido, o caminho é **sincronizar com o app financeiro dele**, não duplicar
+o controle de gastos aqui.
+
+### Testes
+
+22 verificações em `maintenance.ts`, incluindo o caso que prova o motor: o
+**mesmo item de óleo** com ritmos de rodagem diferentes vence por motivos
+diferentes (uso quando roda muito, tempo quando o carro fica parado). Os
+testes pegaram de novo um erro **meu** de aritmética de calendário, não do
+código.
+
+### Ainda não feito
+
+O aviso ainda mora dentro do módulo (estado "vencido"/"chegando" na lista).
+Falta levar isso pro Dashboard e/ou gerar Lembrete automático quando um item
+entra na janela — o plano é **reusar Lembretes**, que já tem sino, vencidos e
+WhatsApp, em vez de criar um segundo sistema de alerta.
+
 ## Status "Agendado" (11/09)
 
 Ideia do Leandro: "cadastrou evento, fica agendado — até mais fácil depois

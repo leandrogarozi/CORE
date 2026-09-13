@@ -17,6 +17,7 @@ import { BooksView } from "./BooksView";
 import { RemindersView, RemindersButton } from "./RemindersView";
 import { SynapsesView } from "./SynapsesView";
 import { StudyPlansView } from "./StudyPlansView";
+import { MaintenanceView } from "./MaintenanceView";
 import { MedicationsView } from "./MedicationsView";
 import { ChecklistsView } from "./ChecklistsView";
 import { DietView } from "./DietView";
@@ -216,6 +217,8 @@ function BoardShell() {
         <SynapsesView onBack={() => setViewMode("day")} />
       ) : viewMode === "estudo" ? (
         <StudyPlansView onBack={() => setViewMode("day")} />
+      ) : viewMode === "manutencao" ? (
+        <MaintenanceView onBack={() => setViewMode("day")} />
       ) : viewMode === "reminders" ? (
         <RemindersView onBack={() => setViewMode("day")} onOpenMeetings={() => setViewMode("meetings")} />
       ) : viewMode === "medications" ? (

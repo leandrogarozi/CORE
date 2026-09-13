@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { BellIcon, BoltIcon,
-  BookOpenIcon, BookIcon, ChartIcon, ChecklistIcon, FolderIcon, HomeIcon, MealIcon, PillIcon, SettingsIcon, TrashIcon, UsersGroupIcon, WeekIcon } from "./icons";
+  BookOpenIcon, BookIcon, CarIcon, ChartIcon, ChecklistIcon, FolderIcon, HomeIcon, MealIcon, PillIcon, SettingsIcon, TrashIcon, UsersGroupIcon, WeekIcon } from "./icons";
 
 export type ViewMode =
   | "day"
@@ -15,6 +15,7 @@ export type ViewMode =
   | "reminders"
   | "synapses"
   | "estudo"
+  | "manutencao"
   | "medications"
   | "checklists"
   | "diet"
@@ -100,6 +101,13 @@ export function Sidebar({
             onClick={() => onSelect("estudo")}
           >
             <BookOpenIcon /> Plano de Estudo
+          </button>
+          <button
+            type="button"
+            className={"sidebar-item" + (viewMode === "manutencao" ? " active" : "")}
+            onClick={() => onSelect("manutencao")}
+          >
+            <CarIcon /> Manutenção
           </button>
           <button
             type="button"

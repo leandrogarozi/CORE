@@ -95,6 +95,50 @@ export interface TaskPostponement {
   createdAt: string;
 }
 
+// ---------- Manutenção ----------
+// O bem que recebe manutenção (carro, moto, apartamento).
+export interface MaintenanceAsset {
+  id: string;
+  name: string;
+  kind: "veiculo" | "casa" | "outro";
+  tracksOdometer: boolean;
+  odometerUnit: string;
+  // De quantos em quantos dias lembrar de conferir o odômetro. Sem leitura nova
+  // não dá pra projetar o vencimento por km. null = não lembrar.
+  odometerReminderDays: number | null;
+  order: number;
+}
+
+export interface OdometerReading {
+  id: string;
+  assetId: string;
+  reading: number;
+  readOn: string; // ISO date
+}
+
+export interface MaintenanceItem {
+  id: string;
+  assetId: string;
+  name: string;
+  intervalMonths: number | null; // null = não vence por tempo
+  intervalDistance: number | null; // null = não vence por uso
+  alertDaysBefore: number;
+  alertDistanceBefore: number;
+  lastDoneOn: string | null;
+  lastDoneOdometer: number | null;
+  note: string;
+  active: boolean;
+  order: number;
+}
+
+export interface MaintenanceService {
+  id: string;
+  itemId: string;
+  doneOn: string;
+  odometer: number | null;
+  note: string;
+}
+
 export type StudyPlanStatus = "ativo" | "pausado" | "concluido";
 
 // Plano de estudo: um compromisso grande (matéria da pós, mentoria) que o app
@@ -382,6 +426,10 @@ export interface BoardState {
   taskTimeEntries: TaskTimeEntry[]; // tempo por dia das tarefas
   studyPlans: StudyPlan[];
   taskPostponements: TaskPostponement[];
+  maintenanceAssets: MaintenanceAsset[];
+  odometerReadings: OdometerReading[];
+  maintenanceItems: MaintenanceItem[];
+  maintenanceServices: MaintenanceService[];
   trashedTasks: Task[]; // tarefas excluídas (soft delete) — Lixeira
   projects: Project[]; // PDA — planos de ação com tarefas vinculadas como etapas
   habits: RecurringItem[];

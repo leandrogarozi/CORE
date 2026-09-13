@@ -12,7 +12,11 @@ import type {
   DailyLog,
   DayLog,
   DietMeal,
+  MaintenanceAsset,
+  MaintenanceItem,
+  MaintenanceService,
   Medication,
+  OdometerReading,
   MedicationGroup,
   MedicationTimeMode,
   Priority,
@@ -42,6 +46,10 @@ type BlockLogEntryRow = Tables<"fixed_block_log_entries">;
 type SeriesRow = Tables<"task_series">;
 type TaskTimeEntryRow = Tables<"task_time_entries">;
 type StudyPlanRow = Tables<"study_plans">;
+type MaintenanceAssetRow = Tables<"maintenance_assets">;
+type OdometerReadingRow = Tables<"maintenance_odometer_readings">;
+type MaintenanceItemRow = Tables<"maintenance_items">;
+type MaintenanceServiceRow = Tables<"maintenance_services">;
 type TaskPostponementRow = Tables<"task_postponements">;
 type TaskStatusRow = Tables<"task_statuses">;
 type SettingsRow = Tables<"settings">;
@@ -167,6 +175,57 @@ export function rowToTaskPostponement(row: TaskPostponementRow): TaskPostponemen
     reason: row.reason,
     createdAt: row.created_at,
   };
+}
+
+export function rowToMaintenanceAsset(row: MaintenanceAssetRow): MaintenanceAsset {
+  return {
+    id: row.id,
+    name: row.name,
+    kind: row.kind as MaintenanceAsset["kind"],
+    tracksOdometer: row.tracks_odometer,
+    odometerUnit: row.odometer_unit,
+    odometerReminderDays: row.odometer_reminder_days,
+    order: row.sort_order,
+  };
+}
+
+export function rowToOdometerReading(row: OdometerReadingRow): OdometerReading {
+  return { id: row.id, assetId: row.asset_id, reading: row.reading, readOn: row.read_on };
+}
+
+export function rowToMaintenanceItem(row: MaintenanceItemRow): MaintenanceItem {
+  return {
+    id: row.id,
+    assetId: row.asset_id,
+    name: row.name,
+    intervalMonths: row.interval_months,
+    intervalDistance: row.interval_distance,
+    alertDaysBefore: row.alert_days_before,
+    alertDistanceBefore: row.alert_distance_before,
+    lastDoneOn: row.last_done_on,
+    lastDoneOdometer: row.last_done_odometer,
+    note: row.note,
+    active: row.active,
+    order: row.sort_order,
+  };
+}
+
+export function maintenanceItemToUpdateRow(i: Partial<MaintenanceItem>): TablesUpdate<"maintenance_items"> {
+  const row: TablesUpdate<"maintenance_items"> = {};
+  if (i.name !== undefined) row.name = i.name;
+  if (i.intervalMonths !== undefined) row.interval_months = i.intervalMonths;
+  if (i.intervalDistance !== undefined) row.interval_distance = i.intervalDistance;
+  if (i.alertDaysBefore !== undefined) row.alert_days_before = i.alertDaysBefore;
+  if (i.alertDistanceBefore !== undefined) row.alert_distance_before = i.alertDistanceBefore;
+  if (i.lastDoneOn !== undefined) row.last_done_on = i.lastDoneOn;
+  if (i.lastDoneOdometer !== undefined) row.last_done_odometer = i.lastDoneOdometer;
+  if (i.note !== undefined) row.note = i.note;
+  if (i.active !== undefined) row.active = i.active;
+  return row;
+}
+
+export function rowToMaintenanceService(row: MaintenanceServiceRow): MaintenanceService {
+  return { id: row.id, itemId: row.item_id, doneOn: row.done_on, odometer: row.odometer, note: row.note };
 }
 
 export function rowToStudyPlan(row: StudyPlanRow): StudyPlan {

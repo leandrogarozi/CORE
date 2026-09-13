@@ -371,6 +371,156 @@ export type Database = {
         }
         Relationships: []
       }
+      maintenance_assets: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          id: string
+          kind: string
+          name: string
+          odometer_reminder_days: number | null
+          odometer_unit: string
+          sort_order: number
+          tracks_odometer: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          kind?: string
+          name: string
+          odometer_reminder_days?: number | null
+          odometer_unit?: string
+          sort_order?: number
+          tracks_odometer?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          kind?: string
+          name?: string
+          odometer_reminder_days?: number | null
+          odometer_unit?: string
+          sort_order?: number
+          tracks_odometer?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
+      maintenance_odometer_readings: {
+        Row: {
+          asset_id: string
+          created_at: string
+          id: string
+          read_on: string
+          reading: number
+          user_id: string
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string
+          id?: string
+          read_on?: string
+          reading: number
+          user_id: string
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string
+          id?: string
+          read_on?: string
+          reading?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      maintenance_items: {
+        Row: {
+          active: boolean
+          alert_days_before: number
+          alert_distance_before: number
+          asset_id: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          interval_distance: number | null
+          interval_months: number | null
+          last_done_odometer: number | null
+          last_done_on: string | null
+          name: string
+          note: string
+          sort_order: number
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          alert_days_before?: number
+          alert_distance_before?: number
+          asset_id: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          interval_distance?: number | null
+          interval_months?: number | null
+          last_done_odometer?: number | null
+          last_done_on?: string | null
+          name: string
+          note?: string
+          sort_order?: number
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          alert_days_before?: number
+          alert_distance_before?: number
+          asset_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          interval_distance?: number | null
+          interval_months?: number | null
+          last_done_odometer?: number | null
+          last_done_on?: string | null
+          name?: string
+          note?: string
+          sort_order?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      maintenance_services: {
+        Row: {
+          created_at: string
+          done_on: string
+          id: string
+          item_id: string
+          note: string
+          odometer: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          done_on?: string
+          id?: string
+          item_id: string
+          note?: string
+          odometer?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          done_on?: string
+          id?: string
+          item_id?: string
+          note?: string
+          odometer?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       medication_groups: {
         Row: {
           active: boolean
