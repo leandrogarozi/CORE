@@ -30,6 +30,9 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
   const { board, askConfirm } = useBoardCtx();
   const [registrando, setRegistrando] = useState(false);
   const [aberto, setAberto] = useState(false);
+  // Rascunho do nome: grava ao sair do campo, pra não mandar uma escrita por
+  // tecla digitada.
+  const [nomeDraft, setNomeDraft] = useState<string | null>(null);
   const [doneOn, setDoneOn] = useState(() => todayISO());
   const [odometro, setOdometro] = useState("");
   const [nota, setNota] = useState("");
@@ -68,7 +71,19 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
         <button type="button" className="synapse-card-toggle" onClick={() => setAberto((v) => !v)}>
           <ChevronIcon />
         </button>
-        <span className="maint-item-name">{item.name}</span>
+        <input
+          type="text"
+          className="maint-item-name"
+          value={nomeDraft ?? item.name}
+          aria-label="Nome do item"
+          onChange={(e) => setNomeDraft(e.target.value)}
+          onBlur={() => {
+            const novo = nomeDraft?.trim();
+            if (novo && novo !== item.name) board.updateMaintenanceItem(item.id, { name: novo });
+            setNomeDraft(null);
+          }}
+          onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+        />
         {st.state === "vencido" && (
           <span className="maint-flag vencido">
             <WarningIcon /> vencido
@@ -231,6 +246,7 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
 function AssetCard({ asset }: { asset: MaintenanceAsset }) {
   const { board, askConfirm } = useBoardCtx();
   const [novoItem, setNovoItem] = useState("");
+  const [nomeDraft, setNomeDraft] = useState<string | null>(null);
   const [lendoOdometro, setLendoOdometro] = useState(false);
   const [leitura, setLeitura] = useState("");
 
@@ -259,7 +275,19 @@ function AssetCard({ asset }: { asset: MaintenanceAsset }) {
     <div className="maint-asset">
       <div className="maint-asset-head">
         <span className="maint-asset-icon">{asset.kind === "casa" ? <HomeIcon /> : <CarIcon />}</span>
-        <span className="maint-asset-name">{asset.name}</span>
+        <input
+          type="text"
+          className="maint-asset-name"
+          value={nomeDraft ?? asset.name}
+          aria-label="Nome"
+          onChange={(e) => setNomeDraft(e.target.value)}
+          onBlur={() => {
+            const novo = nomeDraft?.trim();
+            if (novo && novo !== asset.name) board.updateMaintenanceAsset(asset.id, { name: novo });
+            setNomeDraft(null);
+          }}
+          onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+        />
         {vencidos > 0 && <span className="maint-flag vencido">{vencidos} vencido(s)</span>}
         {asset.tracksOdometer && atual && (
           <span className="maint-odometer mono">

@@ -881,7 +881,12 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .maint-asset{ background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); padding:11px 13px; }
 .maint-asset-head{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
 .maint-asset-icon{ display:flex; color:var(--text-faint); flex:none; }
-.maint-asset-name{ flex:1; min-width:0; font-size:13.5px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.maint-asset-name{
+  flex:1; min-width:0; font-size:13.5px; font-weight:600; color:var(--text);
+  background:transparent; border:1px solid transparent; border-radius:6px; padding:3px 5px;
+}
+.maint-asset-name:hover{ background:var(--surface-2); border-color:var(--border); }
+.maint-asset-name:focus{ outline:none; background:var(--surface-2); border-color:var(--accent); }
 .maint-odometer{ font-size:10.5px; color:var(--text-faint); flex:none; white-space:nowrap; }
 .maint-flag{ display:inline-flex; align-items:center; gap:3px; flex:none; font-size:9px; font-weight:700; padding:1px 6px; border-radius:4px; text-transform:uppercase; letter-spacing:0.04em; }
 .maint-flag svg{ width:10px; height:10px; }
@@ -913,7 +918,12 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .maint-item{ border-top:1px solid var(--border); padding:7px 0; }
 .maint-item:first-child{ border-top:none; }
 .maint-item-head{ display:flex; align-items:center; gap:7px; }
-.maint-item-name{ font-size:12.5px; font-weight:600; flex:none; }
+.maint-item-name{
+  font-size:12.5px; font-weight:600; color:var(--text); flex:0 1 auto; min-width:80px; width:auto;
+  background:transparent; border:1px solid transparent; border-radius:6px; padding:2px 5px;
+}
+.maint-item-name:hover{ background:var(--surface-2); border-color:var(--border); }
+.maint-item-name:focus{ outline:none; background:var(--surface-2); border-color:var(--accent); }
 .maint-item-resumo{ flex:1; min-width:0; font-size:11px; color:var(--text-faint); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .maint-vencido .maint-item-resumo{ color:var(--danger); }
 .maint-done-btn{ flex:none; font-size:11px; padding:3px 9px; gap:4px; }
