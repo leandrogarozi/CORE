@@ -13,6 +13,7 @@ import {
   odometerCheckDue,
 } from "@/lib/board/maintenance";
 import { fmtShortDate, todayISO } from "@/lib/date-utils";
+import { fmtBRL, parseAmountToCents } from "@/lib/money";
 import type { MaintenanceAsset, MaintenanceItem } from "@/lib/types";
 
 const KIND_LABEL: Record<MaintenanceAsset["kind"], string> = {
@@ -35,6 +36,7 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
   const [nomeDraft, setNomeDraft] = useState<string | null>(null);
   const [doneOn, setDoneOn] = useState(() => todayISO());
   const [odometro, setOdometro] = useState("");
+  const [valor, setValor] = useState("");
   const [nota, setNota] = useState("");
 
   const readings = board.state.odometerReadings.filter((r) => r.assetId === asset.id);
@@ -43,11 +45,25 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
 
   function registrar() {
     const km = odometro.trim() === "" ? null : Number(odometro.replace(/\D/g, ""));
-    board.registerMaintenanceService(item.id, doneOn, km, nota);
+    const custo = valor.trim() === "" ? null : parseAmountToCents(valor);
+    board.registerMaintenanceService(item.id, doneOn, km, custo, nota);
     setRegistrando(false);
     setOdometro("");
+    setValor("");
     setNota("");
   }
+
+  // "a cada 12 meses ou 10.000 km" — o que o item usa pra calcular o próximo.
+  const intervalo = (() => {
+    const partes: string[] = [];
+    if (item.intervalMonths) {
+      partes.push(item.intervalMonths === 12 ? "1 ano" : `${item.intervalMonths} meses`);
+    }
+    if (item.intervalDistance && asset.tracksOdometer) {
+      partes.push(`${fmtKm(item.intervalDistance)} ${asset.odometerUnit}`);
+    }
+    return partes.length ? `a cada ${partes.join(" ou ")}` : null;
+  })();
 
   const resumo = (() => {
     if (st.state === "sem_base") return "Nunca registrado — registre o último serviço pra começar a contar";
@@ -62,6 +78,7 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
     }
     if (st.dueBy === "uso") partes.push("pelo uso");
     else if (st.dueBy === "tempo" && st.dueOdometer) partes.push("pelo tempo");
+    if (!partes.length) return "Sem intervalo definido — clique em \"definir intervalo\"";
     return partes.join(" · ");
   })();
 
@@ -90,6 +107,17 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
           </span>
         )}
         {st.state === "proximo" && <span className="maint-flag proximo">chegando</span>}
+        {/* O intervalo fica à vista: ele estava só dentro do item aberto, e o
+            Leandro não achou onde trocar 10.000 por 16.000 km. Clicar abre
+            direto o lugar de editar. */}
+        <button
+          type="button"
+          className={"maint-interval" + (intervalo === null ? " vazio" : "")}
+          title="Clique pra mudar o intervalo"
+          onClick={() => setAberto(true)}
+        >
+          {intervalo ?? "definir intervalo"}
+        </button>
         <span className="maint-item-resumo">{resumo}</span>
         <button
           type="button"
@@ -119,6 +147,16 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
                 />
               </label>
             )}
+            <label>
+              <span className="prop-label">Quanto custou</span>
+              <input
+                type="text"
+                inputMode="decimal"
+                placeholder="opcional"
+                value={valor}
+                onChange={(e) => setValor(e.target.value)}
+              />
+            </label>
           </div>
           <div className="maint-register-row">
             <label className="maint-grow">
@@ -200,6 +238,10 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
             </label>
           </div>
 
+          <div className="maint-explain">
+            Preencha os dois quando o serviço vencer por tempo <strong>ou</strong> por{" "}
+            {asset.odometerUnit} — o FARO usa o que chegar primeiro. Deixe um vazio se só um vale.
+          </div>
           {st.dueDateByTime && st.dueDateByUse && (
             <div className="maint-explain">
               Por tempo venceria {fmtShortDate(st.dueDateByTime)}; pelo uso, {fmtShortDate(st.dueDateByUse)}.
@@ -217,6 +259,9 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
                     <span className="mono maint-history-km">
                       {fmtKm(s.odometer)} {asset.odometerUnit}
                     </span>
+                  )}
+                  {s.costCents !== null && (
+                    <span className="mono maint-history-cost">{fmtBRL(s.costCents)}</span>
                   )}
                   {s.note && <span className="maint-history-note">{s.note}</span>}
                 </div>

@@ -924,7 +924,15 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 }
 .maint-item-name:hover{ background:var(--surface-2); border-color:var(--border); }
 .maint-item-name:focus{ outline:none; background:var(--surface-2); border-color:var(--accent); }
+.maint-interval{
+  flex:none; font:inherit; font-size:10px; font-weight:600; cursor:pointer; white-space:nowrap;
+  color:var(--text-muted); background:var(--surface-2); border:1px solid var(--border);
+  border-radius:999px; padding:1px 8px;
+}
+.maint-interval:hover{ border-color:var(--accent); color:var(--accent); }
+.maint-interval.vazio{ color:var(--challenge); background:var(--challenge-soft); border-color:transparent; }
 .maint-item-resumo{ flex:1; min-width:0; font-size:11px; color:var(--text-faint); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.maint-history-cost{ color:var(--text-muted); font-weight:600; }
 .maint-vencido .maint-item-resumo{ color:var(--danger); }
 .maint-done-btn{ flex:none; font-size:11px; padding:3px 9px; gap:4px; }
 .maint-done-btn svg{ width:11px; height:11px; }

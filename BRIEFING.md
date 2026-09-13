@@ -392,6 +392,29 @@ diferentes (uso quando roda muito, tempo quando o carro fica parado). Os
 testes pegaram de novo um erro **meu** de aritmética de calendário, não do
 código.
 
+### Ajustes depois do primeiro uso real (13/09)
+
+O Leandro cadastrou a moto (scrambler 400x) e apareceram dois pontos:
+
+**1. O intervalo estava escondido.** Os campos "a cada X meses" e "a cada X
+km" só existiam dentro do item expandido, e ele não achou onde trocar os
+10.000 km sugeridos pelos 16.000 que a moto dele pede — chegou a pedir um
+recurso que já existia. **Falha de desenho, não de função.** Agora o
+intervalo aparece como selo na própria linha ("a cada 1 ano ou 10.000 km"),
+e clicar nele abre direto o lugar de editar. Item sem intervalo mostra
+"definir intervalo" em âmbar, pedindo atenção.
+
+Lição: **campo que o usuário precisa ajustar não pode morar atrás de um
+chevron.** O que está configurado tem que estar à vista, senão ele pede de
+novo o que já existe — e a culpa é da tela.
+
+**2. Custo entrou, como registro.** Ele reviu a decisão anterior: "não é
+para calcular o custo aqui nesse aplicativo, mas fica registro o valor
+também". Então `maintenance_services.cost_cents` guarda quanto custou cada
+serviço e o valor aparece no histórico — **sem ser somado ou consolidado em
+lugar nenhum**. A separação do app de contas dele continua de pé: aqui é
+memória ("quanto paguei da última vez"), não contabilidade.
+
 ### Ainda não feito
 
 O aviso ainda mora dentro do módulo (estado "vencido"/"chegando" na lista).

@@ -493,6 +493,7 @@ export type Database = {
       }
       maintenance_services: {
         Row: {
+          cost_cents: number | null
           created_at: string
           done_on: string
           id: string
@@ -502,6 +503,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          cost_cents?: number | null
           created_at?: string
           done_on?: string
           id?: string
@@ -511,6 +513,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          cost_cents?: number | null
           created_at?: string
           done_on?: string
           id?: string

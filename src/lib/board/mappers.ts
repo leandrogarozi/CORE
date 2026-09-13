@@ -225,7 +225,14 @@ export function maintenanceItemToUpdateRow(i: Partial<MaintenanceItem>): TablesU
 }
 
 export function rowToMaintenanceService(row: MaintenanceServiceRow): MaintenanceService {
-  return { id: row.id, itemId: row.item_id, doneOn: row.done_on, odometer: row.odometer, note: row.note };
+  return {
+    id: row.id,
+    itemId: row.item_id,
+    doneOn: row.done_on,
+    odometer: row.odometer,
+    costCents: row.cost_cents,
+    note: row.note,
+  };
 }
 
 export function rowToStudyPlan(row: StudyPlanRow): StudyPlan {

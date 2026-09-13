@@ -1585,13 +1585,14 @@ export function useBoard(userId: string | null) {
   // vencimento não é gravado — é calculado a partir daqui (ver maintenance.ts),
   // pra não existirem duas verdades sobre a mesma coisa.
   const registerMaintenanceService = useCallback(
-    (itemId: string, doneOn: string, odometer: number | null, note: string) => {
+    (itemId: string, doneOn: string, odometer: number | null, costCents: number | null, note: string) => {
       if (!userId) return;
       const servico = {
         id: uid(),
         itemId,
         doneOn,
         odometer: odometer !== null && Number.isFinite(odometer) ? Math.round(odometer) : null,
+        costCents: costCents !== null && Number.isFinite(costCents) ? Math.round(costCents) : null,
         note: note.trim(),
       };
       apply((st) => ({
@@ -1609,6 +1610,7 @@ export function useBoard(userId: string | null) {
           item_id: itemId,
           done_on: doneOn,
           odometer: servico.odometer,
+          cost_cents: servico.costCents,
           note: servico.note,
         })
         .then(({ error }) => {

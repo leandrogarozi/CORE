@@ -136,6 +136,10 @@ export interface MaintenanceService {
   itemId: string;
   doneOn: string;
   odometer: number | null;
+  // Quanto custou, em centavos. É registro, não contabilidade: não é somado
+  // nem consolidado em lugar nenhum do FARO — o controle de gastos é de outro
+  // app. Serve pra consultar "quanto paguei da última vez".
+  costCents: number | null;
   note: string;
 }
 
