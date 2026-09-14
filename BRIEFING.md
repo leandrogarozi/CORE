@@ -6,6 +6,50 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
 
 ## Próximos passos confirmados (retomar aqui)
 
+- [ ] **Sincronizar FARO → Google Agenda (decidido em 14/09, a fazer)**
+      Caminho escolhido: **conta de serviço** (service account), não OAuth.
+
+      **Por que não OAuth:** app em "teste" no Google tem a autorização
+      expirando em poucos dias (reconectar toda semana), e publicar exige
+      verificação porque o escopo de calendário é sensível. O Leandro
+      recusou explicitamente esse caminho: "isso eu não quero, prefiro fazer
+      de forma que já elimine isso".
+
+      **Por que não .ics:** é o mais barato (nenhum cadastro, ~1 rodada de
+      trabalho), mas a atualização depende de quando o Google resolve buscar
+      o feed — costuma levar horas e não dá pra forçar. Fica como plano B se
+      a conta de serviço travar.
+
+      **Como funciona a conta de serviço:** em vez do FARO pedir permissão,
+      cria-se uma identidade de robô no Google Cloud e o Leandro
+      **compartilha a agenda dele com o e-mail dessa conta**, como faria com
+      uma pessoa. Sem tela de consentimento, sem verificação, sem expiração,
+      e o evento vai pro Google na hora.
+
+      **Custo: zero** nos três caminhos. Calendar API é gratuita, e nem
+      Vercel nem Supabase mudam de plano por isso.
+
+      **O que vai pro calendário:** tarefa marcada como **evento**
+      (`tasks.is_event`), que é justamente pra isso que a marcação foi
+      criada em 11/09. Tarefa comum não sobe — senão a agenda dele viraria
+      lixo com 112 itens.
+
+      **Divisão do trabalho:**
+      - Claude: lado do FARO (credencial em env var, criar/atualizar/apagar
+        evento no Google, guardar o id do evento do Google na tarefa) +
+        passo a passo curto do Google Cloud.
+      - Leandro (~10 min, mecânico): criar projeto no Google Cloud, ativar
+        Calendar API, criar a conta de serviço, baixar o JSON, compartilhar
+        a agenda com o e-mail da conta (permissão de "fazer alterações"),
+        colar a credencial na Vercel.
+
+      **Limitações já combinadas:** é mão única (evento criado direto no
+      Google não volta pro FARO) e os eventos aparecem como criados pelo
+      robô, não por ele.
+
+      **Status:** ele vai agendar pra 15 ou 16/09 e chamar. Não começar
+      antes — foi pedido explícito, pra não gastar sessão pela metade.
+
 - [x] **Lembretes** — implementado seguindo o spec (ver seção própria
       abaixo, dentro de "Especificações capturadas").
 - [x] **Pacote de ícones do Leandro** — recebido (442 SVGs do Figma,
