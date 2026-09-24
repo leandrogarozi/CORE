@@ -50,6 +50,54 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
       **Status:** ele vai agendar pra 15 ou 16/09 e chamar. Não começar
       antes — foi pedido explícito, pra não gastar sessão pela metade.
 
+- [ ] **Instinct (app.instinct.com) — avaliado em 24/09, NÃO integrar**
+      O Leandro recebeu convite de um amigo ("app de WhatsApp que faz
+      sucesso no Vale do Silício") e pediu avaliação. Conclusão: é um
+      produto interessante **pra uso pessoal dele**, mas não serve como
+      peça do FARO.
+
+      **O que é:** assistente pessoal de IA da Spear Street Technology
+      (São Francisco, aberta em abril/2026 por Noah Shinn, ex-Sierra).
+      Convite fechado. Você manda mensagem ou liga (SMS, WhatsApp,
+      telefone) e ele executa tarefas — marcar restaurante, limpar
+      caixa de entrada, comprar passagem. Levantou ~US$ 250 mi (Série B)
+      a US$ 2,5 bi com Index e Benchmark.
+
+      **Como funciona:** cada usuário ganha um **computador na nuvem
+      deles**, logado nas contas do usuário 24h por dia. O agente não
+      usa API de ninguém — ele opera telas como um humano operaria.
+      É justamente por isso que consegue mexer em sites sem API.
+
+      **Por que não serve pro FARO:**
+      1. **Não tem API pública nem webhook.** A arquitetura dele é o
+         oposto de integrável: ele dirige telas, não expõe interface.
+         Não existe caminho técnico pro FARO falar com ele.
+      2. **Não é canal de envio.** A necessidade do FARO é *mandar*
+         lembrete por WhatsApp a partir do nosso código (template
+         utility, ~US$ 0,008/msg). Isso o Instinct não faz — ele é um
+         assistente que age *no lugar* do Leandro, não um canal.
+      3. **Privacidade.** Os termos dão licença ampla e perpétua pra
+         usar o material do usuário em treino de modelo, e o agente
+         captura tela e teclado. Há relatos de e-mail resumido depois
+         de revogado o acesso, de phishing fácil no agente e de e-mail
+         enviado sem consentimento. O Gmail do Leandro tem cliente e
+         nota fiscal de MEI dentro.
+      4. **Confiabilidade.** Ficou mudo pra vários usuários em 21 e
+         22/09, sem página de status; gente sem saber quais e-mails
+         tinham sido enviados.
+      5. **Custo futuro.** Grátis hoje, com relatos de plano de
+         US$ 200–500/mês (consumo de computador na nuvem). O caminho
+         WhatsApp do FARO custa ~R$ 2–3/mês no volume dele.
+
+      **Recomendação:** guardar o convite e testar como ferramenta
+      pessoal, separada do FARO — e, se testar, com **conta de e-mail
+      secundária**, nunca a principal. No FARO, seguir o caminho já
+      montado.
+
+      **Ressalva honesta:** o proxy desta sessão bloqueia o site deles e
+      os sites de análise, então tudo acima vem de resumos de busca —
+      não li os Termos de Uso com meus próprios olhos.
+
 - [x] **Lembretes** — implementado seguindo o spec (ver seção própria
       abaixo, dentro de "Especificações capturadas").
 - [x] **Pacote de ícones do Leandro** — recebido (442 SVGs do Figma,
