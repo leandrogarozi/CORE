@@ -26,6 +26,7 @@ import {
   PaperclipIcon,
   PlayCircleIcon,
   CalendarCheckIcon,
+  ChevronIcon,
   RepeatIcon,
   ShieldWarningIcon,
   TagIcon,
@@ -893,15 +894,28 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
 
   return (
     <div className="edit-row" data-id={t.id}>
-      <input
-        type="text"
-        className="edit-title-input"
-        value={vals.title}
-        autoFocus
-        placeholder="Título da tarefa"
-        onChange={(e) => setVals((v) => ({ ...v, title: e.target.value }))}
-        onKeyDown={(e) => e.key === "Enter" && save()}
-      />
+      {/* Salvar e fechar no TOPO também: antes só existia lá embaixo, e quem
+          abria uma tarefa longa tinha que rolar a tela inteira só pra fechar. */}
+      <div className="edit-title-row">
+        <input
+          type="text"
+          className="edit-title-input"
+          value={vals.title}
+          autoFocus
+          placeholder="Título da tarefa"
+          onChange={(e) => setVals((v) => ({ ...v, title: e.target.value }))}
+          onKeyDown={(e) => e.key === "Enter" && save()}
+        />
+        <button
+          type="button"
+          className="icon-btn edit-collapse-btn"
+          title="Salvar e recolher"
+          aria-label="Salvar e recolher a tarefa"
+          onClick={save}
+        >
+          <ChevronIcon />
+        </button>
+      </div>
       {/* Lista de propriedades no estilo "ícone + nome + valor", em duas colunas:
           os campos ficam alinhados e discretos, sem virar um monte de caixas. */}
       <div className="prop-list">

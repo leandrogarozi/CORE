@@ -23,9 +23,20 @@ function applyNamingTemplate(template: string, projectName: string, n: number): 
   return template.replace(/\{projeto\}/g, () => projectName).replace(/\{etapa\}/g, () => String(n).padStart(2, "0"));
 }
 
-function projectProgress(projectId: string, tasks: { projectId: string | null; done: boolean }[]) {
+// Antes isso só contava concluídas, então mover uma etapa pra "Em andamento"
+// não mudava NADA na aba Projetos — parecia que o status não tinha pegado.
+// Agora o que está em andamento também aparece.
+function projectProgress(
+  projectId: string,
+  tasks: { projectId: string | null; done: boolean; statusId: string | null }[],
+  statusEmAndamentoIds: Set<string>
+) {
   const steps = tasks.filter((t) => t.projectId === projectId);
-  return { done: steps.filter((t) => t.done).length, total: steps.length };
+  return {
+    done: steps.filter((t) => t.done).length,
+    doing: steps.filter((t) => !t.done && t.statusId && statusEmAndamentoIds.has(t.statusId)).length,
+    total: steps.length,
+  };
 }
 
 function ProjectListRow({
@@ -34,12 +45,17 @@ function ProjectListRow({
   onOpen,
 }: {
   project: Project;
-  progress: { done: number; total: number };
+  progress: { done: number; doing: number; total: number };
   onOpen: () => void;
 }) {
   return (
     <button type="button" className={"project-row" + (project.status !== "active" ? " done" : "")} onClick={onOpen}>
       <span className="project-row-name">{project.name}</span>
+      {progress.doing > 0 && (
+        <span className="project-row-doing">
+          {progress.doing} em andamento
+        </span>
+      )}
       <span className="project-row-progress mono">
         {progress.total > 0 ? `${progress.done}/${progress.total}` : "sem etapas"}
       </span>
@@ -57,6 +73,16 @@ function ProjectListView({ onBack, onOpen }: { onBack: () => void; onOpen: (id: 
     board.addProject(name);
     setNewName("");
   }
+
+  // "Em andamento" = qualquer status que não seja o primeiro da fila nem um de
+  // conclusão. Assim vale pra "Em andamento", "Aguardando..." e qualquer status
+  // que ele venha a criar, sem depender do nome.
+  const emAndamentoIds = new Set(
+    [...board.state.taskStatuses]
+      .sort((a, b) => a.order - b.order)
+      .filter((st, i) => !st.isDone && i > 0)
+      .map((st) => st.id)
+  );
 
   const active = board.state.projects.filter((p) => p.status === "active");
   const done = board.state.projects.filter((p) => p.status === "done");
@@ -100,7 +126,7 @@ function ProjectListView({ onBack, onOpen }: { onBack: () => void; onOpen: (id: 
               <ProjectListRow
                 key={p.id}
                 project={p}
-                progress={projectProgress(p.id, board.state.tasks)}
+                progress={projectProgress(p.id, board.state.tasks, emAndamentoIds)}
                 onOpen={() => onOpen(p.id)}
               />
             ))
@@ -116,7 +142,7 @@ function ProjectListView({ onBack, onOpen }: { onBack: () => void; onOpen: (id: 
               <ProjectListRow
                 key={p.id}
                 project={p}
-                progress={projectProgress(p.id, board.state.tasks)}
+                progress={projectProgress(p.id, board.state.tasks, emAndamentoIds)}
                 onOpen={() => onOpen(p.id)}
               />
             ))}
@@ -132,7 +158,7 @@ function ProjectListView({ onBack, onOpen }: { onBack: () => void; onOpen: (id: 
               <ProjectListRow
                 key={p.id}
                 project={p}
-                progress={projectProgress(p.id, board.state.tasks)}
+                progress={projectProgress(p.id, board.state.tasks, emAndamentoIds)}
                 onOpen={() => onOpen(p.id)}
               />
             ))}
@@ -175,6 +201,11 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
   }
   const doneCount = steps.filter((t) => t.done).length;
   const pct = steps.length > 0 ? Math.round((doneCount / steps.length) * 100) : 0;
+  // Etapa que saiu do primeiro status mas ainda não terminou. Sem isso a barra
+  // ficava parada mesmo com trabalho acontecendo.
+  const primeiroStatusId = [...board.state.taskStatuses].sort((a, b) => a.order - b.order)[0]?.id ?? null;
+  const doingCount = steps.filter((t) => !t.done && t.statusId !== primeiroStatusId).length;
+  const doingPct = steps.length > 0 ? Math.round((doingCount / steps.length) * 100) : 0;
   const totalTrackedMin = Math.round(steps.reduce((sum, t) => sum + (t.trackedSeconds || 0), 0) / 60);
 
   function commitName() {
@@ -285,9 +316,11 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
             <div className="project-progress-row">
               <div className="hp-bar">
                 <div className="hp-bar-fill" style={{ width: `${pct}%` }} />
+                <div className="hp-bar-doing" style={{ left: `${pct}%`, width: `${doingPct}%` }} />
               </div>
               <span className="project-progress-label mono">
                 {doneCount}/{steps.length}
+                {doingCount > 0 && <span className="project-doing-label"> · {doingCount} em andamento</span>}
               </span>
             </div>
           )}

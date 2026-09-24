@@ -393,6 +393,21 @@ function ReminderStatusMenu({
   );
 }
 
+// Concluir um lembrete com anexo pergunta se o arquivo pode ir embora.
+// Documento de consulta (resultado de exame, comprovante) costuma ser
+// descartável — guardar tudo pra sempre só entope o armazenamento. Cancelar
+// mantém o anexo: na dúvida, não apaga.
+function useConcluirLembrete() {
+  const { board, askConfirm } = useBoardCtx();
+  return (id: string) => {
+    board.completeReminder(id);
+    if (!board.state.attachmentKeys.has(`reminder:${id}`)) return;
+    askConfirm("Esse lembrete tem anexo. Pode descartar o arquivo junto?", () => {
+      void board.discardAttachmentsOf("reminder", id);
+    });
+  };
+}
+
 function reminderStatus(reminder: Reminder, overdue: boolean, dueToday: boolean) {
   if (reminder.done) return { label: "Concluído", cls: "status-done" };
   if (reminder.status === "waiting") return { label: "Aguardando", cls: "status-waiting" };
@@ -499,6 +514,17 @@ function ReminderDetailModal({ reminder, onClose }: { reminder: Reminder; onClos
             placeholder="Cole um texto ou escreva algo..."
           />
         </label>
+        {/* O anexo já existia, mas só como ícone no topo — ninguém achava.
+            Aqui ele aparece com nome, igual à edição da tarefa. */}
+        <div className="edit-field">
+          <span className="edit-field-label">Anexos</span>
+          <AttachmentsButton
+            variant="field"
+            entityType="reminder"
+            entityId={reminder.id}
+            ariaLabel="Anexos do lembrete"
+          />
+        </div>
         <div className="edit-actions" style={{ marginTop: 4 }}>
           <button type="button" className="btn btn-ghost" onClick={onClose}>
             Cancelar
@@ -515,6 +541,7 @@ function ReminderDetailModal({ reminder, onClose }: { reminder: Reminder; onClos
 
 export function ReminderRow({ reminder }: { reminder: Reminder }) {
   const { board, focusRequest, consumeFocusRequest } = useBoardCtx();
+  const concluir = useConcluirLembrete();
   const [titleDraft, setTitleDraft] = useState<string | null>(null);
   const [statusAnchor, setStatusAnchor] = useState<DOMRect | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -537,7 +564,7 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
   }
 
   function applyStatus(status: ReminderStatus) {
-    if (status === "done") board.completeReminder(reminder.id);
+    if (status === "done") concluir(reminder.id);
     else board.updateReminder(reminder.id, { done: false, status });
   }
 
@@ -626,6 +653,7 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
 // Versão compacta (linha única, sem grid) pro popover estreito do sininho.
 function ReminderCompactRow({ reminder }: { reminder: Reminder }) {
   const { board } = useBoardCtx();
+  const concluir = useConcluirLembrete();
   const [titleDraft, setTitleDraft] = useState<string | null>(null);
 
   function commitTitle() {
@@ -653,7 +681,7 @@ function ReminderCompactRow({ reminder }: { reminder: Reminder }) {
         onClick={() =>
           reminder.done
             ? board.updateReminder(reminder.id, { done: false, status: "pending" })
-            : board.completeReminder(reminder.id)
+            : concluir(reminder.id)
         }
       >
         {reminder.done && <CheckIcon />}
@@ -798,6 +826,8 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
   const { board } = useBoardCtx();
   const [newTitle, setNewTitle] = useState("");
   const [filter, setFilter] = useState<ReminderFilter>("todos");
+  const [newDate, setNewDate] = useState("");
+  const [newTime, setNewTime] = useState("");
   const openMeetingsCount = board.state.tasks.filter(
     (t) => isMeetingTask(t) && countOpenChecklistItems(t.note) > 0
   ).length;
@@ -806,8 +836,12 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
     const title = newTitle.trim();
     if (!title) return;
     setNewTitle("");
-    const ok = await board.addReminder(title);
+    const ok = await board.addReminder(title, newDate || null, newTime || null);
     if (!ok) setNewTitle(title);
+    else {
+      setNewDate("");
+      setNewTime("");
+    }
   }
 
   const today = todayISO();
@@ -851,6 +885,24 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
               onChange={(e) => setNewTitle(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
               onBlur={handleAdd}
+            />
+            {/* Data e hora aqui na criação: antes o lembrete nascia sem data e
+                ele tinha que procurar a linha no fim da lista pra preencher. */}
+            <input
+              type="date"
+              className="budget-input reminder-new-date"
+              aria-label="Data do lembrete"
+              value={newDate}
+              onChange={(e) => setNewDate(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+            />
+            <input
+              type="time"
+              className="budget-input reminder-new-time"
+              aria-label="Hora do lembrete"
+              value={newTime}
+              onChange={(e) => setNewTime(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             />
             <MicButton onText={(t) => setNewTitle((v) => (v ? `${v} ${t}` : t))} ariaLabel="Ditar o lembrete" />
           </div>

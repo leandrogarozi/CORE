@@ -33,7 +33,7 @@ import { MeetingButton } from "./MeetingButton";
 import { TimerNudges } from "./TimerNudges";
 import { Sidebar, type ViewMode } from "./Sidebar";
 import { SaveErrorToaster } from "./SaveErrorToaster";
-import { ExpandHorizontalIcon, MenuIcon, SettingsIcon, UserIcon, WarningIcon, WeekIcon } from "./icons";
+import { ChevronIcon, ExpandHorizontalIcon, MenuIcon, SettingsIcon, UserIcon, WarningIcon, WeekIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { dateFromISO, longLabel, mondayOf, todayISO } from "@/lib/date-utils";
 import type { Task } from "@/lib/types";
@@ -43,6 +43,10 @@ function BoardShell() {
     useBoardCtx();
   const [viewMode, setViewMode] = useState<ViewMode>("day");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Lembra se ele deixou o bloco "Sem data" aberto, igual às seções de Lembretes.
+  const [backlogOpen, setBacklogOpen] = useState(() =>
+    typeof window === "undefined" ? false : window.localStorage.getItem("faro-sem-data-aberto") === "1"
+  );
   const { wide, toggleWide } = useWideLayout("faro-wide-layout");
   const [weekAnchor, setWeekAnchor] = useState(() => mondayOf(new Date()));
   const [selectedDate, setSelectedDate] = useState(() => todayISO());
@@ -336,14 +340,44 @@ function BoardShell() {
             </div>
           )}
 
+          {/* Recolhido por padrão: a lista sem data cresce sem parar e empurrava
+              hábitos e blocos pra fora da tela. */}
           <div className="section">
-            <div className="section-head">
+            <button
+              type="button"
+              className="section-head backlog-toggle"
+              aria-expanded={backlogOpen}
+              onClick={() =>
+                setBacklogOpen((v) => {
+                  try {
+                    window.localStorage.setItem("faro-sem-data-aberto", v ? "0" : "1");
+                  } catch {
+                    // Navegador sem armazenamento: só não lembra da preferência.
+                  }
+                  return !v;
+                })
+              }
+            >
               <span className="section-pill warning">
                 <WarningIcon /> Sem data<span className="count">{backlogTasks.length}</span>
               </span>
-            </div>
-            <div className="hint-text">Coloque uma data pra essas tarefas não ficarem esquecidas por aqui.</div>
-            <TaskListCard bucketKey="" tasks={backlogTasks} emptyLabel="Backlog vazio." quickAddId="qa-backlog" />
+              <span className="backlog-summary">
+                {backlogTasks.length === 0
+                  ? "nada esperando data"
+                  : backlogTasks.length === 1
+                    ? "1 tarefa esperando uma data"
+                    : `${backlogTasks.length} tarefas esperando uma data`}
+              </span>
+              <span className={"chevron" + (backlogOpen ? " open" : " collapsed")}>
+                <ChevronIcon />
+              </span>
+            </button>
+            {backlogOpen && (
+              <>
+                <div className="hint-text">Coloque uma data pra essas tarefas não ficarem esquecidas por aqui.</div>
+                <TaskListCard bucketKey="" tasks={backlogTasks} emptyLabel="Backlog vazio." quickAddId="qa-backlog" />
+              </>
+            )}
           </div>
 
           <div className="habits-blocks-row">

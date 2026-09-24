@@ -1160,13 +1160,15 @@ export function useBoard(userId: string | null) {
 
   // ---------- reminders ----------
   const addReminder = useCallback(
-    async (title: string): Promise<boolean> => {
+    // Data e hora entram já na criação: antes o lembrete nascia sem data e ele
+    // tinha que caçar a linha no fim da lista pra preencher depois.
+    async (title: string, date: string | null = null, time: string | null = null): Promise<boolean> => {
       if (!userId || !title.trim()) return false;
       const r: Reminder = {
         id: uid(),
         title: title.trim(),
-        date: null,
-        time: null,
+        date: date || null,
+        time: time || null,
         repeat: "none",
         weekDays: null,
         alertMinutesBefore: null,
@@ -2535,6 +2537,42 @@ export function useBoard(userId: string | null) {
     [apply, supabase]
   );
 
+  // Apaga TODOS os anexos de um item. Serve pro lembrete concluído: documento
+  // de consulta (resultado de exame, comprovante) costuma ser descartável, e
+  // guardar isso pra sempre só entope o armazenamento.
+  const discardAttachmentsOf = useCallback(
+    async (entityType: AttachmentEntityType, entityId: string): Promise<string | null> => {
+      const { data, error } = await supabase
+        .from("attachments")
+        .select("*")
+        .eq("entity_type", entityType)
+        .eq("entity_id", entityId);
+      if (error) return error.message;
+      const itens = data ?? [];
+      if (!itens.length) return null;
+
+      const { error: storageError } = await supabase.storage
+        .from("attachments")
+        .remove(itens.map((a) => a.file_path));
+      if (storageError) return storageError.message;
+
+      const { error: delError } = await supabase
+        .from("attachments")
+        .delete()
+        .eq("entity_type", entityType)
+        .eq("entity_id", entityId);
+      if (delError) return delError.message;
+
+      apply((st) => {
+        const next = new Set(st.attachmentKeys);
+        next.delete(`${entityType}:${entityId}`);
+        return { ...st, attachmentKeys: next };
+      });
+      return null;
+    },
+    [apply, supabase]
+  );
+
   const getAttachmentUrl = useCallback(
     async (filePath: string): Promise<string | null> => {
       const { data, error } = await supabase.storage.from("attachments").createSignedUrl(filePath, 60);
@@ -2747,6 +2785,7 @@ export function useBoard(userId: string | null) {
     listAttachments,
     uploadAttachment,
     deleteAttachment,
+    discardAttachmentsOf,
     getAttachmentUrl,
     updateDailyLog,
     toggleDietMealChecked,

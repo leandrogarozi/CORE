@@ -20,7 +20,9 @@ export const DEFAULT_TAG_COLORS: Record<Category, { hex: string; alpha: number }
   estudo: { hex: "#226C9C", alpha: 0.5 },
   dev: { hex: "#6C4296", alpha: 0.5 },
   saude: { hex: "#277644", alpha: 0.5 },
-  pessoal: { hex: "#A23E68", alpha: 0.5 },
+  // Ardósia, não o magenta anterior: a paleta já tem laranja, azul, roxo, verde
+  // e teal — faltava um tom calmo, e o magenta brigava com todos.
+  pessoal: { hex: "#5C6B8A", alpha: 0.5 },
   familia: { hex: "#1B7F79", alpha: 0.5 },
   reuniao: { hex: "#4A5FC1", alpha: 0.5 },
   sem_categoria: { hex: "#E5484D", alpha: 0.6 },

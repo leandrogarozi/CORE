@@ -777,6 +777,37 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .reminder-date-empty{ color:var(--text-faint); }
 
 /* Edição da tarefa: título grande e discreto no topo */
+.reminder-new-date{ width:128px; flex:none; font-size:11.5px; padding:5px 6px; }
+.reminder-new-time{ width:74px; flex:none; font-size:11.5px; padding:5px 6px; }
+
+/* Fatia clara logo depois da parte concluída: o que já saiu do papel mas
+   ainda não terminou. */
+.hp-bar-doing{
+  position:absolute; top:0; bottom:0; border-radius:999px;
+  background:color-mix(in srgb, var(--accent) 38%, transparent);
+}
+.project-progress-row .hp-bar{ position:relative; }
+.project-doing-label{ color:var(--accent); font-weight:600; }
+
+.project-row-doing{
+  flex:none; font-size:10px; font-weight:600; color:var(--accent);
+  background:var(--accent-soft); border-radius:4px; padding:1px 6px; white-space:nowrap;
+}
+
+/* Cabeçalho do bloco "Sem data" vira botão de abrir/fechar. */
+.backlog-toggle{
+  display:flex; align-items:center; gap:10px; width:100%;
+  background:none; border:none; padding:0; font:inherit; color:inherit; cursor:pointer; text-align:left;
+}
+.backlog-summary{ flex:1; min-width:0; font-size:11.5px; color:var(--text-faint); }
+.backlog-toggle .chevron{ display:flex; color:var(--text-faint); transition:transform 0.15s ease; }
+.backlog-toggle .chevron.collapsed{ transform:rotate(-90deg); }
+.backlog-toggle:hover .chevron{ color:var(--accent); }
+
+.edit-title-row{ display:flex; align-items:center; gap:6px; }
+.edit-title-row .edit-title-input{ flex:1; min-width:0; }
+.edit-collapse-btn{ flex:none; transform:rotate(180deg); color:var(--text-faint); }
+.edit-collapse-btn:hover{ color:var(--accent); }
 .edit-title-input{
   width:100%; box-sizing:border-box; background:transparent; border:1px solid transparent; border-radius:7px;
   padding:5px 7px; font-size:15px; font-weight:600; color:var(--text);
@@ -1844,8 +1875,14 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .rte-content ul, .rte-content ol{ padding-left:22px; }
 .rte-content a{ color:var(--accent); text-decoration:underline; }
 .rte-content ul[data-type="taskList"]{ list-style:none; padding-left:0; }
-.rte-content ul[data-type="taskList"] li{ display:flex; align-items:center; gap:8px; }
-.rte-content ul[data-type="taskList"] li > label{ flex:none; display:flex; align-items:center; }
+/* align-items:center jogava a bolinha pro meio vertical quando o item tinha
+   mais de uma linha. A bolinha acompanha a PRIMEIRA linha, sempre. */
+.rte-content ul[data-type="taskList"] li{ display:flex; align-items:flex-start; gap:8px; }
+.rte-content ul[data-type="taskList"] li > label{
+  flex:none; display:flex; align-items:center;
+  /* Centraliza opticamente na altura de uma linha de texto. */
+  height:1.55em;
+}
 .rte-content ul[data-type="taskList"] li > div{ flex:1; }
 .rte-content ul[data-type="taskList"] li > div > p{ margin:0; }
 .rte-content ul[data-type="taskList"] input[type="checkbox"]{

@@ -370,6 +370,71 @@ como evento (tem hora, tem cliente, está acontecendo).
 Isso também é a base pra sincronizar com a agenda do Google depois: o que
 vai pro calendário é **evento**, não tarefa.
 
+## Leva de 10 ajustes e correções (24/09)
+
+### Bugs que eram bugs de verdade
+
+**Não dava pra excluir tarefa recorrente.** O app grava `repeat='none'` pra
+parar a série (é um valor legítimo do tipo `Repeat`), mas a trava do banco só
+aceitava `daily|weekly|monthly|yearly`. O `'none'` **nunca** foi permitido —
+o mesmo erro derrubaria também editar uma recorrente para "Não repete".
+Trava corrigida no banco.
+
+**Negrito dos lembretes "saía sozinho".** O editor recarregava o próprio
+conteúdo: a checagem era `value !== editor.getHTML()`, e como o HTML que o
+Tiptap devolve é normalizado (nem sempre idêntico ao que veio guardado), o
+`setContent` disparava a **cada renderização**, apagando seleção e marca
+pendente. Agora o editor guarda o último HTML que ele mesmo emitiu e só
+recarrega quando o texto vem de fora (trocou de item).
+
+**Bolinha do checklist no meio do texto.** `align-items:center` no item da
+lista — com duas linhas, a bolinha ia pro meio. Virou `flex-start` com altura
+de uma linha no rótulo, pra acompanhar sempre a primeira linha.
+
+**Status não aparecia na aba Projetos.** Não era o status que falhava: o
+progresso do projeto só contava `done`, então mover uma etapa pra "Em
+andamento" não mudava nada na tela. Agora a lista mostra "N em andamento" e a
+barra do projeto ganhou uma faixa clara pro que já saiu do papel.
+
+### Ajustes de tela
+
+**Pizza do Dashboard ficou completa.** Ela só somava categoria de tarefa —
+mas **Lazer é bloco fixo** e **Corrida/Crossfit são hábitos**, então o
+gráfico mostrava metade da vida dele. Agora hábitos e blocos entram como
+fatias próprias.
+E a cor: a pizza tinha **paleta própria fixa no código** (`CAT_COLORS`), que
+ignorava as cores que ele escolhe em Configurações — o magenta feio do
+"Pessoal" vinha dali, embora o valor salvo dele já fosse ciano. Agora a fatia
+usa a cor configurada. **Regra: gráfico não tem paleta própria; usa a cor que
+o usuário já escolheu.**
+
+**Ordem por bandeira.** Com "⚡ Rápidas primeiro" ligado: raios → bandeira
+(vermelha, azul, verde) → ordem manual. **Média fica no meio e continua
+arrastável de propósito** — é o padrão de toda tarefa nova, e se ela também
+fosse posicionada pela regra quase nada na lista poderia ser movido.
+
+**Fechar a tarefa pelo topo.** Só existia o Salvar lá embaixo; tarefa longa
+exigia rolar a tela inteira só pra fechar.
+
+**Bloco "Sem data" recolhido**, com resumo ("23 tarefas esperando uma data") e
+preferência lembrada.
+
+**Data e hora na criação do lembrete** — antes ele nascia sem data e era
+preciso caçar a linha no fim da lista.
+
+**Anexo no lembrete: já existia**, mas só como ícone no topo do painel, e ele
+não achou. Ganhou rótulo no corpo, igual à edição da tarefa. E o que faltava
+de verdade foi feito: **concluir um lembrete com anexo pergunta se o arquivo
+pode ser descartado** — documento de consulta (resultado de exame,
+comprovante) costuma ser descartável. Cancelar mantém: na dúvida, não apaga.
+
+### O padrão que se repetiu
+
+Três dos dez itens (#9 anexo, #1 cor, e o intervalo da manutenção na leva
+anterior) eram **funções que já existiam e ele não achou**. O sintoma vem
+como "não tem isso", mas a causa é a tela. Quando ele pedir algo que parece
+já existir, **conferir onde está antes de construir de novo**.
+
 ## Módulo Manutenção (13/09)
 
 Ideia do Leandro: "troca de óleo do carro e da moto — se troquei hoje,

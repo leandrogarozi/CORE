@@ -112,6 +112,9 @@ export function RichTextEditor({
   hideToolbar?: boolean;
 }) {
   const [highlightAnchor, setHighlightAnchor] = useState<DOMRect | null>(null);
+  // Último HTML que ESTE editor produziu — serve pra distinguir "o texto mudou
+  // porque eu digitei" de "o texto mudou porque abriram outro item".
+  const ultimoEmitido = useRef(value);
   const highlightBtnRef = useRef<HTMLButtonElement>(null);
 
   const editor = useEditor({
@@ -129,12 +132,25 @@ export function RichTextEditor({
     content: value,
     autofocus: autoFocus ? "end" : false,
     editorProps: { attributes: { class: "rte-content" } },
-    onUpdate: ({ editor }) => onChange(editor.getHTML()),
+    onUpdate: ({ editor }) => {
+      const html = editor.getHTML();
+      ultimoEmitido.current = html;
+      onChange(html);
+    },
   });
 
+  // Recarregar o conteúdo só quando o texto vem DE FORA (trocou de lembrete,
+  // de tarefa). Antes a comparação era só `value !== editor.getHTML()`, e como
+  // o HTML que o editor devolve é normalizado (nem sempre idêntico ao que veio
+  // guardado), o setContent disparava a cada renderização — apagando a
+  // seleção e a marca pendente. Era isso que fazia o negrito "sair sozinho" e
+  // aparecer onde não devia.
   useEffect(() => {
     if (!editor) return;
-    if (value !== editor.getHTML()) editor.commands.setContent(value, { emitUpdate: false });
+    if (value === ultimoEmitido.current) return; // veio da nossa própria digitação
+    if (value === editor.getHTML()) return;
+    ultimoEmitido.current = value;
+    editor.commands.setContent(value, { emitUpdate: false });
   }, [value, editor]);
 
   if (!editor) return null;

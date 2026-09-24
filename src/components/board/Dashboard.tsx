@@ -15,7 +15,7 @@ import {
   todayISO,
   weekDatesFrom,
 } from "@/lib/date-utils";
-import { CATEGORY_LABEL, isFeatureEnabled, type Category, type Priority, type Task } from "@/lib/types";
+import { CATEGORY_LABEL, DEFAULT_TAG_COLORS, isFeatureEnabled, type Category, type Priority, type Task } from "@/lib/types";
 import { moodByValue } from "@/lib/mood";
 import { countOpenChecklistItems } from "@/lib/rich-text";
 import { taskMinutesInRange } from "@/lib/board/task-time";
@@ -24,16 +24,10 @@ import { TaskListModal } from "./TaskListModal";
 
 type Period = "day" | "week" | "month";
 
-const CAT_COLORS: Record<Category, string> = {
-  trabalho: "#B0581A",
-  estudo: "#226C9C",
-  dev: "#6C4296",
-  saude: "#277644",
-  pessoal: "#A23E68",
-  familia: "#1B7F79",
-  reuniao: "#4A5FC1",
-  sem_categoria: "#E5484D",
-};
+// Paleta pra hábitos e blocos fixos na pizza. Eles não têm categoria, mas
+// ocupam tempo real do dia (Lazer, Crossfit, Corrida) — sem eles o gráfico
+// mostrava só metade da vida.
+const EXTRA_COLORS = ["#4C8C7B", "#8A6FB0", "#C0803A", "#5B84B1", "#A45C6E", "#6B8E3D"];
 
 function rangeForPeriod(period: Period, dayAnchor: string, weekAnchor: Date, monthAnchor: Date) {
   if (period === "day") return { fromISO: dayAnchor, toISO: dayAnchor };
@@ -170,18 +164,40 @@ export function Dashboard() {
     };
   }, [board.state, fromISO, toISO, today]);
 
-  const catEntries = (Object.keys(stats.byCategory) as Category[])
-    .map((c) => ({ cat: c, min: stats.byCategory[c] || 0 }))
-    .sort((a, b) => b.min - a.min);
-  const catTotal = catEntries.reduce((s, c) => s + c.min, 0);
+  // A cor da fatia é a MESMA que o usuário configura nas tags, em Configurações
+  // — antes a pizza tinha uma paleta própria, fixa no código, e não dava pra
+  // trocar uma cor feia sem mexer no código.
+  const tagColors = board.state.settings.tagColors;
+  const corDaCategoria = (c: Category) => tagColors[c]?.hex ?? DEFAULT_TAG_COLORS[c].hex;
+
+  const pieEntries = [
+    ...(Object.keys(stats.byCategory) as Category[])
+      .map((c) => ({ key: `cat-${c}`, label: CATEGORY_LABEL[c], min: stats.byCategory[c] || 0, color: corDaCategoria(c) }))
+      .filter((e) => e.min > 0),
+    // Hábitos e blocos entram como fatias próprias: Lazer é bloco fixo e
+    // Corrida/Crossfit são hábitos, então nenhum deles tem categoria de tarefa.
+    ...stats.habitStats
+      .filter((h) => h.min > 0)
+      .map((h, i) => ({ key: `hab-${h.id}`, label: h.name, min: h.min, color: EXTRA_COLORS[i % EXTRA_COLORS.length] })),
+    ...stats.blockStats
+      .filter((b) => b.min > 0)
+      .map((b, i) => ({
+        key: `blk-${b.id}`,
+        label: b.name,
+        min: b.min,
+        color: EXTRA_COLORS[(i + 3) % EXTRA_COLORS.length],
+      })),
+  ].sort((a, b) => b.min - a.min);
+
+  const catTotal = pieEntries.reduce((s, e) => s + e.min, 0);
   const pieGradient = (() => {
     if (!catTotal) return "var(--surface-2)";
     let acc = 0;
-    const stops = catEntries.map(({ cat, min }) => {
+    const stops = pieEntries.map(({ color, min }) => {
       const start = (acc / catTotal) * 360;
       acc += min;
       const end = (acc / catTotal) * 360;
-      return `${CAT_COLORS[cat]} ${start}deg ${end}deg`;
+      return `${color} ${start}deg ${end}deg`;
     });
     return `conic-gradient(${stops.join(", ")})`;
   })();
@@ -391,16 +407,16 @@ export function Dashboard() {
         )}
 
         <div className="dash-box">
-          <div className="dash-box-title">Tempo por categoria</div>
-          {!catEntries.length && <div className="bar-empty">Nenhuma tarefa concluída com duração no período.</div>}
-          {!!catEntries.length && (
+          <div className="dash-box-title">Onde foi o tempo</div>
+          {!pieEntries.length && <div className="bar-empty">Nada com tempo registrado no período.</div>}
+          {!!pieEntries.length && (
             <div className="dash-pie-row">
               <div className="dash-pie" style={{ background: pieGradient }} />
               <div className="dash-pie-legend">
-                {catEntries.map(({ cat, min }) => (
-                  <div className="dash-legend-row" key={cat}>
-                    <span className="dash-legend-dot" style={{ background: CAT_COLORS[cat] }} />
-                    <span className="dash-legend-name">{CATEGORY_LABEL[cat]}</span>
+                {pieEntries.map(({ key, label, min, color }) => (
+                  <div className="dash-legend-row" key={key}>
+                    <span className="dash-legend-dot" style={{ background: color }} />
+                    <span className="dash-legend-name">{label}</span>
                     <span className="dash-legend-pct">{Math.round((min / catTotal) * 100)}%</span>
                   </div>
                 ))}

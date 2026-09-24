@@ -5,7 +5,7 @@ import { useBoardCtx } from "./board-context";
 import { TaskRow } from "./TaskRow";
 import { MicButton } from "./MicButton";
 import { TASK_COLUMNS, type ColumnKey } from "@/lib/board/column-widths";
-import type { Task } from "@/lib/types";
+import type { Priority, Task } from "@/lib/types";
 
 function ColResizeHandle({ colKey }: { colKey: ColumnKey }) {
   const { columns } = useBoardCtx();
@@ -45,13 +45,30 @@ function ColResizeHandle({ colKey }: { colKey: ColumnKey }) {
   );
 }
 
+// Vermelha em cima, verde embaixo. Média é o padrão de toda tarefa nova, então
+// fica no meio — e é justamente por isso que as médias continuam na ordem
+// manual e arrastáveis: se elas também fossem posicionadas pela bandeira, quase
+// nada na lista poderia ser movido.
+const PRIORITY_RANK: Record<Priority, number> = { alta: 0, media: 1, baixa: 2 };
+
+/** Tarefa cuja posição vem de uma regra (raio ou bandeira), não do arrasto. */
+function isPositionedByRule(t: Task): boolean {
+  return (t.quick || 0) > 0 || t.priority !== "media";
+}
+
 function sortForDisplay(list: Task[], sortByQuick: boolean): Task[] {
   const copy = [...list];
   if (sortByQuick) {
     copy.sort((a, b) => {
+      // 1º os raios, do mais rápido pro menos.
       const qa = a.quick || 0;
       const qb = b.quick || 0;
       if (qb !== qa) return qb - qa;
+      // 2º a bandeira: alta, média, baixa.
+      const pa = PRIORITY_RANK[a.priority];
+      const pb = PRIORITY_RANK[b.priority];
+      if (pa !== pb) return pa - pb;
+      // 3º a ordem manual, pra quem empatou.
       return (a.order || 0) - (b.order || 0);
     });
   } else {
@@ -82,7 +99,7 @@ export function TaskListCard({
   // Com "Rápidas primeiro" ligado, a posição das tarefas ⚡ é calculada pelo
   // número de raios — arrastar elas não teria efeito. As sem raio continuam
   // livres pra reordenar; a ordem delas é respeitada quando o botão é desligado.
-  const canDrag = (t: Task) => !sortByQuick || (t.quick || 0) === 0;
+  const canDrag = (t: Task) => !sortByQuick || !isPositionedByRule(t);
 
   function resetDrag() {
     setDraggingId(null);
