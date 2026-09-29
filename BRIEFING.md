@@ -831,6 +831,46 @@ Meta não aceita** (foi a primeira ideia dele, "colocar um crédito pra
 testar", e não dá). Se a tela oferecer escolher moeda, **real**: depois de
 anexar o cartão não dá pra trocar.
 
+## WhatsApp: ONDE PARAMOS (29/09) — retomar por aqui
+
+**Tudo do lado do FARO está pronto. Esperando só a Meta aprovar os modelos.**
+
+Estado em 29/09, fim do dia:
+
+- **Cartão:** MasterCard ••••4082 anexado à WABA **"Leandro Garozi"**
+  (`3509254432556744`), faturando **em reais**. A "Test WhatsApp Business
+  Account" não tem cartão e não é usada pra nada.
+- **Modelos:** três submetidos na conta real, todos **"Em revisão"**:
+  `faro_teste` (pt_BR), `lembrete_faro` (pt_BR) e `lembrete_faro` (English).
+  O inglês foi engano — a Meta não deixa trocar idioma depois de submeter,
+  então criamos a versão pt_BR ao lado (nome + idioma é o que identifica um
+  modelo). O inglês é inofensivo: o código pede `pt_BR` explicitamente.
+  Pode apagar quando sair da revisão.
+- **Cron:** verificado funcionando. 118 execuções com HTTP 200 em 2 horas,
+  retornando `{"checked":0,"due":0,"notified":0}` — roda de minuto em
+  minuto, autentica pelo Vault, e só não manda nada porque não há lembrete
+  vencendo. As 2 falhas do período foram durante os deploys.
+- **Código:** teto em reais (R$ 20), tarifa 0,0068, telefone ganhando o 55,
+  parâmetro higienizado. Nada pendente.
+
+**Quando ele voltar, na ordem:**
+
+1. Modelos aprovados? → FARO → Perfil → **Testar WhatsApp** (usa o
+   `faro_teste`; prova token, número, modelo e cartão de uma vez).
+2. Teste ponta a ponta: lembrete com horário ~15 min à frente e aviso 10 min
+   antes. O cron pega sozinho. É o caminho real, com o `lembrete_faro` e a
+   variável preenchida.
+3. Conferir **Configurações → Custo do WhatsApp**: tem que aparecer 1
+   mensagem e ~R$ 0,04. Isso valida livro-caixa e trava no mesmo movimento.
+
+**A pegadinha que pode aparecer:** o único número da WABA é
+**+1 555-401-5473** (ID `1251734794700019`) — tem cara de número de teste
+que a Meta dá de graça pra conta nova, não é um número dele. Número de teste
+**só envia pra uma lista curta de destinatários cadastrados** e **não passa
+pelo cartão**. Se o teste voltar com **131030 "Recipient phone number not in
+allowed list"**, é isso: adicionar o número dele na lista de destinatários,
+ou registrar um número real na conta. Não é erro de configuração nossa.
+
 ## WhatsApp: por que o envio falhava, e as regras de template (29/09)
 
 O botão "Testar WhatsApp" respondia **(#132001) Template name does not
