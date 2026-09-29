@@ -246,7 +246,7 @@ function PushNotificationsBox() {
 // depender de API externa nenhuma — e a trava de teto usa exatamente essa conta.
 function WhatsAppCostBox() {
   const { board } = useBoardCtx();
-  const { whatsappMsgCostUsd, whatsappMonthlyCapUsd, whatsappUsdBrl } = board.state.settings;
+  const { whatsappMsgCostUsd, whatsappMonthlyCapBrl, whatsappUsdBrl } = board.state.settings;
   // As contagens saem prontas do efeito, não do render: ler o relógio durante a
   // renderização é impuro (e o React reclama, com razão — o mesmo render daria
   // resultados diferentes).
@@ -282,18 +282,18 @@ function WhatsAppCostBox() {
   const em4Dias = resumo?.em4Dias ?? 0;
   const falhas = resumo?.falhas ?? 0;
 
-  const custoMesUsd = noMes * whatsappMsgCostUsd;
-  const custoMesBrl = custoMesUsd * whatsappUsdBrl;
-  const projecaoMesUsd = (em4Dias / 4) * 30 * whatsappMsgCostUsd;
-  const pctDoTeto = whatsappMonthlyCapUsd ? Math.min(100, (custoMesUsd / whatsappMonthlyCapUsd) * 100) : 0;
-  const noTeto = whatsappMonthlyCapUsd !== null && custoMesUsd >= whatsappMonthlyCapUsd;
+  const custoMsgBrl = whatsappMsgCostUsd * whatsappUsdBrl;
+  const custoMesBrl = noMes * custoMsgBrl;
+  const projecaoMesBrl = (em4Dias / 4) * 30 * custoMsgBrl;
+  const pctDoTeto = whatsappMonthlyCapBrl ? Math.min(100, (custoMesBrl / whatsappMonthlyCapBrl) * 100) : 0;
+  const noTeto = whatsappMonthlyCapBrl !== null && custoMesBrl >= whatsappMonthlyCapBrl;
 
   function commitCap() {
     if (capInput === null) return;
     const limpo = capInput.trim();
     const valor = limpo === "" ? null : Number(limpo.replace(",", "."));
     if (limpo === "" || (Number.isFinite(valor) && (valor as number) >= 0)) {
-      board.updateSettings({ whatsappMonthlyCapUsd: valor });
+      board.updateSettings({ whatsappMonthlyCapBrl: valor });
     }
     setCapInput(null);
   }
@@ -330,7 +330,7 @@ function WhatsAppCostBox() {
             </div>
           </div>
 
-          {whatsappMonthlyCapUsd !== null && (
+          {whatsappMonthlyCapBrl !== null && (
             <>
               <div className="wa-cap-bar">
                 <div className={"wa-cap-fill" + (noTeto ? " over" : "")} style={{ width: `${pctDoTeto}%` }} />
@@ -338,7 +338,11 @@ function WhatsAppCostBox() {
               <div className={"wa-cap-label" + (noTeto ? " over" : "")}>
                 {noTeto
                   ? `Teto do mês atingido — nenhuma mensagem nova sai até o mês virar ou o teto subir.`
-                  : `US$ ${custoMesUsd.toFixed(2)} de US$ ${whatsappMonthlyCapUsd.toFixed(2)} do teto · no ritmo dos últimos 4 dias, o mês fecha em US$ ${projecaoMesUsd.toFixed(2)}`}
+                  : `${fmtBRL(Math.round(custoMesBrl * 100))} de ${fmtBRL(
+                      Math.round(whatsappMonthlyCapBrl * 100)
+                    )} do teto · no ritmo dos últimos 4 dias, o mês fecha em ${fmtBRL(
+                      Math.round(projecaoMesBrl * 100)
+                    )}`}
               </div>
             </>
           )}
@@ -351,13 +355,13 @@ function WhatsAppCostBox() {
           )}
 
           <div className="settings-row-standalone">
-            <span className="settings-label">Teto de gasto no mês (US$)</span>
+            <span className="settings-label">Teto de gasto no mês (R$)</span>
             <input
               type="text"
               inputMode="decimal"
               className="budget-input"
               placeholder="sem teto"
-              value={capInput ?? (whatsappMonthlyCapUsd === null ? "" : String(whatsappMonthlyCapUsd))}
+              value={capInput ?? (whatsappMonthlyCapBrl === null ? "" : String(whatsappMonthlyCapBrl))}
               onChange={(e) => setCapInput(e.target.value)}
               onBlur={commitCap}
               onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
@@ -378,7 +382,7 @@ function WhatsAppCostBox() {
             />
           </div>
           <div className="settings-row-standalone">
-            <span className="settings-label">Dólar (só pra mostrar em reais)</span>
+            <span className="settings-label">Dólar (converte a tarifa pra real)</span>
             <input
               type="text"
               inputMode="decimal"
@@ -392,8 +396,11 @@ function WhatsAppCostBox() {
 
           <div className="hint-text">
             A conta é a do próprio FARO: cada mensagem enviada vira uma linha no registro, sem depender de
-            nenhuma API da Meta. Quando a primeira fatura chegar, é só ajustar a tarifa aqui pra bater com o
-            valor real — e o teto passa a valer sobre esse número.
+            nenhuma API da Meta. Hoje cada lembrete sai por {fmtBRL(Math.round(custoMsgBrl * 100))} — o teto
+            de {whatsappMonthlyCapBrl === null ? "nenhum" : fmtBRL(Math.round(whatsappMonthlyCapBrl * 100))}{" "}
+            dá pra {whatsappMonthlyCapBrl === null ? 0 : Math.floor(whatsappMonthlyCapBrl / custoMsgBrl)}{" "}
+            mensagens no mês. Quando a primeira fatura chegar, ajusta a tarifa aqui pra bater com o valor real
+            — e o teto passa a valer sobre esse número.
           </div>
         </>
       )}

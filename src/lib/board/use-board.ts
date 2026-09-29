@@ -119,8 +119,8 @@ const EMPTY_STATE: BoardState = {
   medicationGroups: [],
   checklists: [],
   settings: {
-    whatsappMsgCostUsd: 0.008,
-    whatsappMonthlyCapUsd: 5,
+    whatsappMsgCostUsd: 0.0068,
+    whatsappMonthlyCapBrl: 20,
     whatsappUsdBrl: 5.1,
     tagColors: DEFAULT_TAG_COLORS,
     dailyBudgetHours: 12,
@@ -2409,7 +2409,7 @@ export function useBoard(userId: string | null) {
           diet_app_opt_in: merged.dietAppOptIn,
           diet_whatsapp_opt_in: merged.dietWhatsappOptIn,
           whatsapp_msg_cost_usd: merged.whatsappMsgCostUsd,
-          whatsapp_monthly_cap_usd: merged.whatsappMonthlyCapUsd,
+          whatsapp_monthly_cap_brl: merged.whatsappMonthlyCapBrl,
           whatsapp_usd_brl: merged.whatsappUsdBrl,
         })
         .then(({ error }) => {

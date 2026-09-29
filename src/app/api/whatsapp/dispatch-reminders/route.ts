@@ -8,7 +8,10 @@ import { fmtDayMonth } from "@/lib/date-utils";
 export const dynamic = "force-dynamic";
 
 const DEFAULT_TIME_ZONE = "America/Sao_Paulo";
-const DEFAULT_MSG_COST_USD = 0.008;
+// Tarifa do template utility no Brasil desde 01/07/2026. Só entra em cena se a
+// linha de settings não tiver valor próprio — o normal é ler o que está na tela.
+const DEFAULT_MSG_COST_USD = 0.0068;
+const DEFAULT_USD_BRL = 5.1;
 
 // Primeiro instante do mês corrente NO FUSO DO USUÁRIO — a fatura da Meta fecha
 // por mês, então o teto conta por mês. Passa pelo zonedDateTimeToMs de propósito:
@@ -56,7 +59,7 @@ export async function POST(req: NextRequest) {
   // conta: aqui no servidor (UTC) "10:00" sem fuso viraria 07:00 de Brasília.
   const { data: settingsRows, error: settingsError } = await supabase
     .from("settings")
-    .select("user_id, notify_phone, timezone, whatsapp_msg_cost_usd, whatsapp_monthly_cap_usd")
+    .select("user_id, notify_phone, timezone, whatsapp_msg_cost_usd, whatsapp_monthly_cap_brl, whatsapp_usd_brl")
     .in("user_id", userIds);
   if (settingsError) return NextResponse.json({ error: settingsError.message }, { status: 500 });
 
@@ -65,11 +68,17 @@ export async function POST(req: NextRequest) {
   const costByUser = new Map(
     (settingsRows ?? []).map((s) => [s.user_id, Number(s.whatsapp_msg_cost_usd ?? DEFAULT_MSG_COST_USD)])
   );
-  const capByUser = new Map(
+  // O teto é em reais, então o câmbio faz parte da conta da trava (não é só
+  // enfeite de tela): a tarifa da Meta vem em dólar e o limite do Leandro é em
+  // real.
+  const capBrlByUser = new Map(
     (settingsRows ?? []).map((s) => [
       s.user_id,
-      s.whatsapp_monthly_cap_usd === null ? null : Number(s.whatsapp_monthly_cap_usd),
+      s.whatsapp_monthly_cap_brl === null ? null : Number(s.whatsapp_monthly_cap_brl),
     ])
+  );
+  const fxByUser = new Map(
+    (settingsRows ?? []).map((s) => [s.user_id, Number(s.whatsapp_usd_brl ?? DEFAULT_USD_BRL)])
   );
 
   const due = dueRows
@@ -107,12 +116,15 @@ export async function POST(req: NextRequest) {
     // depois porque a janela de alerta é fechada (só vale até a hora marcada) —
     // um lembrete barrado hoje simplesmente não é avisado, em vez de ficar
     // guardado pra disparar todo de uma vez quando o teto subir.
-    const cap = capByUser.get(userId) ?? null;
-    const custoMsg = costByUser.get(userId) ?? DEFAULT_MSG_COST_USD;
+    const capBrl = capBrlByUser.get(userId) ?? null;
+    const custoMsgBrl =
+      (costByUser.get(userId) ?? DEFAULT_MSG_COST_USD) * (fxByUser.get(userId) ?? DEFAULT_USD_BRL);
     const jaEnviadas = enviadasNoMes.get(userId) ?? 0;
-    if (cap !== null && (jaEnviadas + 1) * custoMsg > cap) {
+    if (capBrl !== null && (jaEnviadas + 1) * custoMsgBrl > capBrl) {
       blocked++;
-      errors.push(`${reminder.id}: teto mensal de US$ ${cap.toFixed(2)} atingido — mensagem não enviada`);
+      errors.push(
+        `${reminder.id}: teto mensal de R$ ${capBrl.toFixed(2)} atingido — mensagem não enviada`
+      );
       continue;
     }
 

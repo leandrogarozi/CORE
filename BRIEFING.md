@@ -770,8 +770,12 @@ testar".
 
 ### Simulação que embasou a decisão
 
-Template **utility** no Brasil: **US$ 0,008 por mensagem** (dólar a ~R$
-5,08 → **R$ 0,041/mensagem**).
+> **Números desta seção foram refeitos em 29/09 — ver "Teto em reais e
+> tarifa nova" mais abaixo.** A tarifa caiu pra US$ 0,0068 e a alavanca da
+> janela de 24h **deixou de existir em 01/10/2026**.
+
+Template **utility** no Brasil, na pesquisa de 09/09: **US$ 0,008 por
+mensagem** (dólar a ~R$ 5,08 → **R$ 0,041/mensagem**).
 
 | Volume | Mensagens/mês | Custo/mês |
 |---|---|---|
@@ -780,12 +784,8 @@ Template **utility** no Brasil: **US$ 0,008 por mensagem** (dólar a ~R$
 | 30/dia | 900 | R$ 36,58 |
 
 **Risco a vigiar**: se a Meta reclassificar o template como *marketing*, o
-preço vai a US$ 0,0625 — **8x**. 15/dia viram R$ 143/mês. É o tipo de
-surpresa que o painel existe pra pegar cedo.
-
-Alavanca ainda não testada: mensagem utility dentro de uma janela de 24h
-aberta pelo usuário é gratuita. Se valer na prática, responder o bot uma
-vez por dia derruba boa parte da conta.
+preço vai a US$ 0,0625 — quase **10x**. É o tipo de surpresa que o painel
+existe pra pegar cedo.
 
 ### O que foi construído (nada disso depende do cartão)
 
@@ -819,8 +819,100 @@ vez por dia derruba boa parte da conta.
 ### O que ainda depende do Leandro
 
 Cadastrar a forma de pagamento na Meta (login + verificação em duas etapas
-+ cartão dele) e apontar `WHATSAPP_PHONE_NUMBER_ID` pro número real. Cinco
-minutos, e nada mais no caminho fica travado esperando.
++ cartão dele) e confirmar que o template `lembrete_faro` está aprovado.
+Em 29/09 ele foi cadastrar o cartão — **nada de código fica travado
+esperando**.
+
+Onde cadastra: `business.facebook.com/billing_hub/payment_settings`, ou
+Configurações do negócio → Contas → Contas do WhatsApp → "Leandro Garozi"
+→ Configurações de pagamento. Só Visa/Mastercard/Amex de **crédito**
+habilitado pra compra internacional — **pré-pago e débito automático a
+Meta não aceita** (foi a primeira ideia dele, "colocar um crédito pra
+testar", e não dá). Se a tela oferecer escolher moeda, **real**: depois de
+anexar o cartão não dá pra trocar.
+
+## WhatsApp: teto em reais e tarifa nova (29/09)
+
+Duas descobertas ao levantar a previsão de gasto pra ele decidir se
+cadastrava o cartão:
+
+**1. A tarifa caiu.** Template utility no Brasil está em **US$ 0,0068**
+desde 01/07/2026, não US$ 0,008. Manter o valor velho superestimava o
+gasto em ~18%. Padrão do app e a linha dele no banco foram corrigidos.
+Bônus: desde a mesma data a Meta fatura conta com Sold-To Brasil **em
+reais**, pela Facebook Brasil — some o risco de câmbio na fatura.
+
+**2. A alavanca da janela de 24h morreu.** Estava anotado aqui como
+"ainda não testada": template utility dentro de uma janela aberta pelo
+usuário era gratuito. **Em 01/10/2026 passou a ser cobrado.** A franquia
+nova de 1.000 mensagens grátis/mês é só pra *service message* (resposta
+escrita por humano ou bot dentro da janela) — não cobre template, então
+não serve pro FARO. **Toda mensagem nossa é paga.** Bom ter descoberto
+dois dias antes, e não em novembro contando com desconto inexistente.
+
+### Previsão que ele usou pra decidir
+
+US$ 0,0068 × 5,10 = **R$ 0,035 por lembrete**. Sem intermediário (a gente
+fala direto com a Graph API), então não tem markup de BSP.
+
+| Lembretes/dia | Msgs/mês | R$/mês |
+|---|---|---|
+| 5 | 150 | ~R$ 5 |
+| 10 | 300 | ~R$ 10 |
+| 15 | 450 | ~R$ 16 |
+| 20 | 600 | ~R$ 21 |
+| 30 | 900 | ~R$ 31 |
+
+Ele achou 15/dia exagerado ("não vou ter 15 lembretes por aí não") e
+pediu o teto em **R$ 20**.
+
+### O teto passou a ser em REAIS
+
+Era `settings.whatsapp_monthly_cap_usd`. Virou
+**`settings.whatsapp_monthly_cap_brl`**, padrão **R$ 20**.
+
+**Por quê:** ele pensa em real ("não passar de 20 reais"), e teto em dólar
+**flutuava com o câmbio** — o mesmo teto valia um valor diferente a cada
+mês, que é exatamente a imprevisibilidade que ele queria evitar. A
+migração converteu quem já tinha teto pelo próprio câmbio da linha (US$ 5
+× 5,10 = R$ 25,50) pra não mudar o sentido do que estava configurado, e
+depois a linha dele foi pra R$ 20 a pedido.
+
+Consequência no código: o câmbio **entrou na conta da trava**, não é mais
+só enfeite de tela. A tarifa da Meta vem em dólar e o limite é em real,
+então a rota de disparo agora lê `whatsapp_usd_brl` também. O painel de
+Configurações fala em reais do começo ao fim, e a linha de ajuda mostra
+quantas mensagens o teto atual compra.
+
+**O que R$ 20 compra:** 576 mensagens/mês (~19/dia por 30 dias). A 20/dia
+a trava pega no 29º dia — não é bug, é o teto fazendo o trabalho. Se a
+Meta reclassificar pra marketing, os mesmos R$ 20 compram **62**
+mensagens: a trava segura o prejuízo antes da fatura.
+
+Testado com 16 verificações replicando a expressão exata da rota
+(`(jaEnviadas + 1) * custoMsgBrl > capBrl`): quantas mensagens cabem, a
+577ª sendo barrada, teto nulo nunca barrando, teto zero barrando a
+primeira (diferente de nulo), e o cenário marketing. **Errei o valor
+esperado de dois testes e o código estava certo nos dois** — 20/dia
+estoura R$ 20 antes do mês fechar, e eu tinha escrito que caberia.
+
+### Custo do FARO inteiro (conferido em 29/09, ele pediu)
+
+- **Supabase: plano free** (organização `leandrogarozi`, tier free) →
+  **US$ 0**. O projeto `financeiro-pro` está **pausado** — o free pausa
+  projeto sem uso. O CORE está saudável.
+- **Vercel:** 7 projetos no time pessoal. O plano **não veio na resposta
+  da API** — se ele nunca cadastrou cartão lá, é Hobby, US$ 0.
+- **Domínio:** `vercel.app`, grátis.
+- **WhatsApp:** teto de R$ 20/mês, gasto real conforme o volume.
+
+**Total hoje: ~R$ 16/mês no ritmo de 15/dia, e é só o WhatsApp.**
+
+**Pra terceiros no futuro** (a conta que ele quer pra ver viabilidade):
+base fixa de Supabase Pro US$ 25 + Vercel Pro US$ 20 = ~R$ 230/mês
+**independente de quantos usuários**; custo **marginal por usuário** é só
+o WhatsApp, ~R$ 16/mês a 15 lembretes/dia. O custo por cliente é centavos
+por mensagem e a infra não cresce por usuário até volume alto.
 
 ## Tempo da tarefa passa a ser por dia (09/09)
 

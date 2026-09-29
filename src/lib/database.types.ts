@@ -692,7 +692,7 @@ export type Database = {
           updated_at: string
           user_id: string
           water_goal_ml: number
-          whatsapp_monthly_cap_usd: number | null
+          whatsapp_monthly_cap_brl: number | null
           whatsapp_msg_cost_usd: number
           whatsapp_usd_brl: number
         }
@@ -712,7 +712,7 @@ export type Database = {
           user_id: string
           water_goal_ml?: number
           water_strategies?: string | null
-          whatsapp_monthly_cap_usd?: number | null
+          whatsapp_monthly_cap_brl?: number | null
           whatsapp_msg_cost_usd?: number
           whatsapp_usd_brl?: number
         }
@@ -732,7 +732,7 @@ export type Database = {
           user_id?: string
           water_goal_ml?: number
           water_strategies?: string | null
-          whatsapp_monthly_cap_usd?: number | null
+          whatsapp_monthly_cap_brl?: number | null
           whatsapp_msg_cost_usd?: number
           whatsapp_usd_brl?: number
         }
