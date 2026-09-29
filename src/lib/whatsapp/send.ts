@@ -1,7 +1,25 @@
 const GRAPH_API_VERSION = "v21.0";
 
+/**
+ * Só os dígitos, mais o código do país. O campo da tela aceita o número como o
+ * brasileiro escreve ("27 98144-7230"), mas a Meta exige o formato
+ * internacional — sem o 55 na frente ela recusa o número.
+ *
+ * A regra é pelo TAMANHO, não por "começa com 55": 10 ou 11 dígitos é DDD +
+ * número (com ou sem o nono) e ganha o 55. Checar o prefixo quebraria o DDD 55
+ * (Rio Grande do Sul), onde "55981447230" é um número que também precisa do
+ * código do país.
+ *
+ * LIMITAÇÃO ASSUMIDA: isto trata todo número de 10 ou 11 dígitos como
+ * brasileiro. Um telefone americano escrito por inteiro ("14155552671") também
+ * tem 11 dígitos e sairia daqui como "5514155552671" — errado. O FARO é um app
+ * brasileiro de um usuário só, então a troca vale a pena; se um dia atender
+ * gente de fora, o campo vai ter que perguntar o país em vez de adivinhar.
+ */
 export function normalizeWhatsAppPhone(raw: string): string {
-  return raw.replace(/[^\d]/g, "");
+  const digitos = raw.replace(/[^\d]/g, "");
+  if (digitos.length === 10 || digitos.length === 11) return `55${digitos}`;
+  return digitos;
 }
 
 type WhatsAppSendResult = { ok: true } | { ok: false; error: string };
