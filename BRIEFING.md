@@ -831,6 +831,56 @@ Meta não aceita** (foi a primeira ideia dele, "colocar um crédito pra
 testar", e não dá). Se a tela oferecer escolher moeda, **real**: depois de
 anexar o cartão não dá pra trocar.
 
+## WhatsApp: por que o envio falhava, e as regras de template (29/09)
+
+O botão "Testar WhatsApp" respondia **(#132001) Template name does not
+exist in the translation**. Três hipóteses foram levantadas; a investigação
+derrubou duas e a terceira era a certa.
+
+**Não era o idioma** (era minha aposta principal, porque a interface da Meta
+do Leandro está em português de Portugal — "Faturação", "Morada"). Os dois
+modelos estavam em **Portuguese (BR)**, categoria Serviços, ativos.
+
+**Era a conta.** Os modelos `faro_teste` e `lembrete_faro` foram criados na
+**"Test WhatsApp Business Account"**, enquanto o número que o app usa
+(`WHATSAPP_PHONE_NUMBER_ID = 1251734794700019`) está na conta real,
+**"Leandro Garozi"** (`3509254432556744`). O número procura o modelo na
+conta dele e não acha. O sinal que entregou: a lista de modelos vinha com
+`hello_world` e os `jaspers_market_*`, que são as amostras que a Meta semeia
+em conta de teste — e em 02/09 estava registrado aqui que o `hello_world`
+**não existia** na conta real.
+
+**A correção é recriar os modelos na conta real**, nunca o contrário: a
+conta de teste **não tem método de pagamento** ("Nenhum método de
+pagamento", $0,00). Os modelos têm que morar onde está o cartão.
+
+### Regras de template que custaram tentativa
+
+- **O corpo não pode terminar com variável.** `Lembrete do FARO: {{1}}` é
+  recusado, e a Meta considera que variável + pontuação ainda é terminar com
+  variável. Precisa de texto real depois. O corpo que passou:
+  `Lembrete do FARO: {{1}}. Abra o app para ver os detalhes.`
+- **Uma variável só** no `lembrete_faro` — o código manda um parâmetro,
+  com título e horário já montados.
+- **Categoria Serviços/Utilidade**, nunca Marketing: marketing custa quase
+  10× (os R$ 20 de teto comprariam 62 mensagens em vez de 576).
+- **Parâmetro não aceita quebra de linha, tabulação nem 4+ espaços
+  seguidos.** Como o texto nasce do título digitado pelo Leandro, e título
+  colado de outro lugar traz quebra de linha junto, `limparParametro()`
+  normaliza antes de enviar (9 testes) — e devolve "Lembrete" se sobrar
+  vazio, porque parâmetro vazio a Meta também recusa.
+
+### E o telefone saía sem o código do país
+
+Descoberto no mesmo dia, antes de virar o próximo erro: o campo guarda
+`27981447230` e `normalizeWhatsAppPhone` só tirava os símbolos. A Meta
+recusa sem o 55. A regra nova é pelo **tamanho** (10 ou 11 dígitos ganham o
+55), não por "começa com 55" — checar o prefixo quebraria o **DDD 55 do Rio
+Grande do Sul**, onde `55981447230` também precisa do código do país.
+Limitação assumida e escrita no código: todo número de 10-11 dígitos é
+tratado como brasileiro, então telefone americano sairia errado; se um dia
+atender gente de fora, o campo terá que perguntar o país.
+
 ## WhatsApp: teto em reais e tarifa nova (29/09)
 
 Duas descobertas ao levantar a previsão de gasto pra ele decidir se

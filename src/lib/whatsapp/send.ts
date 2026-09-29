@@ -66,6 +66,21 @@ export async function sendWhatsAppTestMessage(toRaw: string): Promise<WhatsAppSe
 }
 
 /**
+ * A Meta recusa parâmetro de template que contenha quebra de linha, tabulação
+ * ou 4+ espaços seguidos. O texto do lembrete nasce do título que o Leandro
+ * digitou — e título colado de outro lugar traz quebra de linha junto sem
+ * ninguém perceber. Limpar aqui é mais barato que descobrir pelo lembrete que
+ * não chegou.
+ *
+ * Se sobrar vazio (título só de espaços), manda uma palavra em vez de string
+ * vazia: parâmetro vazio a Meta também recusa, e um lembrete genérico chegando
+ * é melhor que nenhum.
+ */
+function limparParametro(texto: string): string {
+  return texto.replace(/\s+/g, " ").trim() || "Lembrete";
+}
+
+/**
  * Manda o template "lembrete_faro" (categoria Serviços, precisa existir e estar
  * aprovado na conta) — 1 variável de corpo com o texto do lembrete já formatado
  * (título + horário). Funciona fora da janela de 24h, é o usado pelo disparo
@@ -80,7 +95,7 @@ export async function sendWhatsAppReminderMessage(toRaw: string, reminderText: s
     template: {
       name: "lembrete_faro",
       language: { code: "pt_BR" },
-      components: [{ type: "body", parameters: [{ type: "text", text: reminderText }] }],
+      components: [{ type: "body", parameters: [{ type: "text", text: limparParametro(reminderText) }] }],
     },
   });
 }
