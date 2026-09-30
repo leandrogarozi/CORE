@@ -157,6 +157,10 @@ export async function POST(req: NextRequest) {
       template: "lembrete_faro",
       ok: result.ok,
       error: result.ok ? null : result.error,
+      // Só existem quando a Meta aceitou. São o que permite investigar uma
+      // mensagem aceita que mesmo assim não chegou.
+      message_id: result.ok ? result.messageId : null,
+      wa_id: result.ok ? result.waId : null,
     });
     if (ledgerError) errors.push(`${reminder.id}: falha ao registrar o envio (${ledgerError.message})`);
 

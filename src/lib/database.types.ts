@@ -743,31 +743,37 @@ export type Database = {
           error: string | null
           id: string
           kind: string
+          message_id: string | null
           ok: boolean
           reminder_id: string | null
           sent_at: string
           template: string | null
           user_id: string
+          wa_id: string | null
         }
         Insert: {
           error?: string | null
           id?: string
           kind?: string
+          message_id?: string | null
           ok?: boolean
           reminder_id?: string | null
           sent_at?: string
           template?: string | null
           user_id: string
+          wa_id?: string | null
         }
         Update: {
           error?: string | null
           id?: string
           kind?: string
+          message_id?: string | null
           ok?: boolean
           reminder_id?: string | null
           sent_at?: string
           template?: string | null
           user_id?: string
+          wa_id?: string | null
         }
         Relationships: []
       }

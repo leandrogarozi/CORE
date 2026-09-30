@@ -22,7 +22,19 @@ export function normalizeWhatsAppPhone(raw: string): string {
   return digitos;
 }
 
-type WhatsAppSendResult = { ok: true } | { ok: false; error: string };
+/**
+ * `ok: true` só quer dizer que a Meta ACEITOU a mensagem, não que ela chegou —
+ * a entrega é assíncrona e só um webhook de status conta o resto da história.
+ * Por isso guardamos o que ela devolve:
+ *
+ * - `messageId` (wamid): identifica a mensagem, e é por ele que se rastreia.
+ * - `waId`: o número PARA ONDE o WhatsApp roteou de verdade. Se voltar
+ *   diferente do que mandamos, é aí que mora o problema — o nono dígito dos
+ *   celulares brasileiros é a pegadinha clássica.
+ */
+type WhatsAppSendResult =
+  | { ok: true; messageId: string | null; waId: string | null }
+  | { ok: false; error: string };
 
 async function callWhatsAppApi(body: Record<string, unknown>): Promise<WhatsAppSendResult> {
   const token = process.env.WHATSAPP_ACCESS_TOKEN;
@@ -51,7 +63,16 @@ async function callWhatsAppApi(body: Record<string, unknown>): Promise<WhatsAppS
       : `Falha ao enviar (HTTP ${res.status})`;
     return { ok: false, error: message };
   }
-  return { ok: true };
+
+  // A resposta vem como { contacts: [{ wa_id }], messages: [{ id }] }. Ler isso
+  // nunca pode derrubar um envio que já deu certo, então qualquer surpresa no
+  // formato vira null em vez de exceção.
+  const json = await res.json().catch(() => null);
+  return {
+    ok: true,
+    messageId: json?.messages?.[0]?.id ?? null,
+    waId: json?.contacts?.[0]?.wa_id ?? null,
+  };
 }
 
 /** Manda o template "faro_teste" (categoria Serviços, aprovado pra conta real) — funciona sem sessão aberta. Só serve pra teste. */
