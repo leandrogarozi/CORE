@@ -960,6 +960,28 @@ vazios. Os 2 recados ficaram de fora, aguardando decisão dele.
   **Pegadinha que custou um arquivo:** escapar o HTML (`&lt;h1&gt;`) faz as
   tags entrarem como texto literal. Tem que ir HTML de verdade.
 
+### Regra de reexportação (pedida em 30/09)
+
+"Toda vez que eu criar ou modificar um ensinamento, refaz, para nada se
+perder." Duas decisões, aprovadas por ele:
+
+- **Reexportar TUDO, sempre** — não tentar detectar o que mudou. A tabela
+  `books` **não tem campo de última edição**, então não existe como saber o
+  que ele mexeu. Com pouca coisa pra exportar, ser esperto só criaria a chance
+  de deixar um aprendizado pra trás. Ele gostou justamente por isso:
+  substituir tudo elimina a pergunta "será que esse ficou de fora?".
+- **Atualizar o documento existente, não criar outro** — o link nunca muda, e
+  o que o Mapa de Aprendizados apontar continua valendo.
+- Item apagado no FARO **não** apaga o documento do Drive: avisar e deixar ele
+  decidir (Regra 1 da skill dele).
+- **Efeito colateral avisado a ele:** como a exportação substitui, texto
+  escrito direto no Doc se perde. O FARO é onde se edita.
+
+**Limite honesto:** a regra vive na skill `organizar-drive-leandro`, então só
+dispara quando o Claude está na conversa. Edição feita no FARO sem falar com o
+Claude não exporta nada. A garantia real é o botão dentro do app — e quando
+ele for construído, tem que nascer com exatamente esse comportamento.
+
 ### O botão dentro do app ainda não existe
 
 Hoje isso só acontece se o Claude fizer na mão. Pro FARO exportar sozinho,
