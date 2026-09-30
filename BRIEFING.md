@@ -831,7 +831,51 @@ Meta não aceita** (foi a primeira ideia dele, "colocar um crédito pra
 testar", e não dá). Se a tela oferecer escolher moeda, **real**: depois de
 anexar o cartão não dá pra trocar.
 
-## WhatsApp: FUNCIONANDO ponta a ponta (30/09)
+## WhatsApp: ENTREGUE de verdade (30/09, segunda tentativa)
+
+O primeiro envio (13:37) foi **aceito pela Meta e nunca entregue**. O segundo
+(14:20) chegou no celular. A diferença entre os dois é instrutiva.
+
+```
+14:20  ok: true  wa_id: 5527981447230  message_id: wamid.HBgNNTUyNzk4MTQ0NzIzMBUC...
+13:37  ok: true  wa_id: null           message_id: null
+```
+
+**O `wa_id` voltou idêntico ao que enviamos** — número certo, sem a pegadinha
+do nono dígito, rota certa. E a entrega aconteceu **sem cadastrar nada** na
+lista de destinatários do número de teste: a teoria da allowed list estava
+errada, o número do Leandro já é aceito porque ele é admin do app.
+
+**Por que a primeira falhou: não sabemos.** A hipótese mais provável é que os
+modelos tinham acabado de ser aprovados e a infraestrutura de envio ainda não
+tinha propagado. É hipótese, não diagnóstico — e fica registrada como tal.
+
+### A lição que sobra
+
+`ok: true` da Cloud API significa **aceito**, não **entregue**. Foi por
+confiar nisso que eu anunciei "está funcionando" antes de ter confirmação, e
+o Leandro é que descobriu que nada tinha chegado.
+
+Duas camadas de visibilidade:
+
+1. **Feita:** `whatsapp_sends` agora guarda `message_id` e `wa_id`. Se um
+   envio sumir de novo, existe rastro.
+2. **Pendente (backlog):** webhook de status da Meta (`sent`, `delivered`,
+   `read`, `failed`). É a única forma de saber de verdade que a mensagem
+   chegou. Sem ele, o FARO continua cego pra falha de entrega — e foi
+   exatamente essa cegueira que escondeu 7 lembretes perdidos por três
+   semanas.
+
+### Detalhe de custo enquanto estiver no número de teste
+
+O número `1251734794700019` (+1 555-401-5473) é um número de teste. Mensagem
+por ele **não é cobrada**. Mas o painel calcula o gasto por
+`mensagens × tarifa`, então ele vai **superestimar**: mostra ~R$ 0,07 onde a
+Meta cobra R$ 0. Não é bug — é a estimativa fazendo o trabalho dela com a
+tarifa configurada. Calibrar quando (e se) vier fatura, ou quando migrar pro
+número de produção do Step 2.
+
+## WhatsApp: primeira tentativa, aceita mas não entregue (30/09)
 
 Modelos aprovados e **primeiro lembrete real entregue pelo caminho
 automático**. Registro do banco:
