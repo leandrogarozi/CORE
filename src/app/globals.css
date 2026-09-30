@@ -609,9 +609,9 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .section-head{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
 .section-pill{
   display:inline-flex; align-items:center; gap:6px;
-  background:var(--surface-2); color:var(--text-muted);
-  font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em;
-  padding:4px 9px; border-radius:20px;
+  background:var(--segmento-fundo); color:var(--text-muted);
+  font-size:11.5px; font-weight:var(--fw-forte);
+  padding:4px 10px; border-radius:var(--r-full);
 }
 .section-pill .count{ background:var(--surface); border-radius:10px; padding:0 6px; font-size:10.5px; color:var(--text-faint); }
 .section-pill.accent{ background:var(--accent-soft); color:var(--accent); }
@@ -647,7 +647,8 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   background:color-mix(in srgb, var(--book-yellow) 18%, var(--surface));
 }
 .dl-reminder svg{ flex:none; width:13px; height:13px; }
-.dl-row + .dl-row{ padding-top:14px; border-top:1px solid var(--border); }
+.dl-row + .dl-row{ padding-top:14px; border-top:1px solid var(--linha); }
+.daily-log-panel .hp-bar{ margin-left:0; margin-right:0; }
 .dl-row-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; }
 .dl-label{ font-size:12.5px; font-weight:500; display:inline-flex; align-items:center; gap:4px; }
 .dl-value{ font-size:13px; font-weight:600; }
@@ -706,16 +707,16 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   background:var(--surface); border:1px solid var(--border-strong); border-radius:7px;
   padding:6px 8px; font-size:12.5px; color:var(--text);
 }
-.hp-total{ font-size:22px; font-weight:700; padding:14px 14px 0; }
-.hp-total .hp-of{ font-size:12px; font-weight:500; color:var(--text-faint); }
-.hp-bar{ margin:10px 14px 4px; height:7px; border-radius:4px; background:var(--surface-2); overflow:hidden; }
-.hp-bar-fill{ height:100%; border-radius:4px; background:var(--accent); }
+.hp-total{ font-size:var(--fs-7); font-weight:var(--fw-titulo); letter-spacing:var(--ls-apertado); padding:15px 16px 0; font-variant-numeric:tabular-nums; }
+.hp-total .hp-of{ font-size:12px; font-weight:var(--fw-medio); color:var(--text-faint); letter-spacing:0; }
+.hp-bar{ margin:11px 16px 5px; height:5px; border-radius:var(--r-full); background:var(--trilho); overflow:hidden; }
+.hp-bar-fill{ height:100%; border-radius:var(--r-full); background:var(--accent); }
 .hp-bar-fill.over{ background:var(--danger); }
-.hp-free{ font-size:11.5px; color:var(--text-muted); padding:0 14px 10px; }
+.hp-free{ font-size:11.5px; color:var(--text-muted); padding:0 16px 11px; }
 .hp-free.over{ color:var(--danger); }
-.hp-breakdown{ padding:8px 14px 4px; border-top:1px solid var(--border); }
+.hp-breakdown{ padding:9px 16px 5px; border-top:1px solid var(--linha); }
 .hp-row{ display:flex; align-items:center; gap:7px; padding:5px 0; font-size:12px; color:var(--text-muted); }
-.hp-dot{ width:8px; height:8px; border-radius:50%; flex:none; }
+.hp-dot{ width:7px; height:7px; border-radius:50%; flex:none; }
 .hp-row-label{ flex:1; }
 .hp-note{
   font-size:11px; border-radius:8px; padding:7px 10px; margin:8px 14px 0; border:none;
@@ -938,9 +939,9 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .project-wide .task-table-scroll::-webkit-scrollbar-thumb{ background:var(--border-strong); border-radius:4px; }
 .project-wide .task-table-scroll::-webkit-scrollbar-thumb:hover{ background:var(--text-faint); }
 .task-list-header{
-  display:grid; align-items:center; column-gap:14px; padding:7px 14px; min-width:max-content;
-  border-bottom:1px solid var(--border); background:var(--bg);
-  font-size:11px; font-weight:400; color:var(--text-faint);
+  display:grid; align-items:center; column-gap:14px; padding:8px 16px; min-width:max-content;
+  border-bottom:1px solid var(--linha); background:var(--bg);
+  font-size:11px; font-weight:var(--fw-medio); color:var(--text-faint);
 }
 .tlh-cell{ position:relative; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .tlh-col-priority, .tlh-col-play, .tlh-col-duplicate, .tlh-col-delete{ text-align:center; }
@@ -956,7 +957,7 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .col-resize-handle:active::after{ background:var(--accent); opacity:1; }
 
 /* quick add */
-.quickadd-row{ display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid var(--border); }
+.quickadd-row{ display:flex; align-items:center; gap:8px; padding:11px 16px; border-bottom:1px solid var(--linha); }
 .quickadd-plus{ color:var(--text-faint); font-size:15px; width:16px; text-align:center; }
 .quickadd-input{ flex:1; border:none; background:none; padding:2px 0; color:var(--text); }
 .quickadd-input::placeholder{ color:var(--text-faint); }
@@ -964,10 +965,14 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 
 /* task row */
 .task-row{
-  display:grid; align-items:center; column-gap:14px; padding:6px 14px;
-  border-bottom:1px solid var(--border); background:var(--surface); min-width:max-content;
+  display:grid; align-items:center; column-gap:14px; padding:9px 16px;
+  border-bottom:1px solid var(--linha); background:var(--surface); min-width:max-content;
+  transition:background var(--mov);
 }
 .task-row:last-child{ border-bottom:none; }
+/* A linha inteira reage ao mouse. Antes só os botõezinhos dentro dela
+   reagiam, e não dava pra saber que a linha era uma unidade. */
+.task-row:hover{ background:var(--segmento-fundo); }
 .task-row.dragging{ opacity:0.35; }
 .task-row.overdue{ background:color-mix(in srgb, var(--danger) 6%, var(--surface)); }
 .drag-handle{
@@ -1010,11 +1015,13 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .quick-bolt svg{ width:10px; height:10px; }
 .quick-bolt.filled{ color:var(--book-yellow); opacity:1; }
 .row-desc-cell{ display:flex; align-items:center; gap:8px; min-width:0; }
-.row-title{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:text; font-size:12px; background:none; border:none; text-align:left; padding:0; }
+.row-title{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:text; font-size:var(--fs-3); background:none; border:none; text-align:left; padding:0; }
 .task-row.done .row-title{ text-decoration:line-through; color:var(--text-muted); }
 .row-category-cell{ display:flex; align-items:center; gap:6px; min-width:0; }
-.row-time{ font-size:10px; color:var(--text-muted); white-space:nowrap; flex:none; }
-.chip{ font-size:9px; font-weight:600; padding:1px 7px; border-radius:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.row-time{ font-size:11px; color:var(--text-muted); white-space:nowrap; flex:none; font-variant-numeric:tabular-nums; }
+/* 9px era pequeno demais pra ler de relance — e uma etiqueta que não se lê é
+   só uma mancha colorida na linha. */
+.chip{ font-size:10px; font-weight:var(--fw-forte); padding:2px 8px; border-radius:var(--r-1); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .chip-warning{
   display:inline-flex; align-items:center; gap:3px;
   background:color-mix(in srgb, var(--danger) 16%, var(--surface)); color:var(--danger);
@@ -1034,10 +1041,10 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .flag-btn{ padding:0; }
 .flag-btn:hover{ filter:brightness(1.2); }
 .task-row > .icon-btn, .task-row > .timer-wrap{ justify-self:center; }
-.empty-row{ padding:14px 12px; font-size:12.5px; color:var(--text-faint); font-style:italic; }
+.empty-row{ padding:14px 16px; font-size:12.5px; color:var(--text-faint); font-style:italic; }
 
 /* inline edit */
-.edit-row{ padding:10px 12px; border-bottom:1px solid var(--border); background:var(--surface); }
+.edit-row{ padding:10px 16px; border-bottom:1px solid var(--linha); background:var(--surface); }
 .edit-row:last-child{ border-bottom:none; }
 .edit-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px 8px; margin-bottom:10px; align-items:end; }
 .edit-grid > input[type="text"]:first-child{ grid-column:1 / -1; }
@@ -1455,20 +1462,25 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 
 /* habits / blocks */
 .habit-strip{
-  background:var(--surface); border:1px solid var(--border); border-radius:12px;
-  box-shadow:var(--shadow); padding:12px 14px;
+  background:var(--surface); border:1px solid var(--linha); border-radius:var(--r-3);
+  box-shadow:var(--sh-1); padding:var(--sp-2) 17px;
 }
-.habit-row{ display:flex; align-items:center; gap:10px; }
-.habit-row + .habit-row{ margin-top:8px; }
+/* Cada hábito vira uma LINHA de verdade, com divisória e área de mouse —
+   antes eram blocos flutuando com 8px entre eles, sem começo nem fim. */
+.habit-row{ display:flex; align-items:center; gap:10px; padding:9px 0; }
+.habit-row + .habit-row{ margin-top:0; border-top:1px solid var(--linha); }
 .habit-name-wrap{ flex:1; min-width:0; }
-.habit-name{ font-size:12.5px; font-weight:500; color:var(--text-muted); }
+/* O nome é o conteúdo da linha: cor de texto, não de apoio. */
+.habit-name{ font-size:var(--fs-3); font-weight:var(--fw-medio); color:var(--text); }
 .habit-row-icons{ display:flex; gap:2px; flex:none; }
 .habit-cells{ display:flex; gap:4px; flex:none; }
 .habit-cell{
-  width:20px; height:20px; border-radius:6px; border:1.5px solid var(--border-strong);
-  background:var(--bg); font-size:9px; color:var(--text-faint);
+  width:21px; height:21px; border-radius:var(--r-1); border:1px solid transparent;
+  background:var(--segmento-fundo); font-size:9.5px; font-weight:var(--fw-medio); color:var(--text-faint);
   display:flex; align-items:center; justify-content:center;
+  transition:background var(--mov), color var(--mov);
 }
+.habit-cell:hover:not(.done){ background:var(--trilho); color:var(--text-muted); }
 .habit-cell.done{ background:#2A9D8F; border-color:#2A9D8F; color:#fff; }
 .habit-cell.today{ box-shadow:0 0 0 2px var(--accent) inset; }
 .habit-cell.has-note{ position:relative; }
@@ -1570,8 +1582,8 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
   background:var(--bg); border:1px solid var(--border-strong); border-radius:9px;
   padding:12px 14px; font-size:13px; line-height:1.55; color:var(--text); font-family:inherit;
 }
-.habit-add{ display:flex; gap:6px; margin-top:10px; }
-.habit-add input{ flex:1; background:var(--bg); border:1px solid var(--border-strong); border-radius:6px; padding:6px 8px; font-size:12px; min-width:0; }
+.habit-add{ display:flex; gap:6px; margin-top:11px; padding-top:11px; border-top:1px solid var(--linha); }
+.habit-add input{ flex:1; background:var(--bg); border:1px solid var(--linha); border-radius:var(--r-2); padding:7px 10px; font-size:12.5px; min-width:0; }
 .habit-add .block-duration-input{ flex:0 0 64px; }
 .block-duration{ font-size:11px; color:var(--text-faint); flex:none; }
 .recurring-edit-row{ border-radius:8px; margin-top:0; }
@@ -1613,13 +1625,13 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .narrow-list.project-wide{ max-width:900px; }
 .narrow-list.list-xl{ max-width:1300px; }
 .list-quickadd-card{
-  background:var(--surface); border:1px solid var(--border); border-radius:12px;
-  box-shadow:var(--shadow); margin-bottom:14px; overflow:hidden;
+  background:var(--surface); border:1px solid var(--linha); border-radius:var(--r-3);
+  box-shadow:var(--sh-1); margin-bottom:var(--sp-3); overflow:hidden;
 }
 .list-quickadd-card .quickadd-row{ border-bottom:none; }
 .list-card{
-  background:var(--surface); border:1px solid var(--border); border-radius:12px;
-  box-shadow:var(--shadow); margin-bottom:14px; overflow:hidden;
+  background:var(--surface); border:1px solid var(--linha); border-radius:var(--r-3);
+  box-shadow:var(--sh-1); margin-bottom:var(--sp-3); overflow:hidden;
 }
 .list-card:last-child{ margin-bottom:0; }
 .list-card-section-label{

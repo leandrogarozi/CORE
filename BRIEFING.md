@@ -1209,10 +1209,39 @@ O botão usa `useSyncExternalStore` lendo o próprio atributo, com um
 verdade é como uma delas acaba errada. Ícones de sol e lua saíram de
 `design/icon-pack/Environment/`, como manda a regra.
 
+### Etapa 3 — a tela do Dia por dentro (30/09)
+
+A tela que ele mais usa, e a última que ainda estava com a densidade antiga.
+Nada de comportamento mudou: só respiro, linha e tamanho de letra.
+
+- **Linha de tarefa:** padding de 6/14 pra 9/16, divisória em `--linha`, e a
+  linha inteira passa a reagir ao mouse. Antes só os botõezinhos dentro dela
+  reagiam, e não dava pra perceber que a linha era uma unidade.
+- **Etiqueta de categoria:** 9px era pequeno demais pra ler de relance — e
+  etiqueta que não se lê é só uma mancha colorida. Foi pra 10px com mais
+  respiro.
+- **Título da tarefa:** 12px → 13px (o corpo do sistema).
+- **Hábitos e Dia a Dia:** cada hábito virou uma LINHA de verdade, com
+  divisória e área própria. Antes eram blocos flutuando com 8px entre eles,
+  sem começo nem fim. O nome ganhou cor de texto (é o conteúdo da linha, não
+  apoio) e os quadradinhos da semana perderam a borda pesada.
+- **Painel de Horas:** o total virou número de destaque (26px), a barra ficou
+  fina e arredondada como as do Dashboard.
+- **Pílula de seção** (`HOJE`, `HÁBITOS`) saiu da CAIXA ALTA — era o último
+  rótulo em caixa alta do fluxo principal.
+- **Bug de layout corrigido:** a barra de água usa a mesma classe da barra do
+  painel de Horas, que tem margem lateral pra respeitar o padding daquele
+  cartão. No painel de anotações o cartão já tem o seu, e a soma deixava a
+  barra encolhida no meio.
+
+Prova em `scratchpad/red/dia.py`, nos dois temas e em 390px. Uma imprecisão
+conhecida do arquivo de prova: as etiquetas de categoria estão com cor fixa,
+enquanto no app elas vêm das cores que ele configura — no tema escuro o app
+mostra outra tonalidade.
+
 ### Próximo passo
 
-A tela do Dia. E só no fim a skill do sistema de design, que documenta o que
-se provou.
+A skill do sistema de design, que documenta o que se provou nas três etapas.
 
 ## Webhook de status do WhatsApp — combinado pra noite de 30/09
 
