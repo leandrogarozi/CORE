@@ -19,7 +19,6 @@ import { CATEGORY_LABEL, DEFAULT_TAG_COLORS, isFeatureEnabled, type Category, ty
 import { moodByValue } from "@/lib/mood";
 import { countOpenChecklistItems } from "@/lib/rich-text";
 import { taskMinutesInRange } from "@/lib/board/task-time";
-import { ChevronIcon } from "./icons";
 import { TaskListModal } from "./TaskListModal";
 
 type Period = "day" | "week" | "month";
@@ -488,24 +487,6 @@ export function Dashboard() {
           ))}
         </div>
       </div>
-
-      {stats.noDateCount > 0 && (
-        <button
-          type="button"
-          className="dsh-strip"
-          onClick={() => setModal({ title: "Sem data", tasks: stats.noDateTasks })}
-        >
-          <span className="dsh-pill">
-            Sem data <i>{stats.noDateCount}</i>
-          </span>
-          <span>
-            {stats.noDateCount === 1 ? "1 tarefa esperando" : `${stats.noDateCount} tarefas esperando`} uma data
-          </span>
-          <span className="dsh-chev">
-            <ChevronIcon />
-          </span>
-        </button>
-      )}
 
       {modal && (
         <TaskListModal

@@ -20,8 +20,25 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="pt-BR">
+    /* suppressHydrationWarning porque o script abaixo escreve data-theme no
+       <html> antes do React entrar: sem isso o React reclama de um atributo
+       que não existia no HTML do servidor. */
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
+        {/* Script cru, e não <Script strategy="beforeInteractive">, porque a
+            própria documentação do Next diz que beforeInteractive "não bloqueia
+            a hidratação" — e aqui bloquear é exatamente o ponto. Este roda
+            durante a leitura do HTML, antes do primeiro pixel, senão a tela
+            pisca branca antes de escurecer. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var s=localStorage.getItem('faro-tema');" +
+              "var e=s==='escuro'||(s!=='claro'&&window.matchMedia('(prefers-color-scheme: dark)').matches);" +
+              "document.documentElement.dataset.theme=e?'dark':'light';}" +
+              "catch(_){document.documentElement.dataset.theme='light';}})()",
+          }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

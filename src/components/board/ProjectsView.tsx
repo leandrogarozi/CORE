@@ -95,7 +95,7 @@ function ProjectListView({ onBack, onOpen }: { onBack: () => void; onOpen: (id: 
           ‹
         </button>
         <span className="dash-range-label">Projetos</span>
-        <span style={{ width: 30 }} />
+        <span style={{ width: 32 }} />
       </div>
 
       <div className="narrow-list">
@@ -288,7 +288,7 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
           ‹
         </button>
         <span className="dash-range-label">Projeto</span>
-        <span style={{ width: 30 }} />
+        <span style={{ width: 32 }} />
       </div>
 
       <div className="narrow-list project-wide">

@@ -46,7 +46,7 @@ export function CalendarView({
           ‹
         </button>
         <span className="dash-range-label">Calendário</span>
-        <span style={{ width: 30 }} />
+        <span style={{ width: 32 }} />
       </div>
 
       <div className="cal-toolbar">

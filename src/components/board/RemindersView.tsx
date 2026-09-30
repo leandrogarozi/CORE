@@ -859,7 +859,7 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
           ‹
         </button>
         <span className="dash-range-label">Lembretes</span>
-        <span style={{ width: 30 }} />
+        <span style={{ width: 32 }} />
       </div>
 
       <div className="narrow-list reminders-wide">

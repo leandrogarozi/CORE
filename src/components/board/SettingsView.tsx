@@ -525,7 +525,7 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
           ‹
         </button>
         <span className="dash-range-label">Configurações</span>
-        <span style={{ width: 30 }} />
+        <span style={{ width: 32 }} />
       </div>
 
       <CollapsibleBox title="Tags da tarefa" icon={<TagIcon />}>

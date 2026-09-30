@@ -249,7 +249,7 @@ export function StudyPlansView({ onBack }: { onBack: () => void }) {
           ‹
         </button>
         <span className="dash-range-label">Plano de Estudo</span>
-        <span style={{ width: 30 }} />
+        <span style={{ width: 32 }} />
       </div>
 
       <div className={"narrow-list" + (wide ? " list-xl" : "")}>

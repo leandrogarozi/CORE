@@ -376,7 +376,7 @@ export function MedicationsView({ onBack }: { onBack: () => void }) {
           ‹
         </button>
         <span className="dash-range-label">Medicamentos</span>
-        <span style={{ width: 30 }} />
+        <span style={{ width: 32 }} />
       </div>
 
       <div className="narrow-list">

@@ -1148,10 +1148,71 @@ escuro, dia vazio, nome comprido + número de 4 dígitos, e 390px de largura.
 Inter embutida em base64 no arquivo de prova porque o Chromium desta máquina
 não busca a folha do Google — sem isso o print mentiria sobre a tipografia.
 
+### Faixa "Sem data" do Dashboard — retirada (30/09)
+
+Durou uma publicação. O Leandro printou a tela do Dia e mostrou que aquela
+faixa **já existia lá** — e lá ela é melhor: um toggle que abre a lista de
+verdade, não um atalho pra um modal. Duas cópias da mesma coisa em telas
+diferentes é pior que nenhuma. O número "Sem data" continua no painel, e
+continua clicando.
+
+### Etapa 2 — a casca e as classes compartilhadas (30/09)
+
+Escolhida por alcance, não por tamanho: `.dash-box` e `.dash-nav` eram usadas
+por **15 telas**. Deixá-las intactas na etapa 1 foi proposital (nada muda sem
+print), mas isso queria dizer que o maior salto visual disponível não era uma
+tela — eram essas duas classes mais a casca.
+
+**O que mudou:**
+
+- **Barra de cima:** tudo na MESMA altura (32px). Era isso que deixava a linha
+  torta: botão de 26, ícone de 18 e "Hoje" de 30 lado a lado. O "Hoje" virou a
+  ação principal (é a única coisa colorida da barra) e os ícones ganharam área
+  de clique de verdade — só ali, porque fora da barra o `.icon-btn` mora
+  dentro de linhas de lista apertadas.
+- **Alternador (`.view-toggle`):** era um grupo de botões colados com
+  divisória; virou o mesmo segmento do Dashboard (fundo cinza, ativo como
+  pílula branca). Um alternador só no app inteiro.
+- **`.dash-box-title`:** era 11px em CAIXA ALTA e cinza-claro — o título
+  gritava e não se lia. Virou título de verdade: tamanho de corpo, peso alto,
+  cor de texto.
+- **Caixas grandes da tela do Dia** (`.task-list`, `.hours-panel`,
+  `.daily-log-panel`) passaram pra linha fina e sombra `--sh-1`, sem encostar
+  no conteúdo delas.
+- **Selo vermelho de contagem** foi pro CANTO do botão: dentro do segmento
+  novo ele caía em cima da palavra.
+- O espaçador de 30px que equilibra o cabeçalho virou 32px nos 14 arquivos que
+  o usam, pra acompanhar a seta.
+
+### Botão de tema (30/09)
+
+Pedido dele: um botão de modo escuro na barra de cima, entre "Hoje" e os
+ícones. Mudou o motor do tema:
+
+- **Antes:** só `@media (prefers-color-scheme: dark)`. O sistema mandava.
+- **Agora:** o tema é decidido pelo atributo `data-theme` no `<html>`. Um botão
+  que o sistema pode contradizer não é botão.
+
+Quem escreve o atributo é um **script cru no `<head>`** do `layout.tsx`, e não
+`<Script strategy="beforeInteractive">` — a própria documentação do Next diz
+que `beforeInteractive` "não bloqueia a hidratação", e aqui bloquear é
+exatamente o ponto: se rodasse depois, a tela piscaria branca antes de
+escurecer. O `<html>` ganhou `suppressHydrationWarning` por causa disso.
+
+A preferência do sistema continua valendo — vira o valor inicial enquanto ele
+não escolher nada. A escolha dele mora no `localStorage`, **não no banco**:
+tema é preferência DESTE aparelho (escuro no celular à noite, claro no
+computador de dia).
+
+O botão usa `useSyncExternalStore` lendo o próprio atributo, com um
+`MutationObserver`: o tema é estado de fora do React, e duas cópias da mesma
+verdade é como uma delas acaba errada. Ícones de sol e lua saíram de
+`design/icon-pack/Environment/`, como manda a regra.
+
 ### Próximo passo
 
-Aprovação do print do Dashboard. Depois dele, a tela do Dia — e só no fim a
-skill do sistema de design, que documenta o que se provou.
+A tela do Dia. E só no fim a skill do sistema de design, que documenta o que
+se provou.
 
 ## Webhook de status do WhatsApp — combinado pra noite de 30/09
 

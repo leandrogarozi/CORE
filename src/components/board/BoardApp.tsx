@@ -8,6 +8,7 @@ import { TaskListCard } from "./TaskListCard";
 import { WeekView } from "./WeekView";
 import { CalendarView } from "./CalendarView";
 import { TaskSearch, type SearchResult } from "./TaskSearch";
+import { ThemeButton } from "./ThemeButton";
 import { Dashboard } from "./Dashboard";
 import { HoursPanel } from "./HoursPanel";
 import { DailyLogPanel } from "./DailyLogPanel";
@@ -164,6 +165,7 @@ function BoardShell() {
           <button className="today-btn" type="button" onClick={goToday}>
             Hoje
           </button>
+          <ThemeButton />
           <button
             className={"icon-btn" + (wide ? " active" : "")}
             type="button"
