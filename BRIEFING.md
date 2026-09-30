@@ -911,6 +911,71 @@ de comprar aquele item". Não fazer agora.
 
 **À noite, junto com o webhook. Não começar antes de ele chamar.**
 
+## Conhecimento do FARO exportado pro Drive (30/09)
+
+Pedido do Leandro: além do backup técnico, ter os **aprendizados** como
+documentos legíveis no Drive, pra alimentar o mapa de autoconhecimento dele
+dentro do Claude. São **duas coisas diferentes, da mesma fonte** — e não
+podem virar uma só:
+
+| | Backup técnico | Exportação de conhecimento |
+|---|---|---|
+| Serve pra | não perder dado | alimentar o mapa |
+| Quem lê | a máquina | ele e a IA |
+| Formato | JSON bruto | documento de verdade |
+
+### Onde mora, e por quê
+
+`Drive > CLAUDE - IA > Apps Leandro Garozi > App faro`
+(id `1sWddRthtW5CMtY_UaeKmI-tns6Q3JP4H`), com `Sinapses`
+(`1nb1dqB3A2hrV9SBOup-Gp2iZsLDnq97c`), `Livros`
+(`1p389Kmx55n6gedU9NQc-cInKSs58smVU`) e `Backups`
+(`1-si9KDpYR2jIZ8DWYfaBz1lpNnMun9wG`, ainda vazia).
+
+O lugar veio da skill `organizar-drive-leandro`, não de palpite: `Apps
+Leandro Garozi` já guarda `App meta saude`, `App gestao financeira leandro` e
+outros. O nome `App faro` segue a convenção dos irmãos (sentence case com
+prefixo "App").
+
+Perto dali existe o documento **"Mapa de Aprendizados — Base de Conteúdo e
+Direção"** (`1ibh78oEL3r3k8iBoHJVfYdLZ0anjzSH_x30rMM798JE`), que é o "mapa"
+que ele mencionou — o destino final desse material.
+
+### O que foi exportado (30/09, manual)
+
+7 Google Docs: as **5 sinapses** e os **2 livros com resumo de verdade**.
+
+**Dos 47 livros, só 4 têm anotação — e 2 delas são recados de "preciso
+comprar", não aprendizado.** Conferir isso antes evitou criar 43 documentos
+vazios. Os 2 recados ficaram de fora, aguardando decisão dele.
+
+### Regras do formato
+
+- **Um documento por item**, decisão dele: "resumo livro x", "nova sinapse
+  x". Nomes: `Nova sinapse — <título>` e `Resumo livro — <título>`.
+- **O FARO é a fonte da verdade; o documento é espelho.** Ele edita no FARO e
+  reexporta; editar no Drive se perde na próxima exportação.
+- Criação via Drive `create_file` com `contentMimeType: "text/html"` — o
+  Google converte `<h1>`, `<b>`, `<ul>` em formatação nativa.
+  **Pegadinha que custou um arquivo:** escapar o HTML (`&lt;h1&gt;`) faz as
+  tags entrarem como texto literal. Tem que ir HTML de verdade.
+
+### O botão dentro do app ainda não existe
+
+Hoje isso só acontece se o Claude fizer na mão. Pro FARO exportar sozinho,
+precisa de **OAuth com escopo `drive.file`** — conta de serviço **não serve**
+pro Drive (cota de 0 GB; arquivo criado por ela conta contra ela e a subida
+falha). Correção de rumo em relação ao que foi dito no Google Agenda: o
+escopo `drive.file` é **não-sensível**, não exige verificação do Google, então
+a objeção dele à reconexão semanal não se aplica a esse caso.
+
+### Pendência de organização (regra da própria skill dele)
+
+A skill `organizar-drive-leandro` manda registrar mudança estrutural no
+documento "ESTRUTURA DO DRIVE" e na auditoria do projeto Cowork. **A pasta
+`App faro` foi criada e isso ainda NÃO foi registrado lá** — são arquivos
+fora deste repositório. Fazer quando ele pedir.
+
 ## Webhook de status do WhatsApp — combinado pra noite de 30/09
 
 O Leandro pediu pra fazer, mas **não durante o dia**: "deixa para fazer isso
