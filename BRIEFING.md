@@ -831,6 +831,42 @@ Meta não aceita** (foi a primeira ideia dele, "colocar um crédito pra
 testar", e não dá). Se a tela oferecer escolher moeda, **real**: depois de
 anexar o cartão não dá pra trocar.
 
+## Webhook de status do WhatsApp — combinado pra noite de 30/09
+
+O Leandro pediu pra fazer, mas **não durante o dia**: "deixa para fazer isso
+a noite, uma hora que eu não vou precisar usar aqui". Ele usa o app durante
+o dia e não quer risco de mexer enquanto trabalha. **Não começar antes de
+ele chamar.**
+
+**Já aplicado no banco** (única coisa feita antes de ele pedir pra parar):
+`whatsapp_sends` ganhou `delivery_status`, `delivery_status_at`,
+`delivery_error` e um índice parcial em `message_id`. Colunas vazias, não
+afetam nada do que roda hoje.
+
+**O que falta (estimativa: ~1h minha, ~5 min dele):**
+
+- Rota `POST/GET /api/whatsapp/webhook`:
+  - GET responde o desafio de verificação da Meta (`hub.mode`,
+    `hub.verify_token`, `hub.challenge`).
+  - POST valida `x-hub-signature-256` (HMAC-SHA256 do corpo cru com o App
+    Secret) — é endpoint público, sem isso qualquer um forja status. Falha
+    fechada: sem `WHATSAPP_APP_SECRET`, recusa.
+  - Lê `entry[].changes[].value.statuses[]` e atualiza a linha pelo
+    `message_id`.
+  - **Status só avança**: webhook chega fora de ordem, então `sent` não pode
+    sobrescrever `delivered`. Usar ranking.
+- Env novas: `WHATSAPP_WEBHOOK_VERIFY_TOKEN` (eu invento) e
+  `WHATSAPP_APP_SECRET` (ele copia em developers.facebook.com → app FARO →
+  Definições → Básico).
+- Lado dele: colar a URL do callback e o verify token no painel da Meta e
+  assinar o campo `messages`.
+- Painel de Configurações: mostrar entregues / sem confirmação / falharam na
+  entrega, em vez de só "enviadas".
+
+**Por que importa:** hoje `ok: true` significa só que a Meta aceitou. Foi
+essa cegueira que escondeu 7 lembretes perdidos por três semanas e depois um
+envio aceito que nunca chegou.
+
 ## WhatsApp: ENTREGUE de verdade (30/09, segunda tentativa)
 
 O primeiro envio (13:37) foi **aceito pela Meta e nunca entregue**. O segundo
