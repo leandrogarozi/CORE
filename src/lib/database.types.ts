@@ -675,6 +675,276 @@ export type Database = {
           },
         ]
       }
+      saude_desafios: {
+        Row: {
+          created_at: string
+          fim: string
+          id: string
+          inicio: string
+          meta: number
+          partida: number | null
+          proposta: boolean
+          status: string
+          tipo: string
+          titulo: string
+          unidade: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fim: string
+          id?: string
+          inicio: string
+          meta: number
+          partida?: number | null
+          proposta?: boolean
+          status?: string
+          tipo: string
+          titulo: string
+          unidade: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          fim?: string
+          id?: string
+          inicio?: string
+          meta?: number
+          partida?: number | null
+          proposta?: boolean
+          status?: string
+          tipo?: string
+          titulo?: string
+          unidade?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      saude_fotos: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          dia: string
+          id: string
+          pose: string
+          storage_path: string
+          ts: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          dia: string
+          id?: string
+          pose: string
+          storage_path: string
+          ts?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          dia?: string
+          id?: string
+          pose?: string
+          storage_path?: string
+          ts?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      saude_plano: {
+        Row: {
+          dieta_autor: string | null
+          historico: Json
+          lembretes: Json
+          lembretes_periodicos: Json
+          metas: Json
+          nota: string | null
+          plano_corrida: Json | null
+          refeicoes: Json
+          regras: Json
+          schema: string
+          semana_minima: number[]
+          semana_padrao: Json
+          treino_nota: string | null
+          trocas: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          dieta_autor?: string | null
+          historico?: Json
+          lembretes?: Json
+          lembretes_periodicos?: Json
+          metas?: Json
+          nota?: string | null
+          plano_corrida?: Json | null
+          refeicoes?: Json
+          regras?: Json
+          schema?: string
+          semana_minima?: number[]
+          semana_padrao?: Json
+          treino_nota?: string | null
+          trocas?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          dieta_autor?: string | null
+          historico?: Json
+          lembretes?: Json
+          lembretes_periodicos?: Json
+          metas?: Json
+          nota?: string | null
+          plano_corrida?: Json | null
+          refeicoes?: Json
+          regras?: Json
+          schema?: string
+          semana_minima?: number[]
+          semana_padrao?: Json
+          treino_nota?: string | null
+          trocas?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      saude_registros: {
+        Row: {
+          aderencia: string | null
+          cintura_cm: number | null
+          created_at: string
+          deleted_at: string | null
+          dia: string
+          distancia_km: number | null
+          dor: string | null
+          duracao_min: number | null
+          energia: number | null
+          esforco: number | null
+          fome: number | null
+          gordura_pct: number | null
+          horas_sono: number | null
+          humor: number | null
+          id: string
+          item: string | null
+          itens: string | null
+          modalidade: string | null
+          motivo: string | null
+          obs: string | null
+          origem: string
+          peso_kg: number | null
+          refeicao: string | null
+          resumo: string | null
+          sensacoes: string[] | null
+          situacao: string | null
+          texto: string | null
+          tipo: string
+          ts: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          aderencia?: string | null
+          cintura_cm?: number | null
+          created_at?: string
+          deleted_at?: string | null
+          dia: string
+          distancia_km?: number | null
+          dor?: string | null
+          duracao_min?: number | null
+          energia?: number | null
+          esforco?: number | null
+          fome?: number | null
+          gordura_pct?: number | null
+          horas_sono?: number | null
+          humor?: number | null
+          id?: string
+          item?: string | null
+          itens?: string | null
+          modalidade?: string | null
+          motivo?: string | null
+          obs?: string | null
+          origem?: string
+          peso_kg?: number | null
+          refeicao?: string | null
+          resumo?: string | null
+          sensacoes?: string[] | null
+          situacao?: string | null
+          texto?: string | null
+          tipo: string
+          ts?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          aderencia?: string | null
+          cintura_cm?: number | null
+          created_at?: string
+          deleted_at?: string | null
+          dia?: string
+          distancia_km?: number | null
+          dor?: string | null
+          duracao_min?: number | null
+          energia?: number | null
+          esforco?: number | null
+          fome?: number | null
+          gordura_pct?: number | null
+          horas_sono?: number | null
+          humor?: number | null
+          id?: string
+          item?: string | null
+          itens?: string | null
+          modalidade?: string | null
+          motivo?: string | null
+          obs?: string | null
+          origem?: string
+          peso_kg?: number | null
+          refeicao?: string | null
+          resumo?: string | null
+          sensacoes?: string[] | null
+          situacao?: string | null
+          texto?: string | null
+          tipo?: string
+          ts?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      saude_resumos: {
+        Row: {
+          conteudo: Json
+          created_at: string
+          dia: string
+          id: string
+          modelo: string | null
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          conteudo: Json
+          created_at?: string
+          dia: string
+          id?: string
+          modelo?: string | null
+          tipo: string
+          user_id?: string
+        }
+        Update: {
+          conteudo?: Json
+          created_at?: string
+          dia?: string
+          id?: string
+          modelo?: string | null
+          tipo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       settings: {
         Row: {
           avatar_url: string | null

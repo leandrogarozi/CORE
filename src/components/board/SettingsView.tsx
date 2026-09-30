@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useBoardCtx } from "./board-context";
 import {
+  ArchiveIcon,
   BellIcon,
   ChevronIcon,
   ClockIcon,
@@ -244,6 +245,82 @@ function PushNotificationsBox() {
 // Gasto do WhatsApp. O número confiável é o do FARO, não o da Meta: a rota de
 // disparo grava uma linha por mensagem enviada, então dá pra saber o gasto sem
 // depender de API externa nenhuma — e a trava de teto usa exatamente essa conta.
+// Backup dos dados. A rota que alimenta isto SÓ LÊ — não existe caminho nela
+// que escreva, apague ou altere. É por isso que o botão pode ser apertado a
+// qualquer hora, sem medo: um backup que consegue estragar o que está salvo não
+// é backup.
+function BackupBox() {
+  const [baixando, setBaixando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [ultimo, setUltimo] = useState<{ linhas: number; tabelas: number; completo: boolean } | null>(null);
+
+  async function baixar() {
+    setBaixando(true);
+    setErro(null);
+    try {
+      const res = await fetch("/api/backup/export");
+      if (!res.ok) throw new Error(`O servidor respondeu ${res.status}`);
+      const texto = await res.text();
+
+      // Confere o manifesto ANTES de entregar o arquivo. Backup que se apresenta
+      // como completo sem ser é pior que backup nenhum, porque desliga a
+      // desconfiança de quem depende dele.
+      const conteudo = JSON.parse(texto) as {
+        manifesto?: { totalLinhas?: number; tabelas?: number; completo?: boolean; falhas?: Record<string, string> };
+      };
+      const m = conteudo.manifesto;
+      if (!m || typeof m.totalLinhas !== "number") throw new Error("O arquivo veio sem manifesto");
+      if (!m.completo) {
+        const quais = Object.keys(m.falhas ?? {}).join(", ");
+        throw new Error(`O backup saiu INCOMPLETO — falhou em: ${quais || "tabelas não identificadas"}`);
+      }
+
+      const url = URL.createObjectURL(new Blob([texto], { type: "application/json" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `faro-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      setUltimo({ linhas: m.totalLinhas, tabelas: m.tabelas ?? 0, completo: true });
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Falha ao gerar o backup");
+    } finally {
+      setBaixando(false);
+    }
+  }
+
+  return (
+    <CollapsibleBox title="Backup" icon={<ArchiveIcon />}>
+      <button type="button" className="btn btn-accent" onClick={baixar} disabled={baixando}>
+        {baixando ? "Gerando..." : "Baixar backup agora"}
+      </button>
+
+      {ultimo && (
+        <div className="hint-text" style={{ marginTop: 8 }}>
+          Baixado: <strong>{ultimo.linhas} linhas</strong> em {ultimo.tabelas} tabelas. Confira que o número faz
+          sentido — backup que encolheu de um dia pro outro é sinal de problema.
+        </div>
+      )}
+
+      {erro && (
+        <div className="wa-cost-warn">
+          <WarningIcon /> {erro}
+        </div>
+      )}
+
+      <div className="hint-text">
+        Gera um arquivo com tudo que está no seu FARO. A geração <strong>só lê</strong> — não altera nada, então
+        pode rodar a qualquer momento. Guarde o arquivo fora do computador (Drive, e-mail, o que preferir): backup
+        que mora no mesmo lugar do original não protege de muita coisa.
+        <br />
+        <br />
+        Anexos e fotos ficam no Storage do Supabase — o arquivo guarda a referência, não os arquivos em si.
+      </div>
+    </CollapsibleBox>
+  );
+}
+
 function WhatsAppCostBox() {
   const { board } = useBoardCtx();
   const { whatsappMsgCostUsd, whatsappMonthlyCapBrl, whatsappUsdBrl } = board.state.settings;
@@ -596,6 +673,8 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
       <PushNotificationsBox />
 
       <WhatsAppCostBox />
+
+      <BackupBox />
     </div>
   );
 }
