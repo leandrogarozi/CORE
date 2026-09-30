@@ -831,6 +831,86 @@ Meta não aceita** (foi a primeira ideia dele, "colocar um crédito pra
 testar", e não dá). Se a tela oferecer escolher moeda, **real**: depois de
 anexar o cartão não dá pra trocar.
 
+## Ícone do zap em tudo: um motor só (spec fechada em 30/09)
+
+**A regra do app, decidida com o Leandro:**
+
+> Onde o ícone do zap estiver aceso, chega no WhatsApp. Sem exceção.
+> Sininho = aviso dentro do app. Zap = chega no celular.
+
+Nasceu de ele perguntar se a Medicação mandava WhatsApp (não mandava, e nem
+tinha campo pra isso) e de descobrirmos que a Dieta **promete e não cumpre**:
+o checkbox "Notificação via WhatsApp" e o campo "confirme o número que vai
+receber os avisos" não disparam nada — o que existe é um botão que abre o
+WhatsApp com o texto pronto pra ele mandar na mão.
+
+### Arquitetura escolhida: (B) tudo vira Lembrete por baixo
+
+Acendeu o zap num remédio/manutenção/evento, o FARO **cria um lembrete
+vinculado** àquela entidade. Um motor só envia, uma janela de alerta só, um
+livro-caixa só.
+
+**Por que não (A), cada módulo mandando o seu:** passamos 30/09 inteiro
+caçando um bug de template que existia em UM lugar. Com quatro caminhos de
+envio seriam quatro vezes o mesmo bug, quatro janelas pra acertar. Um motor
+só significa que consertar uma vez conserta pra tudo.
+
+Precisa de um vínculo genérico no lembrete (de onde ele veio) e sincronia:
+mudou o horário na origem, o lembrete acompanha; apagou a origem, o lembrete
+some junto. `reminders.task_id` já existe e mostra que o padrão de vínculo
+está estabelecido.
+
+### Nenhum template novo na Meta
+
+Tudo cabe no `lembrete_faro` (`Lembrete do FARO: {{1}}. Abra o app para ver
+os detalhes.`) — o texto composto entra no `{{1}}`. **Não abrir ciclo de
+revisão de template pra isso.**
+
+### O que cada módulo usa como "quando" (verificado no código)
+
+| Módulo | Origem do horário | Situação |
+|---|---|---|
+| Lembretes | data + hora + aviso | já funciona; só falta o ícone explícito |
+| Medicação | horário do grupo (`shared`) ou do remédio, + `weekDays` + `startDate`/`durationDays` | recorrente, tem tudo |
+| Manutenção | vencimento calculado por `maintenanceStatus` | ver ressalva abaixo |
+| Reuniões/eventos | **da tarefa** — não existe módulo de reunião, é `Task` com categoria `reuniao` ou `isEvent` | cobre reunião, visita a cliente, consulta |
+| Checklist | só `createdAt` | **sem "quando" — em standby** |
+
+### Textos pedidos pelo Leandro
+
+- **Evento:** `<nome do evento> começa em <X>` — a unidade se adapta
+  ("em 15 minutos", "em 1 hora", "amanhã"), nunca "em 1440 minutos".
+- **Manutenção, dois disparos:**
+  - `em 1 semana vence <nome da manutenção>`
+  - `hoje vence <nome da manutenção>`
+  - A antecipação **já existe**: `MaintenanceItem.alertDaysBefore`. Usar esse
+    campo, não criar outro.
+
+### Ressalva da manutenção: duas naturezas, só uma agenda
+
+- Vence **por tempo** (12 meses) → tem data, o zap funciona direto.
+- Vence **por uso** (16.000 km) → **não tem data** até haver leitura de
+  odômetro suficiente. `distancePerDay` devolve `null` com menos de 2
+  leituras, de propósito — não chuta. Enquanto isso, o que serve é o lembrete
+  de conferir o odômetro.
+
+### Checklist: standby, com a ideia melhor do Leandro guardada
+
+Ele mesmo achou o desenho certo: não faz sentido no checklist inteiro, faz
+sentido **no item marcado como "comprar"** (`ChecklistItem.toBuy`) — "lembrar
+de comprar aquele item". Não fazer agora.
+
+### Ordem de execução combinada
+
+1. Motor + vínculo genérico (~2h)
+2. Medicação (~40 min) — o caso concreto que originou tudo
+3. Manutenção (~40 min) — fecha um item que estava parado no backlog
+4. Tarefa-evento / reunião (~40 min)
+5. Dieta (~40 min) + **limpar a mentira**: o botão manual vira "compartilhar",
+   separado do zap de verdade (~20 min)
+
+**À noite, junto com o webhook. Não começar antes de ele chamar.**
+
 ## Webhook de status do WhatsApp — combinado pra noite de 30/09
 
 O Leandro pediu pra fazer, mas **não durante o dia**: "deixa para fazer isso
