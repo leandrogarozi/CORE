@@ -938,7 +938,7 @@ outros. O nome `App faro` segue a convenção dos irmãos (sentence case com
 prefixo "App").
 
 Perto dali existe o documento **"Mapa de Aprendizados — Base de Conteúdo e
-Direção"** (`1ibh78oEL3r3k8iBoHJVfYdLZ0anjzSH_x30rMM798JE`), que é o "mapa"
+Direção"** (`1kA9ucs4wIDc3je1l42RpqQl5hRuvmLVGzN2aZJIh60Y`), que é o "mapa"
 que ele mencionou — o destino final desse material.
 
 ### O que foi exportado (30/09, manual)
@@ -959,6 +959,22 @@ vazios. Os 2 recados ficaram de fora, aguardando decisão dele.
   Google converte `<h1>`, `<b>`, `<ul>` em formatação nativa.
   **Pegadinha que custou um arquivo:** escapar o HTML (`&lt;h1&gt;`) faz as
   tags entrarem como texto literal. Tem que ir HTML de verdade.
+
+### O ID do Mapa muda — sempre conferir antes de usar
+
+Em 30/09 o Mapa de Aprendizados foi recriado e **mudou de ID**: o antigo
+(`1ibh78oEL3r3k8iBoHJVfYdLZ0anjzSH_x30rMM798JE`) foi arquivado, o atual é
+`1kA9ucs4wIDc3je1l42RpqQl5hRuvmLVGzN2aZJIh60Y`.
+
+Isso não é acidente, é o padrão: atualizar um Google Doc pelo conteúdo exige
+recriar o arquivo, e recriar gera um ID novo. A skill de organização do Drive
+dele já registra o mesmo comportamento para o documento "ESTRUTURA DO DRIVE".
+
+**Consequência prática:** nunca tratar o ID desse documento como fixo. Antes de
+mandar material pra ele, **procurar pelo título** e confirmar o ID atual. Um ID
+velho não dá erro — ele escreve num documento arquivado, em silêncio, e o
+material some do mapa sem ninguém perceber. É a mesma família de falha dos 7
+lembretes perdidos.
 
 ### Regra de reexportação (pedida em 30/09)
 
