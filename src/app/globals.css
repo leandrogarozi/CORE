@@ -1,3 +1,125 @@
+/* ============================================================
+   CAMADA 1 — PRIMITIVOS
+   ------------------------------------------------------------
+   A tinta crua. Nomeados pelo que SÃO, nunca pelo que fazem.
+   Nada no app consome esta camada direto — quem consome é a
+   camada semântica. Trocar um primitivo aqui muda o app inteiro
+   de uma vez, e é exatamente essa a graça.
+
+   Escrita em 30/09 como base do redesenho (direção "C + A":
+   o rigor de alinhamento da referência Linear com a pele clara
+   e o degradê lavado das referências Trakium/ClickUp).
+   ============================================================ */
+:root{
+  /* --- Espaçamento: base 4, sem exceção ---------------------
+     Metade da sensação de "alinhadinho" das referências vem
+     daqui, não de talento artístico. Medida que não for múltiplo
+     de 4 é bug, não escolha. */
+  --sp-1:4px;   --sp-2:8px;   --sp-3:12px;  --sp-4:16px;
+  --sp-5:20px;  --sp-6:24px;  --sp-8:32px;  --sp-10:40px;
+  --sp-12:48px;
+
+  /* --- Raio -------------------------------------------------
+     Quatro degraus chegam. Mais que isso ninguém lembra qual
+     usar, e o app perde a unidade que o raio deveria dar. */
+  --r-1:6px;    /* chip, pílula pequena, bolinha de status */
+  --r-2:9px;    /* campo, botão, item de lista */
+  --r-3:13px;   /* cartão, faixa de números */
+  --r-4:17px;   /* caixa grande, modal */
+  --r-full:999px;
+
+  /* --- Altura de controle -----------------------------------
+     32px no desktop é a convenção de Linear, Vercel e Notion:
+     mouse é preciso, então desktop pode ser mais denso que
+     toque. 44px é o mínimo confortável pro dedo. */
+  --ctl-h:32px;
+  --ctl-h-toque:44px;
+
+  /* --- Sombra: três degraus, e olhe lá ----------------------
+     Do 4º em diante vira enfeite. A direção escolhida usa
+     quase só a --sh-1: o que separa os blocos é o espaço e a
+     linha fininha, não a sombra. */
+  --sh-1:0 1px 2px rgba(18,20,26,.03), 0 6px 18px rgba(18,20,26,.03);
+  --sh-2:0 2px 6px rgba(18,20,26,.05), 0 12px 28px rgba(18,20,26,.05);
+  --sh-3:0 8px 24px rgba(18,20,26,.09), 0 24px 56px rgba(18,20,26,.09);
+
+  /* --- Tipografia -------------------------------------------
+     A hierarquia da direção escolhida vive no PESO e no
+     tamanho, não em cor. Por isso os pesos são poucos e
+     distintos — 500 e 600 colados não comunicam nada. */
+  --fs-1:10.5px; /* rótulo miúdo, legenda de gráfico */
+  --fs-2:12px;   /* texto de apoio, item de lista */
+  --fs-3:13px;   /* corpo padrão */
+  --fs-4:15px;   /* título de bloco */
+  --fs-5:17px;   /* título de tela */
+  --fs-6:21px;   /* número grande do painel */
+  --fs-7:26px;   /* número de destaque */
+  --fw-normal:400;
+  --fw-medio:500;
+  --fw-forte:600;
+  --fw-titulo:650;
+  --ls-apertado:-.035em; /* número grande pede aperto */
+  --ls-titulo:-.02em;
+
+  /* --- Movimento --------------------------------------------
+     Um tempo só pra tudo. Duração diferente por componente é o
+     tipo de inconsistência que ninguém aponta mas todo mundo
+     sente. */
+  --mov:140ms cubic-bezier(.2,.6,.3,1);
+}
+
+/* ============================================================
+   CAMADA 2 — SEMÂNTICOS NOVOS
+   ------------------------------------------------------------
+   Os tokens semânticos que já existiam (--surface, --border,
+   --accent…) continuam logo abaixo, intactos e com os mesmos
+   valores: esta leva só ACRESCENTA o que a direção nova precisa
+   e que ainda não tinha nome.
+
+   Nada aqui é consumido por enquanto. É de propósito: token que
+   ninguém usa não pode mudar pixel nenhum, e é isso que faz esta
+   etapa ser reversível.
+   ============================================================ */
+:root{
+  /* Degradê de fundo: dois pontos lavados nas quinas superiores.
+     Fica SEMPRE atrás de tudo e NUNCA sob texto — degradê que
+     passa por baixo de texto deixa a leitura boa numa ponta e
+     ilegível na outra. */
+  --fundo-degrade:
+    radial-gradient(1000px 460px at 10% -8%, #EFEBFE 0%, rgba(239,235,254,0) 60%),
+    radial-gradient(820px 420px at 94% 2%, #FDEBF5 0%, rgba(253,235,245,0) 56%);
+
+  /* Linha de 1px que separa sem pesar. Mais clara que --border,
+     que hoje faz as vezes de divisor e de contorno ao mesmo
+     tempo. */
+  --linha:#EFEFF4;
+
+  /* Trilho de barra de progresso e de escala. */
+  --trilho:#F1F1F6;
+
+  /* Superfície de segmento (aquele fundo cinza onde o item
+     selecionado vira uma pílula branca). */
+  --segmento-fundo:#F3F3F7;
+}
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    /* No escuro o degradê precisa ser bem mais discreto: o mesmo
+       brilho que é sutil no branco vira mancha no preto. */
+    --fundo-degrade:
+      radial-gradient(1000px 460px at 10% -8%, rgba(99,102,241,.10) 0%, rgba(99,102,241,0) 60%),
+      radial-gradient(820px 420px at 94% 2%, rgba(217,70,239,.07) 0%, rgba(217,70,239,0) 56%);
+    --linha:#2A2A30;
+    --trilho:#2A2A30;
+    --segmento-fundo:#232328;
+    /* Sombra no escuro não é sombra mais forte — é mais preta e
+       mais fechada, senão vira um halo cinza ao redor do cartão. */
+    --sh-1:0 1px 2px rgba(0,0,0,.35), 0 6px 18px rgba(0,0,0,.30);
+    --sh-2:0 2px 6px rgba(0,0,0,.40), 0 12px 28px rgba(0,0,0,.35);
+    --sh-3:0 8px 24px rgba(0,0,0,.45), 0 24px 56px rgba(0,0,0,.40);
+  }
+}
+
 :root{
   --bg:#F7F7F9;
   --surface:#FFFFFF;

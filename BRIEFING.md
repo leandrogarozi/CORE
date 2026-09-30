@@ -1014,6 +1014,90 @@ documento "ESTRUTURA DO DRIVE" e na auditoria do projeto Cowork. **A pasta
 `App faro` foi criada e isso ainda NÃO foi registrado lá** — são arquivos
 fora deste repositório. Fazer quando ele pedir.
 
+## Redesenho do layout — direção escolhida e camada de tokens (30/09)
+
+Frente nova, conduzida pela metodologia dele (`lg-processo-de-projeto`):
+pesquisa → validação → 3 direções → ele escolhe → só então executar.
+
+### O diagnóstico do layout atual
+
+Não é falta de gosto, são **cinco causas concretas**, levantadas comparando
+os prints dele com as referências que mandou (Trakium, ClickUp, painel médico):
+
+1. **Nada tem largura máxima.** Tudo estica até a borda — slider de tag vira
+   trilho de 1.700px pra marcar 20%. Responde por metade da bagunça.
+2. **Três barras de navegação empilhadas** antes de chegar no conteúdo.
+3. **Sete cartões de número numa fileira só**, apertados e de larguras
+   diferentes.
+4. **Todo rótulo é MAIÚSCULA CINZA** — quando tudo grita baixinho ao mesmo
+   tempo, nada tem hierarquia.
+5. **Cor demais competindo** — 12 fatias com 12 cores, bolinha colorida,
+   barras roxa e verde empilhadas.
+
+**O que está certo e não se mexe:** a densidade. Ele enxerga o dia inteiro
+numa tela e isso é qualidade. O problema nunca foi ter muita informação.
+**Nenhuma proposta corta informação.**
+
+### A pesquisa que embasou (validada por ele)
+
+- **Denso voltou a ser bom** (Linear, Notion, Superhuman). O que separa denso
+  de poluído é hierarquia — tamanho, contraste, posição, peso —, não
+  quantidade.
+- **Convenção de medida:** base 4px, altura de controle ~32px no desktop.
+- **Tokens em 3 camadas** (primitivo → semântico → componente). A camada
+  **semântica é onde os sistemas falham e é a que torna o sistema portável**
+  pros outros apps dele. É o alicerce da skill que ele quer no fim.
+- **Cor tem três funções distintas** — semântica (estado), acento (ação),
+  categórica (distinguir itens). A paleta por contexto que ele propôs é
+  categórica; as referências dele usam acento. Convivem, **desde que cada cor
+  tenha um papel só**. Colisão detectada: roxo é ação nas referências e
+  "Estudos" na paleta dele — uma das duas tem que ceder.
+- **Degradê:** duas cores no máximo, fundo de área, **nunca sob texto**.
+
+### Direção escolhida: "C + A"
+
+Foram três direções renderizadas com o Dashboard e os números reais dele:
+**A** (claro e sereno, linhagem Trakium), **B** (painel de vidro escuro,
+linhagem do painel médico) e **C** (denso e preciso, linhagem Linear).
+
+Ele escolheu a **combinação C + A**: o esqueleto da C — alinhamento rigoroso,
+densidade, os 7 números numa faixa contínua dividida, hierarquia por peso —
+com a pele da A — degradê lilás/rosa lavado no fundo, canto 13px, sombra
+sutil, acento `#4A47D5` só na ação.
+
+### Camada de tokens (feita, invisível)
+
+Primeira etapa, aplicada em 30/09 no topo de `globals.css`. Acrescenta
+primitivos (espaçamento base 4, raio, altura de controle, sombra em 3
+degraus, tipografia, movimento) e os semânticos novos que a direção precisa
+(`--fundo-degrade`, `--linha`, `--trilho`, `--segmento-fundo`), com variantes
+de tema escuro.
+
+**Nada consome esses tokens ainda, de propósito** — token que ninguém usa não
+muda pixel nenhum. Verificado por grep: zero ocorrências de `var(--sp-*)`,
+`var(--r-*)` e companhia no código. Os tokens antigos ficaram intactos com os
+mesmos valores. É a etapa reversível por construção.
+
+### Combinado sobre o ritmo
+
+- Ele aprova **por print**, não por descrição: nada é aplicado sem ele ver
+  antes. "Assim eu consigo fazer o papel de diretor criativo."
+- **Escopo:** roupa nova, não cirurgia. Nada de mudar função ou reorganizar o
+  que a tela faz. Se algo só melhorar mudando comportamento, ele decide.
+- **Tema escuro nasce junto**, como versão escura desta mesma linguagem (não
+  é inverter, e não é o vidro da direção B) — com print pra aprovar.
+- **Banco de ícones continua** sendo o `design/icon-pack/`.
+- **No fim vira skill** reutilizável nos outros apps dele. A skill documenta o
+  que se provou, não o que a gente imagina que vai funcionar — por isso nasce
+  no fim, não no começo.
+
+### Próximo passo
+
+O **Dashboard**, que é a tela mais difícil de propósito: se o sistema
+sobrevive a ela, sobrevive a qualquer outra. Os estados que o print não
+simula (dia vazio, número que estoura a caixa, nome comprido, tela estreita)
+são onde mora o trabalho de verdade.
+
 ## Webhook de status do WhatsApp — combinado pra noite de 30/09
 
 O Leandro pediu pra fazer, mas **não durante o dia**: "deixa para fazer isso
