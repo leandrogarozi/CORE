@@ -831,9 +831,63 @@ Meta não aceita** (foi a primeira ideia dele, "colocar um crédito pra
 testar", e não dá). Se a tela oferecer escolher moeda, **real**: depois de
 anexar o cartão não dá pra trocar.
 
-## WhatsApp: ONDE PARAMOS (29/09) — retomar por aqui
+## WhatsApp: FUNCIONANDO ponta a ponta (30/09)
 
-**Tudo do lado do FARO está pronto. Esperando só a Meta aprovar os modelos.**
+Modelos aprovados e **primeiro lembrete real entregue pelo caminho
+automático**. Registro do banco:
+
+```
+2026-09-30 13:37:02  lembrete_faro  ok: true  erro: null
+```
+
+O cron acordou no minuto em que a janela de alerta abriu, pegou o lembrete,
+passou pela trava de R$ 20, marcou como notificado e a Meta aceitou. Testado
+com um lembrete criado direto no banco (13:42, aviso 5 min antes) em vez do
+botão de teste, de propósito: o botão usa o `faro_teste`, e o que importava
+era exercitar o `lembrete_faro` com a variável preenchida, disparado pelo
+agendador.
+
+**O medo do número +1 555 não se confirmou.** Nada de erro 131030 — o número
+do Leandro já está na lista de destinatários permitidos. O número segue
+sendo o de teste da Meta; funciona pra ele, e se um dia for atender terceiros
+vai precisar de número real registrado.
+
+### O que o livro-caixa revelou: 7 lembretes perdidos em silêncio
+
+Ao ler o histórico apareceu o custo real do bug: **desde 09/09, 7 lembretes
+reais falharam** com o mesmo 132001 e nunca chegaram nele.
+
+- "Piscina - Filtro e Cloro" — 09, 12, 16, 23, 26 e 30/09
+- "Acertar irrigação pomar" — 18/09
+
+Ou seja: o disparo automático estava quebrado desde o dia em que foi ligado,
+e só o livro-caixa provou isso — a Meta não avisa, e o app não tinha como
+saber que a mensagem não chegou. **É exatamente pra isso que a tabela
+`whatsapp_sends` grava tentativa que falhou, não só sucesso.** O painel de
+Configurações já mostrava "N envio(s) falharam nesse mês"; faltou olhar.
+
+Lição registrada: **falha silenciosa em integração externa precisa de
+registro próprio.** Sem o livro-caixa, esses 7 lembretes teriam sumido sem
+deixar rastro, e a gente teria "consertado" o WhatsApp sem nunca saber que
+ele estava quebrado havia três semanas.
+
+### Estado final da configuração
+
+- **Conta:** WABA "Leandro Garozi" (`3509254432556744`), MasterCard ••••4082,
+  faturando em reais.
+- **Número:** `1251734794700019` (+1 555-401-5473, o de teste da Meta).
+- **Modelos ativos:** `faro_teste` (pt_BR) e `lembrete_faro` (pt_BR). Existe
+  um `lembrete_faro` em English que foi engano e nunca é chamado — o código
+  pede `pt_BR` explicitamente. Pode apagar quando quiser.
+- **Teto:** R$ 20/mês (576 mensagens). **Tarifa:** US$ 0,0068.
+- **Cron:** de minuto em minuto, 200 em todas as execuções.
+
+Sobrou no banco o lembrete de teste "Teste do WhatsApp do FARO" (30/09
+13:42) — o Leandro pode concluir ou mandar pra lixeira pelo app.
+
+## WhatsApp: como estava em 29/09 (histórico)
+
+**Tudo do lado do FARO estava pronto, esperando a Meta aprovar os modelos.**
 
 Estado em 29/09, fim do dia:
 
