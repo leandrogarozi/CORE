@@ -1091,12 +1091,67 @@ mesmos valores. É a etapa reversível por construção.
   que se provou, não o que a gente imagina que vai funcionar — por isso nasce
   no fim, não no começo.
 
+### Dashboard — primeira tela com a linguagem nova (30/09)
+
+Escolhido de propósito como primeira tela: é a mais difícil. Se o sistema
+sobrevive a ela, sobrevive a qualquer outra.
+
+**O que mudou, e por quê.** As cinco causas da poluição visual de hoje, cada
+uma com a correção:
+
+1. Sete cartões soltos pros sete números → **uma faixa única** dividida por
+   linha de 1px. Os números são irmãos; em cartões separados cada um pedia
+   atenção por conta própria.
+2. Rótulo em CAIXA ALTA com ícone em cada número → **rótulo em caixa normal,
+   sem ícone**. O número é o dado; o resto era moldura.
+3. Oito caixas independentes em `column-count` → **três colunas fixas**, com
+   os assuntos irmãos agrupados DENTRO do mesmo cartão, separados por linha.
+   O `column-count` reordenava os blocos sozinho conforme a altura de cada
+   um: a arrumação mudava a cada semana e nunca dava pra decorar onde as
+   coisas ficam.
+4. Hierarquia por cor → **hierarquia por peso e tamanho**.
+5. Sombra em tudo → **espaço e linha fina** separam; a sombra (`--sh-1`) é
+   quase imperceptível.
+
+**Agrupamento novo:** *Tarefas* (status + concluídas×pendentes + prioridade),
+*Humor + Onde foi o tempo*, *Hábitos + Dia a Dia*.
+
+**Detalhes que são decisão, não acaso:**
+
+- **Prefixo `dsh-`.** As classes `dash-*` são compartilhadas com
+  Configurações, Perfil e outras 15 telas. Mexer nelas mudaria o app inteiro
+  numa tacada, sem print e sem aprovação. O Dashboard estreia sozinho.
+- **Divisória da faixa feita com `box-shadow`, não com `gap`.** O `gap` pinta
+  o fundo do contêiner, e numa linha incompleta (7 números em 4 colunas)
+  sobra um retângulo cinza no vazio.
+- **Vermelho só com atrasada de verdade.** Zero em vermelho assusta à toa, e
+  assustar à toa faz o alerta perder o valor.
+- **Furo da rosca é máscara**, não um círculo branco por cima — funciona no
+  tema escuro e sobre o degradê sem remendo. (Máscara em 58%/59%; a 70% o
+  anel some.)
+- **Traço de humor por dia é elástico** (`flex:1`, teto de 28px): o mesmo
+  desenho precisa caber com 1 dia e com 31.
+- **Faixa de rodapé "Sem data"** é nova e abre a lista — antes esse número
+  não clicava em lugar nenhum.
+- **Degradê do fundo no `body`.** É a única regra do redesenho que sai do
+  Dashboard e aparece em todas as telas.
+
+**Uma perda a registrar:** a segunda barra dos hábitos (dias ativos) saiu. O
+dado continua, em texto (`1/7d`). Eram duas barras por linha pra dizer o que
+uma barra e um número dizem.
+
+**Como o print foi feito:** página de prova com o **CSS real** do app e o
+**DOM real** que o componente emite, com os números reais dele — não um mock
+paralelo. Se o CSS que vai pro ar estiver errado, o print mostra o erro.
+Gerador em `scratchpad/red/gerar.py`. Conferidos cinco estados: claro,
+escuro, dia vazio, nome comprido + número de 4 dígitos, e 390px de largura.
+Inter embutida em base64 no arquivo de prova porque o Chromium desta máquina
+não busca a folha do Google — sem isso o print mentiria sobre a tipografia.
+
 ### Próximo passo
 
-O **Dashboard**, que é a tela mais difícil de propósito: se o sistema
-sobrevive a ela, sobrevive a qualquer outra. Os estados que o print não
-simula (dia vazio, número que estoura a caixa, nome comprido, tela estreita)
-são onde mora o trabalho de verdade.
+Aprovação do print do Dashboard. Depois dele, a tela do Dia — e só no fim a
+skill do sistema de design, que documenta o que se provou.
 
 ## Webhook de status do WhatsApp — combinado pra noite de 30/09
 

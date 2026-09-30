@@ -173,8 +173,13 @@
 
 *{ box-sizing:border-box; }
 html,body{ margin:0; padding:0; height:100%; }
+/* O degradê é a "pele" da direção aprovada: duas manchas lavadas nas
+   quinas de cima, atrás de TUDO e nunca sob texto. `fixed` pra ele não
+   subir junto com a rolagem e virar listra. Esta é a única regra do
+   redesenho que sai do Dashboard e aparece em todas as telas. */
 body{
-  background:var(--bg); color:var(--text);
+  background:var(--bg); background-image:var(--fundo-degrade); background-attachment:fixed;
+  color:var(--text);
   font-family:"Inter", ui-sans-serif, system-ui, sans-serif;
   font-size:14.5px; line-height:1.45; -webkit-font-smoothing:antialiased;
 }
@@ -706,62 +711,182 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .dash-row-count{ color:var(--text-faint); font-size:11.5px; flex:none; }
 .dash-row-min{ font-weight:600; flex:none; width:64px; text-align:right; }
 
-.dash-stats{ display:grid; grid-template-columns:repeat(auto-fit, minmax(130px,1fr)); gap:8px; margin-bottom:12px; }
-.dash-stat-card{
-  background:var(--surface); border:1px solid var(--border); border-radius:12px;
-  box-shadow:var(--shadow); padding:11px 14px; text-align:left; font:inherit; color:inherit;
-}
-.dash-stat-value{ font-size:21px; font-weight:700; line-height:1.15; }
-.dash-stat-card.danger .dash-stat-value{ color:var(--danger); }
-.dash-stat-card.clickable{ cursor:pointer; text-align:left; }
-.dash-stat-card.clickable:hover:not(:disabled){ border-color:var(--accent); }
-.dash-stat-card.danger.clickable:hover:not(:disabled){ border-color:var(--danger); }
-.dash-stat-card.clickable:disabled{ cursor:default; }
-.dash-stat-label{
-  display:flex; align-items:flex-start; gap:5px; margin-top:3px;
-  font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-faint);
-}
-/* Rótulo de duas linhas: o ícone acompanha a primeira, não o meio do bloco. */
-.dash-stat-label svg{ width:12px; height:12px; flex:none; margin-top:1px; }
-.dash-stat-card.danger .dash-stat-label svg{ color:var(--danger); }
-
-.dash-charts{ column-count:3; column-gap:12px; }
-.dash-charts .dash-box{ break-inside:avoid; }
-@media (max-width:1000px){ .dash-charts{ column-count:2; } }
-@media (max-width:640px){ .dash-charts{ column-count:1; } }
-
-.dash-pie-row{ display:flex; align-items:center; gap:16px; }
-.dash-pie{ width:96px; height:96px; border-radius:50%; flex:none; }
-.dash-pie-legend{ flex:1; min-width:0; display:flex; flex-direction:column; gap:6px; }
-.dash-legend-row{ display:flex; align-items:center; gap:8px; font-size:12.5px; }
-.dash-legend-dot{ width:9px; height:9px; border-radius:50%; flex:none; display:inline-block; }
-.dash-legend-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.dash-legend-pct{ color:var(--text-faint); font-size:11.5px; flex:none; }
-
-.dash-status-row{
-  display:flex; align-items:center; gap:8px; width:100%; padding:6px 4px; border-radius:6px; font-size:12.5px;
-  text-align:left;
-}
-.dash-status-row:hover{ background:var(--surface-2); }
-.mood-thermo-avg{ display:flex; align-items:baseline; gap:8px; margin-bottom:10px; }
-.mood-thermo-emoji{ font-size:20px; line-height:1; }
-.mood-thermo-value{ font-size:20px; font-weight:700; }
-.mood-thermo-label{ font-size:11.5px; color:var(--text-faint); }
-.mood-thermo-strip{ display:flex; flex-wrap:wrap; gap:3px; }
-.mood-thermo-day{ width:12px; height:12px; border-radius:3px; flex:none; }
-.bar-row{ padding:6px 0; }
-.bar-row-top{ display:flex; align-items:center; gap:8px; font-size:12.5px; margin-bottom:4px; }
-.bar-row-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.bar-row-value{ font-weight:600; font-size:11.5px; flex:none; color:var(--text-faint); }
-.bar-row-track{ height:7px; border-radius:4px; background:var(--surface-2); overflow:hidden; margin-bottom:3px; }
-.bar-row-track:last-child{ margin-bottom:0; }
-.bar-row-fill{ height:100%; border-radius:4px; background:var(--accent); }
-.bar-row-fill.days{ background:var(--success); }
+/* Usado também pelo AttachmentsButton — fica fora do redesenho do Dashboard. */
 .bar-empty{ font-size:12px; color:var(--text-faint); }
 
-.dash-split{ height:14px; border-radius:7px; overflow:hidden; background:var(--surface-2); margin:6px 0 10px; display:flex; }
-.dash-split-done{ height:100%; background:var(--success); }
-.dash-split-legend{ display:flex; gap:16px; font-size:12px; flex-wrap:wrap; color:var(--text-muted); }
+/* ============================================================
+   DASHBOARD — direção C + A
+   ------------------------------------------------------------
+   Prefixo `dsh-` de propósito: as classes `dash-*` são
+   compartilhadas com Configurações, Perfil e outras 15 telas.
+   Mexer nelas mudaria o app inteiro numa tacada, sem print e
+   sem aprovação. O Dashboard estreia o desenho novo sozinho.
+
+   As cinco causas da poluição visual de hoje, e o que muda:
+   1. Sete cartões soltos pros sete números  → uma faixa única
+      dividida por linha de 1px.
+   2. Rótulo em CAIXA ALTA com ícone em cada número → rótulo em
+      caixa normal, sem ícone. O número é o dado; o resto é
+      moldura.
+   3. Oito caixas independentes em `column-count`, que reordena
+      sozinho conforme a altura → três colunas fixas, com os
+      assuntos irmãos AGRUPADOS dentro do mesmo cartão e
+      separados por linha.
+   4. Hierarquia feita por cor → hierarquia feita por peso e
+      tamanho.
+   5. Sombra em tudo → o que separa é o espaço e a linha fina;
+      a sombra é quase imperceptível (--sh-1).
+   ============================================================ */
+
+.dsh-head{ display:flex; align-items:center; gap:var(--sp-2); margin-bottom:var(--sp-3); flex-wrap:wrap; }
+.dsh-title{ font-size:var(--fs-5); font-weight:var(--fw-titulo); letter-spacing:var(--ls-titulo); }
+.dsh-nav-btn{
+  width:26px; height:26px; border-radius:var(--r-1); color:var(--text-faint); flex:none;
+  display:inline-flex; align-items:center; justify-content:center; font-size:16px; line-height:1;
+  transition:background var(--mov), color var(--mov);
+}
+.dsh-nav-btn:hover{ background:var(--segmento-fundo); color:var(--text); }
+.dsh-head-space{ flex:1; }
+
+/* Segmento: fundo cinza, item ativo vira pílula branca. */
+.dsh-seg{ display:inline-flex; gap:2px; padding:2.5px; border-radius:var(--r-2); background:var(--segmento-fundo); border:1px solid var(--linha); }
+.dsh-seg-btn{
+  font-size:11.5px; font-weight:var(--fw-medio); color:var(--text-muted);
+  padding:5px 11px; border-radius:7px; transition:background var(--mov), color var(--mov);
+}
+.dsh-seg-btn:hover:not(.on){ color:var(--text); }
+.dsh-seg-btn.on{ background:var(--surface); color:var(--accent); font-weight:var(--fw-forte); box-shadow:0 1px 2px rgba(0,0,0,.06); }
+
+/* --- Faixa dos números ---------------------------------------
+   Divisória feita com box-shadow, não com `gap`: gap pinta o
+   fundo do contêiner, e numa linha incompleta (7 números em 4
+   colunas) sobra um retângulo cinza no vazio. Com sombra, a
+   célula que não existe simplesmente não desenha nada. */
+.dsh-kpis{
+  display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:var(--sp-4);
+  background:var(--surface); border:1px solid var(--linha); border-radius:var(--r-3);
+  overflow:hidden; box-shadow:var(--sh-1);
+}
+.dsh-kpi{
+  padding:13px 14px; text-align:left; font:inherit; color:inherit; background:none;
+  box-shadow:1px 0 0 var(--linha), 0 1px 0 var(--linha);
+  transition:background var(--mov);
+}
+/* O contorno de foco é desenhado pra dentro: o `overflow:hidden`
+   da faixa cortaria um contorno por fora. */
+button.dsh-kpi:focus-visible{ outline-offset:-2px; }
+button.dsh-kpi:hover:not(:disabled){ background:var(--surface-2); }
+button.dsh-kpi:disabled{ cursor:default; }
+.dsh-kpi-n{
+  display:block; font-size:var(--fs-6); font-weight:var(--fw-titulo);
+  letter-spacing:var(--ls-apertado); line-height:1.15; font-variant-numeric:tabular-nums;
+}
+/* A unidade (h, min) é apoio, não dado: menor e apagada, pro olho
+   pegar "24" e não "24h56min". */
+.dsh-kpi-n small{ font-size:11.5px; font-weight:var(--fw-medio); color:var(--text-faint); letter-spacing:0; }
+.dsh-kpi-l{ display:block; margin-top:var(--sp-1); font-size:var(--fs-1); color:var(--text-muted); line-height:1.3; }
+/* Vermelho só quando há atrasada de verdade. Zero em vermelho
+   assusta à toa — e assustar à toa faz o alerta perder o valor. */
+.dsh-kpi.alerta .dsh-kpi-n{ color:var(--danger); }
+@media (max-width:1100px){ .dsh-kpis{ grid-template-columns:repeat(4,1fr); } }
+@media (max-width:720px){ .dsh-kpis{ grid-template-columns:repeat(2,1fr); } }
+
+/* --- Cartões -------------------------------------------------- */
+.dsh-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:var(--sp-3); align-items:start; }
+@media (max-width:1100px){ .dsh-grid{ grid-template-columns:repeat(2,1fr); } }
+@media (max-width:720px){ .dsh-grid{ grid-template-columns:1fr; } }
+.dsh-card{
+  background:var(--surface); border:1px solid var(--linha); border-radius:var(--r-3);
+  padding:var(--sp-4) 17px; box-shadow:var(--sh-1); min-width:0;
+}
+.dsh-card-title{
+  font-size:var(--fs-3); font-weight:var(--fw-titulo); letter-spacing:-.008em;
+  margin-bottom:11px; display:flex; align-items:baseline; gap:7px;
+}
+.dsh-card-tag{ font-size:10px; font-weight:var(--fw-normal); color:var(--text-faint); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dsh-card-tag::before{ content:"·"; margin-right:6px; }
+.dsh-sub{ font-size:var(--fs-2); font-weight:var(--fw-forte); color:var(--text-muted); margin-bottom:var(--sp-2); }
+/* Estica até a borda do cartão: linha que para antes do fim
+   parece defeito, não separação. */
+.dsh-sep{ height:1px; background:var(--linha); margin:15px -17px; }
+
+/* --- Linha de lista (status) ---------------------------------- */
+.dsh-row{
+  display:flex; align-items:center; gap:var(--sp-2); width:100%;
+  padding:5px 6px; margin-inline:-6px; border-radius:var(--r-1);
+  font:inherit; font-size:12.5px; color:var(--text-muted); text-align:left;
+  transition:background var(--mov), color var(--mov);
+}
+button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
+.dsh-dot{ width:7px; height:7px; border-radius:50%; flex:none; }
+.dsh-row-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dsh-row-n{ flex:none; margin-left:auto; font-weight:var(--fw-forte); color:var(--text); font-variant-numeric:tabular-nums; }
+
+/* --- Barras ---------------------------------------------------- */
+.dsh-bar{ height:5px; border-radius:var(--r-full); background:var(--trilho); overflow:hidden; }
+.dsh-bar span{ display:block; height:100%; border-radius:var(--r-full); background:var(--accent); }
+.dsh-hint{ margin-top:6px; font-size:11px; color:var(--text-faint); }
+
+.dsh-prio{ display:flex; align-items:center; gap:9px; margin-bottom:var(--sp-2); font-size:var(--fs-2); color:var(--text-muted); }
+.dsh-prio:last-child{ margin-bottom:0; }
+.dsh-prio-l{ width:46px; flex:none; }
+.dsh-prio .dsh-bar{ flex:1; height:4px; min-width:0; }
+.dsh-prio-n{ width:28px; flex:none; text-align:right; font-weight:var(--fw-forte); color:var(--text); font-variant-numeric:tabular-nums; }
+
+/* --- Humor ------------------------------------------------------ */
+.dsh-mood{ display:flex; align-items:baseline; gap:10px; }
+.dsh-mood-emoji{ font-size:20px; line-height:1; flex:none; }
+.dsh-mood-n{ font-size:var(--fs-7); font-weight:var(--fw-titulo); letter-spacing:var(--ls-apertado); font-variant-numeric:tabular-nums; }
+.dsh-mood-l{ font-size:12.5px; font-weight:var(--fw-forte); color:var(--text-muted); min-width:0; }
+.dsh-mood-l em{ display:block; font-style:normal; font-size:11px; font-weight:var(--fw-normal); color:var(--text-faint); margin-top:1px; }
+/* Um traço por dia do período. Elástico porque o mesmo desenho
+   precisa caber com 1 dia e com 31. */
+.dsh-mood-days{ display:flex; gap:4px; margin-top:10px; }
+.dsh-mood-day{ flex:1 1 0; min-width:4px; max-width:28px; height:5px; border-radius:var(--r-full); background:var(--trilho); }
+
+/* --- Rosca ------------------------------------------------------ */
+.dsh-donut-wrap{ display:flex; gap:15px; align-items:flex-start; }
+/* O furo é máscara, não um círculo branco por cima: assim a rosca
+   funciona no tema escuro e sobre o degradê sem remendo. */
+.dsh-donut{
+  width:96px; height:96px; border-radius:50%; flex:none;
+  -webkit-mask:radial-gradient(circle, transparent 58%, #000 59%);
+  mask:radial-gradient(circle, transparent 58%, #000 59%);
+}
+.dsh-legend{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.dsh-legend-row{ display:flex; align-items:center; gap:var(--sp-2); font-size:11px; color:var(--text-muted); padding:2px 0; }
+.dsh-legend-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dsh-legend-n{ flex:none; margin-left:auto; font-weight:var(--fw-forte); color:var(--text-muted); font-variant-numeric:tabular-nums; }
+
+/* --- Hábitos e Dia a dia ---------------------------------------- */
+.dsh-hab{ margin-bottom:11px; }
+.dsh-hab:last-child{ margin-bottom:0; }
+.dsh-hab-top{ display:flex; align-items:baseline; gap:var(--sp-2); margin-bottom:5px; font-size:var(--fs-2); color:var(--text-muted); }
+.dsh-hab-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dsh-hab-v{ flex:none; margin-left:auto; font-weight:var(--fw-forte); font-size:11.5px; color:var(--text); font-variant-numeric:tabular-nums; }
+.dsh-hab-v em{ font-style:normal; font-weight:var(--fw-normal); color:var(--text-faint); margin-left:5px; }
+
+/* --- Faixa de rodapé -------------------------------------------- */
+.dsh-strip{
+  display:flex; align-items:center; gap:10px; width:100%; margin-top:var(--sp-4);
+  background:var(--surface); border:1px solid var(--linha); border-radius:var(--r-3);
+  padding:11px 15px; box-shadow:var(--sh-1);
+  font:inherit; font-size:var(--fs-2); color:var(--text-muted); text-align:left;
+  transition:border-color var(--mov);
+}
+.dsh-strip:hover{ border-color:var(--border-strong); }
+.dsh-pill{
+  display:inline-flex; align-items:center; gap:5px; flex:none;
+  font-size:11px; font-weight:var(--fw-forte); border-radius:var(--r-full); padding:3.5px 9px;
+  background:var(--challenge-soft); color:var(--challenge);
+}
+/* Tinta derivada da própria cor do texto: o contador acompanha o
+   tema sem precisar de um token só pra ele. */
+.dsh-pill i{ font-style:normal; font-size:10px; border-radius:var(--r-full); padding:.5px 5px; background:color-mix(in srgb, currentColor 15%, transparent); }
+.dsh-chev{ margin-left:auto; flex:none; display:flex; color:var(--text-faint); transform:rotate(-90deg); }
+.dsh-chev svg{ width:14px; height:14px; }
+
+.dsh-empty{ font-size:var(--fs-2); color:var(--text-faint); }
 
 .task-list{
   background:var(--surface); border:1px solid var(--border); border-radius:12px;

@@ -19,7 +19,7 @@ import { CATEGORY_LABEL, DEFAULT_TAG_COLORS, isFeatureEnabled, type Category, ty
 import { moodByValue } from "@/lib/mood";
 import { countOpenChecklistItems } from "@/lib/rich-text";
 import { taskMinutesInRange } from "@/lib/board/task-time";
-import { BookIcon, ChartIcon, ChecklistIcon, CheckCircleIcon, ClockIcon, WarningIcon, WeekIcon } from "./icons";
+import { ChevronIcon } from "./icons";
 import { TaskListModal } from "./TaskListModal";
 
 type Period = "day" | "week" | "month";
@@ -53,6 +53,31 @@ function rangeLabel(period: Period, dayAnchor: string, weekAnchor: Date, monthAn
   return `${a.getDate()}/${a.getMonth() + 1} – ${b.getDate()}/${b.getMonth() + 1}`;
 }
 
+/**
+ * "24h 56min" vira 24<small>h</small> 56<small>min</small>.
+ *
+ * O número é o dado; a unidade é só a régua. Separando os dois no tamanho, o
+ * olho pega a grandeza antes de ler — que é o serviço de um painel.
+ */
+function Tempo({ min }: { min: number }) {
+  return (
+    <>
+      {fmtHM(min)
+        .split(" ")
+        .map((parte, i) => {
+          const casa = /^(\d+)(\D*)$/.exec(parte);
+          return (
+            <span key={i}>
+              {i > 0 ? " " : ""}
+              {casa ? casa[1] : parte}
+              {casa && casa[2] ? <small>{casa[2]}</small> : null}
+            </span>
+          );
+        })}
+    </>
+  );
+}
+
 function eachDateInRange(fromISO: string, toISO: string): string[] {
   const out: string[] = [];
   let cur = fromISO;
@@ -81,7 +106,7 @@ export function Dashboard() {
     const s = board.state;
     const overdueTasks = s.tasks.filter((t) => !t.done && t.date && t.date < today);
     const overdueCount = overdueTasks.length;
-    const noDateCount = s.tasks.filter((t) => !t.date).length;
+    const noDateTasks = s.tasks.filter((t) => !t.date);
 
     // Tópico em aberto = caixinha não marcada na observação da tarefa (pauta de
     // reunião ou lista de qualquer tarefa). Mais antigas primeiro — são as que
@@ -146,7 +171,8 @@ export function Dashboard() {
       overdueTasks,
       openTopicTasks,
       openTopicTotal,
-      noDateCount,
+      noDateCount: noDateTasks.length,
+      noDateTasks,
       doneCount: doneInPeriod.length,
       pendingCount: pendingInPeriod.length,
       totalMin: taskMinTotal + habitMinTotal + blockMinTotal,
@@ -223,55 +249,45 @@ export function Dashboard() {
 
   return (
     <div className="section">
-      <div className="dash-nav">
-        <button className="strip-nav" type="button" aria-label="período anterior" onClick={() => shiftPeriod(-1)}>
+      <div className="dsh-head">
+        <span className="dsh-title">{rangeLabel(period, dayAnchor, weekAnchor, monthAnchor)}</span>
+        <button className="dsh-nav-btn" type="button" aria-label="período anterior" onClick={() => shiftPeriod(-1)}>
           ‹
         </button>
-        <span className="dash-range-label mono">{rangeLabel(period, dayAnchor, weekAnchor, monthAnchor)}</span>
-        <button className="strip-nav" type="button" aria-label="próximo período" onClick={() => shiftPeriod(1)}>
+        <button className="dsh-nav-btn" type="button" aria-label="próximo período" onClick={() => shiftPeriod(1)}>
           ›
         </button>
-        <div className="view-toggle">
-          <button
-            type="button"
-            className={"view-toggle-btn" + (period === "day" ? " active" : "")}
-            onClick={() => setPeriod("day")}
-          >
+        <span className="dsh-head-space" />
+        <div className="dsh-seg">
+          <button type="button" className={"dsh-seg-btn" + (period === "day" ? " on" : "")} onClick={() => setPeriod("day")}>
             Dia
           </button>
-          <button
-            type="button"
-            className={"view-toggle-btn" + (period === "week" ? " active" : "")}
-            onClick={() => setPeriod("week")}
-          >
+          <button type="button" className={"dsh-seg-btn" + (period === "week" ? " on" : "")} onClick={() => setPeriod("week")}>
             Semana
           </button>
-          <button
-            type="button"
-            className={"view-toggle-btn" + (period === "month" ? " active" : "")}
-            onClick={() => setPeriod("month")}
-          >
+          <button type="button" className={"dsh-seg-btn" + (period === "month" ? " on" : "")} onClick={() => setPeriod("month")}>
             Mês
           </button>
         </div>
       </div>
 
-      <div className="dash-stats">
+      {/* Uma faixa só, dividida por linha de 1px — não sete cartões soltos.
+          Os números são irmãos: separá-los em cartões fazia cada um pedir
+          atenção por conta própria. */}
+      <div className="dsh-kpis">
         <button
           type="button"
-          className="dash-stat-card danger clickable"
+          className={"dsh-kpi" + (stats.overdueCount > 0 ? " alerta" : "")}
           title={stats.overdueCount > 0 ? "Ver as tarefas atrasadas" : undefined}
           disabled={stats.overdueCount === 0}
           onClick={() => setModal({ title: "Atrasadas", tasks: stats.overdueTasks })}
         >
-          <div className="dash-stat-value">{stats.overdueCount}</div>
-          <div className="dash-stat-label">
-            <WarningIcon /> Atrasadas
-          </div>
+          <span className="dsh-kpi-n">{stats.overdueCount}</span>
+          <span className="dsh-kpi-l">Atrasadas</span>
         </button>
         <button
           type="button"
-          className="dash-stat-card clickable"
+          className="dsh-kpi"
           title={
             stats.openTopicTotal > 0
               ? `${stats.openTopicTotal} tópico(s) em aberto em ${stats.openTopicTasks.length} tarefa(s) — clique pra ver a lista`
@@ -280,144 +296,145 @@ export function Dashboard() {
           disabled={stats.openTopicTotal === 0}
           onClick={() => setModal({ title: "Tarefas com tópicos abertos", tasks: stats.openTopicTasks })}
         >
-          <div className="dash-stat-value">{stats.openTopicTotal}</div>
-          <div className="dash-stat-label">
-            <ChecklistIcon /> Tópicos abertos
-          </div>
+          <span className="dsh-kpi-n">{stats.openTopicTotal}</span>
+          <span className="dsh-kpi-l">Tópicos abertos</span>
         </button>
-        <div className="dash-stat-card">
-          <div className="dash-stat-value">{stats.noDateCount}</div>
-          <div className="dash-stat-label">
-            <WeekIcon /> Sem data
-          </div>
+        <button
+          type="button"
+          className="dsh-kpi"
+          title={stats.noDateCount > 0 ? "Ver as tarefas sem data" : undefined}
+          disabled={stats.noDateCount === 0}
+          onClick={() => setModal({ title: "Sem data", tasks: stats.noDateTasks })}
+        >
+          <span className="dsh-kpi-n">{stats.noDateCount}</span>
+          <span className="dsh-kpi-l">Sem data</span>
+        </button>
+        <div className="dsh-kpi">
+          <span className="dsh-kpi-n">{stats.doneCount}</span>
+          <span className="dsh-kpi-l">Concluídas no período</span>
         </div>
-        <div className="dash-stat-card">
-          <div className="dash-stat-value">{stats.doneCount}</div>
-          <div className="dash-stat-label">
-            <CheckCircleIcon /> Concluídas no período
-          </div>
+        <div className="dsh-kpi">
+          <span className="dsh-kpi-n">
+            <Tempo min={stats.totalMin} />
+          </span>
+          <span className="dsh-kpi-l">Tempo total</span>
         </div>
-        <div className="dash-stat-card">
-          <div className="dash-stat-value">{fmtHM(stats.totalMin)}</div>
-          <div className="dash-stat-label">
-            <ChartIcon /> Tempo total
-          </div>
+        <div className="dsh-kpi">
+          <span className="dsh-kpi-n">
+            <Tempo min={stats.workMin} />
+          </span>
+          <span className="dsh-kpi-l">Horas trabalhadas</span>
         </div>
-        <div className="dash-stat-card">
-          <div className="dash-stat-value">{fmtHM(stats.workMin)}</div>
-          <div className="dash-stat-label">
-            <ClockIcon /> Horas trabalhadas
-          </div>
-        </div>
-        <div className="dash-stat-card">
-          <div className="dash-stat-value">{fmtHM(stats.studyMin)}</div>
-          <div className="dash-stat-label">
-            <BookIcon /> Estudo e dev. pessoal
-          </div>
+        <div className="dsh-kpi">
+          <span className="dsh-kpi-n">
+            <Tempo min={stats.studyMin} />
+          </span>
+          <span className="dsh-kpi-l">Estudo e dev. pessoal</span>
         </div>
       </div>
 
-      <div className="dash-charts">
-        <div className="dash-box">
-          <div className="dash-box-title">Tarefas</div>
+      {/* Três colunas fixas, e assunto irmão dentro do MESMO cartão.
+          O `column-count` de antes reordenava os blocos sozinho conforme a
+          altura de cada um: o painel mudava de arrumação a cada semana, e
+          nunca dava pra decorar onde as coisas ficam. */}
+      <div className="dsh-grid">
+        <div className="dsh-card">
+          <div className="dsh-card-title">Tarefas</div>
           {stats.taskStatuses.map((st) => (
             <button
               type="button"
               key={st.id}
-              className="dash-status-row"
+              className="dsh-row"
               onClick={() => setModal({ title: st.label, tasks: stats.statusBuckets[st.id] || [] })}
             >
-              <span className="dash-legend-dot" style={{ background: st.color }} />
-              <span className="dash-legend-name">{st.label}</span>
-              <span className="dash-legend-pct mono">{(stats.statusBuckets[st.id] || []).length}</span>
+              <span className="dsh-dot" style={{ background: st.color }} />
+              <span className="dsh-row-name">{st.label}</span>
+              <span className="dsh-row-n">{(stats.statusBuckets[st.id] || []).length}</span>
             </button>
           ))}
           <button
             type="button"
-            className="dash-status-row"
+            className="dsh-row"
             onClick={() => setModal({ title: "Atrasadas", tasks: stats.overdueTasks })}
           >
-            <span className="dash-legend-dot" style={{ background: "var(--danger)" }} />
-            <span className="dash-legend-name">Atrasadas</span>
-            <span className="dash-legend-pct mono">{stats.overdueCount}</span>
+            <span className="dsh-dot" style={{ background: "var(--danger)" }} />
+            <span className="dsh-row-name">Atrasadas</span>
+            <span className="dsh-row-n">{stats.overdueCount}</span>
           </button>
-        </div>
 
-        <div className="dash-box">
-          <div className="dash-box-title">Concluídas x pendentes (período)</div>
-          <div className="dash-split">
-            {doneTotal > 0 && (
-              <div className="dash-split-done" style={{ width: `${(stats.doneCount / doneTotal) * 100}%` }} />
-            )}
-          </div>
-          <div className="dash-split-legend">
-            <span>{stats.doneCount} concluídas</span>
-            <span>{stats.pendingCount} pendentes</span>
-          </div>
-        </div>
+          <div className="dsh-sep" />
 
-        <div className="dash-box">
-          <div className="dash-box-title">Prioridade (pendentes)</div>
+          <div className="dsh-sub">Concluídas × pendentes</div>
+          <div className="dsh-bar">
+            {doneTotal > 0 && <span style={{ width: `${(stats.doneCount / doneTotal) * 100}%` }} />}
+          </div>
+          <div className="dsh-hint">
+            {stats.doneCount} concluídas · {stats.pendingCount} pendentes
+          </div>
+
+          <div className="dsh-sep" />
+
+          <div className="dsh-sub">Prioridade das pendentes</div>
           {(["alta", "media", "baixa"] as Priority[]).map((p) => (
-            <div className="bar-row" key={p}>
-              <div className="bar-row-top">
-                <span className="bar-row-name">{p === "alta" ? "Alta" : p === "media" ? "Média" : "Baixa"}</span>
-                <span className="bar-row-value">{stats.priorityPending[p]}</span>
-              </div>
-              <div className="bar-row-track">
-                <div
-                  className="bar-row-fill"
+            <div className="dsh-prio" key={p}>
+              <span className="dsh-prio-l">{p === "alta" ? "Alta" : p === "media" ? "Média" : "Baixa"}</span>
+              <div className="dsh-bar">
+                <span
                   style={{
                     width: `${(stats.priorityPending[p] / maxPriority) * 100}%`,
-                    background: p === "alta" ? "var(--flag-alta)" : p === "media" ? "var(--flag-media)" : "var(--flag-baixa)",
+                    background:
+                      p === "alta" ? "var(--flag-alta)" : p === "media" ? "var(--flag-media)" : "var(--flag-baixa)",
                   }}
                 />
               </div>
+              <span className="dsh-prio-n">{stats.priorityPending[p]}</span>
             </div>
           ))}
         </div>
 
-        {moodOn && (
-          <div className="dash-box">
-            <div className="dash-box-title">Humor</div>
-            {stats.moodAvg === null ? (
-              <div className="bar-empty">Nenhum humor registrado no período.</div>
-            ) : (
-              <>
-                <div className="mood-thermo-avg">
-                  <span className="mood-thermo-emoji">{moodByValue(Math.round(stats.moodAvg))?.emoji}</span>
-                  <span className="mood-thermo-value mono">{stats.moodAvg.toFixed(1)}</span>
-                  <span className="mood-thermo-label">
-                    {moodByValue(Math.round(stats.moodAvg))?.label} · média do período
-                  </span>
-                </div>
-                <div className="mood-thermo-strip">
-                  {stats.moodDays.map((d) => (
-                    <span
-                      key={d.iso}
-                      className="mood-thermo-day"
-                      title={`${d.iso}${d.mood !== null ? " — " + moodByValue(d.mood)?.label : ""}`}
-                      style={{ background: d.mood !== null ? moodByValue(d.mood)?.color : "var(--surface-2)" }}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        )}
+        <div className="dsh-card">
+          {moodOn && (
+            <>
+              <div className="dsh-card-title">Humor</div>
+              {stats.moodAvg === null ? (
+                <div className="dsh-empty">Nenhum humor registrado no período.</div>
+              ) : (
+                <>
+                  <div className="dsh-mood">
+                    <span className="dsh-mood-emoji">{moodByValue(Math.round(stats.moodAvg))?.emoji}</span>
+                    <span className="dsh-mood-n">{stats.moodAvg.toFixed(1).replace(".", ",")}</span>
+                    <span className="dsh-mood-l">
+                      {moodByValue(Math.round(stats.moodAvg))?.label}
+                      <em>média do período</em>
+                    </span>
+                  </div>
+                  <div className="dsh-mood-days">
+                    {stats.moodDays.map((d) => (
+                      <span
+                        key={d.iso}
+                        className="dsh-mood-day"
+                        title={`${d.iso}${d.mood !== null ? " — " + moodByValue(d.mood)?.label : ""}`}
+                        style={d.mood !== null ? { background: moodByValue(d.mood)?.color } : undefined}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+              <div className="dsh-sep" />
+            </>
+          )}
 
-        <div className="dash-box">
-          <div className="dash-box-title">Onde foi o tempo</div>
-          {!pieEntries.length && <div className="bar-empty">Nada com tempo registrado no período.</div>}
+          <div className="dsh-card-title">Onde foi o tempo</div>
+          {!pieEntries.length && <div className="dsh-empty">Nada com tempo registrado no período.</div>}
           {!!pieEntries.length && (
-            <div className="dash-pie-row">
-              <div className="dash-pie" style={{ background: pieGradient }} />
-              <div className="dash-pie-legend">
+            <div className="dsh-donut-wrap">
+              <div className="dsh-donut" style={{ background: pieGradient }} />
+              <div className="dsh-legend">
                 {pieEntries.map(({ key, label, min, color }) => (
-                  <div className="dash-legend-row" key={key}>
-                    <span className="dash-legend-dot" style={{ background: color }} />
-                    <span className="dash-legend-name">{label}</span>
-                    <span className="dash-legend-pct">{Math.round((min / catTotal) * 100)}%</span>
+                  <div className="dsh-legend-row" key={key}>
+                    <span className="dsh-dot" style={{ background: color }} />
+                    <span className="dsh-legend-name">{label}</span>
+                    <span className="dsh-legend-n">{Math.round((min / catTotal) * 100)}%</span>
                   </div>
                 ))}
               </div>
@@ -425,50 +442,70 @@ export function Dashboard() {
           )}
         </div>
 
-        <div className="dash-box">
-          <div className="dash-box-title">Hábitos — tempo e dias ativos</div>
-          {!stats.habitStats.length && <div className="bar-empty">Nenhum hábito cadastrado.</div>}
+        <div className="dsh-card">
+          <div className="dsh-card-title">
+            Hábitos <span className="dsh-card-tag">tempo e dias ativos</span>
+          </div>
+          {!stats.habitStats.length && <div className="dsh-empty">Nenhum hábito cadastrado.</div>}
           {stats.habitStats.map((h) => (
-            <div className="bar-row" key={h.id}>
-              <div className="bar-row-top">
-                <span className="bar-row-name">{h.name}</span>
-                <span className="bar-row-value">{fmtHM(h.min)}</span>
-                <span className="bar-row-value mono">
-                  {h.count}/{stats.daysInPeriod}d
+            <div className="dsh-hab" key={h.id}>
+              <div className="dsh-hab-top">
+                <span className="dsh-hab-name">{h.name}</span>
+                <span className="dsh-hab-v">
+                  {fmtHM(h.min)}
+                  <em>
+                    {h.count}/{stats.daysInPeriod}d
+                  </em>
                 </span>
               </div>
-              <div className="bar-row-track">
-                <div className="bar-row-fill" style={{ width: `${(h.min / maxHabitMin) * 100}%` }} />
-              </div>
-              <div className="bar-row-track">
-                <div className="bar-row-fill days" style={{ width: `${(h.count / stats.daysInPeriod) * 100}%` }} />
+              <div className="dsh-bar">
+                <span style={{ width: `${(h.min / maxHabitMin) * 100}%` }} />
               </div>
             </div>
           ))}
-        </div>
 
-        <div className="dash-box">
-          <div className="dash-box-title">Dia a Dia — tempo e dias ativos</div>
-          {!stats.blockStats.length && <div className="bar-empty">Nenhum bloco fixo cadastrado.</div>}
+          <div className="dsh-sep" />
+
+          <div className="dsh-card-title">
+            Dia a Dia <span className="dsh-card-tag">tempo e dias ativos</span>
+          </div>
+          {!stats.blockStats.length && <div className="dsh-empty">Nenhum bloco fixo cadastrado.</div>}
           {stats.blockStats.map((b) => (
-            <div className="bar-row" key={b.id}>
-              <div className="bar-row-top">
-                <span className="bar-row-name">{b.name}</span>
-                <span className="bar-row-value">{fmtHM(b.min)}</span>
-                <span className="bar-row-value mono">
-                  {b.count}/{stats.daysInPeriod}d
+            <div className="dsh-hab" key={b.id}>
+              <div className="dsh-hab-top">
+                <span className="dsh-hab-name">{b.name}</span>
+                <span className="dsh-hab-v">
+                  {fmtHM(b.min)}
+                  <em>
+                    {b.count}/{stats.daysInPeriod}d
+                  </em>
                 </span>
               </div>
-              <div className="bar-row-track">
-                <div className="bar-row-fill" style={{ width: `${(b.min / maxBlockMin) * 100}%` }} />
-              </div>
-              <div className="bar-row-track">
-                <div className="bar-row-fill days" style={{ width: `${(b.count / stats.daysInPeriod) * 100}%` }} />
+              <div className="dsh-bar">
+                <span style={{ width: `${(b.min / maxBlockMin) * 100}%` }} />
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      {stats.noDateCount > 0 && (
+        <button
+          type="button"
+          className="dsh-strip"
+          onClick={() => setModal({ title: "Sem data", tasks: stats.noDateTasks })}
+        >
+          <span className="dsh-pill">
+            Sem data <i>{stats.noDateCount}</i>
+          </span>
+          <span>
+            {stats.noDateCount === 1 ? "1 tarefa esperando" : `${stats.noDateCount} tarefas esperando`} uma data
+          </span>
+          <span className="dsh-chev">
+            <ChevronIcon />
+          </span>
+        </button>
+      )}
 
       {modal && (
         <TaskListModal
