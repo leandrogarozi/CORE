@@ -85,9 +85,19 @@
      Fica SEMPRE atrás de tudo e NUNCA sob texto — degradê que
      passa por baixo de texto deixa a leitura boa numa ponta e
      ilegível na outra. */
+  /* Três camadas, nessa ordem de leitura:
+     1. uma faixa que atravessa a largura TODA no topo e desce sumindo — é o
+        que tira a impressão de mancha. Duas bolhas só nas quinas começavam e
+        não iam a lugar nenhum, e o Leandro leu isso como sujeira;
+     2. uma mancha quente deslocada pra direita, que dá o movimento e impede
+        que a faixa pareça uma listra reta;
+     3. um respiro frio embaixo à esquerda, pra página não terminar branca.
+     O MEIO fica limpo de propósito: é onde o conteúdo mora. É essa alternância
+     — cor, limpo, cor — que ele chamou de dinâmico nas referências. */
   --fundo-degrade:
-    radial-gradient(1000px 460px at 10% -8%, #EFEBFE 0%, rgba(239,235,254,0) 60%),
-    radial-gradient(820px 420px at 94% 2%, #FDEBF5 0%, rgba(253,235,245,0) 56%);
+    linear-gradient(176deg, #F2EFFE 0%, rgba(242,239,254,.55) 18%, rgba(242,239,254,0) 42%),
+    radial-gradient(900px 520px at 86% 1%, #FCEAF4 0%, rgba(252,234,244,0) 58%),
+    radial-gradient(780px 500px at 2% 92%, #EDF2FE 0%, rgba(237,242,254,0) 62%);
 
   /* Linha de 1px que separa sem pesar. Mais clara que --border,
      que hoje faz as vezes de divisor e de contorno ao mesmo
@@ -115,9 +125,13 @@
     color-scheme:dark;
     /* No escuro o degradê precisa ser bem mais discreto: o mesmo
        brilho que é sutil no branco vira mancha no preto. */
+    /* Mesma composição do claro, com alfa baixo. No escuro o degradê não pode
+       clarear o fundo: ele tinge. Passar de ~12% já vira névoa cinza e come o
+       contraste do texto. */
     --fundo-degrade:
-      radial-gradient(1000px 460px at 10% -8%, rgba(99,102,241,.10) 0%, rgba(99,102,241,0) 60%),
-      radial-gradient(820px 420px at 94% 2%, rgba(217,70,239,.07) 0%, rgba(217,70,239,0) 56%);
+      linear-gradient(176deg, rgba(99,102,241,.11) 0%, rgba(99,102,241,.05) 18%, rgba(99,102,241,0) 42%),
+      radial-gradient(900px 520px at 86% 1%, rgba(217,70,239,.08) 0%, rgba(217,70,239,0) 58%),
+      radial-gradient(780px 500px at 2% 92%, rgba(56,118,245,.07) 0%, rgba(56,118,245,0) 62%);
     --linha:#2A2A30;
     --trilho:#2A2A30;
     --segmento-fundo:#232328;
@@ -371,6 +385,33 @@ a{ color:inherit; }
 .settings-row + .settings-row{ border-top:1px solid var(--linha); }
 .settings-row input[type="color"]{ width:15px; height:15px; flex:none; }
 .settings-row input[type="range"]{ flex:1; }
+
+/* O slider da tag ganha a geometria da barra do Dashboard: trilho de 5px
+   totalmente arredondado, igual ao `.dsh-bar`. Ele pediu a MESMA barrinha, e
+   duas barras com alturas e raios diferentes na mesma tela é o tipo de
+   inconsistência que faz um app parecer remendado.
+   A parte preenchida sai na cor da própria tag — este controle ajusta a
+   opacidade DELA, então mostrar em cinza desperdiçaria a única informação que
+   a barra pode dar. `--pct` e `--tag-cor` chegam do componente, porque só ele
+   sabe o valor. A bolinha fica branca com anel na cor: some no trilho sem
+   sumir pro dedo. */
+.settings-row .settings-range{ height:14px; }
+.settings-row .settings-range::-webkit-slider-runnable-track{
+  height:5px; border-radius:var(--r-full);
+  background:linear-gradient(to right, var(--tag-cor) 0 var(--pct), var(--trilho) var(--pct) 100%);
+}
+.settings-row .settings-range::-webkit-slider-thumb{
+  width:13px; height:13px; margin-top:-4px;
+  background:var(--surface); border:2px solid var(--tag-cor); box-shadow:var(--sh-1);
+}
+.settings-row .settings-range::-moz-range-track{
+  height:5px; border-radius:var(--r-full);
+  background:linear-gradient(to right, var(--tag-cor) 0 var(--pct), var(--trilho) var(--pct) 100%);
+}
+.settings-row .settings-range::-moz-range-thumb{
+  width:13px; height:13px; background:var(--surface);
+  border:2px solid var(--tag-cor); box-shadow:var(--sh-1);
+}
 .settings-label{ font-size:var(--fs-3); font-weight:var(--fw-normal); }
 .settings-subblock{
   display:flex; flex-direction:column; gap:6px; margin-top:14px; padding-top:12px; border-top:1px solid var(--linha);
@@ -647,8 +688,41 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 
 .day-layout{ display:flex; flex-direction:column; gap:16px; }
 .day-below-row{ display:flex; gap:16px; flex-wrap:wrap; align-items:flex-start; }
-.day-below-row > .hours-section{ flex:1 1 260px; min-width:220px; max-width:340px; }
+/* A esquerda virou coluna: Horas em cima, Agenda embaixo. Antes o Horas estava
+   solto na linha e, sendo baixo, deixava um vão até o fim do Registro do dia. */
+.day-below-row > .day-below-col{
+  flex:1 1 260px; min-width:220px; max-width:340px;
+  display:flex; flex-direction:column; gap:16px; min-height:0;
+}
+.day-below-col > .hours-section, .day-below-col > .agenda-section{ width:100%; }
 .day-below-row > .daily-log-section{ flex:2 1 320px; min-width:260px; }
+
+.agenda-panel{
+  background:var(--surface); border:1px solid var(--linha); border-radius:var(--r-3);
+  box-shadow:var(--sh-1); overflow:hidden; padding:var(--sp-2) 0;
+}
+.agenda-row{ display:flex; align-items:center; gap:9px; padding:6px 14px; font-size:12.5px; }
+.agenda-row + .agenda-row{ border-top:1px solid var(--linha); }
+.agenda-hora{ font-size:11.5px; color:var(--text-muted); flex:none; }
+/* Marca de 3px: diz o tipo sem virar mais um ícone na tela. */
+.agenda-marca{ width:3px; align-self:stretch; border-radius:var(--r-full); flex:none; }
+/* Três cores que já existem no app, e não inventadas aqui. Reunião é azul
+   como a tag dela; lembrete é o âmbar que o FARO já usa pra chamar atenção;
+   tarefa fica neutra, que é a maioria e não deve competir. */
+.agenda-marca.reuniao{ background:var(--info); }
+.agenda-marca.tarefa{ background:var(--text-faint); }
+.agenda-marca.lembrete{ background:var(--challenge); }
+.agenda-titulo{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.agenda-row.feito .agenda-titulo{ color:var(--text-faint); text-decoration:line-through; }
+.agenda-vazio{ padding:10px 14px; font-size:11.5px; color:var(--text-faint); }
+
+/* A data do último serviço entra no próprio botão, em cinza: diz o estado sem
+   virar mais uma coluna na linha, que já está cheia. */
+.maint-done-btn .maint-done-data{ font-size:10.5px; color:var(--text-faint); margin-left:5px; }
+.maint-done-btn.concluido{ color:var(--text-muted); }
+/* Botão de ícone que fica "pressionado" enquanto o painel que ele abre está
+   aberto — senão não dá pra saber qual botão abriu aquilo. */
+.icon-btn.ativo{ color:var(--accent); background:var(--segmento-fundo); border-radius:var(--r-2); }
 .hours-panel{
   background:var(--surface); border:1px solid var(--linha); border-radius:var(--r-3);
   box-shadow:var(--sh-1); overflow:hidden;
@@ -862,6 +936,15 @@ button.dsh-kpi:disabled{ cursor:default; }
 /* --- Cartões -------------------------------------------------- */
 .dsh-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:var(--sp-3); align-items:start; }
 @media (max-width:720px){ .dsh-grid{ grid-template-columns:1fr; } }
+
+/* Faixa que ocupa a linha inteira. Cartão de assunto único e números poucos
+   não precisa de coluna própria — e sozinho numa grade de duas deixaria meia
+   linha vazia. */
+.dsh-card-largo{ grid-column:1 / -1; }
+.dsh-wa-row{ display:flex; flex-wrap:wrap; gap:var(--sp-4) 28px; margin-bottom:var(--sp-3); }
+.dsh-wa-item{ display:flex; flex-direction:column; gap:1px; min-width:0; }
+.dsh-wa-n{ font-size:var(--fs-5); font-weight:var(--fw-forte); line-height:1.1; }
+.dsh-wa-l{ font-size:11px; color:var(--text-muted); }
 .dsh-card{
   background:var(--surface); border:1px solid var(--linha); border-radius:var(--r-3);
   padding:var(--sp-4) 17px; box-shadow:var(--sh-1); min-width:0;
@@ -2242,8 +2325,14 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
    ruizinha". `align-items:start` porque cartão não deve esticar
    pra acompanhar a altura do vizinho.
    ============================================================ */
-.settings-grade{ display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-3); align-items:start; }
-.settings-grade > .dash-box{ margin-bottom:0; }
-/* Um cartão pode pedir a linha inteira quando o conteúdo é largo. */
-.settings-grade > .dash-box.largo{ grid-column:1 / -1; }
-@media (max-width:900px){ .settings-grade{ grid-template-columns:1fr; } }
+/* Colunas de texto, não grade.
+   Era `display:grid` com duas colunas, e numa grade a altura da LINHA é ditada
+   pelo bloco mais alto dela: "Painel de horas" tem três linhas de conteúdo e
+   ficava preso na mesma linha do "Painel do dia", que é enorme — o buraco que
+   ele apontou não era espaçamento, era a grade esperando a linha fechar.
+   Multi-coluna faz os cartões escorrerem e o navegador equilibra as duas
+   alturas sozinho, então não sobra vão. `break-inside` impede que um cartão
+   seja partido no meio ao virar de coluna. */
+.settings-grade{ column-count:2; column-gap:var(--sp-3); }
+.settings-grade > .dash-box{ break-inside:avoid; width:100%; margin:0 0 var(--sp-3); }
+@media (max-width:900px){ .settings-grade{ column-count:1; } }

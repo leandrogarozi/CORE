@@ -12,6 +12,7 @@ import { ThemeButton } from "./ThemeButton";
 import { Dashboard } from "./Dashboard";
 import { HoursPanel } from "./HoursPanel";
 import { DailyLogPanel } from "./DailyLogPanel";
+import { DayAgendaPanel } from "./DayAgendaPanel";
 import { RecurringSection } from "./RecurringSection";
 import { SettingsView } from "./SettingsView";
 import { BooksView } from "./BooksView";
@@ -335,8 +336,14 @@ function BoardShell() {
                   />
                 )}
               </div>
+              {/* A coluna da esquerda é uma pilha: Horas é baixo e o Registro
+                  do dia é alto, então sobrava um vão ao lado. A Agenda entra
+                  embaixo do Horas e fecha a linha. */}
               <div className="day-below-row">
-                <HoursPanel selectedDate={selectedDate} />
+                <div className="day-below-col">
+                  <HoursPanel selectedDate={selectedDate} />
+                  {viewMode === "day" && <DayAgendaPanel selectedDate={selectedDate} />}
+                </div>
                 {viewMode === "day" && <DailyLogPanel selectedDate={selectedDate} />}
               </div>
             </div>

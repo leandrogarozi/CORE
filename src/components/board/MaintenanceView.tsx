@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
 import { MicButton } from "./MicButton";
-import { CarIcon, CheckIcon, ChevronIcon, HomeIcon, TrashIcon, WarningIcon, WhatsAppIcon } from "./icons";
+import { CarIcon, CheckIcon, ChevronIcon, EditIcon, HomeIcon, TrashIcon, WarningIcon, WhatsAppIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import {
   MAINTENANCE_SUGGESTIONS,
@@ -137,12 +137,36 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
         >
           <WhatsAppIcon filled={!!(item.whatsapp && st.dueDate)} />
         </button>
+        {/* "Fiz" era a ação na voz de quem clica; "Feito" é o estado do item,
+            que é o que ele quer ler na linha. Quando já existe um serviço
+            registrado, a data vem junto: a linha passa a dizer o que aconteceu,
+            e não só o que dá pra fazer.
+            Marcar feito registra o serviço e a próxima data é recalculada a
+            partir dele — é assim que uma manutenção puxa a seguinte. */}
         <button
           type="button"
-          className="btn btn-ghost maint-done-btn"
+          className={"btn btn-ghost maint-done-btn" + (item.lastDoneOn ? " concluido" : "")}
+          title={
+            item.lastDoneOn
+              ? `Último em ${fmtShortDate(item.lastDoneOn)}. Clique pra registrar um novo.`
+              : "Registrar que essa manutenção foi feita"
+          }
           onClick={() => setRegistrando((v) => !v)}
         >
-          <CheckIcon /> Fiz
+          <CheckIcon /> Feito
+          {item.lastDoneOn && <span className="maint-done-data mono">{fmtShortDate(item.lastDoneOn)}</span>}
+        </button>
+        {/* Editar não tinha botão: pra mudar intervalo ou antecedência era
+            preciso adivinhar que o nome e a etiqueta de intervalo abriam o
+            item. Dois cliques escondidos não são um caminho. */}
+        <button
+          type="button"
+          className={"icon-btn" + (aberto ? " ativo" : "")}
+          title={aberto ? "Fechar a edição" : "Editar esse item"}
+          aria-label={`Editar ${item.name}`}
+          onClick={() => setAberto((v) => !v)}
+        >
+          <EditIcon />
         </button>
       </div>
 

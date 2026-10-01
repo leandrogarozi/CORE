@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { useBoardCtx } from "./board-context";
+import { useWhatsAppCost } from "@/lib/board/use-whatsapp-cost";
 import {
   ArchiveIcon,
   BellIcon,
@@ -15,7 +16,6 @@ import {
   WaterDropIcon,
   WhatsAppIcon,
 } from "./icons";
-import { createClient } from "@/lib/supabase/client";
 import { fmtBRL } from "@/lib/money";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { CATEGORY_LABEL, OPTIONAL_FEATURES, isFeatureEnabled, type Category, type TaskStatus } from "@/lib/types";
@@ -327,49 +327,12 @@ function WhatsAppCostBox() {
   // As contagens saem prontas do efeito, não do render: ler o relógio durante a
   // renderização é impuro (e o React reclama, com razão — o mesmo render daria
   // resultados diferentes).
-  const [resumo, setResumo] = useState<{
-    noMes: number;
-    em4Dias: number;
-    falhas: number;
-    entregues: number;
-    naoEntregues: number;
-    semConfirmacao: number;
-  } | null>(null);
+  // A conta saiu daqui pro useWhatsAppCost: o mesmo número agora aparece no
+  // Dashboard, e duas cópias da mesma conta divergem com o tempo.
+  const resumo = useWhatsAppCost();
   const [capInput, setCapInput] = useState<string | null>(null);
   const [rateInput, setRateInput] = useState<string | null>(null);
   const [fxInput, setFxInput] = useState<string | null>(null);
-
-  useEffect(() => {
-    const supabase = createClient();
-    const agora = new Date();
-    const inicioDoMes = new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString();
-    const quatroDias = new Date(agora.getTime() - 4 * 24 * 3600 * 1000).toISOString();
-    // 60 dias cobrem o mês corrente e o anterior — é tudo que o painel mostra.
-    const desde = new Date(agora.getTime() - 60 * 24 * 3600 * 1000).toISOString();
-    supabase
-      .from("whatsapp_sends")
-      .select("sent_at, ok, delivery_status")
-      .gte("sent_at", desde)
-      .order("sent_at", { ascending: false })
-      .then(({ data }) => {
-        const linhas = data ?? [];
-        const enviadas = linhas.filter((l) => l.ok);
-        const aceitasNoMes = enviadas.filter((l) => l.sent_at >= inicioDoMes);
-        setResumo({
-          noMes: aceitasNoMes.length,
-          em4Dias: enviadas.filter((l) => l.sent_at >= quatroDias).length,
-          falhas: linhas.filter((l) => !l.ok && l.sent_at >= inicioDoMes).length,
-          // "lida" também é entregue — e é a confirmação mais forte que existe.
-          entregues: aceitasNoMes.filter(
-            (l) => l.delivery_status === "delivered" || l.delivery_status === "read"
-          ).length,
-          naoEntregues: aceitasNoMes.filter((l) => l.delivery_status === "failed").length,
-          // Aceita pela Meta e sem notícia desde então. Era o estado em que TODAS
-          // viviam antes do webhook — e é o que escondeu os 7 lembretes perdidos.
-          semConfirmacao: aceitasNoMes.filter((l) => !l.delivery_status).length,
-        });
-      });
-  }, []);
 
   const noMes = resumo?.noMes ?? 0;
   const em4Dias = resumo?.em4Dias ?? 0;
@@ -583,8 +546,18 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
                   }
                 />
                 <span className="settings-label">{CATEGORY_LABEL[cat]}</span>
+                {/* A barra se pinta sozinha com a cor da tag e com o quanto
+                    está preenchida — o CSS não enxerga o valor de um range, só
+                    o componente. Mesma geometria da barra do Dashboard. */}
                 <input
                   type="range"
+                  className="settings-range"
+                  style={
+                    {
+                      "--tag-cor": cfg.hex,
+                      "--pct": `${Math.round(cfg.alpha * 100)}%`,
+                    } as React.CSSProperties
+                  }
                   min={0}
                   max={100}
                   step={5}

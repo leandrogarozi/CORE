@@ -18,6 +18,8 @@ import {
 import { CATEGORY_LABEL, DEFAULT_TAG_COLORS, isFeatureEnabled, type Category, type Priority, type Task } from "@/lib/types";
 import { moodByValue } from "@/lib/mood";
 import { countOpenChecklistItems } from "@/lib/rich-text";
+import { useWhatsAppCost } from "@/lib/board/use-whatsapp-cost";
+import { fmtBRL } from "@/lib/money";
 import { taskMinutesInRange } from "@/lib/board/task-time";
 import { MoodFaceIcon } from "./icons";
 import { TaskListModal } from "./TaskListModal";
@@ -226,6 +228,16 @@ export function Dashboard() {
   })();
 
   const maxPriority = Math.max(1, ...Object.values(stats.priorityPending));
+  // Custo do WhatsApp: o hook devolve as contagens, a tarifa e o câmbio vêm
+  // das Configurações. Ele é explícito que o FARO só REGISTRA o valor — nada
+  // aqui vira análise de despesa, que é assunto do outro app dele.
+  const zap = useWhatsAppCost();
+  const { whatsappMsgCostUsd, whatsappUsdBrl, whatsappMonthlyCapBrl } = board.state.settings;
+  const custoZapMesBrl = (zap?.noMes ?? 0) * whatsappMsgCostUsd * whatsappUsdBrl;
+  const pctDoTetoZap = whatsappMonthlyCapBrl
+    ? Math.min(100, (custoZapMesBrl / whatsappMonthlyCapBrl) * 100)
+    : 0;
+
   const doneTotal = stats.doneCount + stats.pendingCount;
 
   const moodOn = isFeatureEnabled(board.state.settings.featureFlags, "mood");
@@ -428,6 +440,54 @@ export function Dashboard() {
             </div>
           )}
         </div>
+
+        {/* Faixa de largura inteira, não um terceiro cartão na grade de duas
+            colunas: um cartão sozinho na segunda linha deixaria metade da linha
+            vazia, que é exatamente o buraco que ele reclamou nas Configurações.
+            E os números aqui são poucos e largos — faixa serve melhor que caixa.
+            A conta vem do mesmo hook das Configurações: um número só. */}
+        {zap && (
+          <div className="dsh-card dsh-card-largo">
+            <div className="dsh-card-title">Custo do WhatsApp</div>
+            <div className="dsh-wa-row">
+              <div className="dsh-wa-item">
+                <span className="dsh-wa-n">{zap.noMes}</span>
+                <span className="dsh-wa-l">Mensagens no mês</span>
+              </div>
+              <div className="dsh-wa-item">
+                <span className="dsh-wa-n">{fmtBRL(Math.round(custoZapMesBrl * 100))}</span>
+                <span className="dsh-wa-l">Gasto no mês</span>
+              </div>
+              <div className="dsh-wa-item">
+                <span className="dsh-wa-n">{zap.entregues}</span>
+                <span className="dsh-wa-l">Entregues</span>
+              </div>
+              {zap.semConfirmacao > 0 && (
+                <div className="dsh-wa-item">
+                  <span className="dsh-wa-n">{zap.semConfirmacao}</span>
+                  <span className="dsh-wa-l">Sem confirmação</span>
+                </div>
+              )}
+            </div>
+            {whatsappMonthlyCapBrl !== null && (
+              <>
+                <div className="dsh-bar">
+                  <span
+                    style={{
+                      width: `${pctDoTetoZap}%`,
+                      // Vermelho só quando estourou. Amarelo "quase lá" viraria
+                      // um alerta permanente, e alerta permanente ninguém lê.
+                      background: pctDoTetoZap >= 100 ? "var(--danger)" : "var(--accent)",
+                    }}
+                  />
+                </div>
+                <div className="dsh-hint">
+                  {fmtBRL(Math.round(custoZapMesBrl * 100))} de {fmtBRL(Math.round(whatsappMonthlyCapBrl * 100))} do teto
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
       </div>
 
