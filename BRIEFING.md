@@ -1358,7 +1358,56 @@ A fila acima, começando pelo Perfil. Pendências de outras frentes seguem na li
 camadas 2 e 3 do backup no Drive, restauração com simulação, e o Google Calendar
 que ele adiou.
 
-## Webhook de status do WhatsApp — combinado pra noite de 30/09
+## Webhook de status do WhatsApp — FEITO (noite de 30/09)
+
+Rodou no horário combinado, sob o protocolo de não perder dados. **Contagem de
+linhas antes:** 34 tabelas, 274 tarefas, 108 lembretes, 9 envios de WhatsApp
+(retrato completo em `scratchpad/noite/contagem-antes.json`). Nenhuma migração
+nesta etapa — as colunas já existiam desde 30/09 de manhã.
+
+**O que entrou:**
+
+- `src/lib/whatsapp/webhook.ts` — a lógica pura, separada da rota de propósito
+  pra poder rodar isolada em Node: conferência da assinatura, leitura do corpo e
+  a ordem dos status. **23 testes passando** (`scratchpad/noite/teste-webhook.mjs`).
+- `src/app/api/whatsapp/webhook/route.ts` — GET do aperto de mão, POST que
+  valida e grava.
+- Painel de Configurações mostra **entregue / sem confirmação / não entregue**,
+  em vez de só "enviadas".
+
+**Três decisões que valem registro:**
+
+1. **Falha fechada na assinatura.** É endpoint público: sem `WHATSAPP_APP_SECRET`
+   ou sem o cabeçalho, recusa. Sem isso, qualquer um na internet marcaria
+   "entregue" em qualquer `message_id` e o painel acreditaria. A comparação é de
+   tempo constante — comparar hash com `===` vaza, pelo tempo de resposta,
+   quantos bytes o atacante acertou.
+2. **O "só avança" é filtro do próprio UPDATE**, não read-modify-write. O webhook
+   da Meta chega fora de ordem; sem isso, um `sent` atrasado apagaria um
+   `delivered` e o painel passaria a mentir pra baixo. Como é filtro, dois
+   webhooks simultâneos não se atropelam.
+3. **200 sempre que a assinatura confere**, mesmo com corpo ilegível ou
+   `message_id` desconhecido. Erro faria a Meta reenviar o mesmo lote por horas.
+
+**Env criada:** `WHATSAPP_WEBHOOK_VERIFY_TOKEN` já está na Vercel (produção,
+preview e dev). **Falta `WHATSAPP_APP_SECRET`**, que só ele pode copiar.
+
+**O que ele precisa fazer (uma vez, ~5 min)** está no fim desta seção.
+
+### Passo a passo dele no painel da Meta
+
+1. developers.facebook.com → app FARO → **Configurações → Básico** → revelar
+   **Chave Secreta do App** e me mandar (ou colar na Vercel como
+   `WHATSAPP_APP_SECRET`).
+2. **WhatsApp → Configuração → Webhooks → Editar**:
+   - URL de callback: `https://core-app-seven-gamma.vercel.app/api/whatsapp/webhook`
+   - Token de verificação: `faro-wh-PZcJtbFCyUbwmywHAa7v5QYtmBfkyLIa`
+3. Verificar e salvar → **Gerenciar** → assinar o campo **`messages`** (é esse
+   que carrega os status, apesar do nome).
+
+Enquanto o App Secret não estiver na Vercel, a rota recusa tudo — de propósito.
+
+## (histórico) Webhook de status do WhatsApp — combinado pra noite de 30/09
 
 O Leandro pediu pra fazer, mas **não durante o dia**: "deixa para fazer isso
 a noite, uma hora que eu não vou precisar usar aqui". Ele usa o app durante

@@ -327,7 +327,14 @@ function WhatsAppCostBox() {
   // As contagens saem prontas do efeito, não do render: ler o relógio durante a
   // renderização é impuro (e o React reclama, com razão — o mesmo render daria
   // resultados diferentes).
-  const [resumo, setResumo] = useState<{ noMes: number; em4Dias: number; falhas: number } | null>(null);
+  const [resumo, setResumo] = useState<{
+    noMes: number;
+    em4Dias: number;
+    falhas: number;
+    entregues: number;
+    naoEntregues: number;
+    semConfirmacao: number;
+  } | null>(null);
   const [capInput, setCapInput] = useState<string | null>(null);
   const [rateInput, setRateInput] = useState<string | null>(null);
   const [fxInput, setFxInput] = useState<string | null>(null);
@@ -341,16 +348,25 @@ function WhatsAppCostBox() {
     const desde = new Date(agora.getTime() - 60 * 24 * 3600 * 1000).toISOString();
     supabase
       .from("whatsapp_sends")
-      .select("sent_at, ok")
+      .select("sent_at, ok, delivery_status")
       .gte("sent_at", desde)
       .order("sent_at", { ascending: false })
       .then(({ data }) => {
         const linhas = data ?? [];
         const enviadas = linhas.filter((l) => l.ok);
+        const aceitasNoMes = enviadas.filter((l) => l.sent_at >= inicioDoMes);
         setResumo({
-          noMes: enviadas.filter((l) => l.sent_at >= inicioDoMes).length,
+          noMes: aceitasNoMes.length,
           em4Dias: enviadas.filter((l) => l.sent_at >= quatroDias).length,
           falhas: linhas.filter((l) => !l.ok && l.sent_at >= inicioDoMes).length,
+          // "lida" também é entregue — e é a confirmação mais forte que existe.
+          entregues: aceitasNoMes.filter(
+            (l) => l.delivery_status === "delivered" || l.delivery_status === "read"
+          ).length,
+          naoEntregues: aceitasNoMes.filter((l) => l.delivery_status === "failed").length,
+          // Aceita pela Meta e sem notícia desde então. Era o estado em que TODAS
+          // viviam antes do webhook — e é o que escondeu os 7 lembretes perdidos.
+          semConfirmacao: aceitasNoMes.filter((l) => !l.delivery_status).length,
         });
       });
   }, []);
@@ -358,6 +374,9 @@ function WhatsAppCostBox() {
   const noMes = resumo?.noMes ?? 0;
   const em4Dias = resumo?.em4Dias ?? 0;
   const falhas = resumo?.falhas ?? 0;
+  const entregues = resumo?.entregues ?? 0;
+  const naoEntregues = resumo?.naoEntregues ?? 0;
+  const semConfirmacao = resumo?.semConfirmacao ?? 0;
 
   const custoMsgBrl = whatsappMsgCostUsd * whatsappUsdBrl;
   const custoMesBrl = noMes * custoMsgBrl;
@@ -422,6 +441,22 @@ function WhatsAppCostBox() {
                     )}`}
               </div>
             </>
+          )}
+
+          {noMes > 0 && (
+            <div className="wa-entrega">
+              {/* "Enviada" sempre quis dizer só "a Meta aceitou". Agora a linha
+                  separa o que CHEGOU do que a gente só torce pra ter chegado. */}
+              <span className="wa-entrega-item ok">{entregues} entregue(s)</span>
+              {semConfirmacao > 0 && (
+                <span className="wa-entrega-item" title="A Meta aceitou, mas ainda não confirmou a entrega">
+                  {semConfirmacao} sem confirmação
+                </span>
+              )}
+              {naoEntregues > 0 && (
+                <span className="wa-entrega-item ruim">{naoEntregues} não entregue(s)</span>
+              )}
+            </div>
           )}
 
           {falhas > 0 && (

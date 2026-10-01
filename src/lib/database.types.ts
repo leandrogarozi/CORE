@@ -1010,6 +1010,9 @@ export type Database = {
       }
       whatsapp_sends: {
         Row: {
+          delivery_error: string | null
+          delivery_status: string | null
+          delivery_status_at: string | null
           error: string | null
           id: string
           kind: string
@@ -1022,6 +1025,9 @@ export type Database = {
           wa_id: string | null
         }
         Insert: {
+          delivery_error?: string | null
+          delivery_status?: string | null
+          delivery_status_at?: string | null
           error?: string | null
           id?: string
           kind?: string
@@ -1034,6 +1040,9 @@ export type Database = {
           wa_id?: string | null
         }
         Update: {
+          delivery_error?: string | null
+          delivery_status?: string | null
+          delivery_status_at?: string | null
           error?: string | null
           id?: string
           kind?: string
