@@ -437,21 +437,20 @@ function WhatsAppCostBox() {
           {resumo.meses.length > 0 && (
             <div className="wa-historico">
               <div className="prop-label">Mês a mês</div>
-              {resumo.anterior && (
-                <div className="wa-historico-frase">
-                  Esse mês: <strong>{noMes}</strong> mensagem(ns),{" "}
-                  <strong>{fmtBRL(Math.round(custoMesBrl * 100))}</strong>. Mês passado:{" "}
-                  <strong>{resumo.anterior.enviadas}</strong> mensagem(ns),{" "}
-                  <strong>{fmtBRL(Math.round(resumo.anterior.enviadas * custoMsgBrl * 100))}</strong>.
-                </div>
-              )}
+              {/* A linha carrega tudo: nome do mês, quantas e quanto. A frase
+                  solta que existia aqui ("esse mês X, mês passado Y") repetia o
+                  que a lista já dizia, e repetição em painel é só mais coisa
+                  pra ler. */}
               <div className="wa-historico-lista">
                 {resumo.meses.map((m) => (
-                  <div className="wa-historico-row" key={m.chave}>
+                  <div className={"wa-historico-row" + (m.ehAtual ? " atual" : "")} key={m.chave}>
                     <span className="wa-historico-mes">{m.rotulo}</span>
-                    <span className="mono wa-historico-n">{m.enviadas}</span>
-                    <span className="mono wa-historico-v">
-                      {fmtBRL(Math.round(m.enviadas * custoMsgBrl * 100))}
+                    <span className="wa-historico-dados">
+                      {m.enviadas} {m.enviadas === 1 ? "mensagem" : "mensagens"} ·{" "}
+                      <span className="mono">{fmtBRL(Math.round(m.enviadas * custoMsgBrl * 100))}</span>
+                      {/* O mês corrente ainda não fechou, e o número dele vai
+                          subir até o dia 1º. Sem isso a linha parece um total. */}
+                      {m.ehAtual && " · até o momento"}
                     </span>
                     {/* Falha não custa, mas precisa aparecer: mês barato porque
                         nada saiu não é a mesma coisa que mês barato de verdade. */}

@@ -507,7 +507,8 @@ export function Dashboard() {
                 leitura rápida; o mês a mês completo fica nas Configurações. */}
             {zap.anterior && (
               <div className="dsh-hint" style={{ marginBottom: "var(--sp-2)" }}>
-                Mês passado: {zap.anterior.enviadas} mensagem(ns),{" "}
+                {zap.anterior.rotulo}: {zap.anterior.enviadas}{" "}
+                {zap.anterior.enviadas === 1 ? "mensagem" : "mensagens"} ·{" "}
                 {fmtBRL(Math.round(zap.anterior.enviadas * whatsappMsgCostUsd * whatsappUsdBrl * 100))}
               </div>
             )}

@@ -959,7 +959,12 @@ button.dsh-kpi:disabled{ cursor:default; }
 /* Três colunas de novo — era a intenção original, e tinha caído pra duas
    quando o cartão de hábitos saiu daqui. Com o resumo de volta, a linha fecha
    sem sobra. */
-.dsh-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:var(--sp-3); align-items:start; }
+/* Sem `align-items:start` de propósito: assim os cartões de uma linha têm a
+   mesma altura e a faixa do custo encosta neles, em vez de começar depois do
+   mais alto e deixar buraco embaixo dos curtos. Multi-coluna resolveria também,
+   mas reordena os blocos conforme a altura — o painel mudaria de arrumação a
+   cada semana e nunca daria pra decorar onde as coisas ficam. */
+.dsh-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:var(--sp-3); }
 @media (max-width:1040px){ .dsh-grid{ grid-template-columns:repeat(2,1fr); } }
 @media (max-width:720px){ .dsh-grid{ grid-template-columns:1fr; } }
 
@@ -979,13 +984,13 @@ button.dsh-kpi:disabled{ cursor:default; }
 
 /* Histórico mês a mês do WhatsApp (Configurações). */
 .wa-historico{ margin-top:var(--sp-3); padding-top:var(--sp-3); border-top:1px solid var(--linha); }
-.wa-historico-frase{ font-size:12px; color:var(--text); margin:6px 0 10px; line-height:1.5; }
-.wa-historico-lista{ display:flex; flex-direction:column; }
-.wa-historico-row{ display:flex; align-items:center; gap:10px; padding:5px 0; font-size:12px; }
+.wa-historico-lista{ display:flex; flex-direction:column; margin-top:6px; }
+.wa-historico-row{ display:flex; align-items:baseline; gap:10px; padding:6px 0; font-size:12px; flex-wrap:wrap; }
 .wa-historico-row + .wa-historico-row{ border-top:1px solid var(--linha); }
-.wa-historico-mes{ flex:1; min-width:0; color:var(--text-muted); }
-.wa-historico-n{ font-size:11.5px; color:var(--text-muted); flex:none; }
-.wa-historico-v{ font-size:11.5px; flex:none; }
+.wa-historico-mes{ flex:none; color:var(--text-muted); }
+/* O mês corrente é o que ele olha primeiro. */
+.wa-historico-row.atual .wa-historico-mes{ color:var(--text); font-weight:var(--fw-forte); }
+.wa-historico-dados{ flex:1; min-width:0; text-align:right; color:var(--text); }
 .wa-historico-falha{ font-size:10.5px; color:var(--danger); flex:none; }
 
 /* Faixa que ocupa a linha inteira. Cartão de assunto único e números poucos

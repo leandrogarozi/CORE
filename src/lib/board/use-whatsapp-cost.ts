@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { MONTH_NAMES } from "@/lib/date-utils";
+import { MONTH_NAMES_FULL } from "@/lib/date-utils";
 
 /**
  * O resumo de envios e gasto do WhatsApp, do mês corrente e dos anteriores.
@@ -15,8 +15,10 @@ import { MONTH_NAMES } from "@/lib/date-utils";
 export type ResumoDoMes = {
   /** "2026-10" — chave de ordenação e de comparação. */
   chave: string;
-  /** "out/2026" — o que aparece na tela. */
+  /** "Mês atual", "setembro", "dezembro de 2025" — o que aparece na tela. */
   rotulo: string;
+  /** O mês corrente ganha "até o momento" na tela: ele ainda não fechou. */
+  ehAtual: boolean;
   enviadas: number;
   entregues: number;
   naoEntregues: number;
@@ -40,9 +42,20 @@ export type ResumoDoZap = {
   meses: ResumoDoMes[];
 };
 
-function rotuloDoMes(chave: string): string {
+/**
+ * Como o mês se chama na tela.
+ *
+ * O corrente é "Mês atual" porque é assim que ele lê a linha — o nome do mês
+ * ali exigiria lembrar em que mês estamos pra saber se aquele é o de agora.
+ * Os outros vão por extenso, e o ano só entra quando NÃO é o ano corrente:
+ * "setembro" e "setembro de 2025" são meses diferentes, e escrever o ano em
+ * todos só polui a lista do ano em que ele está.
+ */
+function rotuloDoMes(chave: string, chaveAtual: string, anoAtual: number): string {
+  if (chave === chaveAtual) return "Mês atual";
   const [ano, mes] = chave.split("-");
-  return `${MONTH_NAMES[Number(mes) - 1]}/${ano}`;
+  const nome = MONTH_NAMES_FULL[Number(mes) - 1];
+  return Number(ano) === anoAtual ? nome : `${nome} de ${ano}`;
 }
 
 export function useWhatsAppCost(): ResumoDoZap | null {
@@ -84,7 +97,8 @@ export function useWhatsAppCost(): ResumoDoZap | null {
           if (!m) {
             m = {
               chave,
-              rotulo: rotuloDoMes(chave),
+              rotulo: rotuloDoMes(chave, chaveAtual, agora.getFullYear()),
+              ehAtual: chave === chaveAtual,
               enviadas: 0,
               entregues: 0,
               naoEntregues: 0,
