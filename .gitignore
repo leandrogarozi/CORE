@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Bundles que eu gero pra rodar os testes dos módulos puros (zap-engine,
+# webhook) fora do Next. São derivados do src — refaz com esbuild quando
+# precisar, não versiona.
+.next-teste

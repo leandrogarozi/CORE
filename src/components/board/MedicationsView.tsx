@@ -230,20 +230,20 @@ function MedicationRow({ medication, showTime }: { medication: Medication; showT
           envia nada direto — acende o ícone e o motor de lembretes cuida do
           resto, com a mesma trava de gasto e o mesmo registro de entrega. */}
       <button
-        className={"icon-btn zap-btn" + (medication.whatsapp ? " active" : "")}
+        className={"icon-btn zap-btn" + (medication.whatsapp && temQuando ? " active" : "")}
         type="button"
         disabled={!temQuando}
         title={
           !temQuando
             ? "Marque um horário primeiro — sem horário não há quando avisar"
-            : medication.whatsapp
+            : medication.whatsapp && temQuando
               ? "Chega no WhatsApp 10 min antes. Clique pra desligar."
               : "Avisar no WhatsApp na hora de tomar"
         }
         onClick={() => board.setMedicationWhatsapp(medication.id, !medication.whatsapp)}
       >
         {/* Cheio quando aceso — mesma forma da Dieta. */}
-        <WhatsAppIcon filled={medication.whatsapp} />
+        <WhatsAppIcon filled={medication.whatsapp && temQuando} />
       </button>
       <button
         className="icon-btn danger-hover"

@@ -26,6 +26,7 @@ import { countOpenChecklistItems } from "@/lib/rich-text";
 import { MicButton } from "./MicButton";
 import { isMeetingTask } from "@/lib/types";
 import { REMINDER_ALERT_PRESETS, isReminderOverdue, isRecurringReminder, reminderTargetMs } from "@/lib/board/reminder-alerts";
+import { ANTECEDENCIA_PADRAO_MIN } from "@/lib/board/zap-engine";
 import type { Reminder, ReminderStatus, Repeat } from "@/lib/types";
 
 const REPEATS: { v: Repeat; l: string }[] = [
@@ -575,6 +576,9 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
   const dueToday = !reminder.done && !overdue && reminder.date === today;
   const isRecurring = isRecurringReminder(reminder);
   const status = reminderStatus(reminder, overdue, dueToday);
+  // Marcado E com quando mandar. Enquanto faltar um dos dois, o ícone fica
+  // apagado mesmo que a coluna esteja true — o desenho não mente.
+  const zapVaiSair = reminder.whatsapp && reminder.date !== null && reminder.alertMinutesBefore !== null;
 
   return (
     <div
@@ -639,22 +643,35 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
         ariaLabel="Observação do lembrete"
         onSave={(text) => board.updateReminder(reminder.id, { note: text || null })}
       />
-      {/* Sem aviso marcado não existe quando avisar — o zap fica apagado e
-          desabilitado, em vez de prometer uma mensagem que nunca sai. */}
+      {/* Verde quer dizer uma coisa só: ESSA mensagem vai sair. Por isso o aceso
+          depende de ter data — sem data não há quando mandar. E o botão nunca
+          fica travado aceso: travado e verde era o estado em que ele não
+          conseguia desmarcar. Acender sem aviso marcado já põe o aviso padrão,
+          senão o verde seria promessa falsa. */}
       <button
-        className={"icon-btn zap-btn" + (reminder.whatsapp ? " active" : "")}
+        className={"icon-btn zap-btn" + (zapVaiSair ? " active" : "")}
         type="button"
-        disabled={reminder.alertMinutesBefore === null}
+        disabled={reminder.date === null}
         title={
-          reminder.alertMinutesBefore === null
-            ? "Marque um aviso na data primeiro — sem aviso não há quando mandar"
-            : reminder.whatsapp
+          reminder.date === null
+            ? "Coloque uma data primeiro — sem data não há quando mandar"
+            : zapVaiSair
               ? "Chega no WhatsApp. Clique pra desligar."
               : "Só avisa dentro do app. Clique pra mandar no WhatsApp também."
         }
-        onClick={() => board.updateReminder(reminder.id, { whatsapp: !reminder.whatsapp })}
+        onClick={() =>
+          board.updateReminder(
+            reminder.id,
+            zapVaiSair
+              ? { whatsapp: false }
+              : {
+                  whatsapp: true,
+                  alertMinutesBefore: reminder.alertMinutesBefore ?? ANTECEDENCIA_PADRAO_MIN,
+                }
+          )
+        }
       >
-        <WhatsAppIcon filled={reminder.whatsapp} />
+        <WhatsAppIcon filled={zapVaiSair} />
       </button>
       <button
         className="icon-btn danger-hover"

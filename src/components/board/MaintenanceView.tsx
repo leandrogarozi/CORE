@@ -123,18 +123,18 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
             vence por quilometragem e ainda não tem leituras pra estimar quando. */}
         <button
           type="button"
-          className={"icon-btn zap-btn" + (item.whatsapp ? " active" : "")}
+          className={"icon-btn zap-btn" + (item.whatsapp && st.dueDate ? " active" : "")}
           disabled={!st.dueDate}
           title={
             !st.dueDate
               ? "Sem data de vencimento ainda — registre o odômetro ou defina o intervalo em meses"
-              : item.whatsapp
+              : item.whatsapp && st.dueDate
                 ? `Avisa no WhatsApp ${item.alertDaysBefore} dia(s) antes. Clique pra desligar.`
                 : "Avisar no WhatsApp antes de vencer"
           }
           onClick={() => board.setMaintenanceWhatsapp(item.id, !item.whatsapp)}
         >
-          <WhatsAppIcon filled={item.whatsapp} />
+          <WhatsAppIcon filled={!!(item.whatsapp && st.dueDate)} />
         </button>
         <button
           type="button"

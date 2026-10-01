@@ -1546,18 +1546,9 @@ demais e não era o que ele tinha mostrado.
 
 ### Lembretes
 
-`reminders.whatsapp`, **default TRUE**. Essa escolha é deliberada e vale
-registrar: até agora **todo** lembrete com aviso já ia pro WhatsApp. Default
-`false` faria os 110 lembretes existentes pararem de avisar sem ninguém pedir, e
-ele só descobriria quando um aviso não chegasse. Ligado por padrão preserva o
-comportamento, e o ícone passa a servir pra **desligar** o que ele não quer.
-
-O ícone fica desabilitado quando o lembrete não tem aviso marcado: sem aviso não
-existe quando mandar, e o motor nem olha pra ele.
-
-No `dispatch-reminders`, o filtro é `whatsapp.is.null,whatsapp.eq.true` — o
-`is.null` entra porque a coluna nasceu depois: linha sem valor é linha antiga, e
-antiga sempre avisou.
+`reminders.whatsapp` nasceu **default TRUE** aqui, e **isso estava errado** —
+corrigido no mesmo dia, veja *"O verde que mentia"* mais abaixo. O default agora
+é **FALSE**: quem acende é ele.
 
 ### Manutenção
 
@@ -1593,6 +1584,72 @@ algo da tela", conferir dentro do componente não basta. E o WhatsApp de ponta a
 que ele fizer os três passos no painel da Meta. Pendências de outras frentes seguem na lista:
 camadas 2 e 3 do backup no Drive, restauração com simulação, e o Google Calendar
 que ele adiou.
+
+## O verde que mentia, e o botão que não desmarcava (01/10)
+
+**O que ele viu:** *"Aqui nos meus lembretes tem um monte de coisa ativado como
+enviar para o WhatsApp. E eu não estou conseguindo desmarcar. A ideia é que eu
+possa, eu tenha como editar isso. Então, se eu marquei uma atividade recorrente,
+eu posso colocar sempre lembrar para o WhatsApp ou não. Mas eu posso desmarcar e
+marcar ali individual. Do jeito que está ali, parece que vai chegar um monte de
+mensagem. Eu não quero. Eu que tenho que poder marcar."*
+
+Ele estava certo nas duas coisas, e as duas eram do mesmo erro meu.
+
+**Os números, antes do conserto:** 110 lembretes na tabela, **~100 com o ícone
+verde**, e exatamente **1** capaz de mandar mensagem. Os outros não tinham aviso
+marcado, e sem aviso o disparo nem olha pra linha.
+
+**Por que travado:** o botão vinha `disabled` quando não havia aviso — e o verde
+era pintado só pelo valor da coluna, sem olhar o `disabled`. As duas coisas
+juntas produzem o pior estado possível de um controle: **aceso e intocável**.
+Ele via "ligado", clicava, nada acontecia.
+
+**Por que aceso:** o default TRUE. Meu raciocínio foi "todo lembrete já avisava,
+default false pararia de avisar em silêncio". Olhei a coluna errada: o disparo
+exige `alert_minutes_before`, e quase nenhum lembrete tem. Logo não havia
+comportamento pra preservar — o default TRUE só pintou de verde uma promessa que
+nunca existiu. **Lição:** antes de escolher um default "pra não mudar o
+comportamento", medir o comportamento. Uma consulta de contagem respondia isso
+em dez segundos e eu não fiz.
+
+**A regra que ficou, e vale pro app todo:** o ícone aceso quer dizer **uma coisa
+só — essa mensagem vai sair**. Então ele só acende quando há como sair (data e
+aviso), por mais que a coluna esteja `true`. E **o botão nunca fica travado
+aceso**: se ele pode ver ligado, ele pode desligar. Aplicado nas três telas
+(Lembretes, Remédios, Manutenção) — em Remédios e Manutenção o default já era
+`false`, mas o estado "verde e travado" aparecia se ele acendesse e depois
+tirasse o horário / a data de vencimento.
+
+**Acender põe o aviso.** Marcar o zap num lembrete sem aviso agora grava o aviso
+padrão (10 min, o mesmo `ANTECEDENCIA_PADRAO_MIN` do motor). Sem isso ele
+clicaria num botão que não acende — o estado morto de novo, pelo outro lado.
+Lembrete sem data continua desabilitado, aí sim: data é dele, não tem padrão
+sensato pra inventar.
+
+**O que mudou no banco** (migração `zap_do_lembrete_passa_a_ser_opt_in`):
+default pra `false`, e `whatsapp = false` nas linhas sem aviso — as que não
+sairiam de jeito nenhum. Antes de mexer, cópia em
+`faro_backup.reminders_zap_20261001` (schema sem grant pro `anon`/`authenticated`).
+Conferido depois: **110 linhas na cópia, 110 na tabela, zero verde mentiroso.**
+Pra desfazer, o estado anterior está lá linha por linha.
+
+`dispatch-reminders` também apertou: era `whatsapp.is.null,whatsapp.eq.true`,
+virou `whatsapp = true`. Com opt-in, coluna em branco não pode significar
+"manda".
+
+### Recorrente: o que ele pediu e o que ainda não existe
+
+**O "sempre" já funciona.** Um lembrete recorrente é **uma linha** que anda pra
+frente — não uma linha por ocorrência. Então o zap aceso nele vale pra todas as
+vezes, e apagar vale pra todas: é exatamente o "sempre lembrar ou não" que ele
+descreveu.
+
+**O "pular essa" não existe.** Desmarcar uma ocorrência específica e manter as
+outras não tem onde morar hoje — não há linha daquela ocorrência pra guardar a
+exceção. Precisa de uma lista de datas puladas por lembrete. **Não inventei
+isso** sem ele decidir, porque muda o modelo de dados dos recorrentes. Fica como
+pergunta pra ele.
 
 ## Webhook de status do WhatsApp — FEITO (noite de 30/09)
 

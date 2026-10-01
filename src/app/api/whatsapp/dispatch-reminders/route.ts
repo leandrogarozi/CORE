@@ -56,9 +56,11 @@ export async function POST(req: NextRequest) {
     .is("deleted_at", null)
     .eq("done", false)
     .not("alert_minutes_before", "is", null)
-    // O ícone do zap do lembrete. `is.null` entra junto porque a coluna nasceu
-    // depois: linha sem valor é linha antiga, e antiga sempre avisou.
-    .or("whatsapp.is.null,whatsapp.eq.true")
+    // O ícone do zap do lembrete, e só ele. Antes isso aceitava `whatsapp is
+    // null` também, por um raciocínio errado meu de que lembrete antigo "sempre
+    // avisou" — não avisava, porque sem aviso marcado nunca houve disparo. Agora
+    // a regra é a dele: só sai o que ele acendeu.
+    .eq("whatsapp", true)
     .is("whatsapp_notified_at", null);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   const dueRows = rows ?? [];
