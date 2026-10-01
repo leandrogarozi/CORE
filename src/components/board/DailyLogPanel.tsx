@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
-import { BellIcon, WarningIcon } from "./icons";
+import { BellIcon, MealIcon, MoodFaceIcon, MoonIcon, WarningIcon, WaterDropIcon } from "./icons";
 import { TimePicker } from "./TimePicker";
 import { dateFromISO, todayISO } from "@/lib/date-utils";
 import { isFeatureEnabled } from "@/lib/types";
@@ -85,7 +85,7 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
           <div className="dl-row">
             <div className="dl-row-top">
               <span className="dl-label">
-                💧 Água
+                <WaterDropIcon /> Água
                 <CommentButton
                   icon={<WarningIcon />}
                   value={board.state.settings.waterStrategies}
@@ -119,7 +119,9 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
         {dietOn && (
           <div className="dl-row">
             <div className="dl-row-top">
-              <span className="dl-label">🍽️ Fidelidade à dieta {label}</span>
+              <span className="dl-label">
+                <MealIcon /> Fidelidade à dieta {label}
+              </span>
             </div>
             <div className="dl-diet-input">
               <input
@@ -174,7 +176,9 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
         {sleepOn && (
           <div className="dl-row">
             <div className="dl-row-top">
-              <span className="dl-label">😴 Sono</span>
+              <span className="dl-label">
+                <MoonIcon /> Sono
+              </span>
             </div>
             <div className="dl-sleep-inputs">
               <label className="dl-sleep-field">
@@ -198,7 +202,9 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
         {moodOn && (
           <div className="dl-row">
             <div className="dl-row-top">
-              <span className="dl-label">🙂 Humor {label}</span>
+              <span className="dl-label">
+                <MoodFaceIcon value={4} size={13} /> Humor {label}
+              </span>
             </div>
             <div className="dl-mood-options">
               {MOODS.map((m) => (
@@ -209,7 +215,9 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
                     aria-label={m.label}
                     onClick={() => setMood(m.v)}
                   >
-                    <span className="dl-mood-emoji">{m.emoji}</span>
+                    <span className="dl-mood-emoji">
+                      <MoodFaceIcon value={m.v} />
+                    </span>
                     <span className="dl-mood-name">{m.label}</span>
                   </button>
                   {mood === m.v && (
@@ -231,7 +239,7 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
                   className={"dl-mood-emotion-chip" + (moodEmotion === m.v ? " active" : "")}
                   onClick={() => setMoodEmotion(m.v)}
                 >
-                  <span>{m.emoji}</span> {m.label}
+                  {m.label}
                 </button>
               ))}
             </div>

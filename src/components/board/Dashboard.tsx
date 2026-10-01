@@ -19,6 +19,7 @@ import { CATEGORY_LABEL, DEFAULT_TAG_COLORS, isFeatureEnabled, type Category, ty
 import { moodByValue } from "@/lib/mood";
 import { countOpenChecklistItems } from "@/lib/rich-text";
 import { taskMinutesInRange } from "@/lib/board/task-time";
+import { MoodFaceIcon } from "./icons";
 import { TaskListModal } from "./TaskListModal";
 
 type Period = "day" | "week" | "month";
@@ -385,7 +386,9 @@ export function Dashboard() {
               ) : (
                 <>
                   <div className="dsh-mood">
-                    <span className="dsh-mood-emoji">{moodByValue(Math.round(stats.moodAvg))?.emoji}</span>
+                    <span className="dsh-mood-emoji" style={{ color: moodByValue(Math.round(stats.moodAvg))?.color }}>
+                      <MoodFaceIcon value={Math.round(stats.moodAvg)} size={22} />
+                    </span>
                     <span className="dsh-mood-n">{stats.moodAvg.toFixed(1).replace(".", ",")}</span>
                     <span className="dsh-mood-l">
                       {moodByValue(Math.round(stats.moodAvg))?.label}

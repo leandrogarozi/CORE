@@ -902,3 +902,37 @@ export function MoonIcon() {
     </svg>
   );
 }
+
+/**
+ * Carinhas de humor em traço, no mesmo desenho do banco de ícones (24x24,
+ * traço 2, ponta redonda).
+ *
+ * Não saíram do `design/icon-pack/` porque lá não existe carinha nenhuma —
+ * foram desenhadas pra caber na família. Emoji colorido é fonte do sistema:
+ * muda de cara entre computador e celular e puxa a atenção toda pra si. Em
+ * traço, a escala inteira lê como uma coisa só.
+ *
+ * O que muda de uma pra outra é SÓ a boca. Os olhos são os mesmos, porque é a
+ * boca que carrega a diferença — e manter o resto igual é o que faz a escala
+ * parecer uma escala.
+ */
+const BOCAS: Record<number, string> = {
+  1: "M8.5 16.8C9.5 14.8 14.5 14.8 15.5 16.8", // péssimo — boca bem virada pra baixo
+  2: "M9 16.2C10 15 14 15 15 16.2", // ruim
+  3: "M9 15.5H15", // neutro — reta
+  4: "M9 14.6C10 16 14 16 15 14.6", // bom
+  5: "M8.2 14C9.4 17.2 14.6 17.2 15.8 14", // ótimo
+  0: "M8.5 15.8C9.3 14.8 10.2 16.8 11.5 15.8C12.8 14.8 13.7 16.8 15.5 15.8", // doente — ondulada
+};
+
+export function MoodFaceIcon({ value, size = 20 }: { value: number; size?: number }) {
+  const boca = BOCAS[value] ?? BOCAS[3];
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
+      <circle cx="9" cy="10" r="1.1" fill="currentColor" />
+      <circle cx="15" cy="10" r="1.1" fill="currentColor" />
+      <path d={boca} stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}

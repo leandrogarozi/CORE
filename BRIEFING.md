@@ -1324,6 +1324,34 @@ de sujar. Trocar por ícone de traço do `design/icon-pack/` resolve as duas coi
 emoji dá. Pesquisar nas referências antes, e levar 3 direções, como das outras
 vezes.
 
+### Rosca empilhada e emojis em traço (30/09)
+
+**A rosca.** Lado a lado, ela ficava espremida num canto e a legenda ocupava o
+dobro do espaço do outro lado — *"o gráfico tá num cantinho e a legenda tá muito
+maior do outro lado"*. Virou rosca centralizada em cima (124px, maior porque
+ganhou a linha toda) e legenda embaixo em **duas colunas**. Abaixo de 560px vira
+uma coluna.
+
+**Os emojis.** Primeira leva, na direção que ele deu (*"vazado, só com carinha
+triste, mais minimalista"*):
+
+- As **6 carinhas de humor** viraram ícone de traço, desenhado no mesmo padrão do
+  banco (24x24, traço 2, ponta redonda). Não saíram do `design/icon-pack/` porque
+  lá **não existe carinha nenhuma** — é a primeira exceção à regra, e vale
+  registrar. O que muda de uma pra outra é **só a boca**; olhos iguais em todas,
+  porque é isso que faz a escala parecer uma escala.
+- Os **rótulos** do painel de anotações (💧 Água, 🍽️ Dieta, 😴 Sono, 🙂 Humor)
+  passaram a usar os ícones que já existiam: `WaterDropIcon`, `MealIcon`,
+  `MoonIcon`, `MoodFaceIcon`.
+- As **6 emoções do dia** perderam o emoji e ficaram **só com a palavra**. Seis
+  carinhas de traço pra distinguir "ansioso" de "nervoso" não se leem, e inventar
+  seis desenhos ambíguos é pior que nenhum.
+
+Emojis que **continuam** e por quê: os do Faro (o mascote fala com emoji — é voz,
+não moldura), os do texto exportado do checklist (vai pro WhatsApp, onde emoji é
+o idioma), e ⚡ "Rápidas primeiro", 🛒 "Comprar" e 🎯 do nudge, que entram junto
+com as telas delas.
+
 ### Próximo passo
 
 A fila acima, começando pelo Perfil. Pendências de outras frentes seguem na lista:

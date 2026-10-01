@@ -650,7 +650,8 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .dl-row + .dl-row{ padding-top:14px; border-top:1px solid var(--linha); }
 .daily-log-panel .hp-bar{ margin-left:0; margin-right:0; }
 .dl-row-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; }
-.dl-label{ font-size:12.5px; font-weight:500; display:inline-flex; align-items:center; gap:4px; }
+.dl-label{ font-size:12.5px; font-weight:var(--fw-medio); display:inline-flex; align-items:center; gap:6px; }
+.dl-label > svg{ width:13px; height:13px; flex:none; color:var(--text-faint); }
 .dl-value{ font-size:13px; font-weight:600; }
 .dl-of{ font-weight:500; color:var(--text-faint); }
 .dl-water-actions{ display:flex; gap:6px; margin-top:8px; }
@@ -682,11 +683,11 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   width:100%; display:flex; flex-direction:column; align-items:center; gap:3px;
   padding:6px 0; border-radius:8px; border:1px solid var(--border); background:var(--surface);
 }
-.dl-mood-emoji{ font-size:19px; line-height:1; filter:grayscale(1); opacity:0.5; }
+.dl-mood-emoji{ display:flex; color:var(--text-faint); transition:color var(--mov); }
 .dl-mood-name{ font-size:9.5px; color:var(--text-faint); }
-.dl-mood-btn:hover .dl-mood-emoji{ opacity:0.8; }
+.dl-mood-btn:hover .dl-mood-emoji{ color:var(--text-muted); }
 .dl-mood-btn.active{ border-color:var(--accent); background:var(--accent-soft); }
-.dl-mood-btn.active .dl-mood-emoji{ filter:none; opacity:1; }
+.dl-mood-btn.active .dl-mood-emoji{ color:var(--accent); }
 .dl-mood-btn.active .dl-mood-name{ color:var(--accent); }
 .dl-mood-item .comment-btn{
   position:absolute; top:-6px; right:-6px; background:var(--surface); border:1px solid var(--border);
@@ -697,10 +698,7 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   display:inline-flex; align-items:center; gap:4px; padding:5px 10px; border-radius:20px;
   border:1px solid var(--border); background:var(--surface); font-size:11.5px; color:var(--text-muted);
 }
-.dl-mood-emotion-chip span{ font-size:14px; filter:grayscale(1); opacity:0.6; }
-.dl-mood-emotion-chip:hover span{ opacity:0.85; }
 .dl-mood-emotion-chip.active{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }
-.dl-mood-emotion-chip.active span{ filter:none; opacity:1; }
 .dl-sleep-inputs{ display:flex; gap:10px; }
 .dl-sleep-field{ display:flex; flex-direction:column; gap:3px; font-size:11px; color:var(--text-faint); flex:1; }
 .dl-sleep-field input{
@@ -879,7 +877,7 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 
 /* --- Humor ------------------------------------------------------ */
 .dsh-mood{ display:flex; align-items:baseline; gap:10px; }
-.dsh-mood-emoji{ font-size:20px; line-height:1; flex:none; }
+.dsh-mood-emoji{ display:flex; flex:none; align-self:center; }
 .dsh-mood-n{ font-size:var(--fs-7); font-weight:var(--fw-titulo); letter-spacing:var(--ls-apertado); font-variant-numeric:tabular-nums; }
 .dsh-mood-l{ font-size:12.5px; font-weight:var(--fw-forte); color:var(--text-muted); min-width:0; }
 .dsh-mood-l em{ display:block; font-style:normal; font-size:11px; font-weight:var(--fw-normal); color:var(--text-faint); margin-top:1px; }
@@ -889,15 +887,19 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .dsh-mood-day{ flex:1 1 0; min-width:4px; max-width:28px; height:5px; border-radius:var(--r-full); background:var(--trilho); }
 
 /* --- Rosca ------------------------------------------------------ */
-.dsh-donut-wrap{ display:flex; gap:15px; align-items:flex-start; }
+.dsh-donut-wrap{ display:flex; flex-direction:column; align-items:center; gap:var(--sp-4); }
 /* O furo é máscara, não um círculo branco por cima: assim a rosca
    funciona no tema escuro e sobre o degradê sem remendo. */
 .dsh-donut{
-  width:96px; height:96px; border-radius:50%; flex:none;
+  width:124px; height:124px; border-radius:50%; flex:none;
   -webkit-mask:radial-gradient(circle, transparent 58%, #000 59%);
   mask:radial-gradient(circle, transparent 58%, #000 59%);
 }
-.dsh-legend{ flex:1; min-width:0; max-width:440px; display:flex; flex-direction:column; gap:2px; }
+.dsh-legend{
+  width:100%; min-width:0;
+  display:grid; grid-template-columns:1fr 1fr; column-gap:var(--sp-6); row-gap:1px;
+}
+@media (max-width:560px){ .dsh-legend{ grid-template-columns:1fr; } }
 .dsh-legend-row{ display:flex; align-items:center; gap:var(--sp-2); font-size:11px; color:var(--text-muted); padding:2px 0; }
 .dsh-legend-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .dsh-legend-n{ flex:none; margin-left:auto; font-weight:var(--fw-forte); color:var(--text-muted); font-variant-numeric:tabular-nums; }
