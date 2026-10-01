@@ -149,3 +149,34 @@ export function proximaOcorrencia(
   // só o que o zap cria (diário ou por dia da semana) precisa virar sozinho.
   return null;
 }
+
+/**
+ * Os campos do lembrete que representa uma manutenção.
+ *
+ * `dueDate` vem do `maintenanceStatus` — ele é quem sabe juntar as duas naturezas
+ * (vence por tempo, vence por quilometragem). Quando ele devolve `null`, não
+ * existe data: é o caso de um item que vence por uso e ainda não tem leituras de
+ * odômetro suficientes pra estimar quando. Sem data não há o que agendar, e o
+ * lembrete honesto é nenhum.
+ *
+ * A antecedência sai do `alertDaysBefore` que o Leandro já configurou item a
+ * item. Criar um campo novo pra isso seria pedir duas vezes a mesma coisa.
+ */
+export function lembreteDaManutencao(
+  item: { name: string; alertDaysBefore: number },
+  dueDate: string | null
+): CamposDoLembrete | null {
+  if (!dueDate) return null;
+  const dias = Math.max(0, item.alertDaysBefore);
+  return {
+    title: `Manutenção: ${item.name}`,
+    date: dueDate,
+    // Manhã: aviso de manutenção que chega às 23h não dá pra resolver no dia.
+    time: "09:00",
+    repeat: "none",
+    weekDays: null,
+    // Zero antecedência não serve: o motor de envio ignora lembrete com
+    // alertMinutesBefore falso, e zero é falso em JavaScript.
+    alertMinutesBefore: dias > 0 ? dias * 24 * 60 : ANTECEDENCIA_PADRAO_MIN,
+  };
+}

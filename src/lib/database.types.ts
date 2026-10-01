@@ -452,6 +452,7 @@ export type Database = {
           last_done_on: string | null
           name: string
           note: string
+          whatsapp: boolean | null
           sort_order: number
           user_id: string
         }
@@ -469,6 +470,7 @@ export type Database = {
           last_done_on?: string | null
           name: string
           note?: string
+          whatsapp?: boolean | null
           sort_order?: number
           user_id: string
         }
@@ -486,6 +488,7 @@ export type Database = {
           last_done_on?: string | null
           name?: string
           note?: string
+          whatsapp?: boolean | null
           sort_order?: number
           user_id?: string
         }
@@ -633,6 +636,7 @@ export type Database = {
           task_id: string | null
           title: string
           user_id: string
+          whatsapp: boolean | null
           week_days: number[] | null
           whatsapp_notified_at: string | null
         }
@@ -652,6 +656,7 @@ export type Database = {
           task_id?: string | null
           title: string
           user_id: string
+          whatsapp?: boolean | null
           week_days?: number[] | null
           whatsapp_notified_at?: string | null
         }
@@ -671,6 +676,7 @@ export type Database = {
           task_id?: string | null
           title?: string
           user_id?: string
+          whatsapp?: boolean | null
           week_days?: number[] | null
           whatsapp_notified_at?: string | null
         }

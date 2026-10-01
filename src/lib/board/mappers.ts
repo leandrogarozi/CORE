@@ -207,6 +207,7 @@ export function rowToMaintenanceItem(row: MaintenanceItemRow): MaintenanceItem {
     note: row.note,
     active: row.active,
     order: row.sort_order,
+    whatsapp: row.whatsapp ?? false,
   };
 }
 
@@ -221,6 +222,7 @@ export function maintenanceItemToUpdateRow(i: Partial<MaintenanceItem>): TablesU
   if (i.lastDoneOdometer !== undefined) row.last_done_odometer = i.lastDoneOdometer;
   if (i.note !== undefined) row.note = i.note;
   if (i.active !== undefined) row.active = i.active;
+  if (i.whatsapp !== undefined) row.whatsapp = i.whatsapp;
   return row;
 }
 
@@ -559,6 +561,7 @@ export function rowToReminder(row: ReminderRow): Reminder {
     taskId: row.task_id,
     sourceKind: (row.source_kind as Reminder["sourceKind"]) ?? null,
     sourceId: row.source_id,
+    whatsapp: row.whatsapp ?? true,
   };
 }
 
@@ -579,6 +582,7 @@ export function reminderToInsertRow(r: Reminder, userId: string): TablesInsert<"
     task_id: r.taskId,
     source_kind: r.sourceKind,
     source_id: r.sourceId,
+    whatsapp: r.whatsapp,
   };
 }
 
@@ -597,6 +601,7 @@ export function reminderToUpdateRow(r: Partial<Reminder>): TablesUpdate<"reminde
   if (r.taskId !== undefined) row.task_id = r.taskId;
   if (r.sourceKind !== undefined) row.source_kind = r.sourceKind;
   if (r.sourceId !== undefined) row.source_id = r.sourceId;
+  if (r.whatsapp !== undefined) row.whatsapp = r.whatsapp;
   return row;
 }
 

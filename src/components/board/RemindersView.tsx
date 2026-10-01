@@ -16,6 +16,7 @@ import {
   UsersGroupIcon,
   WarningIcon,
   WeekIcon,
+  WhatsAppIcon,
 } from "./icons";
 import { RichTextEditor } from "./RichTextEditor";
 import { TimePicker } from "./TimePicker";
@@ -417,7 +418,7 @@ function reminderStatus(reminder: Reminder, overdue: boolean, dueToday: boolean)
 }
 
 // Grid fixo (sem drag-to-resize), reaproveitando o mesmo visual da tabela de tarefas.
-const REMINDER_GRID = "36px 80px minmax(130px,1fr) 90px 150px 32px 44px";
+const REMINDER_GRID = "36px 80px minmax(130px,1fr) 90px 150px 32px 32px 44px";
 
 function ReminderTableHeader() {
   return (
@@ -428,6 +429,7 @@ function ReminderTableHeader() {
       <span className="tlh-cell">Tipo</span>
       <span className="tlh-cell">Data</span>
       <span className="tlh-cell tlh-center">Obs</span>
+      <span className="tlh-cell tlh-center">Zap</span>
       <span className="tlh-cell tlh-center">Excluir</span>
     </div>
   );
@@ -637,6 +639,23 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
         ariaLabel="Observação do lembrete"
         onSave={(text) => board.updateReminder(reminder.id, { note: text || null })}
       />
+      {/* Sem aviso marcado não existe quando avisar — o zap fica apagado e
+          desabilitado, em vez de prometer uma mensagem que nunca sai. */}
+      <button
+        className={"icon-btn zap-btn" + (reminder.whatsapp ? " active" : "")}
+        type="button"
+        disabled={reminder.alertMinutesBefore === null}
+        title={
+          reminder.alertMinutesBefore === null
+            ? "Marque um aviso na data primeiro — sem aviso não há quando mandar"
+            : reminder.whatsapp
+              ? "Chega no WhatsApp. Clique pra desligar."
+              : "Só avisa dentro do app. Clique pra mandar no WhatsApp também."
+        }
+        onClick={() => board.updateReminder(reminder.id, { whatsapp: !reminder.whatsapp })}
+      >
+        <WhatsAppIcon filled={reminder.whatsapp} />
+      </button>
       <button
         className="icon-btn danger-hover"
         type="button"

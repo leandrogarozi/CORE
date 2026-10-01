@@ -242,7 +242,8 @@ function MedicationRow({ medication, showTime }: { medication: Medication; showT
         }
         onClick={() => board.setMedicationWhatsapp(medication.id, !medication.whatsapp)}
       >
-        <WhatsAppIcon />
+        {/* Cheio quando aceso — mesma forma da Dieta. */}
+        <WhatsAppIcon filled={medication.whatsapp} />
       </button>
       <button
         className="icon-btn danger-hover"

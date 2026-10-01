@@ -1534,9 +1534,62 @@ Tinha razão. Verde no traço de um ícone pequeno some no meio dos outros
 botõezinhos da linha — e esse é o botão que decide se uma mensagem sai ou não.
 Aceso agora é um bloco verde preenchido com o ícone branco.
 
+## Zap em Lembretes e Manutenção (01/10)
+
+**O desenho do ícone virou um só no app inteiro.** Ele apontou a Dieta como
+referência: *"podemos usar dessa forma, preenchido de verde"*. Apagado é o
+contorno em cinza; aceso é o símbolo **cheio** em verde. `.diet-meal-whatsapp`
+virou apelido de `.zap-btn` pra não existirem dois desenhos pra mesma ideia.
+
+Antes eu tinha feito um quadrado verde com o ícone branco — chamava atenção
+demais e não era o que ele tinha mostrado.
+
+### Lembretes
+
+`reminders.whatsapp`, **default TRUE**. Essa escolha é deliberada e vale
+registrar: até agora **todo** lembrete com aviso já ia pro WhatsApp. Default
+`false` faria os 110 lembretes existentes pararem de avisar sem ninguém pedir, e
+ele só descobriria quando um aviso não chegasse. Ligado por padrão preserva o
+comportamento, e o ícone passa a servir pra **desligar** o que ele não quer.
+
+O ícone fica desabilitado quando o lembrete não tem aviso marcado: sem aviso não
+existe quando mandar, e o motor nem olha pra ele.
+
+No `dispatch-reminders`, o filtro é `whatsapp.is.null,whatsapp.eq.true` — o
+`is.null` entra porque a coluna nasceu depois: linha sem valor é linha antiga, e
+antiga sempre avisou.
+
+### Manutenção
+
+`maintenance_items.whatsapp`, **default FALSE** — aqui é o contrário: hoje a
+manutenção não manda nada, então ligado por padrão seria comportamento novo sem
+ninguém pedir.
+
+A data vem do `maintenanceStatus`, que é quem sabe juntar "vence em 12 meses"
+com "vence em 16.000 km". Quando ele devolve `null` — item que vence por uso e
+ainda sem leituras de odômetro suficientes — **não há lembrete**, e o ícone fica
+desabilitado. Prometer aviso sem data é o erro que a Dieta comete hoje.
+
+A antecedência sai do `alertDaysBefore` que ele já configura item a item. Campo
+novo pra isso seria pedir duas vezes a mesma coisa. **9 testes** em
+`scratchpad/noite/teste-manutencao.mjs`.
+
+**O que ficou de fora, e é decisão dele:** ele pediu **dois** disparos na
+manutenção ("em 1 semana vence X" e "hoje vence X"). Entreguei **um**, com a
+antecedência dele. O segundo exige um segundo lembrete por item — duas linhas na
+tela de Lembretes pra cada manutenção. Vale perguntar antes de poluir a lista.
+
 ### Próximo passo
 
-Manutenção, Evento e Dieta no motor do zap. E o WhatsApp de ponta a ponta, assim
+Tarefa-evento / reunião no motor do zap, e a Dieta (que promete envio e não
+cumpre). Decidir o segundo disparo da manutenção.
+
+### (nota de método) O print prova o componente, não a tela
+
+Registrado em 01/10 depois de eu dizer que algo tinha saído do Dashboard quando
+não tinha: a página de prova renderiza o componente isolado, então tudo que o
+componente-pai desenha em volta é invisível pra ela. Quando o pedido é "tirar
+algo da tela", conferir dentro do componente não basta. E o WhatsApp de ponta a ponta, assim
 que ele fizer os três passos no painel da Meta. Pendências de outras frentes seguem na lista:
 camadas 2 e 3 do backup no Drive, restauração com simulação, e o Google Calendar
 que ele adiou.

@@ -126,6 +126,7 @@ export interface MaintenanceItem {
   intervalDistance: number | null; // null = não vence por uso
   alertDaysBefore: number;
   alertDistanceBefore: number;
+  whatsapp: boolean; // zap aceso = avisa no WhatsApp com a antecedência de alertDaysBefore
   lastDoneOn: string | null;
   lastDoneOdometer: number | null;
   note: string;
@@ -369,6 +370,9 @@ export interface Reminder {
   // pelo Leandro, e nesse caso nada automático mexe nele.
   sourceKind: "medication" | "maintenance" | "event" | null;
   sourceId: string | null;
+  // Ícone do zap do lembrete. Nasce LIGADO: antes dele, todo lembrete com aviso
+  // já ia pro WhatsApp, e desligar por padrão silenciaria tudo sem ninguém pedir.
+  whatsapp: boolean;
 }
 
 export type MedicationTimeMode = "shared" | "individual";

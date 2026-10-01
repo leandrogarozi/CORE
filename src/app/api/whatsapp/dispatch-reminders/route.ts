@@ -56,6 +56,9 @@ export async function POST(req: NextRequest) {
     .is("deleted_at", null)
     .eq("done", false)
     .not("alert_minutes_before", "is", null)
+    // O ícone do zap do lembrete. `is.null` entra junto porque a coluna nasceu
+    // depois: linha sem valor é linha antiga, e antiga sempre avisou.
+    .or("whatsapp.is.null,whatsapp.eq.true")
     .is("whatsapp_notified_at", null);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   const dueRows = rows ?? [];

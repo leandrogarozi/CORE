@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { MicButton } from "./MicButton";
-import { CarIcon, CheckIcon, ChevronIcon, HomeIcon, TrashIcon, WarningIcon } from "./icons";
+import { CarIcon, CheckIcon, ChevronIcon, HomeIcon, TrashIcon, WarningIcon, WhatsAppIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import {
   MAINTENANCE_SUGGESTIONS,
@@ -119,6 +119,23 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
           {intervalo ?? "definir intervalo"}
         </button>
         <span className="maint-item-resumo">{resumo}</span>
+        {/* Sem data de vencimento não há quando avisar — é o caso do item que
+            vence por quilometragem e ainda não tem leituras pra estimar quando. */}
+        <button
+          type="button"
+          className={"icon-btn zap-btn" + (item.whatsapp ? " active" : "")}
+          disabled={!st.dueDate}
+          title={
+            !st.dueDate
+              ? "Sem data de vencimento ainda — registre o odômetro ou defina o intervalo em meses"
+              : item.whatsapp
+                ? `Avisa no WhatsApp ${item.alertDaysBefore} dia(s) antes. Clique pra desligar.`
+                : "Avisar no WhatsApp antes de vencer"
+          }
+          onClick={() => board.setMaintenanceWhatsapp(item.id, !item.whatsapp)}
+        >
+          <WhatsAppIcon filled={item.whatsapp} />
+        </button>
         <button
           type="button"
           className="btn btn-ghost maint-done-btn"

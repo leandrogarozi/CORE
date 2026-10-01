@@ -55,7 +55,8 @@ import {
 } from "@/lib/board/mappers";
 import { isoAddDays, occurrenceDates, todayISO } from "@/lib/date-utils";
 import { studyDatesInRange } from "@/lib/board/study-plan";
-import { lembreteDaMedicacao } from "@/lib/board/zap-engine";
+import { lembreteDaManutencao, lembreteDaMedicacao } from "@/lib/board/zap-engine";
+import { maintenanceStatus } from "@/lib/board/maintenance";
 import { isRecurringReminder, nextReminderOccurrenceDate } from "@/lib/board/reminder-alerts";
 import { reportSaveError } from "@/lib/board/error-toast";
 
@@ -1180,6 +1181,7 @@ export function useBoard(userId: string | null) {
         taskId: null,
         sourceKind: null,
         sourceId: null,
+        whatsapp: true,
       };
       apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
       const { error } = await supabase.from("reminders").insert(reminderToInsertRow(r, userId));
@@ -1199,7 +1201,16 @@ export function useBoard(userId: string | null) {
       patch: Partial<
         Pick<
           Reminder,
-          "title" | "date" | "time" | "repeat" | "weekDays" | "alertMinutesBefore" | "note" | "done" | "status"
+          | "title"
+          | "date"
+          | "time"
+          | "repeat"
+          | "weekDays"
+          | "alertMinutesBefore"
+          | "note"
+          | "done"
+          | "status"
+          | "whatsapp"
         >
       >
     ) => {
@@ -1295,6 +1306,7 @@ export function useBoard(userId: string | null) {
         taskId,
         sourceKind: null,
         sourceId: null,
+        whatsapp: true,
       };
       apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
       supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
@@ -1328,6 +1340,7 @@ export function useBoard(userId: string | null) {
         // próximo também é daquele remédio.
         sourceKind: r.sourceKind,
         sourceId: r.sourceId,
+        whatsapp: r.whatsapp,
         done: false,
         status: "pending",
         deletedAt: null,
@@ -1414,6 +1427,8 @@ export function useBoard(userId: string | null) {
         taskId: null,
         sourceKind: "medication",
         sourceId: medId,
+        // Nasceu do ícone do zap: ligado é o que ele significa.
+        whatsapp: true,
       };
       apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
       supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
@@ -1634,6 +1649,7 @@ export function useBoard(userId: string | null) {
         lastDoneOdometer: null,
         note: "",
         active: true,
+        whatsapp: false,
         order: stateRef.current.maintenanceItems.filter((i) => i.assetId === assetId).length,
       };
       apply((st) => ({ ...st, maintenanceItems: [...st.maintenanceItems, item] }));
@@ -1656,6 +1672,73 @@ export function useBoard(userId: string | null) {
     [apply, supabase, userId]
   );
 
+  // ---------- motor do zap: manutenção ----------
+  /**
+   * Mesma ideia da medicação: a tela não envia nada, ela acende o ícone; quem
+   * envia é o motor de lembretes. A data de vencimento vem do
+   * `maintenanceStatus`, que é quem sabe juntar "vence em 12 meses" com "vence
+   * em 16.000 km".
+   */
+  const sincronizarZapDaManutencao = useCallback(
+    (itemId: string) => {
+      if (!userId) return;
+      const atual = stateRef.current;
+      const item = atual.maintenanceItems.find((i) => i.id === itemId) ?? null;
+      const existente = atual.reminders.find(
+        (r) => r.sourceKind === "maintenance" && r.sourceId === itemId && !r.deletedAt
+      );
+      const asset = item ? atual.maintenanceAssets.find((a) => a.id === item.assetId) ?? null : null;
+
+      let campos = null as ReturnType<typeof lembreteDaManutencao>;
+      if (item && item.whatsapp && item.active && asset) {
+        const leituras = atual.odometerReadings.filter((l) => l.assetId === asset.id);
+        const status = maintenanceStatus(item, asset, leituras);
+        campos = lembreteDaManutencao(item, status.dueDate);
+      }
+
+      if (!campos) {
+        if (existente) deleteReminder(existente.id);
+        return;
+      }
+      if (existente) {
+        updateReminder(existente.id, campos);
+        return;
+      }
+      const r: Reminder = {
+        id: uid(),
+        ...campos,
+        note: null,
+        done: false,
+        status: "pending",
+        deletedAt: null,
+        taskId: null,
+        sourceKind: "maintenance",
+        sourceId: itemId,
+        whatsapp: true,
+      };
+      apply((st) => ({ ...st, reminders: [...st.reminders, r] }));
+      supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
+        if (error) reportSaveError("sincronizarZapDaManutencao", error);
+      });
+    },
+    [apply, deleteReminder, supabase, updateReminder, userId]
+  );
+
+  /** Acende ou apaga o ícone do zap de um item de manutenção. */
+  const setMaintenanceWhatsapp = useCallback(
+    (id: string, ligado: boolean) => {
+      apply((st) => ({
+        ...st,
+        maintenanceItems: st.maintenanceItems.map((i) => (i.id === id ? { ...i, whatsapp: ligado } : i)),
+      }));
+      supabase.from("maintenance_items").update({ whatsapp: ligado }).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("setMaintenanceWhatsapp", error);
+      });
+      sincronizarZapDaManutencao(id);
+    },
+    [apply, sincronizarZapDaManutencao, supabase]
+  );
+
   const updateMaintenanceItem = useCallback(
     (id: string, patch: Partial<MaintenanceItem>) => {
       apply((st) => ({
@@ -1665,8 +1748,11 @@ export function useBoard(userId: string | null) {
       supabase.from("maintenance_items").update(maintenanceItemToUpdateRow(patch)).eq("id", id).then(({ error }) => {
         if (error) reportSaveError("updateMaintenanceItem", error);
       });
+      // Mudou o intervalo, a última troca ou a antecedência: a data de
+      // vencimento muda, e o lembrete do zap acompanha.
+      sincronizarZapDaManutencao(id);
     },
-    [apply, supabase]
+    [apply, sincronizarZapDaManutencao, supabase]
   );
 
   const deleteMaintenanceItem = useCallback(
@@ -2858,6 +2944,7 @@ export function useBoard(userId: string | null) {
     updateMedication,
     deleteMedication,
     setMedicationWhatsapp,
+    setMaintenanceWhatsapp,
     addMedicationGroup,
     updateMedicationGroup,
     deleteMedicationGroup,
