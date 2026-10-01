@@ -16,19 +16,23 @@ export function ProfileView({ onBack }: { onBack: () => void }) {
         <span style={{ width: 32 }} />
       </div>
 
-      <div className="settings-grade">
+      {/* Aqui são só dois blocos. Em duas colunas eles ficavam lado a lado numa
+          tela de 1180px, e o vazio ao redor fazia parecer que faltava coisa.
+          Empilhados numa coluna estreita, a mesma informação parece inteira. */}
+      <div className="narrow-list">
+        <div className="dash-box">
+          <div className="dash-box-title">Seus dados</div>
+          <ProfileFields board={board} />
+        </div>
 
-      <div className="dash-box">
-        <ProfileFields board={board} />
-      </div>
-
-      <div className="dash-box profile-signout-box">
-        <form action="/auth/signout" method="post">
-          <button type="submit" className="signout-btn">
-            Sair
-          </button>
-        </form>
-      </div>
+        <div className="dash-box profile-signout-box">
+          <div className="dash-box-title">Sessão</div>
+          <form action="/auth/signout" method="post">
+            <button type="submit" className="signout-btn">
+              Sair
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

@@ -1459,9 +1459,24 @@ Projetos e Livros com o CSS e o DOM reais, nos dois temas.
 FORA do `.list-card` (no app ele mora dentro) e montado a barra do Calendário na
 ordem errada. Os dois apareceram ao ler os PNGs — não ao ler o código.
 
+### Perfil: uma coluna, não duas (01/10)
+
+Ele aprovou tudo menos o Perfil: *"parece que ficou faltando informação. E como
+são poucas coisas, acho que pode ficar um debaixo do outro."*
+
+Ele estava certo, e o motivo é concreto: o Perfil tem só **dois** blocos. Em
+duas colunas numa tela de 1180px, eles ficavam lado a lado com vazio em volta — e
+vazio em volta de pouca coisa lê como falta, não como respiro. Empilhados numa
+coluna de 640px, a mesma informação parece inteira.
+
+Dois ajustes a mais: os blocos ganharam título ("Seus dados", "Sessão"), porque
+cartão sem título começa frio; e o "Sair" virou botão de verdade — discreto por
+padrão, vermelho no hover, que é como se escreve uma ação de saída.
+
 ### Próximo passo
 
-Aprovação dos prints. Depois: Manutenção, Evento e Dieta no motor do zap. Pendências de outras frentes seguem na lista:
+Manutenção, Evento e Dieta no motor do zap. E o WhatsApp de ponta a ponta, assim
+que ele fizer os três passos no painel da Meta. Pendências de outras frentes seguem na lista:
 camadas 2 e 3 do backup no Drive, restauração com simulação, e o Google Calendar
 que ele adiou.
 

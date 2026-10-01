@@ -2130,9 +2130,17 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 
 .top-actions{ display:flex; align-items:center; justify-content:flex-end; gap:12px; margin-top:16px; }
 .top-actions form{ display:inline; }
-.signout-btn{ font-size:11.5px; color:var(--text-faint); }
-.signout-btn:hover{ color:var(--text); }
-.profile-signout-box{ display:flex; justify-content:flex-end; }
+/* O "Sair" é ação de saída: discreta por padrão, vermelha quando a intenção
+   se confirma no hover. Nunca um botão colorido disputando com o resto. */
+.signout-btn{
+  font-size:12px; color:var(--text-muted);
+  border:1px solid var(--linha); border-radius:var(--r-2); padding:0 12px; height:var(--ctl-h);
+  transition:color var(--mov), border-color var(--mov);
+}
+.signout-btn:hover{ color:var(--danger); border-color:var(--danger); }
+/* Antes era só `justify-content:flex-end` com o botão solto; com o título o
+   bloco precisa empilhar como qualquer outro cartão. */
+.profile-signout-box{ display:block; }
 
 /* editor de texto rico (Tiptap) */
 .rte{ display:flex; flex-direction:column; border:1px solid var(--border-strong); border-radius:9px; overflow:hidden; background:var(--bg); }
