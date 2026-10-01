@@ -575,6 +575,7 @@ export type Database = {
           notes: string | null
           start_date: string | null
           user_id: string
+          whatsapp: boolean | null
           week_days: number[] | null
         }
         Insert: {
@@ -588,6 +589,7 @@ export type Database = {
           notes?: string | null
           start_date?: string | null
           user_id: string
+          whatsapp?: boolean | null
           week_days?: number[] | null
         }
         Update: {
@@ -601,6 +603,7 @@ export type Database = {
           notes?: string | null
           start_date?: string | null
           user_id?: string
+          whatsapp?: boolean | null
           week_days?: number[] | null
         }
         Relationships: [
@@ -625,6 +628,8 @@ export type Database = {
           remind_time: string | null
           repeat: string | null
           status: string
+          source_id: string | null
+          source_kind: string | null
           task_id: string | null
           title: string
           user_id: string
@@ -642,6 +647,8 @@ export type Database = {
           remind_time?: string | null
           repeat?: string | null
           status?: string
+          source_id?: string | null
+          source_kind?: string | null
           task_id?: string | null
           title: string
           user_id: string
@@ -659,6 +666,8 @@ export type Database = {
           remind_time?: string | null
           repeat?: string | null
           status?: string
+          source_id?: string | null
+          source_kind?: string | null
           task_id?: string | null
           title?: string
           user_id?: string

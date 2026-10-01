@@ -4,11 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
-import { ClockIcon, TrashIcon } from "./icons";
+import { ClockIcon, TrashIcon, WhatsAppIcon } from "./icons";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { TimePicker } from "./TimePicker";
 import { DAY_NAMES, daysBetweenInclusive, fmtShortDate, isoAddDays, todayISO } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
+import { horarioDaMedicacao } from "@/lib/board/zap-engine";
 import type { Medication, MedicationGroup } from "@/lib/types";
 
 function scheduleLabel(
@@ -187,6 +188,13 @@ function MedicationRow({ medication, showTime }: { medication: Medication; showT
     setNameDraft(null);
   }
 
+  // O grupo manda no horário quando o tratamento é de horário compartilhado —
+  // sem olhar pra ele, um remédio com horário do grupo pareceria "sem quando".
+  const grupo = medication.groupId
+    ? board.state.medicationGroups.find((g) => g.id === medication.groupId) ?? null
+    : null;
+  const temQuando = !!horarioDaMedicacao(medication, grupo);
+
   return (
     <div className={"reminder-row" + (!medication.active ? " done" : "")}>
       <ToggleSwitch
@@ -218,6 +226,24 @@ function MedicationRow({ medication, showTime }: { medication: Medication; showT
         title="Horário/duração do remédio"
         onSave={(patch) => board.updateMedication(medication.id, patch)}
       />
+      {/* A regra do app: onde o zap está aceso, chega no WhatsApp. Aqui ele não
+          envia nada direto — acende o ícone e o motor de lembretes cuida do
+          resto, com a mesma trava de gasto e o mesmo registro de entrega. */}
+      <button
+        className={"icon-btn zap-btn" + (medication.whatsapp ? " active" : "")}
+        type="button"
+        disabled={!temQuando}
+        title={
+          !temQuando
+            ? "Marque um horário primeiro — sem horário não há quando avisar"
+            : medication.whatsapp
+              ? "Chega no WhatsApp 10 min antes. Clique pra desligar."
+              : "Avisar no WhatsApp na hora de tomar"
+        }
+        onClick={() => board.setMedicationWhatsapp(medication.id, !medication.whatsapp)}
+      >
+        <WhatsAppIcon />
+      </button>
       <button
         className="icon-btn danger-hover"
         type="button"

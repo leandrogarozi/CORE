@@ -557,6 +557,8 @@ export function rowToReminder(row: ReminderRow): Reminder {
     status: (row.status as ReminderStatus) ?? (row.done ? "done" : "pending"),
     deletedAt: row.deleted_at,
     taskId: row.task_id,
+    sourceKind: (row.source_kind as Reminder["sourceKind"]) ?? null,
+    sourceId: row.source_id,
   };
 }
 
@@ -575,6 +577,8 @@ export function reminderToInsertRow(r: Reminder, userId: string): TablesInsert<"
     status: r.status,
     deleted_at: r.deletedAt,
     task_id: r.taskId,
+    source_kind: r.sourceKind,
+    source_id: r.sourceId,
   };
 }
 
@@ -591,6 +595,8 @@ export function reminderToUpdateRow(r: Partial<Reminder>): TablesUpdate<"reminde
   if (r.status !== undefined) row.status = r.status;
   if (r.deletedAt !== undefined) row.deleted_at = r.deletedAt;
   if (r.taskId !== undefined) row.task_id = r.taskId;
+  if (r.sourceKind !== undefined) row.source_kind = r.sourceKind;
+  if (r.sourceId !== undefined) row.source_id = r.sourceId;
   return row;
 }
 
@@ -605,6 +611,8 @@ export function rowToMedication(row: MedicationRow): Medication {
     durationDays: row.duration_days,
     weekDays: row.week_days,
     active: row.active,
+    // Coluna nova: linha antiga vem sem ela e o zap nasce apagado.
+    whatsapp: row.whatsapp ?? false,
   };
 }
 
@@ -620,6 +628,7 @@ export function medicationToInsertRow(m: Medication, userId: string): TablesInse
     duration_days: m.durationDays,
     week_days: m.weekDays,
     active: m.active,
+    whatsapp: m.whatsapp,
   };
 }
 
@@ -633,6 +642,7 @@ export function medicationToUpdateRow(m: Partial<Medication>): TablesUpdate<"med
   if (m.durationDays !== undefined) row.duration_days = m.durationDays;
   if (m.weekDays !== undefined) row.week_days = m.weekDays;
   if (m.active !== undefined) row.active = m.active;
+  if (m.whatsapp !== undefined) row.whatsapp = m.whatsapp;
   return row;
 }
 

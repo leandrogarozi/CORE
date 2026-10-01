@@ -487,6 +487,13 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .diet-phone-saved{ font-size:11px; color:var(--success); }
 .diet-meal-app-toggle{ color:var(--text-faint); }
 .diet-meal-app-toggle.active{ color:var(--accent); }
+/* O ícone do zap: apagado é promessa nenhuma, aceso é "chega no celular".
+   Verde porque é a cor do WhatsApp em todo canto do app. */
+.zap-btn{ color:var(--text-faint); transition:color var(--mov); }
+.zap-btn:hover:not(:disabled){ color:var(--text-muted); }
+.zap-btn.active{ color:var(--success); }
+.zap-btn:disabled{ opacity:0.3; cursor:not-allowed; }
+.zap-btn svg{ width:14px; height:14px; }
 .diet-meal-whatsapp{ color:var(--text-faint); }
 .diet-meal-whatsapp.active{ color:var(--success); }
 .diet-meal-whatsapp svg{ width:13px; height:13px; }

@@ -831,7 +831,55 @@ Meta não aceita** (foi a primeira ideia dele, "colocar um crédito pra
 testar", e não dá). Se a tela oferecer escolher moeda, **real**: depois de
 anexar o cartão não dá pra trocar.
 
-## Ícone do zap em tudo: um motor só (spec fechada em 30/09)
+## Motor do ícone do zap — FEITO pra Medicação (noite de 30/09)
+
+**Migração aplicada:** `zap_vinculo_generico_e_medicacao`. Só aditivo —
+`reminders.source_kind` + `reminders.source_id` (anuláveis, sem default) com
+índice parcial, e `medications.whatsapp` (default `false`). Os 108 lembretes e
+os 6 remédios ficaram intactos; nenhum dos lembretes antigos ganhou origem.
+
+**Contagem de linhas antes e depois: 964 em 34 tabelas, idêntica.** Nenhuma
+tabela mudou de tamanho.
+
+**O que entrou:**
+
+- `src/lib/board/zap-engine.ts` — o cálculo puro, sem banco e sem React.
+  **32 testes passando** (`scratchpad/noite/teste-zap.mjs`).
+- `sincronizarZapDaMedicacao` no store: olha o estado e decide criar, atualizar
+  ou apagar o lembrete vinculado. Chamada depois de qualquer mudança no remédio
+  ou no tratamento, então mudar o horário move o lembrete junto e apagar o
+  remédio leva o lembrete embora.
+- Ícone do zap na linha de cada remédio, desligado quando não há horário —
+  **sem "quando" não há o que avisar**, e um botão que promete sem poder cumprir
+  é o problema que a Dieta tem hoje.
+- Virada de página no `dispatch-reminders`.
+
+**Quatro decisões que valem registro:**
+
+1. **A antecedência padrão é 10 min, não zero.** O motor de envio só olha
+   lembretes com `alertMinutesBefore` preenchido, e zero é falso em JavaScript —
+   com zero, nada sairia. Dez minutos também é mais útil: dá tempo de levantar, e
+   a mensagem já diz a hora marcada.
+2. **Horário compartilhado vem do grupo.** É o sentido de "compartilhado"; ler o
+   horário do remédio nesse caso mostraria um valor que a tela nem deixa editar.
+3. **Um lembrete recorrente dispararia uma vez só.** O motor marca
+   `whatsapp_notified_at` e nunca mais olha pra ele. Faltava alguém virar a
+   página do dia — é o passo novo no `dispatch-reminders`, que avança a data
+   depois que a hora passa e limpa o `notified_at`.
+4. **A virada só mexe em lembrete com origem** (`source_kind is not null`). Os
+   que o Leandro escreveu à mão ficam exatamente como ele deixou: nenhuma rotina
+   automática reescreve a data deles. Hoje são zero linhas com origem, então a
+   regra nasce sem poder estragar nada.
+
+**Um erro meu, corrigido antes de fechar:** a primeira versão da virada de
+página consultava a lista de lembretes "a vencer", que exclui os já notificados
+— ou seja, nunca encontraria justamente as linhas que ela existe pra tratar.
+Achado relendo o próprio código, antes de qualquer teste.
+
+**Falta da spec original (não feito esta noite):** Manutenção, Tarefa-evento,
+Dieta + limpar a mentira do botão manual, e o Checklist em standby.
+
+## (spec) Ícone do zap em tudo: um motor só (spec fechada em 30/09)
 
 **A regra do app, decidida com o Leandro:**
 

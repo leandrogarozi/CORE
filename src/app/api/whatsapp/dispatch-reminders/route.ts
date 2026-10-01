@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { rowToReminder } from "@/lib/board/mappers";
 import { isReminderAlertingInZone, zonedDateTimeToMs } from "@/lib/board/reminder-alerts";
+import { proximaOcorrencia } from "@/lib/board/zap-engine";
 import { sendWhatsAppReminderMessage } from "@/lib/whatsapp/send";
 import { fmtDayMonth } from "@/lib/date-utils";
 
@@ -24,6 +25,14 @@ function monthStartISO(timeZone: string): string {
     month: "2-digit",
   }).format(new Date());
   return new Date(zonedDateTimeToMs(`${anoMes}-01`, "00:00", timeZone)).toISOString();
+}
+
+/** O "hoje" do usuário, não o do servidor: a Vercel roda em UTC, e entre 21h e
+ *  meia-noite de Brasília o dia lá já virou. */
+function hojeNaZona(timeZone: string): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(
+    new Date()
+  );
 }
 
 function reminderMessageText(title: string, date: string | null, time: string | null): string {
@@ -51,9 +60,22 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   const dueRows = rows ?? [];
 
+  // Os lembretes que o zap criou e que JÁ foram avisados — são os candidatos a
+  // virar a página do dia. Note que eles não aparecem na consulta acima, que
+  // exige whatsapp_notified_at nulo: é justamente por já terem sido avisados
+  // que precisam de uma data nova.
+  const { data: paraVirar } = await supabase
+    .from("reminders")
+    .select("*")
+    .not("source_kind", "is", null)
+    .is("deleted_at", null)
+    .eq("done", false)
+    .not("whatsapp_notified_at", "is", null);
+  const viradaRows = paraVirar ?? [];
+
   const userIdById = new Map(dueRows.map((row) => [row.id, row.user_id]));
-  const userIds = [...new Set(dueRows.map((row) => row.user_id))];
-  if (userIds.length === 0) return NextResponse.json({ checked: 0, due: 0, notified: 0 });
+  const userIds = [...new Set([...dueRows, ...viradaRows].map((row) => row.user_id))];
+  if (userIds.length === 0) return NextResponse.json({ checked: 0, due: 0, notified: 0, avancados: 0 });
 
   // As configurações vêm ANTES do filtro porque o fuso do usuário faz parte da
   // conta: aqui no servidor (UTC) "10:00" sem fuso viraria 07:00 de Brasília.
@@ -81,10 +103,36 @@ export async function POST(req: NextRequest) {
     (settingsRows ?? []).map((s) => [s.user_id, Number(s.whatsapp_usd_brl ?? DEFAULT_USD_BRL)])
   );
 
+  // --- vira a página do dia dos lembretes criados pelo ícone do zap ---
+  //
+  // Um lembrete recorrente dispararia UMA VEZ SÓ: o motor marca
+  // whatsapp_notified_at e nunca mais olha pra ele. Alguém precisa avançar a
+  // data pra próxima ocorrência, e é aqui.
+  //
+  // O filtro `source_kind is not null` é deliberado: só os lembretes que o
+  // próprio FARO criou a partir de um remédio (ou, no futuro, de uma manutenção
+  // ou evento) são mexidos. Os que o Leandro escreveu à mão ficam exatamente
+  // como ele deixou — nenhuma rotina automática reescreve a data deles.
+  let avancados = 0;
+  for (const row of viradaRows) {
+    const r = rowToReminder(row);
+    const tz = tzByUser.get(row.user_id) ?? DEFAULT_TIME_ZONE;
+    const alvoMs = r.date ? zonedDateTimeToMs(r.date, r.time ?? "23:59", tz) : NaN;
+    // Só vira depois que a hora marcada passou — antes disso ainda é o de hoje.
+    if (!Number.isFinite(alvoMs) || nowMs <= alvoMs) continue;
+    const proxima = proximaOcorrencia(r, hojeNaZona(tz));
+    if (!proxima) continue;
+    const { error: erroAvanco } = await supabase
+      .from("reminders")
+      .update({ remind_date: proxima, whatsapp_notified_at: null })
+      .eq("id", r.id);
+    if (!erroAvanco) avancados++;
+  }
+
   const due = dueRows
     .map(rowToReminder)
     .filter((r) => isReminderAlertingInZone(r, nowMs, tzByUser.get(userIdById.get(r.id)!) ?? DEFAULT_TIME_ZONE));
-  if (due.length === 0) return NextResponse.json({ checked: dueRows.length, due: 0, notified: 0 });
+  if (due.length === 0) return NextResponse.json({ checked: dueRows.length, due: 0, notified: 0, avancados });
 
   // Quantas mensagens cada usuário já mandou no mês — é o que a trava de gasto
   // consulta. Conta só envio que deu certo: mensagem que falhou não é cobrada.
@@ -172,5 +220,5 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ checked: dueRows.length, due: due.length, notified, blocked, errors });
+  return NextResponse.json({ checked: dueRows.length, due: due.length, notified, blocked, avancados, errors });
 }

@@ -55,6 +55,7 @@ import {
 } from "@/lib/board/mappers";
 import { isoAddDays, occurrenceDates, todayISO } from "@/lib/date-utils";
 import { studyDatesInRange } from "@/lib/board/study-plan";
+import { lembreteDaMedicacao } from "@/lib/board/zap-engine";
 import { isRecurringReminder, nextReminderOccurrenceDate } from "@/lib/board/reminder-alerts";
 import { reportSaveError } from "@/lib/board/error-toast";
 
@@ -1177,6 +1178,8 @@ export function useBoard(userId: string | null) {
         status: "pending",
         deletedAt: null,
         taskId: null,
+        sourceKind: null,
+        sourceId: null,
       };
       apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
       const { error } = await supabase.from("reminders").insert(reminderToInsertRow(r, userId));
@@ -1290,6 +1293,8 @@ export function useBoard(userId: string | null) {
         status: "pending",
         deletedAt: null,
         taskId,
+        sourceKind: null,
+        sourceId: null,
       };
       apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
       supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
@@ -1319,6 +1324,10 @@ export function useBoard(userId: string | null) {
         weekDays: r.weekDays,
         alertMinutesBefore: r.alertMinutesBefore,
         note: null,
+        // A continuação herda a origem: se o primeiro veio de um remédio, o
+        // próximo também é daquele remédio.
+        sourceKind: r.sourceKind,
+        sourceId: r.sourceId,
         done: false,
         status: "pending",
         deletedAt: null,
@@ -1346,6 +1355,7 @@ export function useBoard(userId: string | null) {
         durationDays: null,
         weekDays: null,
         active: true,
+        whatsapp: false,
       };
       apply((s) => ({ ...s, medications: [...s.medications, m] }));
       supabase.from("medications").insert(medicationToInsertRow(m, userId)).then(({ error }) => {
@@ -1355,24 +1365,105 @@ export function useBoard(userId: string | null) {
     [apply, supabase, userId]
   );
 
+  // ---------- motor do ícone do zap ----------
+  /**
+   * Põe o lembrete de um remédio em dia com o que o remédio diz hoje.
+   *
+   * É o coração da regra "zap aceso = chega no WhatsApp": a tela da Medicação
+   * não envia nada por conta própria, ela só acende o ícone. Quem envia é o
+   * motor de lembretes que já existe — e que já tem trava de gasto, livro-caixa
+   * e, desde esta noite, confirmação de entrega.
+   *
+   * Chamar isto é sempre seguro: a função olha o estado atual e decide criar,
+   * atualizar ou apagar. Por isso ela é chamada depois de QUALQUER mudança no
+   * remédio ou no tratamento — mudou o horário, o lembrete acompanha; acabou o
+   * tratamento, o lembrete some em vez de ficar tocando pra sempre.
+   */
+  const sincronizarZapDaMedicacao = useCallback(
+    (medId: string) => {
+      if (!userId) return;
+      const atual = stateRef.current;
+      const med = atual.medications.find((m) => m.id === medId) ?? null;
+      const existente = atual.reminders.find(
+        (r) => r.sourceKind === "medication" && r.sourceId === medId && !r.deletedAt
+      );
+      const grupo = med?.groupId ? atual.medicationGroups.find((g) => g.id === med.groupId) ?? null : null;
+
+      // Remédio apagado, desligado, inativo, sem horário ou com tratamento
+      // encerrado: não há o que lembrar.
+      const campos =
+        med && med.whatsapp && med.active && (!grupo || grupo.active)
+          ? lembreteDaMedicacao(med, grupo, todayISO())
+          : null;
+
+      if (!campos) {
+        if (existente) deleteReminder(existente.id);
+        return;
+      }
+      if (existente) {
+        updateReminder(existente.id, campos);
+        return;
+      }
+      const r: Reminder = {
+        id: uid(),
+        ...campos,
+        note: null,
+        done: false,
+        status: "pending",
+        deletedAt: null,
+        taskId: null,
+        sourceKind: "medication",
+        sourceId: medId,
+      };
+      apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
+      supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
+        if (error) reportSaveError("sincronizarZapDaMedicacao", error);
+      });
+    },
+    [apply, deleteReminder, supabase, updateReminder, userId]
+  );
+
+  /** Acende ou apaga o ícone do zap de um remédio. */
+  const setMedicationWhatsapp = useCallback(
+    (id: string, ligado: boolean) => {
+      apply((s) => ({
+        ...s,
+        medications: s.medications.map((m) => (m.id === id ? { ...m, whatsapp: ligado } : m)),
+      }));
+      supabase.from("medications").update({ whatsapp: ligado }).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("setMedicationWhatsapp", error);
+      });
+      sincronizarZapDaMedicacao(id);
+    },
+    [apply, sincronizarZapDaMedicacao, supabase]
+  );
+
   const updateMedication = useCallback(
     (id: string, patch: Partial<Pick<Medication, "name" | "time" | "notes" | "startDate" | "durationDays" | "weekDays" | "active">>) => {
       apply((s) => ({ ...s, medications: s.medications.map((m) => (m.id === id ? { ...m, ...patch } : m)) }));
       supabase.from("medications").update(medicationToUpdateRow(patch)).eq("id", id).then(({ error }) => {
         if (error) reportSaveError("updateMedication", error);
       });
+      // Mudou horário, dias ou duração: o lembrete do zap acompanha sozinho.
+      sincronizarZapDaMedicacao(id);
     },
-    [apply, supabase]
+    [apply, sincronizarZapDaMedicacao, supabase]
   );
 
   const deleteMedication = useCallback(
     (id: string) => {
+      // O lembrete sai ANTES: depois que o remédio some do estado, a sincronia
+      // não teria mais como saber que ele existiu.
+      const orfao = stateRef.current.reminders.find(
+        (r) => r.sourceKind === "medication" && r.sourceId === id && !r.deletedAt
+      );
+      if (orfao) deleteReminder(orfao.id);
       apply((s) => ({ ...s, medications: s.medications.filter((m) => m.id !== id) }));
       supabase.from("medications").delete().eq("id", id).then(({ error }) => {
         if (error) reportSaveError("deleteMedication", error);
       });
     },
-    [apply, supabase]
+    [apply, deleteReminder, supabase]
   );
 
   // ---------- medication groups (tratamentos temporários) ----------
@@ -1406,8 +1497,13 @@ export function useBoard(userId: string | null) {
       supabase.from("medication_groups").update(medicationGroupToUpdateRow(patch)).eq("id", id).then(({ error }) => {
         if (error) reportSaveError("updateMedicationGroup", error);
       });
+      // Horário compartilhado, duração ou "ativo" do tratamento mexem no
+      // lembrete de cada remédio que pertence a ele.
+      stateRef.current.medications
+        .filter((m) => m.groupId === id && m.whatsapp)
+        .forEach((m) => sincronizarZapDaMedicacao(m.id));
     },
-    [apply, supabase]
+    [apply, sincronizarZapDaMedicacao, supabase]
   );
 
   const deleteMedicationGroup = useCallback(
@@ -2761,6 +2857,7 @@ export function useBoard(userId: string | null) {
     addMedication,
     updateMedication,
     deleteMedication,
+    setMedicationWhatsapp,
     addMedicationGroup,
     updateMedicationGroup,
     deleteMedicationGroup,

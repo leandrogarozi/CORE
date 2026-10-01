@@ -365,6 +365,10 @@ export interface Reminder {
   status: ReminderStatus; // "waiting" é um estado manual (ex.: aguardando resposta de terceiros), não mexe no cálculo de vencido/hoje
   deletedAt: string | null; // ISO datetime — soft delete, vai pra Lixeira em vez de sumir na hora
   taskId: string | null; // quando o lembrete foi criado a partir de uma tarefa (campo "Lembrete" na edição)
+  // De onde o lembrete veio quando o ícone do zap foi aceso. Null = criado à mão
+  // pelo Leandro, e nesse caso nada automático mexe nele.
+  sourceKind: "medication" | "maintenance" | "event" | null;
+  sourceId: string | null;
 }
 
 export type MedicationTimeMode = "shared" | "individual";
@@ -390,6 +394,7 @@ export interface Medication {
   durationDays: number | null;
   weekDays: number[] | null; // 0=DOM..6=SAB; null/vazio = todos os dias, senão só nesses dias da semana
   active: boolean;
+  whatsapp: boolean; // ícone do zap aceso = o lembrete desse remédio chega no WhatsApp
 }
 
 export interface ChecklistItem {
