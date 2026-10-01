@@ -1585,6 +1585,77 @@ que ele fizer os três passos no painel da Meta. Pendências de outras frentes s
 camadas 2 e 3 do backup no Drive, restauração com simulação, e o Google Calendar
 que ele adiou.
 
+## Captura por voz e agenda do Google — combinado em 01/10, a fazer
+
+O pedido nasceu dele fora de casa, jogando bola com o filho: *"tem algumas
+coisas que eu estou lembrando e aí eu tinha que anotar, não tem como"*. O FARO
+não está na mão dele no celular, e digitar nessa hora não acontece.
+
+O desenho que ele quer, na ordem que ele deu:
+
+1. **Agenda do Google ligada ao FARO**, pra "marca na minha agenda isso" ir
+   parar na agenda de verdade.
+2. **Ícone do FARO no celular abrindo o comando de voz**, ele fala em linguagem
+   normal ("cria um lembrete pra amanhã às 10 pra ligar pro Brito") e o app
+   cria.
+3. **IA ligada por API** pra interpretar a fala. Ele já fez isso em outro app
+   dele, então o caminho não é novo pra ele.
+
+### O que já existe e não precisa ser feito de novo
+
+- **Ditado por voz**: o `MicButton` + `use-dictation` já usam reconhecimento de
+  voz nativo do navegador em pt-BR, e já estão em vários campos. Falta o lugar
+  de captura rápida, não a tecnologia.
+- **PWA**: `manifest.json` e `sw.js` existem. O FARO é instalável na tela de
+  início hoje, sem desenvolvimento nenhum — isso sozinho já resolve parte do
+  "não tenho como anotar".
+- **Entrada de WhatsApp**: o webhook de status JÁ recebe o campo `messages` da
+  Meta, que carrega tanto os status quanto **as mensagens que chegam**. O
+  `statusesDoCorpo` lê `value.statuses` e descarta `value.messages`. Encanamento,
+  assinatura e autenticação prontos; falta ler a outra metade do corpo.
+
+### A correção honesta: é um toque, não zero
+
+Ele imagina clicar no ícone e já cair falando. **Não dá**, e não é limitação
+nossa: navegador exige gesto do usuário pra abrir o microfone, e abrir o app não
+conta como gesto. O máximo realista é: ícone → app abre numa tela de captura com
+um botão de microfone grande → **um toque** → ele fala. Atalho de manifesto
+(segurar o ícone → "Falar") encurta o caminho, mas o toque no microfone continua.
+
+Prometer "clicou e já está gravando" seria vender o que não se entrega.
+
+### O risco técnico que precisa ser medido antes, não depois
+
+O reconhecimento nativo (`webkitSpeechRecognition`) **é instável em PWA no iOS**.
+Se o celular dele for iPhone e o app estiver instalado na tela de início — que é
+exatamente o cenário que a gente quer — pode simplesmente não funcionar. O plano
+B é gravar o áudio e transcrever no servidor, que funciona em todo lugar mas tem
+custo por minuto e é um serviço a mais.
+
+**Primeira coisa a fazer nessa frente: testar o ditado no celular DELE, instalado
+na tela de início.** Vinte minutos de teste decidem se o caminho é o barato ou o
+caro. Começar a construir antes disso é apostar.
+
+### Pendência de decisão: ele já tinha recusado o Google Calendar
+
+Em conversa anterior, sobre conectar a agenda: *"isso eu nao quero... prefiro
+fazer de forma que já elimine isso"*. Agora ele pede pra fazer. Pode muito bem
+ter mudado de ideia — é dele a decisão — mas **confirmar antes de construir**,
+porque OAuth do Google é trabalho real: consentimento, refresh de token, e um
+lugar seguro pra guardar o token de cada usuário. Não é algo pra fazer e desfazer.
+
+(Nota: as ferramentas de Google Calendar que o Claude usa nesta sessão são DELE
+pra mim, não do app. O FARO precisaria do OAuth próprio.)
+
+### Ordem recomendada por esforço contra o que resolve
+
+1. Instalar na tela de início — hoje, zero desenvolvimento.
+2. Testar o ditado nesse app instalado — decide o resto.
+3. Tela de captura rápida por voz, com a IA interpretando.
+4. Agenda do Google, depois de ele confirmar.
+5. Comando por texto no WhatsApp — aproveita o webhook que já existe.
+6. Áudio no WhatsApp — a maior e a mais cara; só se as de cima não bastarem.
+
 ## O verde que mentia, e o botão que não desmarcava (01/10)
 
 **O que ele viu:** *"Aqui nos meus lembretes tem um monte de coisa ativado como
