@@ -1,0 +1,140 @@
+/* ============================================================
+   CAMADA 1 — PRIMITIVOS
+   A tinta crua. Nomeados pelo que SÃO, nunca pelo que fazem.
+   Nada no app consome esta camada direto — quem consome é a
+   camada semântica. Trocar um primitivo aqui muda o app inteiro
+   de uma vez, e é exatamente essa a graça.
+   ============================================================ */
+:root{
+  /* --- Espaçamento: base 4, sem exceção --------------------- */
+  --sp-1:4px;   --sp-2:8px;   --sp-3:12px;  --sp-4:16px;
+  --sp-5:20px;  --sp-6:24px;  --sp-8:32px;  --sp-10:40px;
+  --sp-12:48px;
+
+  /* --- Raio: quatro degraus chegam -------------------------- */
+  --r-1:6px;    /* chip, pílula pequena, bolinha de status */
+  --r-2:9px;    /* campo, botão, item de lista */
+  --r-3:13px;   /* cartão, faixa de números */
+  --r-4:17px;   /* caixa grande, modal */
+  --r-full:999px;
+
+  /* --- Altura de controle ----------------------------------- */
+  --ctl-h:32px;        /* desktop: mouse é preciso */
+  --ctl-h-toque:44px;  /* mínimo confortável pro dedo */
+
+  /* --- Sombra: três degraus, e olhe lá ---------------------- */
+  --sh-1:0 1px 2px rgba(18,20,26,.03), 0 6px 18px rgba(18,20,26,.03);
+  --sh-2:0 2px 6px rgba(18,20,26,.05), 0 12px 28px rgba(18,20,26,.05);
+  --sh-3:0 8px 24px rgba(18,20,26,.09), 0 24px 56px rgba(18,20,26,.09);
+
+  /* --- Tipografia: a hierarquia vive no PESO ---------------- */
+  --fs-1:10.5px; /* rótulo miúdo, legenda de gráfico */
+  --fs-2:12px;   /* texto de apoio, item de lista */
+  --fs-3:13px;   /* corpo padrão */
+  --fs-4:15px;   /* título de bloco */
+  --fs-5:17px;   /* título de tela */
+  --fs-6:21px;   /* número grande do painel */
+  --fs-7:26px;   /* número de destaque */
+  --fw-normal:400; --fw-medio:500; --fw-forte:600; --fw-titulo:650;
+  --ls-apertado:-.035em; /* número grande pede aperto */
+  --ls-titulo:-.02em;
+
+  /* --- Movimento: um tempo só pra tudo ---------------------- */
+  --mov:140ms cubic-bezier(.2,.6,.3,1);
+}
+
+/* ============================================================
+   CAMADA 2 — SEMÂNTICOS
+   Nomeados pelo que FAZEM. É esta camada que o app consome.
+   Troque o acento e os cinzas por app; o resto fica.
+   ============================================================ */
+:root{
+  color-scheme:light;
+
+  --bg:#F7F7F9;
+  --surface:#FFFFFF;
+  --surface-2:#F1F1F4;
+  --text:#17171C;
+  --text-muted:#65656F;
+  --text-faint:#9C9CA5;
+
+  --accent:#4A47D5;          /* TROQUE POR APP */
+  --accent-contrast:#FFFFFF;
+  --accent-soft:#EEEDFC;
+
+  /* Linha de 1px que separa sem pesar. Mais clara que uma borda
+     de contorno — são papéis diferentes e não devem usar o mesmo
+     valor. */
+  --linha:#EFEFF4;
+  --borda-forte:#D9D9D9;
+
+  --trilho:#F1F1F6;          /* fundo de barra de progresso */
+  --segmento-fundo:#F3F3F7;  /* fundo do alternador */
+
+  --sucesso:#2F9E44;
+  --perigo:#E5484D;
+  --aviso:#B45309;
+
+  /* Degradê de fundo: duas manchas lavadas nas quinas de cima.
+     Fica SEMPRE atrás de tudo e NUNCA sob texto — degradê que
+     passa por baixo de texto deixa a leitura boa numa ponta e
+     ilegível na outra. */
+  --fundo-degrade:
+    radial-gradient(1000px 460px at 10% -8%, #EFEBFE 0%, rgba(239,235,254,0) 60%),
+    radial-gradient(820px 420px at 94% 2%, #FDEBF5 0%, rgba(253,235,245,0) 56%);
+}
+
+/* ============================================================
+   TEMA ESCURO
+   Por ATRIBUTO quando existe botão de tema (veja
+   references/tema-escuro.md). Se o app não tem botão, troque o
+   seletor por:
+     @media (prefers-color-scheme: dark){ :root{ ... } }
+   ============================================================ */
+:root[data-theme="dark"]{
+  color-scheme:dark;
+
+  --bg:#111114;
+  --surface:#1B1B20;
+  --surface-2:#232328;
+  --text:#EEEEF1;
+  --text-muted:#A4A4AE;
+  --text-faint:#75757F;
+
+  --accent:#8583F0;
+  --accent-contrast:#111114;
+  --accent-soft:#26254A;
+
+  --linha:#2A2A30;
+  --borda-forte:#444444;
+  --trilho:#2A2A30;
+  --segmento-fundo:#232328;
+
+  --sucesso:#5FC97C;
+  --perigo:#F0787C;
+  --aviso:#E0A458;
+
+  /* Bem mais fraco: o mesmo brilho que é sutil no branco vira
+     mancha no preto. */
+  --fundo-degrade:
+    radial-gradient(1000px 460px at 10% -8%, rgba(99,102,241,.10) 0%, rgba(99,102,241,0) 60%),
+    radial-gradient(820px 420px at 94% 2%, rgba(217,70,239,.07) 0%, rgba(217,70,239,0) 56%);
+
+  /* Não é sombra mais forte — é mais preta e mais fechada, senão
+     vira um halo cinza ao redor do cartão. */
+  --sh-1:0 1px 2px rgba(0,0,0,.35), 0 6px 18px rgba(0,0,0,.30);
+  --sh-2:0 2px 6px rgba(0,0,0,.40), 0 12px 28px rgba(0,0,0,.35);
+  --sh-3:0 8px 24px rgba(0,0,0,.45), 0 24px 56px rgba(0,0,0,.40);
+}
+
+/* --- base --------------------------------------------------- */
+*{ box-sizing:border-box; }
+body{
+  background:var(--bg);
+  background-image:var(--fundo-degrade);
+  background-attachment:fixed; /* senão o degradê sobe junto com a rolagem e vira listra */
+  color:var(--text);
+  font-family:"Inter", ui-sans-serif, system-ui, sans-serif;
+  font-size:14.5px; line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+}

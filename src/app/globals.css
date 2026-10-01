@@ -631,7 +631,7 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   box-shadow:var(--sh-1); overflow:hidden;
 }
 @media (max-width:640px){
-  .day-below-row{ flex-direction:column; }
+  .day-below-row{ flex-direction:column; align-items:stretch; }
   .day-below-row > .hours-section, .day-below-row > .daily-log-section{ max-width:none; }
 }
 
@@ -915,7 +915,7 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 
 .task-list{
   background:var(--surface); border:1px solid var(--linha); border-radius:var(--r-3);
-  box-shadow:var(--sh-1); overflow:hidden;
+  box-shadow:var(--sh-1); overflow:auto;
 }
 .week-day-block + .week-day-block{ margin-top:6px; }
 .week-day-heading{

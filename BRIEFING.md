@@ -1239,9 +1239,52 @@ conhecida do arquivo de prova: as etiquetas de categoria estão com cor fixa,
 enquanto no app elas vêm das cores que ele configura — no tema escuro o app
 mostra outra tonalidade.
 
+### Skill do sistema de design (30/09)
+
+Fecha o combinado: o redesenho vira uma skill reutilizável nos outros apps dele.
+Nasceu no fim de propósito — documenta o que **se provou**, não o que a gente
+imaginava que ia funcionar.
+
+Vive em duas cópias, de propósito: `design/sistema-de-design/` (versionada com o
+projeto, acompanha a evolução do FARO) e um `.skill` instalável na conta dele,
+porque o alvo são os OUTROS apps.
+
+- `SKILL.md` — o combinado de processo (aprova por print; roupa nova, não
+  cirurgia; primeira etapa invisível), as três camadas de token, as regras
+  provadas e o que fazer num app que já existe.
+- `references/tokens.css` — as camadas 1 e 2 prontas, com o tema escuro por
+  atributo.
+- `references/componentes.md` — as seis peças provadas, com o CSS e o porquê de
+  cada detalhe que custou uma rodada.
+- `references/tema-escuro.md` — o botão de tema, por que o script tem que ser
+  síncrono no `<head>`, e por que a escolha mora no aparelho.
+- `scripts/provar.py` — monta a página de prova com o **CSS real** e o **DOM
+  real**, embute as fontes em base64 e tira os prints nos cinco estados.
+
+### Dois bugs de celular que a própria ferramenta achou (30/09)
+
+Testar o `provar.py` contra a tela do Dia em 390px achou dois problemas
+**anteriores** ao redesenho — não apareciam porque ninguém provava em 390px:
+
+1. **A lista de tarefas era cortada, não rolável.** `.task-list` tinha
+   `overflow:hidden`, e a tabela tem 836px com as colunas padrão. Num celular de
+   348px úteis, 488px ficavam inalcançáveis: Categoria, Prioridade, Play, Copiar e
+   Excluir simplesmente não existiam no celular. Virou `overflow:auto`. Verificado
+   por medição (`scrollWidth` 836 contra `clientWidth` 348, rolando 488px), não
+   por print — print não mostra rolagem.
+2. **Painéis de Horas e Anotações estreitos no celular.** `.day-below-row` tem
+   `align-items:flex-start`; em coluna isso encolhe os filhos até o tamanho do
+   conteúdo. O `max-width:none` do media query não resolvia porque o problema era
+   outro. Virou `align-items:stretch`.
+
+Um terceiro suspeito ("a página rola de lado") foi **descartado por medição**: era
+1px de arredondamento.
+
 ### Próximo passo
 
-A skill do sistema de design, que documenta o que se provou nas três etapas.
+Nada em aberto no redesenho. Pendências em outras frentes continuam na lista:
+camadas 2 e 3 do backup no Drive, restauração com simulação, e o Google Calendar
+que ele adiou.
 
 ## Webhook de status do WhatsApp — combinado pra noite de 30/09
 
