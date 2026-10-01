@@ -1473,6 +1473,37 @@ Dois ajustes a mais: os blocos ganharam título ("Seus dados", "Sessão"), porqu
 cartão sem título começa frio; e o "Sair" virou botão de verdade — discreto por
 padrão, vermelho no hover, que é como se escreve uma ação de saída.
 
+## Marca de origem nos documentos do FARO no Drive (01/10)
+
+Pedido dele, e o motivo é bom: o conteúdo que o FARO exporta **não mora todo na
+pasta do FARO** — vai pra pastas estratégicas de conhecimento, junto com o que
+outras ferramentas dele vão produzir. Sem uma marca, daqui a seis meses ninguém
+sabe o que saiu de onde.
+
+**O que ele pediu:** a marca na *descrição* do arquivo.
+
+**O que dá pra fazer, e por quê:** o conector do Drive **não escreve o campo
+descrição** — nem em `create_file`, nem em `update_file`, que só aceitam título e
+pasta. Então a marca foi pro **título**, com um sufixo ` · FARO`. Não é um
+remendo: a busca do Drive pesa título muito mais que descrição, então na prática
+ficou mais achável do que o pedido original.
+
+**A convenção:**
+
+```
+<nome natural do documento> · FARO
+```
+
+Buscar `FARO` no Drive devolve tudo que saiu do app, esteja na pasta que estiver.
+
+**Já aplicado nos 7 documentos existentes:** 5 sinapses (pasta
+`1nb1dqB3A2hrV9SBOup-Gp2iZsLDnq97c`) e 2 resumos de livro (pasta
+`1p389Kmx55n6gedU9NQc-cInKSs58smVU`).
+
+**Vale pra tudo que o FARO exportar daqui pra frente** — inclusive o backup no
+Drive, quando ele existir. Se outro app dele exportar pro mesmo lugar, a marca
+dele é outra (` · META SAÚDE`, e assim por diante).
+
 ### Próximo passo
 
 Manutenção, Evento e Dieta no motor do zap. E o WhatsApp de ponta a ponta, assim
