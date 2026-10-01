@@ -105,7 +105,6 @@ export function Dashboard() {
     const s = board.state;
     const overdueTasks = s.tasks.filter((t) => !t.done && t.date && t.date < today);
     const overdueCount = overdueTasks.length;
-    const noDateTasks = s.tasks.filter((t) => !t.date);
 
     // Tópico em aberto = caixinha não marcada na observação da tarefa (pauta de
     // reunião ou lista de qualquer tarefa). Mais antigas primeiro — são as que
@@ -170,8 +169,6 @@ export function Dashboard() {
       overdueTasks,
       openTopicTasks,
       openTopicTotal,
-      noDateCount: noDateTasks.length,
-      noDateTasks,
       doneCount: doneInPeriod.length,
       pendingCount: pendingInPeriod.length,
       totalMin: taskMinTotal + habitMinTotal + blockMinTotal,
@@ -227,8 +224,6 @@ export function Dashboard() {
     return `conic-gradient(${stops.join(", ")})`;
   })();
 
-  const maxHabitMin = Math.max(1, ...stats.habitStats.map((h) => h.min));
-  const maxBlockMin = Math.max(1, ...stats.blockStats.map((b) => b.min));
   const maxPriority = Math.max(1, ...Object.values(stats.priorityPending));
   const doneTotal = stats.doneCount + stats.pendingCount;
 
@@ -297,16 +292,6 @@ export function Dashboard() {
         >
           <span className="dsh-kpi-n">{stats.openTopicTotal}</span>
           <span className="dsh-kpi-l">Tópicos abertos</span>
-        </button>
-        <button
-          type="button"
-          className="dsh-kpi"
-          title={stats.noDateCount > 0 ? "Ver as tarefas sem data" : undefined}
-          disabled={stats.noDateCount === 0}
-          onClick={() => setModal({ title: "Sem data", tasks: stats.noDateTasks })}
-        >
-          <span className="dsh-kpi-n">{stats.noDateCount}</span>
-          <span className="dsh-kpi-l">Sem data</span>
         </button>
         <div className="dsh-kpi">
           <span className="dsh-kpi-n">{stats.doneCount}</span>
@@ -441,51 +426,6 @@ export function Dashboard() {
           )}
         </div>
 
-        <div className="dsh-card">
-          <div className="dsh-card-title">
-            Hábitos <span className="dsh-card-tag">tempo e dias ativos</span>
-          </div>
-          {!stats.habitStats.length && <div className="dsh-empty">Nenhum hábito cadastrado.</div>}
-          {stats.habitStats.map((h) => (
-            <div className="dsh-hab" key={h.id}>
-              <div className="dsh-hab-top">
-                <span className="dsh-hab-name">{h.name}</span>
-                <span className="dsh-hab-v">
-                  {fmtHM(h.min)}
-                  <em>
-                    {h.count}/{stats.daysInPeriod}d
-                  </em>
-                </span>
-              </div>
-              <div className="dsh-bar">
-                <span style={{ width: `${(h.min / maxHabitMin) * 100}%` }} />
-              </div>
-            </div>
-          ))}
-
-          <div className="dsh-sep" />
-
-          <div className="dsh-card-title">
-            Dia a Dia <span className="dsh-card-tag">tempo e dias ativos</span>
-          </div>
-          {!stats.blockStats.length && <div className="dsh-empty">Nenhum bloco fixo cadastrado.</div>}
-          {stats.blockStats.map((b) => (
-            <div className="dsh-hab" key={b.id}>
-              <div className="dsh-hab-top">
-                <span className="dsh-hab-name">{b.name}</span>
-                <span className="dsh-hab-v">
-                  {fmtHM(b.min)}
-                  <em>
-                    {b.count}/{stats.daysInPeriod}d
-                  </em>
-                </span>
-              </div>
-              <div className="dsh-bar">
-                <span style={{ width: `${(b.min / maxBlockMin) * 100}%` }} />
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
 
       {modal && (

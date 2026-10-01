@@ -1280,9 +1280,53 @@ Testar o `provar.py` contra a tela do Dia em 390px achou dois problemas
 Um terceiro suspeito ("a página rola de lado") foi **descartado por medição**: era
 1px de arredondamento.
 
+### Dashboard enxugado — o que ele pediu pra tirar (30/09)
+
+**Eu errei a leitura na primeira vez.** Ele mandou um print da tela do Dia e disse
+"deixa marcado pra retirar essa parte do dash". Entendi só a faixa "Sem data", tirei
+ela, e os cartões ficaram. Ele voltou: *"a parte que eu pedi para retirar do
+dashboard nao saiu - dia a dia, habitos e tarefas sem datas"*.
+
+Saíram do Dashboard: o cartão **Hábitos**, o cartão **Dia a Dia** e o número
+**Sem data**. Os três já existem na tela do Dia, onde são úteis de verdade (dá pra
+marcar, cronometrar, editar). No painel eram só leitura repetida.
+
+Consequências de layout: a faixa foi de 7 pra 6 números, o grid de 3 pra 2 colunas
+(três deixariam um buraco do tamanho de uma coluna), e a legenda da rosca ganhou
+teto de largura porque numa coluna larga a porcentagem ia parar longe demais do
+nome. O tempo de hábitos e blocos **continua** na rosca "Onde foi o tempo" — é lá
+que ele some ou aparece.
+
+**A lição:** quando ele aponta pra um print e diz "tira essa parte", confirmar o
+recorte antes de executar. O print mostrava a tela do Dia; o pedido era sobre o
+Dashboard.
+
+### Fila do redesenho (anotada por ele em 30/09)
+
+Telas que faltam, na ordem que ele deu — **print pra validar antes de cada uma**:
+
+1. **Perfil**
+2. **Configurações** — "essa tá bem ruizinha"
+3. **Calendário**
+4. As telas das abas: **Projetos, Livros** e as demais, trazendo o padrão novo.
+
+### Emojis — repensar (pedido dele, 30/09)
+
+*"Esses muitos EMOJIS sujam a tela. Gostaria de mandar eles de forma mais discreta.
+Talvez sem preenchimento e mais minimalista — temos que pesquisar nas nossas
+referências também."*
+
+Onde eles estão hoje: humor (`MOODS`, 6 emojis), emoções do dia (`MOOD_EMOTIONS`,
+6), e o emoji da média no Dashboard. Observação pra quando for mexer: emoji é
+fonte do sistema, então muda de cara entre aparelho e aparelho — é parte do porquê
+de sujar. Trocar por ícone de traço do `design/icon-pack/` resolve as duas coisas
+(discrição e consistência), mas **perde a leitura instantânea de humor** que o
+emoji dá. Pesquisar nas referências antes, e levar 3 direções, como das outras
+vezes.
+
 ### Próximo passo
 
-Nada em aberto no redesenho. Pendências em outras frentes continuam na lista:
+A fila acima, começando pelo Perfil. Pendências de outras frentes seguem na lista:
 camadas 2 e 3 do backup no Drive, restauração com simulação, e o Google Calendar
 que ele adiou.
 

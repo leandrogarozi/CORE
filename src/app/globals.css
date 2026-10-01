@@ -808,7 +808,7 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
    colunas) sobra um retângulo cinza no vazio. Com sombra, a
    célula que não existe simplesmente não desenha nada. */
 .dsh-kpis{
-  display:grid; grid-template-columns:repeat(7,1fr); margin-bottom:var(--sp-4);
+  display:grid; grid-template-columns:repeat(6,1fr); margin-bottom:var(--sp-4);
   background:var(--surface); border:1px solid var(--linha); border-radius:var(--r-3);
   overflow:hidden; box-shadow:var(--sh-1);
 }
@@ -833,12 +833,11 @@ button.dsh-kpi:disabled{ cursor:default; }
 /* Vermelho só quando há atrasada de verdade. Zero em vermelho
    assusta à toa — e assustar à toa faz o alerta perder o valor. */
 .dsh-kpi.alerta .dsh-kpi-n{ color:var(--danger); }
-@media (max-width:1100px){ .dsh-kpis{ grid-template-columns:repeat(4,1fr); } }
+@media (max-width:1100px){ .dsh-kpis{ grid-template-columns:repeat(3,1fr); } }
 @media (max-width:720px){ .dsh-kpis{ grid-template-columns:repeat(2,1fr); } }
 
 /* --- Cartões -------------------------------------------------- */
-.dsh-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:var(--sp-3); align-items:start; }
-@media (max-width:1100px){ .dsh-grid{ grid-template-columns:repeat(2,1fr); } }
+.dsh-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:var(--sp-3); align-items:start; }
 @media (max-width:720px){ .dsh-grid{ grid-template-columns:1fr; } }
 .dsh-card{
   background:var(--surface); border:1px solid var(--linha); border-radius:var(--r-3);
@@ -898,18 +897,10 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
   -webkit-mask:radial-gradient(circle, transparent 58%, #000 59%);
   mask:radial-gradient(circle, transparent 58%, #000 59%);
 }
-.dsh-legend{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.dsh-legend{ flex:1; min-width:0; max-width:440px; display:flex; flex-direction:column; gap:2px; }
 .dsh-legend-row{ display:flex; align-items:center; gap:var(--sp-2); font-size:11px; color:var(--text-muted); padding:2px 0; }
 .dsh-legend-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .dsh-legend-n{ flex:none; margin-left:auto; font-weight:var(--fw-forte); color:var(--text-muted); font-variant-numeric:tabular-nums; }
-
-/* --- Hábitos e Dia a dia ---------------------------------------- */
-.dsh-hab{ margin-bottom:11px; }
-.dsh-hab:last-child{ margin-bottom:0; }
-.dsh-hab-top{ display:flex; align-items:baseline; gap:var(--sp-2); margin-bottom:5px; font-size:var(--fs-2); color:var(--text-muted); }
-.dsh-hab-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.dsh-hab-v{ flex:none; margin-left:auto; font-weight:var(--fw-forte); font-size:11.5px; color:var(--text); font-variant-numeric:tabular-nums; }
-.dsh-hab-v em{ font-style:normal; font-weight:var(--fw-normal); color:var(--text-faint); margin-left:5px; }
 
 .dsh-empty{ font-size:var(--fs-2); color:var(--text-faint); }
 
