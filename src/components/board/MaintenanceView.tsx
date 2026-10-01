@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
+import { CommentButton } from "./CommentButton";
 import { MicButton } from "./MicButton";
 import { CarIcon, CheckIcon, ChevronIcon, HomeIcon, TrashIcon, WarningIcon, WhatsAppIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
@@ -254,6 +255,26 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
               </div>
             </label>
           </div>
+
+          {/* A coluna `note` do item existia no banco desde o começo e nunca
+              teve campo na tela: o Leandro abriu "Filtros piscina" pra anotar
+              onde compra e não achou onde escrever. Informação PERMANENTE do
+              item mora aqui (modelo, fornecedor, preço de referência, telefone);
+              o que ele gastou numa troca específica continua no "Fiz", que é
+              por serviço e já guarda valor e observação. */}
+          <label className="prop-row">
+            <span className="prop-label">Anotações</span>
+            <div className="prop-value">
+              <CommentButton
+                variant="field"
+                alwaysExpanded
+                value={item.note}
+                placeholder="Onde comprar, modelo, preço de referência, telefone do serviço..."
+                ariaLabel={`Anotações de ${item.name}`}
+                onSave={(text) => board.updateMaintenanceItem(item.id, { note: text })}
+              />
+            </div>
+          </label>
 
           <div className="maint-explain">
             Preencha os dois quando o serviço vencer por tempo <strong>ou</strong> por{" "}

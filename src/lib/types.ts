@@ -368,7 +368,7 @@ export interface Reminder {
   taskId: string | null; // quando o lembrete foi criado a partir de uma tarefa (campo "Lembrete" na edição)
   // De onde o lembrete veio quando o ícone do zap foi aceso. Null = criado à mão
   // pelo Leandro, e nesse caso nada automático mexe nele.
-  sourceKind: "medication" | "maintenance" | "event" | null;
+  sourceKind: "medication" | "maintenance" | "diet_meal" | "event" | null;
   sourceId: string | null;
   // Ícone do zap do lembrete. Nasce LIGADO: antes dele, todo lembrete com aviso
   // já ia pro WhatsApp, e desligar por padrão silenciaria tudo sem ninguém pedir.

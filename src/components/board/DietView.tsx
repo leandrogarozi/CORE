@@ -68,9 +68,12 @@ function DietMealRow({
         >
           <BellIcon filled={meal.active} />
         </button>
+        {/* Mesma regra das outras telas: verde quer dizer que a mensagem VAI
+            sair. Com o interruptor geral desligado ela não sai, então o ícone
+            não pode ficar aceso — senão é a promessa falsa de novo. */}
         <button
           type="button"
-          className={"icon-btn diet-meal-whatsapp" + (meal.notifyWhatsapp ? " active" : "")}
+          className={"icon-btn diet-meal-whatsapp" + (meal.notifyWhatsapp && whatsappOptIn ? " active" : "")}
           disabled={!whatsappOptIn}
           title={
             !whatsappOptIn
@@ -81,7 +84,7 @@ function DietMealRow({
           }
           onClick={() => whatsappOptIn && board.updateDietMeal(meal.id, { notifyWhatsapp: !meal.notifyWhatsapp })}
         >
-          <WhatsAppIcon filled={meal.notifyWhatsapp} />
+          <WhatsAppIcon filled={meal.notifyWhatsapp && whatsappOptIn} />
         </button>
         <button
           type="button"

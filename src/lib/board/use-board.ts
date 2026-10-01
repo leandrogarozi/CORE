@@ -55,7 +55,7 @@ import {
 } from "@/lib/board/mappers";
 import { isoAddDays, occurrenceDates, todayISO } from "@/lib/date-utils";
 import { studyDatesInRange } from "@/lib/board/study-plan";
-import { lembreteDaManutencao, lembreteDaMedicacao } from "@/lib/board/zap-engine";
+import { lembreteDaManutencao, lembreteDaMedicacao, lembreteDaRefeicao } from "@/lib/board/zap-engine";
 import { maintenanceStatus } from "@/lib/board/maintenance";
 import { isRecurringReminder, nextReminderOccurrenceDate } from "@/lib/board/reminder-alerts";
 import { reportSaveError } from "@/lib/board/error-toast";
@@ -95,7 +95,7 @@ import type {
   TaskStatus,
   TimerKind,
 } from "@/lib/types";
-import { DEFAULT_TAG_COLORS } from "@/lib/types";
+import { DEFAULT_TAG_COLORS, isMeetingTask } from "@/lib/types";
 
 const EMPTY_STATE: BoardState = {
   tasks: [],
@@ -1266,7 +1266,11 @@ export function useBoard(userId: string | null) {
   );
 
   // Cria/atualiza/remove o lembrete vinculado a uma tarefa (campo "Lembrete" na edição).
-  // Título padrão "Lembrete para executar a tarefa: <nome>" — reaproveita a mesma estrutura
+  // Reunião ganha título próprio: "Lembrete para executar a tarefa: Alinhamento
+  // com o Bruno" lê mal no WhatsApp, onde a mensagem vira o título + a hora.
+  // "Reunião: Alinhamento com o Bruno — 01/10 às 15:00" diz a mesma coisa do
+  // jeito que se fala, e segue a forma de "Manutenção:" e "Refeição:".
+  // Reaproveita a mesma estrutura
   // de Reminder de sempre (data/hora/repetição/dias/aviso), só com taskId apontando de volta.
   const setTaskReminder = useCallback(
     (
@@ -1293,7 +1297,9 @@ export function useBoard(userId: string | null) {
       }
       const r: Reminder = {
         id: uid(),
-        title: `Lembrete para executar a tarefa: ${task.title}`,
+        title: isMeetingTask(task)
+          ? `Reunião: ${task.title}`
+          : `Lembrete para executar a tarefa: ${task.title}`,
         date: fields.date,
         time: fields.time,
         repeat: fields.repeat,
@@ -2568,6 +2574,60 @@ export function useBoard(userId: string | null) {
   );
 
   // ---------- settings ----------
+  /**
+   * Mantém o lembrete que representa uma refeição no WhatsApp.
+   *
+   * Até agora o ícone do zap da Dieta acendia e não mandava nada — era a única
+   * tela do app que prometia mensagem e não cumpria. Aqui ele passa a valer a
+   * mesma coisa que vale no resto: aceso = chega no celular.
+   *
+   * Três chaves precisam estar ligadas pra existir lembrete: o botão da
+   * refeição, a refeição ativa, e o opt-in geral da Dieta — que é o que a tela
+   * mostra como "avisar no WhatsApp". Faltando qualquer uma, o lembrete é
+   * apagado em vez de ficar órfão mandando mensagem que ninguém pediu.
+   */
+  const sincronizarZapDaDieta = useCallback(
+    (mealId: string) => {
+      if (!userId) return;
+      const atual = stateRef.current;
+      const meal = atual.dietMeals.find((m) => m.id === mealId) ?? null;
+      const existente = atual.reminders.find(
+        (r) => r.sourceKind === "diet_meal" && r.sourceId === mealId && !r.deletedAt
+      );
+
+      const campos =
+        meal && meal.notifyWhatsapp && meal.active && atual.settings.dietWhatsappOptIn
+          ? lembreteDaRefeicao(meal, todayISO())
+          : null;
+
+      if (!campos) {
+        if (existente) deleteReminder(existente.id);
+        return;
+      }
+      if (existente) {
+        updateReminder(existente.id, campos);
+        return;
+      }
+      const r: Reminder = {
+        id: uid(),
+        ...campos,
+        note: null,
+        done: false,
+        status: "pending",
+        deletedAt: null,
+        taskId: null,
+        sourceKind: "diet_meal",
+        sourceId: mealId,
+        whatsapp: true,
+      };
+      apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
+      supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
+        if (error) reportSaveError("sincronizarZapDaDieta", error);
+      });
+    },
+    [apply, deleteReminder, supabase, updateReminder, userId]
+  );
+
   const updateSettings = useCallback(
     (patch: Partial<Settings>) => {
       if (!userId) return;
@@ -2597,8 +2657,17 @@ export function useBoard(userId: string | null) {
         .then(({ error }) => {
           if (error) reportSaveError("updateSettings", error);
         });
+
+      // O "avisar no WhatsApp" da Dieta é um interruptor geral: vale pra todas
+      // as refeições de uma vez. Desligou, os lembretes somem; ligou de volta,
+      // voltam só os que ele tinha marcado. Sem isto, desligar o geral deixaria
+      // as mensagens saindo — o pior tipo de falha, porque a tela diria que
+      // está desligado.
+      if (patch.dietWhatsappOptIn !== undefined) {
+        for (const refeicao of stateRef.current.dietMeals) sincronizarZapDaDieta(refeicao.id);
+      }
     },
-    [apply, supabase, userId]
+    [apply, sincronizarZapDaDieta, supabase, userId]
   );
 
   const uploadAvatar = useCallback(
@@ -2866,18 +2935,28 @@ export function useBoard(userId: string | null) {
       supabase.from("diet_meals").update(dietMealToUpdateRow(patch)).eq("id", id).then(({ error }) => {
         if (error) reportSaveError("updateDietMeal", error);
       });
+      // Sincroniza em QUALQUER mudança, não só no botão do zap: trocar o horário
+      // ou os dias da semana muda quando a mensagem sai, e desativar a refeição
+      // tem que calar o lembrete. Esquecer um desses deixaria o aviso avisando
+      // de uma refeição que mudou de hora.
+      sincronizarZapDaDieta(id);
     },
-    [apply, supabase]
+    [apply, sincronizarZapDaDieta, supabase]
   );
 
   const deleteDietMeal = useCallback(
     (id: string) => {
+      // Primeiro o lembrete, enquanto a refeição ainda existe pra ser achada.
+      const vinculado = stateRef.current.reminders.find(
+        (r) => r.sourceKind === "diet_meal" && r.sourceId === id && !r.deletedAt
+      );
+      if (vinculado) deleteReminder(vinculado.id);
       apply((s) => ({ ...s, dietMeals: s.dietMeals.filter((m) => m.id !== id) }));
       supabase.from("diet_meals").delete().eq("id", id).then(({ error }) => {
         if (error) reportSaveError("deleteDietMeal", error);
       });
     },
-    [apply, supabase]
+    [apply, deleteReminder, supabase]
   );
 
   return {

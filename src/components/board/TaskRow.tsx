@@ -35,6 +35,7 @@ import {
   UsersGroupIcon,
   WarningIcon,
   WeekIcon,
+  WhatsAppIcon,
 } from "./icons";
 import { fmtDayMonth, fmtHM, todayISO } from "@/lib/date-utils";
 import { taskEntriesOf } from "@/lib/board/task-time";
@@ -42,6 +43,7 @@ import { PostponeModal } from "./PostponeModal";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { countOpenChecklistItems } from "@/lib/rich-text";
 import { CATEGORY_LABEL, isMeetingTask, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
+import { ANTECEDENCIA_PADRAO_MIN } from "@/lib/board/zap-engine";
 import type { TaskEditFields } from "@/lib/board/use-board";
 
 const CATEGORIES = Object.keys(CATEGORY_LABEL) as Category[];
@@ -1091,6 +1093,38 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
               onSave={(fields) => board.setTaskReminder(t.id, fields)}
               emptyLabel="Vazio"
             />
+            {/* O zap do lembrete da tarefa já existia — só morava na tela de
+                Lembretes, o que obrigava a sair da task pra marcar. Mesmo botão,
+                mesma regra do app inteiro: verde = essa mensagem vai sair. Sem
+                lembrete criado não há o que marcar, então nem aparece. */}
+            {linkedReminder && (
+              <button
+                type="button"
+                className={
+                  "icon-btn zap-btn" +
+                  (linkedReminder.whatsapp && linkedReminder.date !== null ? " active" : "")
+                }
+                title={
+                  linkedReminder.whatsapp && linkedReminder.date !== null
+                    ? "Chega no WhatsApp. Clique pra desligar."
+                    : "Só avisa dentro do app. Clique pra mandar no WhatsApp também."
+                }
+                onClick={() =>
+                  board.updateReminder(
+                    linkedReminder.id,
+                    linkedReminder.whatsapp
+                      ? { whatsapp: false }
+                      : {
+                          whatsapp: true,
+                          alertMinutesBefore:
+                            linkedReminder.alertMinutesBefore ?? ANTECEDENCIA_PADRAO_MIN,
+                        }
+                  )
+                }
+              >
+                <WhatsAppIcon filled={linkedReminder.whatsapp && linkedReminder.date !== null} />
+              </button>
+            )}
           </div>
         </div>
         <div className="prop-row">

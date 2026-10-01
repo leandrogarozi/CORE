@@ -16,7 +16,7 @@ import type { Medication, MedicationGroup, Reminder } from "@/lib/types";
  * que ele roda isolado em Node.
  */
 
-export type OrigemDoZap = "medication" | "maintenance" | "event";
+export type OrigemDoZap = "medication" | "maintenance" | "diet_meal" | "event";
 
 /**
  * A antecedência padrão de um lembrete criado pelo zap.
@@ -60,7 +60,7 @@ export function proximaDataDaMedicacao(
   // O começo pode estar no futuro (tratamento que ainda não arrancou).
   const comecos = [med.startDate, grupo?.startDate ?? null].filter((d): d is string => !!d);
   const comeco = comecos.length ? comecos.reduce((a, b) => (a > b ? a : b)) : null;
-  let candidato = comeco && comeco > hojeISO ? comeco : hojeISO;
+  const candidato = comeco && comeco > hojeISO ? comeco : hojeISO;
 
   // Dois fins possíveis (o do remédio e o do tratamento); vale o mais cedo.
   const fins = [
@@ -69,15 +69,23 @@ export function proximaDataDaMedicacao(
   ].filter((d): d is string => !!d);
   const fim = fins.length ? fins.reduce((a, b) => (a < b ? a : b)) : null;
 
-  const dias = med.weekDays;
-  // Sem dias marcados (ou com os sete), é todo dia — o primeiro candidato serve.
+  return primeiroDiaQueBate(med.weekDays, candidato, fim);
+}
+
+/**
+ * O primeiro dia, a partir de `aPartirDe`, que cai num dos dias da semana
+ * marcados — respeitando um fim, quando existe.
+ *
+ * Sem dias marcados (ou com os sete) é todo dia, e o próprio `aPartirDe` serve.
+ * Com dias marcados, anda dia a dia: catorze passos cobrem duas semanas
+ * inteiras, então se não achou aí não existe dia que bata.
+ */
+function primeiroDiaQueBate(dias: number[] | null, aPartirDe: string, fim: string | null): string | null {
+  let candidato = aPartirDe;
   if (!dias || dias.length === 0 || dias.length >= 7) {
     if (fim && candidato > fim) return null;
     return candidato;
   }
-
-  // Com dias marcados, anda até achar um que bata. Quatorze passos cobrem duas
-  // semanas inteiras: se não achou aí, não existe dia marcado.
   for (let i = 0; i < 14; i++) {
     if (fim && candidato > fim) return null;
     if (dias.includes(dateFromISO(candidato).getDay())) return candidato;
@@ -178,5 +186,36 @@ export function lembreteDaManutencao(
     // Zero antecedência não serve: o motor de envio ignora lembrete com
     // alertMinutesBefore falso, e zero é falso em JavaScript.
     alertMinutesBefore: dias > 0 ? dias * 24 * 60 : ANTECEDENCIA_PADRAO_MIN,
+  };
+}
+
+/**
+ * Os campos do lembrete que representa uma refeição da Dieta.
+ *
+ * A regra é a que o Leandro descreveu e que o modelo já guardava: refeição com
+ * o zap aceso e **sem** dias marcados avisa todo dia no horário dela; com dias
+ * marcados, só nesses dias. Nada de campo novo — a tela de Dieta já pergunta as
+ * duas coisas.
+ *
+ * Diferente do remédio, refeição não tem começo nem fim: ninguém "termina" de
+ * almoçar em 30 dias. Por isso o `fim` vai nulo.
+ */
+export function lembreteDaRefeicao(
+  meal: { name: string; time: string; weekDays: number[] | null },
+  hojeISO: string
+): CamposDoLembrete | null {
+  if (!meal.time) return null;
+  const dias = meal.weekDays && meal.weekDays.length > 0 && meal.weekDays.length < 7 ? meal.weekDays : null;
+  const data = primeiroDiaQueBate(dias, hojeISO, null);
+  if (!data) return null;
+  return {
+    // Mesma forma de "Manutenção: X" — o prefixo diz de onde veio, e no
+    // WhatsApp a mensagem fica "Refeição: Lanche da tarde — 01/10 às 16:00".
+    title: `Refeição: ${meal.name}`,
+    date: data,
+    time: meal.time,
+    repeat: dias ? "none" : "daily",
+    weekDays: dias,
+    alertMinutesBefore: ANTECEDENCIA_PADRAO_MIN,
   };
 }
