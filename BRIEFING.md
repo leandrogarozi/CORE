@@ -1683,6 +1683,30 @@ existe e foi validado hoje; é pra reaproveitar, não reinventar.
 Preço de modelo muda, e chutar aqui viraria um número errado na tela dele — foi
 exatamente o que a gente corrigiu no WhatsApp quando a tarifa real apareceu.
 
+### A regra que ele deu sobre QUANDO a IA entra
+
+*"A ideia do falar é mais quando eu estou fora de casa, estou na rua, então
+clicou ali, falou, resolve. Enquanto estiver trabalhando na frente do computador
+e tiver com tempo, eu posso, não preciso usar a API."*
+
+Isso define o escopo da IA e precisa estar escrito, porque é o tipo de regra que
+se perde e vira "IA em tudo":
+
+- A IA entra **só no caminho da captura por voz**. Digitar no computador continua
+  sendo o que é hoje: formulário, sem chamada nenhuma.
+- Logo o volume é pequeno e previsível — algumas chamadas por dia, nas horas em
+  que ele está na rua. Isso muda a conversa de custo inteira: não é uma API
+  ligada no app o tempo todo, é um atalho de mobilidade.
+- E reforça o registro por chamada: com volume baixo, cada chamada é visível, e
+  qualquer salto no contador quer dizer que alguma coisa está chamando a API sem
+  ser ele falando.
+
+**Consequência prática no desenho:** a captura por voz tem duas metades — virar
+texto (de graça, no navegador) e virar tarefa/lembrete estruturado (aí sim a
+IA). Vale medir se as frases típicas dele ("lembrar de X amanhã às 10") não
+resolvem com regra simples antes de pagar pela interpretação. A IA fica pro que
+a regra não der conta, não pro caso fácil.
+
 ### Ordem recomendada por esforço contra o que resolve
 
 1. Instalar na tela de início — hoje, zero desenvolvimento.
