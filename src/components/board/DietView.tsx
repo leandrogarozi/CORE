@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
-import { BellIcon, TrashIcon, WhatsAppIcon } from "./icons";
+import { BellIcon, CheckIcon, TrashIcon, WhatsAppIcon } from "./icons";
 import { TimePicker } from "./TimePicker";
 import { DAY_NAMES } from "@/lib/date-utils";
 import type { DietMeal } from "@/lib/types";
@@ -219,7 +219,11 @@ export function DietView({ onBack }: { onBack: () => void }) {
                   Confirmar
                 </button>
               </div>
-              {phoneSaved && <span className="diet-phone-saved">✓ Número salvo</span>}
+              {phoneSaved && (
+                <span className="diet-phone-saved">
+                  <CheckIcon /> Número salvo
+                </span>
+              )}
             </div>
           )}
         </div>

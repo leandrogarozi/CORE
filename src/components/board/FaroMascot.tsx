@@ -6,9 +6,9 @@ import { useBoardCtx } from "./board-context";
 import { todayISO } from "@/lib/date-utils";
 
 function greetingMessage(mood: number | null | undefined): string {
-  if (mood === 0) return "Melhoras, Leandro! Espero que fique bem logo. 🤒";
+  if (mood === 0) return "Melhoras, Leandro! Espero que fique bem logo.";
   const hour = new Date().getHours();
-  if (hour < 12) return "Bom dia, Leandro! ☀️";
+  if (hour < 12) return "Bom dia, Leandro!";
   if (hour < 18) return "Boa tarde, Leandro!";
   return "Boa noite, Leandro!";
 }

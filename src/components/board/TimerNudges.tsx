@@ -150,7 +150,7 @@ export function TimerNudges() {
             <div className="timer-nudge" key={`diet-${m.id}`}>
               <span className="timer-nudge-text">
                 <BellIcon filled />
-                🎯 Foco na dieta — {m.name}
+                Foco na dieta — {m.name}
                 {m.message ? `: ${m.message}` : ""}
               </span>
               <div className="timer-nudge-actions">

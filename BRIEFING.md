@@ -1395,10 +1395,29 @@ triste, mais minimalista"*):
   carinhas de traço pra distinguir "ansioso" de "nervoso" não se leem, e inventar
   seis desenhos ambíguos é pior que nenhum.
 
-Emojis que **continuam** e por quê: os do Faro (o mascote fala com emoji — é voz,
-não moldura), os do texto exportado do checklist (vai pro WhatsApp, onde emoji é
-o idioma), e ⚡ "Rápidas primeiro", 🛒 "Comprar" e 🎯 do nudge, que entram junto
-com as telas delas.
+**Segunda leva (mesma noite), a pedido dele — "troca tudo, segue o padrão":**
+
+- ⚡ "Rápidas primeiro" → `BoltIcon`; 🛒 "Comprar" → `CartIcon`; ✓ "Número
+  salvo" → `CheckIcon`.
+- ☑/☐ da refeição saiu: o próprio chip já muda de cor quando marcado, então a
+  caixinha era a mesma informação duas vezes. Ficou só o check quando marcado.
+- 🎯 do nudge saiu sem substituto — já tem um sininho imediatamente antes, era
+  enfeite em cima de enfeite.
+- O mascote perdeu o 🤒 e o ☀️ **sem ganhar ícone**: ícone no meio de frase vira
+  tropeço, não enfeite. As frases ficaram inteiras.
+- O campo `emoji` saiu de `MOODS` e `MOOD_EMOTIONS`. Ninguém mais lia, e campo
+  morto convida alguém a usar de novo.
+
+**O que continua com emoji, de propósito:** o texto que o checklist exporta pro
+WhatsApp (📋 🛒 ✅ ⬜) — lá emoji é o idioma, não moldura — e dois comentários de
+código em `TaskListCard`, que ninguém vê.
+
+### A legenda da rosca, segunda rodada
+
+Com a rosca em cima, a legenda ganhou a largura toda e a porcentagem foi parar
+longe do nome. Agora as duas colunas têm **teto de 196px e são centralizadas**:
+o número fica perto do nome **sem** perder o alinhamento entre as linhas — que é
+o que se perderia deixando o número correr colado atrás do texto.
 
 ### Próximo passo
 

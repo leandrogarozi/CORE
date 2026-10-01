@@ -28,7 +28,7 @@ export async function POST() {
 
   const payload = JSON.stringify({
     title: "FARO",
-    body: "Notificação de teste — se você está vendo isso, funcionou! 🎯",
+    body: "Notificação de teste — se você está vendo isso, funcionou.",
     url: "/",
   });
 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
-import { BellIcon, MealIcon, MoodFaceIcon, MoonIcon, WarningIcon, WaterDropIcon } from "./icons";
+import { BellIcon, CheckIcon, MealIcon, MoodFaceIcon, MoonIcon, WarningIcon, WaterDropIcon } from "./icons";
 import { TimePicker } from "./TimePicker";
 import { dateFromISO, todayISO } from "@/lib/date-utils";
 import { isFeatureEnabled } from "@/lib/types";
@@ -156,7 +156,8 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
                           className={"dl-diet-meal-chip" + (checked ? " checked" : "")}
                           onClick={() => board.toggleDietMealChecked(selectedDate, m.id)}
                         >
-                          {checked ? "☑" : "☐"} {m.name}
+                          {checked && <CheckIcon />}
+                          {m.name}
                         </button>
                         <CommentButton
                           value={dietMealNotes[m.id] ?? null}

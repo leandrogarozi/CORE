@@ -396,7 +396,9 @@ function ChecklistRow({ checklist, board }: { checklist: Checklist; board: UseBo
             <>
               {toBuyItems.length > 0 ? (
                 <>
-                  <div className="checklist-section-label">🛒 Comprar</div>
+                  <div className="checklist-section-label">
+                    <CartIcon /> Comprar
+                  </div>
                   {toBuyItems.map(renderItem)}
                   <div className="checklist-section-label">Levar</div>
                   {packItems.map(renderItem)}

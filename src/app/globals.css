@@ -484,7 +484,8 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .diet-phone-confirm-row{ display:flex; gap:8px; }
 .diet-phone-confirm-row input{ flex:1; }
 .diet-phone-confirm-row .btn{ flex:none; }
-.diet-phone-saved{ font-size:11px; color:var(--success); }
+.diet-phone-saved{ display:inline-flex; align-items:center; gap:5px; font-size:11px; color:var(--success); }
+.diet-phone-saved svg{ width:11px; height:11px; }
 .diet-meal-app-toggle{ color:var(--text-faint); }
 .diet-meal-app-toggle.active{ color:var(--accent); }
 /* O ícone do zap: apagado é promessa nenhuma, aceso é "chega no celular".
@@ -545,7 +546,12 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   transition:filter var(--mov);
 }
 .today-btn:hover{ filter:brightness(1.07); }
-.quicksort-btn{ border:1px solid var(--border); background:var(--surface); border-radius:20px; padding:4px 10px; font-size:11px; font-weight:500; color:var(--text-muted); flex:none; white-space:nowrap; }
+.quicksort-btn{
+  display:inline-flex; align-items:center; gap:5px; flex:none; white-space:nowrap;
+  border:1px solid var(--linha); background:var(--surface); border-radius:var(--r-full);
+  padding:5px 11px; font-size:11px; font-weight:var(--fw-medio); color:var(--text-muted);
+}
+.quicksort-btn svg{ width:11px; height:11px; }
 .quicksort-btn:hover{ color:var(--text); }
 .quicksort-btn.active{
   background:color-mix(in srgb, var(--book-yellow) 18%, var(--surface));
@@ -672,6 +678,8 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .dl-diet-meals-count{
   font-size:10.5px; color:var(--text-faint); flex:none; margin-left:6px; padding-right:8px; border-right:1px solid var(--border);
 }
+.dl-diet-meal-chip{ display:inline-flex; align-items:center; gap:5px; }
+.dl-diet-meal-chip svg{ width:11px; height:11px; flex:none; }
 .dl-diet-meal-chip{
   font-size:11.5px; padding:3px 8px; border-radius:20px; border:1px solid var(--border-strong);
   color:var(--text-muted); background:var(--surface); flex:none;
@@ -904,9 +912,10 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 }
 .dsh-legend{
   width:100%; min-width:0;
-  display:grid; grid-template-columns:1fr 1fr; column-gap:var(--sp-6); row-gap:1px;
+  display:grid; grid-template-columns:repeat(2, minmax(0, 196px));
+  justify-content:center; column-gap:var(--sp-8); row-gap:1px;
 }
-@media (max-width:560px){ .dsh-legend{ grid-template-columns:1fr; } }
+@media (max-width:560px){ .dsh-legend{ grid-template-columns:minmax(0, 220px); } }
 .dsh-legend-row{ display:flex; align-items:center; gap:var(--sp-2); font-size:11px; color:var(--text-muted); padding:2px 0; }
 .dsh-legend-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .dsh-legend-n{ flex:none; margin-left:auto; font-weight:var(--fw-forte); color:var(--text-muted); font-variant-numeric:tabular-nums; }
@@ -1891,6 +1900,8 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 }
 .checklist-progress{ font-size:11px; color:var(--text-faint); flex:none; white-space:nowrap; }
 .checklist-body{ padding:8px 12px 12px 34px; background:var(--surface); }
+.checklist-section-label{ display:flex; align-items:center; gap:6px; }
+.checklist-section-label > svg{ width:12px; height:12px; flex:none; color:var(--text-faint); }
 .checklist-section-label{
   font-size:9.5px; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-faint);
   margin:10px 0 2px;

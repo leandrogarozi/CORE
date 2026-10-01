@@ -34,7 +34,7 @@ import { MeetingButton } from "./MeetingButton";
 import { TimerNudges } from "./TimerNudges";
 import { Sidebar, type ViewMode } from "./Sidebar";
 import { SaveErrorToaster } from "./SaveErrorToaster";
-import { ChevronIcon, ExpandHorizontalIcon, MenuIcon, SettingsIcon, UserIcon, WarningIcon, WeekIcon } from "./icons";
+import { BoltIcon, ChevronIcon, ExpandHorizontalIcon, MenuIcon, SettingsIcon, UserIcon, WarningIcon, WeekIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { dateFromISO, longLabel, mondayOf, todayISO } from "@/lib/date-utils";
 import type { Task } from "@/lib/types";
@@ -321,7 +321,7 @@ function BoardShell() {
                     title="Reordena as listas colocando as tarefas mais rápidas (+++) primeiro"
                     onClick={() => setSortByQuick(!sortByQuick)}
                   >
-                    ⚡ Rápidas primeiro
+                    <BoltIcon /> Rápidas primeiro
                   </button>
                 </div>
                 {viewMode === "week" ? (
