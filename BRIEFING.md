@@ -1585,6 +1585,51 @@ que ele fizer os três passos no painel da Meta. Pendências de outras frentes s
 camadas 2 e 3 do backup no Drive, restauração com simulação, e o Google Calendar
 que ele adiou.
 
+## Lista de melhorias combinadas — pra retomar depois (aberta em 01/10)
+
+O lugar único das coisas que ficaram decididas mas não feitas. Quando ele
+perguntar "o que falta", é daqui que sai a resposta.
+
+### 1. Blocos que a pessoa arrasta e reorganiza
+
+Pedido dele: *"a ideia é dar para a gente poder pegar os blocos e mover eles...
+quero arrastar o bloco de custo pro lado do bloco de hábitos, aí eles se
+ajustam, ficam responsivos... as pessoas podem definir a tela de acordo com o
+que eles acham melhor"*. Explicitamente **não é pra agora**.
+
+**Achado que muda o tamanho disso:** `@dnd-kit/core`, `@dnd-kit/sortable` e
+`@dnd-kit/utilities` estão no `package.json` e **não são usados em lugar nenhum
+do `src/`** — o arrastar de tarefas de hoje é o nativo do HTML (`draggable`,
+`onDragStart`). Então ou essas três entram nesse trabalho, ou deviam ser
+removidas. Dependência instalada e não usada é peso que ninguém sabe explicar
+seis meses depois.
+
+**O que esse trabalho exige, além do arrastar:** a ordem tem que ser guardada
+POR USUÁRIO (uma coluna nova em `settings` ou tabela própria), senão o arranjo
+some ao recarregar — e com outras pessoas no app, cada uma tem o seu. Também
+precisa de um "voltar ao padrão", porque gente arrasta, se arrepende e não acha
+como desfazer.
+
+**Tensão com uma decisão já tomada:** o Dashboard é grade fixa de propósito —
+multi-coluna foi removido de lá porque reordenava os blocos sozinho e o painel
+mudava de arrumação a cada semana. Deixar a PESSOA reordenar é o oposto disso e
+está certo; o que não pode voltar é o app reordenar sozinho.
+
+### 2. O resto da lista
+
+- **Agenda do Google** — ele pediu, mas já tinha recusado antes; confirmar.
+- **Captura por voz** no celular, com IA só nesse caminho (ver seção própria).
+- **Bloco de custo da IA** dentro do FARO, no molde do bloco do WhatsApp.
+- **Teto global de gasto**, que o usuário não alcança — vira urgente no dia que
+  entra a segunda pessoa.
+- **Tarefa-evento / reunião no motor do zap**: "<nome> começa em X min".
+- **Checklist do zap** ligado a `ChecklistItem.toBuy` — em standby desde antes.
+- **Camadas 2 e 3 do backup** (Storage do Supabase + Drive) e restauração com
+  simulação.
+- **Marca de origem no Drive**: ele ia colar a regra na skill da conta, que eu
+  não consigo editar.
+
+
 ## Captura por voz e agenda do Google — combinado em 01/10, a fazer
 
 O pedido nasceu dele fora de casa, jogando bola com o filho: *"tem algumas
