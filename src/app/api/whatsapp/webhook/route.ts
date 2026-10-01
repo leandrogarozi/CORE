@@ -64,6 +64,7 @@ export async function POST(req: NextRequest) {
   const supabase = createServiceClient();
   let atualizados = 0;
   const semDono: string[] = [];
+  const falhas: string[] = [];
 
   for (const s of recebidos) {
     const abaixo = statusesAbaixoDe(s.status);
@@ -83,15 +84,34 @@ export async function POST(req: NextRequest) {
     const { data, error } = await comFiltro.select("id");
     if (error) {
       // Uma linha que falha não pode derrubar o lote — os outros status do
-      // mesmo POST continuam valendo.
+      // mesmo POST continuam valendo. Mas a falha fica guardada: ela decide o
+      // código de resposta lá embaixo.
       console.error("[whatsapp-webhook] falha ao atualizar", s.messageId, error.message);
+      falhas.push(`${s.messageId}: ${error.message}`);
       continue;
     }
     if (data?.length) atualizados += data.length;
     else semDono.push(s.messageId);
   }
 
-  // 200 sempre que a assinatura confere: se devolvêssemos erro, a Meta
-  // reenviaria o mesmo lote por horas.
+  // Aqui estava o erro que transformou um bug em perda. A regra antiga era
+  // "200 sempre que a assinatura confere, senão a Meta reenvia por horas".
+  // Isso vale pra corpo ilegível e pra evento que não é nosso: reenviar não
+  // melhora nada. Não vale pra falha NOSSA — aí o reenvio é justamente o que
+  // salva o evento. O caso real: o service_role não tinha UPDATE nesta tabela,
+  // a gravação falhou, devolvemos 200, e os dois primeiros status de entrega
+  // que a Meta mandou na vida se perderam sem chance de voltar.
+  //
+  // Reenvio não duplica nada: o update é filtrado por "só avança", então
+  // aplicar o mesmo status duas vezes não muda a linha.
+  if (falhas.length) {
+    return NextResponse.json(
+      { error: "falha ao gravar o status", detalhes: falhas, atualizados },
+      { status: 500 }
+    );
+  }
+
+  // `semDono` continua 200: é status de mensagem que este banco não conhece
+  // (envio de outro ambiente, linha apagada). Reenviar não faria aparecer.
   return NextResponse.json({ ok: true, recebidos: recebidos.length, atualizados, semDono: semDono.length });
 }
