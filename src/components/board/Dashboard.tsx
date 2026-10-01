@@ -180,6 +180,8 @@ export function Dashboard() {
       byCategory,
       habitStats,
       blockStats,
+      // Quantos dias o período tem — é o denominador do "1/7d".
+      diasNoPeriodo: days.length,
       daysInPeriod: days.length,
       priorityPending,
       statusBuckets,
@@ -441,6 +443,38 @@ export function Dashboard() {
           )}
         </div>
 
+        {/* Hábitos e Dia a Dia voltam ao Dashboard, mas só como RESUMO: as
+            linhas com tempo e dias ativos, que foi o que ele apontou no print.
+            Os blocos da home, com play, check por dia da semana e edição,
+            continuam fora — ele foi explícito que ali no Dashboard não quer
+            aquilo, e já tinha pedido pra remover. Resumo lê; a home é onde se
+            mexe. */}
+        {(stats.habitStats.length > 0 || stats.blockStats.length > 0) && (
+          <div className="dsh-card">
+            {stats.habitStats.length > 0 && (
+              <>
+                <div className="dsh-card-title">
+                  Hábitos <span className="dsh-card-tag">tempo e dias ativos</span>
+                </div>
+                {stats.habitStats.map((h) => (
+                  <LinhaDeHabito key={h.id} nome={h.name} min={h.min} dias={h.count} de={stats.diasNoPeriodo} />
+                ))}
+              </>
+            )}
+            {stats.habitStats.length > 0 && stats.blockStats.length > 0 && <div className="dsh-sep" />}
+            {stats.blockStats.length > 0 && (
+              <>
+                <div className="dsh-card-title">
+                  Dia a Dia <span className="dsh-card-tag">tempo e dias ativos</span>
+                </div>
+                {stats.blockStats.map((b) => (
+                  <LinhaDeHabito key={b.id} nome={b.name} min={b.min} dias={b.count} de={stats.diasNoPeriodo} />
+                ))}
+              </>
+            )}
+          </div>
+        )}
+
         {/* Faixa de largura inteira, não um terceiro cartão na grade de duas
             colunas: um cartão sozinho na segunda linha deixaria metade da linha
             vazia, que é exatamente o buraco que ele reclamou nas Configurações.
@@ -469,6 +503,14 @@ export function Dashboard() {
                 </div>
               )}
             </div>
+            {/* A comparação com o mês passado em uma linha. O Dashboard é de
+                leitura rápida; o mês a mês completo fica nas Configurações. */}
+            {zap.anterior && (
+              <div className="dsh-hint" style={{ marginBottom: "var(--sp-2)" }}>
+                Mês passado: {zap.anterior.enviadas} mensagem(ns),{" "}
+                {fmtBRL(Math.round(zap.anterior.enviadas * whatsappMsgCostUsd * whatsappUsdBrl * 100))}
+              </div>
+            )}
             {whatsappMonthlyCapBrl !== null && (
               <>
                 <div className="dsh-bar">
@@ -499,6 +541,30 @@ export function Dashboard() {
           onClose={() => setModal(null)}
         />
       )}
+    </div>
+  );
+}
+
+/** Uma linha do resumo: nome, tempo no período, dias ativos e a barra da razão. */
+function LinhaDeHabito({ nome, min, dias, de }: { nome: string; min: number; dias: number; de: number }) {
+  // A barra mede CONSTÂNCIA (dias feitos sobre dias do período), não tempo.
+  // Medir tempo exigiria uma meta por hábito que ele nunca definiu, e barra sem
+  // denominador combinado não quer dizer nada.
+  const pct = de > 0 ? Math.min(100, (dias / de) * 100) : 0;
+  return (
+    <div className="dsh-hab">
+      <div className="dsh-hab-topo">
+        <span className="dsh-hab-nome">{nome}</span>
+        <span className="mono dsh-hab-n">
+          <Tempo min={min} />
+        </span>
+        <span className="mono dsh-hab-d">
+          {dias}/{de}d
+        </span>
+      </div>
+      <div className="dsh-bar">
+        <span style={{ width: `${pct}%` }} />
+      </div>
     </div>
   );
 }

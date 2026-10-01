@@ -342,7 +342,9 @@ function BoardShell() {
               <div className="day-below-row">
                 <div className="day-below-col">
                   <HoursPanel selectedDate={selectedDate} />
-                  {viewMode === "day" && <DayAgendaPanel selectedDate={selectedDate} />}
+                  {viewMode === "day" && (
+                    <DayAgendaPanel selectedDate={selectedDate} onSelectDate={setSelectedDate} />
+                  )}
                 </div>
                 {viewMode === "day" && <DailyLogPanel selectedDate={selectedDate} />}
               </div>

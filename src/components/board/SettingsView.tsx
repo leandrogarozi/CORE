@@ -429,6 +429,43 @@ function WhatsAppCostBox() {
             </div>
           )}
 
+          {/* O histórico por mês. Quando o mês vira, o contador zera — e sem
+              isto o que foi gasto some da tela como se nunca tivesse existido.
+              Ele pediu a leitura em frase: "esse mês X, mês passado Y".
+              É REGISTRO, não análise de despesa: o FARO anota o valor e para
+              aí, que é a regra que ele deu pro app. */}
+          {resumo.meses.length > 0 && (
+            <div className="wa-historico">
+              <div className="prop-label">Mês a mês</div>
+              {resumo.anterior && (
+                <div className="wa-historico-frase">
+                  Esse mês: <strong>{noMes}</strong> mensagem(ns),{" "}
+                  <strong>{fmtBRL(Math.round(custoMesBrl * 100))}</strong>. Mês passado:{" "}
+                  <strong>{resumo.anterior.enviadas}</strong> mensagem(ns),{" "}
+                  <strong>{fmtBRL(Math.round(resumo.anterior.enviadas * custoMsgBrl * 100))}</strong>.
+                </div>
+              )}
+              <div className="wa-historico-lista">
+                {resumo.meses.map((m) => (
+                  <div className="wa-historico-row" key={m.chave}>
+                    <span className="wa-historico-mes">{m.rotulo}</span>
+                    <span className="mono wa-historico-n">{m.enviadas}</span>
+                    <span className="mono wa-historico-v">
+                      {fmtBRL(Math.round(m.enviadas * custoMsgBrl * 100))}
+                    </span>
+                    {/* Falha não custa, mas precisa aparecer: mês barato porque
+                        nada saiu não é a mesma coisa que mês barato de verdade. */}
+                    {m.falhas > 0 && <span className="wa-historico-falha">{m.falhas} falha(s)</span>}
+                  </div>
+                ))}
+              </div>
+              <div className="hint-text">
+                O valor usa a tarifa e o câmbio de hoje, aplicados a todos os meses — o FARO registra quantas
+                mensagens saíram, não o que a Meta cobrou em cada fatura.
+              </div>
+            </div>
+          )}
+
           <div className="settings-row-standalone">
             <span className="settings-label">Teto de gasto no mês (R$)</span>
             <input

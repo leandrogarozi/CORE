@@ -2,23 +2,48 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { MONTH_NAMES } from "@/lib/date-utils";
 
 /**
- * O resumo de envios e gasto do WhatsApp no mês.
+ * O resumo de envios e gasto do WhatsApp, do mês corrente e dos anteriores.
  *
  * Mora aqui, e não dentro da tela, porque o número aparece em DOIS lugares —
  * Configurações e Dashboard. Duas cópias da mesma conta é como elas divergem:
  * bastaria alguém corrigir o limite do mês num lado e esquecer do outro, e o
  * app passaria a dizer duas verdades sobre quanto o Leandro gastou.
  */
+export type ResumoDoMes = {
+  /** "2026-10" — chave de ordenação e de comparação. */
+  chave: string;
+  /** "out/2026" — o que aparece na tela. */
+  rotulo: string;
+  enviadas: number;
+  entregues: number;
+  naoEntregues: number;
+  semConfirmacao: number;
+  falhas: number;
+};
+
 export type ResumoDoZap = {
+  // Campos do mês corrente, no primeiro nível: é o número que as duas telas
+  // mostram em destaque, e empurrá-lo pra dentro de um objeto só deixaria todo
+  // mundo escrevendo `resumo.mes.noMes`.
   noMes: number;
   em4Dias: number;
   falhas: number;
   entregues: number;
   naoEntregues: number;
   semConfirmacao: number;
+  /** O mês anterior, pra comparação direta. `null` no primeiro mês de uso. */
+  anterior: ResumoDoMes | null;
+  /** Do mais recente pro mais antigo, incluindo o mês corrente. */
+  meses: ResumoDoMes[];
 };
+
+function rotuloDoMes(chave: string): string {
+  const [ano, mes] = chave.split("-");
+  return `${MONTH_NAMES[Number(mes) - 1]}/${ano}`;
+}
 
 export function useWhatsAppCost(): ResumoDoZap | null {
   const [resumo, setResumo] = useState<ResumoDoZap | null>(null);
@@ -26,40 +51,77 @@ export function useWhatsAppCost(): ResumoDoZap | null {
   useEffect(() => {
     const supabase = createClient();
     const agora = new Date();
-    // Meia-noite do dia 1 no fuso de quem está olhando. A fatura da Meta fecha
-    // por mês, então o contador do mês tem que virar junto com o calendário
-    // dele — e não às 21h do dia 30, que é o que daria montar isso em UTC.
-    const inicioDoMes = new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString();
     const quatroDias = new Date(agora.getTime() - 4 * 24 * 3600 * 1000).toISOString();
-    // 60 dias cobrem o mês corrente e o anterior — é tudo que o painel mostra.
-    const desde = new Date(agora.getTime() - 60 * 24 * 3600 * 1000).toISOString();
+    // Treze meses: doze cheios pra trás mais o corrente. Com o teto de R$ 20 o
+    // volume máximo é da ordem de 500 mensagens por mês, então isso cabe numa
+    // consulta sem paginar — e é o que permite o relatório que ele pediu, em vez
+    // de só "este mês".
+    const inicio = new Date(agora.getFullYear(), agora.getMonth() - 12, 1);
+
+    // A chave do mês sai do horário LOCAL de quem está olhando: a fatura da
+    // Meta fecha por mês de calendário, e montar isso em UTC jogaria as três
+    // primeiras horas de todo dia 1º pro mês anterior.
+    const chaveLocal = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const chaveAtual = chaveLocal(agora);
+    const chaveAnterior = chaveLocal(new Date(agora.getFullYear(), agora.getMonth() - 1, 1));
 
     let vivo = true;
     supabase
       .from("whatsapp_sends")
       .select("sent_at, ok, delivery_status")
-      .gte("sent_at", desde)
+      .gte("sent_at", inicio.toISOString())
       .order("sent_at", { ascending: false })
       .then(({ data }) => {
         if (!vivo) return;
         const linhas = data ?? [];
-        // Só o que a Meta aceitou custa. Tentativa que falhou não entra na
-        // conta de gasto, mas entra no contador de falhas, que é outro assunto.
-        const enviadas = linhas.filter((l) => l.ok);
-        const aceitasNoMes = enviadas.filter((l) => l.sent_at >= inicioDoMes);
-        setResumo({
-          noMes: aceitasNoMes.length,
-          em4Dias: enviadas.filter((l) => l.sent_at >= quatroDias).length,
-          falhas: linhas.filter((l) => !l.ok && l.sent_at >= inicioDoMes).length,
+
+        const porMes = new Map<string, ResumoDoMes>();
+        for (const l of linhas) {
+          // A data vem em UTC; a chave tem que sair do fuso de quem olha.
+          const chave = chaveLocal(new Date(l.sent_at));
+          let m = porMes.get(chave);
+          if (!m) {
+            m = {
+              chave,
+              rotulo: rotuloDoMes(chave),
+              enviadas: 0,
+              entregues: 0,
+              naoEntregues: 0,
+              semConfirmacao: 0,
+              falhas: 0,
+            };
+            porMes.set(chave, m);
+          }
+          // Só o que a Meta aceitou custa. Tentativa que falhou não entra na
+          // conta de gasto, mas entra no contador de falhas, que é outro
+          // assunto — e é o que mostra que alguma coisa está quebrada.
+          if (!l.ok) {
+            m.falhas++;
+            continue;
+          }
+          m.enviadas++;
           // "lida" também é entregue — e é a confirmação mais forte que existe.
-          entregues: aceitasNoMes.filter(
-            (l) => l.delivery_status === "delivered" || l.delivery_status === "read"
-          ).length,
-          naoEntregues: aceitasNoMes.filter((l) => l.delivery_status === "failed").length,
+          if (l.delivery_status === "delivered" || l.delivery_status === "read") m.entregues++;
+          else if (l.delivery_status === "failed") m.naoEntregues++;
           // Aceita pela Meta e sem notícia desde então. Era o estado em que
           // TODAS viviam antes do webhook — e é o que escondeu os lembretes
           // que não chegaram.
-          semConfirmacao: aceitasNoMes.filter((l) => !l.delivery_status).length,
+          else m.semConfirmacao++;
+        }
+
+        const meses = [...porMes.values()].sort((a, b) => b.chave.localeCompare(a.chave));
+        const atual = porMes.get(chaveAtual);
+
+        setResumo({
+          noMes: atual?.enviadas ?? 0,
+          falhas: atual?.falhas ?? 0,
+          entregues: atual?.entregues ?? 0,
+          naoEntregues: atual?.naoEntregues ?? 0,
+          semConfirmacao: atual?.semConfirmacao ?? 0,
+          em4Dias: linhas.filter((l) => l.ok && l.sent_at >= quatroDias).length,
+          anterior: porMes.get(chaveAnterior) ?? null,
+          meses,
         });
       });
     return () => {
