@@ -490,12 +490,20 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .diet-meal-app-toggle{ color:var(--text-faint); }
 .diet-meal-app-toggle.active{ color:var(--accent); }
 /* O ícone do zap: apagado é promessa nenhuma, aceso é "chega no celular".
-   Verde porque é a cor do WhatsApp em todo canto do app. */
-.zap-btn{ color:var(--text-faint); transition:color var(--mov); }
-.zap-btn:hover:not(:disabled){ color:var(--text-muted); }
-.zap-btn.active{ color:var(--success); }
+   Verde porque é a cor do WhatsApp em todo canto do app.
+   Aceso ele fica PREENCHIDO, não só contornado: contorno verde num ícone de
+   traço some no meio dos outros botõezinhos da linha, e esse é o botão que
+   decide se uma mensagem sai ou não — tem que dar pra ver de longe. */
+.zap-btn{
+  color:var(--text-faint); border-radius:var(--r-1);
+  width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center;
+  transition:color var(--mov), background var(--mov);
+}
+.zap-btn:hover:not(:disabled){ color:var(--text-muted); background:var(--segmento-fundo); }
+.zap-btn.active{ background:var(--success); color:#fff; }
+.zap-btn.active:hover{ background:var(--success); filter:brightness(1.08); }
 .zap-btn:disabled{ opacity:0.3; cursor:not-allowed; }
-.zap-btn svg{ width:14px; height:14px; }
+.zap-btn svg{ width:13px; height:13px; }
 .diet-meal-whatsapp{ color:var(--text-faint); }
 .diet-meal-whatsapp.active{ color:var(--success); }
 .diet-meal-whatsapp svg{ width:13px; height:13px; }

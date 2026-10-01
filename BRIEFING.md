@@ -1504,6 +1504,36 @@ Buscar `FARO` no Drive devolve tudo que saiu do app, esteja na pasta que estiver
 Drive, quando ele existir. Se outro app dele exportar pro mesmo lugar, a marca
 dele é outra (` · META SAÚDE`, e assim por diante).
 
+## Dois erros que ele pegou no app rodando (01/10)
+
+### 1. "Tirei do Dashboard" só era meia verdade
+
+Ele mandou print do Dashboard **com Hábitos, Dia a Dia e a faixa Sem data ainda
+na tela**, e disse que o que eu mandei não bateu com o print.
+
+Ele estava certo, e meu diagnóstico anterior estava errado. Eu tirei os cartões
+de **dentro do `Dashboard.tsx`** — isso funcionou. Mas o `BoardApp` renderiza a
+faixa "Sem data" e o bloco "Hábitos / Dia a Dia" **fora do `if` que troca entre
+Dia e Dashboard**, logo abaixo. Então eles apareciam embaixo do Dashboard
+também, vindos de outro lugar.
+
+Corrigido com `{viewMode !== "dashboard" && (...)}` em volta dos dois blocos.
+
+**A lição, que é a parte que importa:** meu arquivo de prova renderiza o
+componente isolado. Ele prova o componente, **não a tela**. Tudo que o pai
+desenha em volta — e tudo que o pai desenha fora do `if` — é invisível pra ele.
+Quando o pedido é "tirar algo da tela", conferir no COMPONENTE não basta: tem que
+olhar quem mais desenha naquela tela.
+
+### 2. O ícone do zap aceso só tinha contorno
+
+*"Quando clica nele, ele tem que ficar preenchido de verde, não só o contorno,
+porque aí fica claro: eu ativei."*
+
+Tinha razão. Verde no traço de um ícone pequeno some no meio dos outros
+botõezinhos da linha — e esse é o botão que decide se uma mensagem sai ou não.
+Aceso agora é um bloco verde preenchido com o ícone branco.
+
 ### Próximo passo
 
 Manutenção, Evento e Dieta no motor do zap. E o WhatsApp de ponta a ponta, assim

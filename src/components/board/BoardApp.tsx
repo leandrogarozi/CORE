@@ -342,6 +342,12 @@ function BoardShell() {
             </div>
           )}
 
+          {/* Sem data, Hábitos e Dia a Dia são da tela do DIA.
+              Eles ficavam fora do if acima, então apareciam embaixo do Dashboard
+              também — e era por isso que os cartões continuavam na tela depois de
+              eu tirá-los de dentro do Dashboard: estes aqui vêm de fora dele. */}
+          {viewMode !== "dashboard" && (
+            <>
           {/* Recolhido por padrão: a lista sem data cresce sem parar e empurrava
               hábitos e blocos pra fora da tela. */}
           <div className="section">
@@ -405,6 +411,8 @@ function BoardShell() {
               <RecurringSection kind="block" weekAnchor={weekAnchor} />
             </div>
           </div>
+            </>
+          )}
         </>
       )}
 
