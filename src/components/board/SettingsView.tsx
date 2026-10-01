@@ -563,6 +563,10 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
         <span style={{ width: 32 }} />
       </div>
 
+      {/* Duas colunas: empilhado, cada cartão ocupava a largura toda e a tela
+          virava uma fita vertical sem fim. */}
+      <div className="settings-grade">
+
       <CollapsibleBox title="Tags da tarefa" icon={<TagIcon />}>
         <div className="settings-rows">
           {CATEGORIES.filter((cat) => cat !== "sem_categoria").map((cat) => {
@@ -705,11 +709,12 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
         )}
       </CollapsibleBox>
 
-      <PushNotificationsBox />
+        <PushNotificationsBox />
 
-      <WhatsAppCostBox />
+        <WhatsAppCostBox />
 
-      <BackupBox />
+        <BackupBox />
+      </div>
     </div>
   );
 }

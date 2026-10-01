@@ -1419,9 +1419,49 @@ longe do nome. Agora as duas colunas têm **teto de 196px e são centralizadas**
 o número fica perto do nome **sem** perder o alinhamento entre as linhas — que é
 o que se perderia deixando o número correr colado atrás do texto.
 
+### Etapa 4 — o resto das telas (madrugada de 01/10)
+
+Feita enquanto ele dormia, a pedido dele. Varredura sistemática em vez de tela
+por tela, porque o que faltava era quase todo compartilhado.
+
+**A varredura:** 18 blocos ainda usavam a sombra e a borda antigas. Separados em
+dois grupos, porque não são a mesma coisa:
+
+- **Cartão/painel** (`.auth-card`, `.diet-page-card`, `.maint-asset`,
+  `.study-card`, `.synapse-card`, `.cal-grid`, `.trash-toolbar`,
+  `.timer-nudge`) → `--sh-1`, encostado no fundo.
+- **Flutuante** (popover, menu, barra de busca, toast, gaveta) → `--sh-2`, e o
+  modal `--sh-3`. Eles estão POR CIMA do conteúdo: a sombra aqui não é enfeite,
+  é o que diz "isto está aberto".
+
+**Oito rótulos saíram da CAIXA ALTA.** Ficaram em maiúscula só as abreviações de
+três letras do calendário (SEG, TER), onde a maiúscula é forma, não ênfase.
+
+**Configurações — o que ele chamou de "bem ruizinha":**
+
+1. **A linha de configuração era um retângulo com contorno próprio.** Quatro
+   delas viravam quatro caixas dentro de uma caixa. Virou linha com divisória,
+   igual à de hábitos.
+2. **Os três números do WhatsApp** viraram a mesma faixa dividida do Dashboard,
+   em vez de três caixas cinzas soltas.
+3. **Duas colunas.** Empilhado, cada cartão ocupava a largura toda e a tela
+   virava uma fita vertical sem fim. Vale pro Perfil também.
+
+**Calendário:** o cabeçalho virou o mesmo do Dashboard — assunto à esquerda,
+ações à direita. Antes o "Hoje" ficava sozinho na ponta esquerda e o mês no
+meio, e as duas telas não pareciam da mesma família. O mês saiu da fonte mono
+(parecia código) e virou título.
+
+**Provas:** `scratchpad/red/telas.py` monta Configurações, Perfil, Calendário,
+Projetos e Livros com o CSS e o DOM reais, nos dois temas.
+
+**Dois erros meus nas provas, corrigidos:** eu tinha posto o rótulo de seção
+FORA do `.list-card` (no app ele mora dentro) e montado a barra do Calendário na
+ordem errada. Os dois apareceram ao ler os PNGs — não ao ler o código.
+
 ### Próximo passo
 
-A fila acima, começando pelo Perfil. Pendências de outras frentes seguem na lista:
+Aprovação dos prints. Depois: Manutenção, Evento e Dieta no motor do zap. Pendências de outras frentes seguem na lista:
 camadas 2 e 3 do backup no Drive, restauração com simulação, e o Google Calendar
 que ele adiou.
 

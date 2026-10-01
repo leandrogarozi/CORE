@@ -16,6 +16,8 @@ export function ProfileView({ onBack }: { onBack: () => void }) {
         <span style={{ width: 32 }} />
       </div>
 
+      <div className="settings-grade">
+
       <div className="dash-box">
         <ProfileFields board={board} />
       </div>
@@ -26,6 +28,7 @@ export function ProfileView({ onBack }: { onBack: () => void }) {
             Sair
           </button>
         </form>
+      </div>
       </div>
     </div>
   );

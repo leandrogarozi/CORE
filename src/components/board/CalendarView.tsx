@@ -49,21 +49,25 @@ export function CalendarView({
         <span style={{ width: 32 }} />
       </div>
 
+      {/* Mesma arrumação do cabeçalho do Dashboard: o assunto à esquerda, as
+          ações à direita. Antes o "Hoje" ficava sozinho na ponta esquerda e o
+          mês no meio, e as duas telas não pareciam da mesma família. */}
       <div className="cal-toolbar">
-        <button className="today-btn" type="button" onClick={goToday}>
-          Hoje
-        </button>
         <div className="cal-month-nav">
+          <span className="cal-month-label">
+            {MONTH_NAMES_FULL[monthAnchor.getMonth()]} {monthAnchor.getFullYear()}
+          </span>
           <button className="strip-nav" type="button" aria-label="mês anterior" onClick={prevMonth}>
             ‹
           </button>
-          <span className="cal-month-label mono">
-            {MONTH_NAMES_FULL[monthAnchor.getMonth()]} {monthAnchor.getFullYear()}
-          </span>
           <button className="strip-nav" type="button" aria-label="próximo mês" onClick={nextMonth}>
             ›
           </button>
         </div>
+        <span style={{ flex: 1 }} />
+        <button className="today-btn" type="button" onClick={goToday}>
+          Hoje
+        </button>
         <div className="view-toggle">
           <button type="button" className="view-toggle-btn active">
             Mês
