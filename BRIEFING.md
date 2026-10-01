@@ -1645,11 +1645,17 @@ frente — não uma linha por ocorrência. Então o zap aceso nele vale pra toda
 vezes, e apagar vale pra todas: é exatamente o "sempre lembrar ou não" que ele
 descreveu.
 
-**O "pular essa" não existe.** Desmarcar uma ocorrência específica e manter as
-outras não tem onde morar hoje — não há linha daquela ocorrência pra guardar a
-exceção. Precisa de uma lista de datas puladas por lembrete. **Não inventei
-isso** sem ele decidir, porque muda o modelo de dados dos recorrentes. Fica como
-pergunta pra ele.
+**O "pular essa" não existe** — desmarcar uma ocorrência específica e manter as
+outras precisaria de uma lista de datas puladas por lembrete, o que muda o
+modelo de dados dos recorrentes. Perguntei antes de inventar, e **ele decidiu
+que não quer isso** (01/10): *"eu tenho que ter controle fácil, marcar e
+desmarcar o que que quero que continue saindo quando for recorrente... botão
+verde do WhatsApp marcado = vai sair, desmarquei = para de sair"*.
+
+Ou seja, o que ele pediu é exatamente o que já existe: o botão liga e desliga a
+série inteira, e não há tela nova, menu de "sempre/nunca", nem exceção por data.
+**Pendência encerrada sem escrever código** — vale registrar porque a resposta
+mais barata de um pedido é descobrir que ele já está atendido.
 
 ## Webhook de status do WhatsApp — FEITO (noite de 30/09)
 
