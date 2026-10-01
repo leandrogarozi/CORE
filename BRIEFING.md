@@ -1647,6 +1647,42 @@ lugar seguro pra guardar o token de cada usuário. Não é algo pra fazer e desf
 (Nota: as ferramentas de Google Calendar que o Claude usa nesta sessão são DELE
 pra mim, não do app. O FARO precisaria do OAuth próprio.)
 
+### O que muda porque ele quer abrir pra outras pessoas
+
+Acrescentado em 01/10: *"a gente tem que pensar nisso para funcionar para outras
+pessoas, em breve quero colocar para outras pessoas testarem"*. Isso não é um
+detalhe de depois — muda o desenho do que vier agora.
+
+**O que JÁ está pronto pra vários usuários**, e é mais do que parece:
+
+- O `dispatch-reminders` agrupa por `user_id` e lê **de cada usuário** o
+  telefone, o fuso, a tarifa, o câmbio e o teto do mês, contando o gasto
+  separado por pessoa. A parte mais difícil já está feita.
+- RLS por usuário em tudo, e `whatsapp_sends` guarda `user_id`.
+- O painel de custo lê com o cliente do usuário, então cada um vê o seu.
+
+**O que NÃO está, e é onde mora o risco:**
+
+- **Teto global não existe.** O teto de R$ 20 é por usuário, e cada um edita o
+  seu na própria tela. Com dez testadores, dez pessoas podem subir o próprio
+  teto — e a fatura é de uma pessoa só: dele. Falta um limite que o usuário não
+  alcança.
+- **A conta da IA não tem registro nenhum.** O WhatsApp tem `whatsapp_sends`, que
+  é o que permite contar, projetar e travar. A IA precisa do MESMO padrão: uma
+  linha por chamada, com tokens e custo, e o mesmo teto. Sem isso o gasto só
+  aparece na fatura, que é tarde.
+- **Um número de WhatsApp pra todo mundo**: cada destinatário precisa ter optado
+  por receber, e os templates são aprovados por conta. Isso é trabalho de
+  configuração na Meta, não de código.
+
+**Bloco de custo da API dentro do FARO**, pedido dele: mesmo desenho do bloco do
+WhatsApp — mensagens/chamadas no mês, gasto, teto, e o mês a mês. O padrão já
+existe e foi validado hoje; é pra reaproveitar, não reinventar.
+
+**A tarifa da IA tem que ser consultada na hora de construir, não lembrada.**
+Preço de modelo muda, e chutar aqui viraria um número errado na tela dele — foi
+exatamente o que a gente corrigiu no WhatsApp quando a tarifa real apareceu.
+
 ### Ordem recomendada por esforço contra o que resolve
 
 1. Instalar na tela de início — hoje, zero desenvolvimento.
@@ -1655,6 +1691,10 @@ pra mim, não do app. O FARO precisaria do OAuth próprio.)
 4. Agenda do Google, depois de ele confirmar.
 5. Comando por texto no WhatsApp — aproveita o webhook que já existe.
 6. Áudio no WhatsApp — a maior e a mais cara; só se as de cima não bastarem.
+
+O teto global e o registro de uso da IA entram **junto** com a IA, não depois:
+ligar a API sem medidor é a mesma falha do `ok: true` do WhatsApp — a gente só
+descobriria o problema quando a conta chegasse.
 
 ## O verde que mentia, e o botão que não desmarcava (01/10)
 
