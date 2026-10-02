@@ -343,7 +343,21 @@ function BoardShell() {
                 <div className="day-below-col">
                   <HoursPanel selectedDate={selectedDate} />
                   {viewMode === "day" && (
-                    <DayAgendaPanel selectedDate={selectedDate} onSelectDate={setSelectedDate} />
+                    <DayAgendaPanel
+                      selectedDate={selectedDate}
+                      onSelectDate={setSelectedDate}
+                      // Mesma navegação da busca: leva pro dia da tarefa e
+                      // acende a linha dela. Reaproveitar isso é o que faz a
+                      // agenda abrir o item no lugar certo em vez de só rolar.
+                      onAbrirTarefa={(task) => {
+                        goToTask(task);
+                        requestFocus({ kind: "task", id: task.id });
+                      }}
+                      onAbrirLembrete={(id) => {
+                        setViewMode("reminders");
+                        requestFocus({ kind: "reminder", id });
+                      }}
+                    />
                   )}
                 </div>
                 {viewMode === "day" && <DailyLogPanel selectedDate={selectedDate} />}

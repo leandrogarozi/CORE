@@ -45,6 +45,35 @@ export function TrashView({ onBack }: { onBack: () => void }) {
   const reminders = board.state.trashedReminders;
   const total = tasks.length + reminders.length;
 
+  /**
+   * Uma lista só, da exclusão mais recente pra mais antiga.
+   *
+   * Antes eram dois blocos — todas as tarefas, depois todos os lembretes —,
+   * cada um na ordem em que o estado trouxe. Quem abre a lixeira está
+   * procurando o que apagou sem querer, e isso aconteceu HÁ POUCO: a ordem que
+   * serve é a do tempo, não a do tipo. Separar por tipo só ajudaria quem já
+   * sabe o que procura, que é justamente quem não precisa da lixeira.
+   *
+   * Sem data vai pro fim: linha antiga, de antes da coluna existir, não pode
+   * encabeçar a lista fingindo ser a mais recente.
+   */
+  const itens = [
+    ...tasks.map((t) => ({
+      chave: `task-${t.id}`,
+      titulo: t.title,
+      deletedAt: t.deletedAt,
+      restaurar: () => board.restoreTask(t.id),
+      apagar: () => board.purgeTask(t.id),
+    })),
+    ...reminders.map((r) => ({
+      chave: `reminder-${r.id}`,
+      titulo: r.title,
+      deletedAt: r.deletedAt,
+      restaurar: () => board.restoreReminder(r.id),
+      apagar: () => board.purgeReminder(r.id),
+    })),
+  ].sort((a, b) => (b.deletedAt ?? "").localeCompare(a.deletedAt ?? ""));
+
   function emptyTrash() {
     askConfirm(
       `Esvaziar a lixeira? ${total} ${total === 1 ? "item vai ser excluído" : "itens vão ser excluídos"} de vez, sem volta.`,
@@ -80,26 +109,15 @@ export function TrashView({ onBack }: { onBack: () => void }) {
           {total === 0 ? (
             <div className="hp-empty">Lixeira vazia.</div>
           ) : (
-            <>
-              {tasks.map((t) => (
-                <TrashRow
-                  key={`task-${t.id}`}
-                  title={t.title}
-                  deletedAt={t.deletedAt}
-                  onRestore={() => board.restoreTask(t.id)}
-                  onPurge={() => board.purgeTask(t.id)}
-                />
-              ))}
-              {reminders.map((r) => (
-                <TrashRow
-                  key={`reminder-${r.id}`}
-                  title={r.title}
-                  deletedAt={r.deletedAt}
-                  onRestore={() => board.restoreReminder(r.id)}
-                  onPurge={() => board.purgeReminder(r.id)}
-                />
-              ))}
-            </>
+            itens.map((i) => (
+              <TrashRow
+                key={i.chave}
+                title={i.titulo}
+                deletedAt={i.deletedAt}
+                onRestore={i.restaurar}
+                onPurge={i.apagar}
+              />
+            ))
           )}
         </div>
       </div>

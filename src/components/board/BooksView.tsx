@@ -361,8 +361,11 @@ function BookRow({
         onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
       />
       {book.status === "lendo" && <BookStartDateButton book={book} />}
-      <BookPriorityFlag book={book} />
+      {/* Bolinha antes da bandeirinha: status é o que ele olha primeiro ("estou
+          lendo? já li?"), prioridade vem depois. A ordem na linha é a ordem da
+          leitura. */}
       <BookStatusPicker book={book} />
+      <BookPriorityFlag book={book} />
       <BookInsightsButton book={book} />
       <AttachmentsButton entityType="book" entityId={book.id} ariaLabel="Anexos do livro" />
       <button

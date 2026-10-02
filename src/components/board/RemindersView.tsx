@@ -93,7 +93,15 @@ export function ReminderDateButton({
   alertMinutesBefore,
   onSave,
   emptyLabel = "Definir data",
-}: ReminderScheduleFields & { onSave: (fields: ReminderScheduleFields) => void; emptyLabel?: string }) {
+  whatsapp,
+  onWhatsappChange,
+}: ReminderScheduleFields & {
+  onSave: (fields: ReminderScheduleFields) => void;
+  emptyLabel?: string;
+  /** Só chega preenchido quando já existe um lembrete pra marcar. */
+  whatsapp?: boolean;
+  onWhatsappChange?: (ligado: boolean) => void;
+}) {
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const open = anchorRect !== null;
   const [dateDraft, setDateDraft] = useState(date ?? "");
@@ -249,6 +257,31 @@ export function ReminderDateButton({
                 </option>
               ))}
             </select>
+            {/* O zap mora aqui, junto do "quando" — era um ícone solto na linha
+                da tarefa e ele não achava ("ficou muito perdido"). Decidir que
+                avisa e decidir por onde avisa é a mesma decisão, e agora é feita
+                no mesmo lugar.
+                Exige aviso marcado pela regra de sempre: sem aviso não existe
+                quando mandar, e o verde não pode prometer o que não sai. */}
+            {whatsapp !== undefined && onWhatsappChange && (
+              <label
+                className={"reminder-zap-opcao" + (alertDraft === null ? " inerte" : "")}
+                title={
+                  alertDraft === null
+                    ? "Escolha um aviso acima — sem aviso não há quando mandar"
+                    : undefined
+                }
+              >
+                <input
+                  type="checkbox"
+                  checked={whatsapp && alertDraft !== null}
+                  disabled={alertDraft === null}
+                  onChange={(e) => onWhatsappChange(e.target.checked)}
+                />
+                <WhatsAppIcon filled={whatsapp && alertDraft !== null} />
+                <span>Avisar no WhatsApp</span>
+              </label>
+            )}
             <div className="edit-actions edit-actions-split">
               <button
                 type="button"
@@ -884,8 +917,26 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
   const weekEnd = isoAddDays(today, 7);
   const filtered = board.state.reminders.filter((r) => matchesReminderFilter(r, filter, today, weekEnd));
   const notDone = filtered.filter((r) => !r.done);
-  const overdue = sortByClosestDate(notDone.filter((r) => isReminderOverdue(r)));
-  const pending = sortByClosestDate(notDone.filter((r) => !isReminderOverdue(r)));
+
+  /**
+   * Lembrete que o FARO criou sozinho fica em seção separada.
+   *
+   * Acender o zap num remédio, numa refeição ou numa manutenção cria um
+   * lembrete de verdade — é assim que o disparo, o teto de gasto e o registro
+   * de entrega são os mesmos pra tudo. Só que eles apareciam no meio da lista
+   * dele: *"eu gostaria que lá onde eu marquei já ficasse pronto pra disparar...
+   * para não se misturar com os que já estão aqui, eu não gostei disso"*.
+   *
+   * Sumir com eles seria pior: ele perderia a visão do que vai ser enviado, e
+   * um lembrete que existe e não aparece em lugar nenhum é pior que um fora de
+   * lugar. Então ficam, recolhidos por padrão, embaixo dos dele. Quem manda
+   * neles continua sendo o ícone da tela de origem.
+   */
+  const meus = notDone.filter((r) => !r.sourceKind);
+  const automaticos = sortByClosestDate(notDone.filter((r) => !!r.sourceKind));
+
+  const overdue = sortByClosestDate(meus.filter((r) => isReminderOverdue(r)));
+  const pending = sortByClosestDate(meus.filter((r) => !isReminderOverdue(r)));
   const done = filtered.filter((r) => r.done);
 
   return (
@@ -960,7 +1011,7 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
           </div>
         </div>
 
-        {overdue.length === 0 && pending.length === 0 && done.length === 0 && (
+        {overdue.length === 0 && pending.length === 0 && done.length === 0 && automaticos.length === 0 && (
           <div className="list-card">
             <div className="hp-empty">
               {filter === "todos" ? "Nenhum lembrete ainda." : "Nenhum lembrete encontrado com esse filtro."}
@@ -989,6 +1040,17 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
             labelClass="pending-label"
             count={pending.length}
             reminders={pending}
+          />
+        )}
+
+        {automaticos.length > 0 && (
+          <CollapsibleReminderSection
+            storageKey="faro-lembretes-automaticos"
+            label="Criados por outras telas"
+            labelClass="pending-label"
+            count={automaticos.length}
+            defaultOpen={false}
+            reminders={automaticos}
           />
         )}
 

@@ -169,15 +169,25 @@ export function proximaOcorrencia(
  *
  * A antecedência sai do `alertDaysBefore` que o Leandro já configurou item a
  * item. Criar um campo novo pra isso seria pedir duas vezes a mesma coisa.
+ *
+ * E a anotação do item, quando existe, É a mensagem. Ele apontou que a
+ * observação do "Fiz" já cobre o registro por serviço, então o campo do item
+ * ficava sem função — virou o texto que chega no celular dele.
  */
 export function lembreteDaManutencao(
-  item: { name: string; alertDaysBefore: number },
+  item: { name: string; alertDaysBefore: number; note?: string | null },
   dueDate: string | null
 ): CamposDoLembrete | null {
   if (!dueDate) return null;
   const dias = Math.max(0, item.alertDaysBefore);
+  // O título vira o CORPO da mensagem no WhatsApp. Se ele escreveu a anotação
+  // do item, é ela que ele quer receber — "Trocar o refil Intex A, R$ 89 na
+  // Piscinas Vitória" diz o que fazer; "Manutenção: Filtros piscina" só diz que
+  // existe. O campo do item era redundante com a observação do "Fiz", que é por
+  // serviço, então passa a ter esse trabalho.
+  const texto = item.note?.trim();
   return {
-    title: `Manutenção: ${item.name}`,
+    title: texto ? texto : `Manutenção: ${item.name}`,
     date: dueDate,
     // Manhã: aviso de manutenção que chega às 23h não dá pra resolver no dia.
     time: "09:00",

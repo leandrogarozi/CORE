@@ -1754,8 +1754,9 @@ export function useBoard(userId: string | null) {
       supabase.from("maintenance_items").update(maintenanceItemToUpdateRow(patch)).eq("id", id).then(({ error }) => {
         if (error) reportSaveError("updateMaintenanceItem", error);
       });
-      // Mudou o intervalo, a última troca ou a antecedência: a data de
-      // vencimento muda, e o lembrete do zap acompanha.
+      // Sincroniza em qualquer mudança do item: intervalo, última troca e
+      // antecedência mexem na data de vencimento, e a anotação É o texto que
+      // chega no WhatsApp. Qualquer um dos quatro muda o lembrete.
       sincronizarZapDaManutencao(id);
     },
     [apply, sincronizarZapDaManutencao, supabase]

@@ -280,21 +280,20 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
             </label>
           </div>
 
-          {/* A coluna `note` do item existia no banco desde o começo e nunca
-              teve campo na tela: o Leandro abriu "Filtros piscina" pra anotar
-              onde compra e não achou onde escrever. Informação PERMANENTE do
-              item mora aqui (modelo, fornecedor, preço de referência, telefone);
-              o que ele gastou numa troca específica continua no "Fiz", que é
-              por serviço e já guarda valor e observação. */}
+          {/* Este campo começou como "Anotações" e virou a MENSAGEM. Ele
+              percebeu que o "Fiz" já guarda observação por serviço, então o
+              campo do item estava duplicando — e o que faltava mesmo era
+              escolher o texto que chega no celular. Vazio, a mensagem cai no
+              padrão "Manutenção: <nome do item>". */}
           <label className="prop-row">
-            <span className="prop-label">Anotações</span>
+            <span className="prop-label">Mensagem no WhatsApp</span>
             <div className="prop-value">
               <CommentButton
                 variant="field"
                 alwaysExpanded
                 value={item.note}
-                placeholder="Onde comprar, modelo, preço de referência, telefone do serviço..."
-                ariaLabel={`Anotações de ${item.name}`}
+                placeholder={`Vazio, chega como "Manutenção: ${item.name}"`}
+                ariaLabel={`Mensagem de ${item.name} no WhatsApp`}
                 onSave={(text) => board.updateMaintenanceItem(item.id, { note: text })}
               />
             </div>

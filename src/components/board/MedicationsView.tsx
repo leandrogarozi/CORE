@@ -276,6 +276,9 @@ function MedicationGroupCard({ group, medications }: { group: MedicationGroup; m
     setNewMedName("");
   }
 
+  // Só vale pra tratamento desligado — o ligado mostra sempre.
+  const [expandidoInativo, setExpandidoInativo] = useState(false);
+
   const showTime = group.timeMode === "individual";
 
   return (
@@ -354,22 +357,40 @@ function MedicationGroupCard({ group, medications }: { group: MedicationGroup; m
           <TrashIcon />
         </button>
       </div>
-      {medications.map((m) => (
-        <MedicationRow key={m.id} medication={m} showTime={showTime} />
-      ))}
-      <div className="quickadd-row">
-        <span className="quickadd-plus" aria-hidden="true">
-          +
-        </span>
-        <input
-          type="text"
-          className="quickadd-input"
-          placeholder="+ Adicionar remédio desse tratamento"
-          value={newMedName}
-          onChange={(e) => setNewMedName(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleAddMedication()}
-        />
-      </div>
+      {/* Tratamento desligado recolhe: o de sinusite dele acabou em agosto e os
+          cinco remédios continuavam ocupando a tela, empurrando pra baixo o que
+          ele toma HOJE. Desligado vira uma linha com a contagem, e o cabeçalho
+          continua clicável pra reabrir quando quiser consultar. */}
+      {!group.active ? (
+        <button
+          type="button"
+          className="med-group-recolhido"
+          onClick={() => setExpandidoInativo((v) => !v)}
+        >
+          {expandidoInativo ? "Esconder" : "Ver"} {medications.length}{" "}
+          {medications.length === 1 ? "remédio" : "remédios"} desse tratamento
+        </button>
+      ) : null}
+      {(group.active || expandidoInativo) && (
+        <>
+          {medications.map((m) => (
+            <MedicationRow key={m.id} medication={m} showTime={showTime} />
+          ))}
+          <div className="quickadd-row">
+            <span className="quickadd-plus" aria-hidden="true">
+              +
+            </span>
+            <input
+              type="text"
+              className="quickadd-input"
+              placeholder="+ Adicionar remédio desse tratamento"
+              value={newMedName}
+              onChange={(e) => setNewMedName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddMedication()}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 }
