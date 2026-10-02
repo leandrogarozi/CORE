@@ -314,9 +314,19 @@ function BackupBox() {
   }
 
   return (
-    <CollapsibleBox title="Backup" icon={<ArchiveIcon />}>
+    <CollapsibleBox title="Backup completo do app (.json)" icon={<ArchiveIcon />}>
+      {/* O formato entra no título e no botão porque foi exatamente o que o
+          confundiu: ele clicou no bloco chamado "Backup" esperando o .zip dos
+          textos e baixou um .json. Dois blocos começando com a mesma palavra,
+          um ao lado do outro — a culpa é do nome, não dele. */}
+      <div className="hint-text" style={{ marginTop: 0, marginBottom: 8 }}>
+        Este é o <strong>cofre</strong>: um arquivo técnico com tudo, pra
+        restaurar o app se algo der errado. Não é pra ler. Os textos de
+        aprendizado pra ler estão no outro bloco, <strong>Backup de
+        aprendizado</strong>.
+      </div>
       <button type="button" className="btn btn-accent" onClick={baixar} disabled={baixando}>
-        {baixando ? "Gerando..." : "Baixar backup agora"}
+        {baixando ? "Gerando..." : "Baixar arquivo .json"}
       </button>
 
       {ultimo && (
@@ -425,7 +435,7 @@ function BackupDeAprendizadoBox() {
   }
 
   return (
-    <CollapsibleBox title="Backup de aprendizado" icon={<BookOpenIcon />}>
+    <CollapsibleBox title="Backup de aprendizado (.zip de textos)" icon={<BookOpenIcon />}>
       <div className="settings-row-standalone">
         <span className="settings-label">Nome do backup</span>
         <input
@@ -472,7 +482,11 @@ function BackupDeAprendizadoBox() {
         onClick={gerar}
         disabled={gerando || quantos === 0}
       >
-        {gerando ? "Gerando..." : quantos === 0 ? "Nada com anotação pra gerar" : `Gerar e baixar (${quantos})`}
+        {gerando
+          ? "Gerando..."
+          : quantos === 0
+            ? "Nada com anotação pra gerar"
+            : `Baixar .zip com ${quantos} ${quantos === 1 ? "texto" : "textos"}`}
       </button>
 
       {ultimo && (
