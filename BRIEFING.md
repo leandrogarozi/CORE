@@ -4475,6 +4475,14 @@ de feature flags que já existe pra água/dieta/sono/humor
 
 ### 🟡 Médios
 
+- [ ] **Cadastro de cliente de verdade** — hoje o cliente é um campo de
+      texto livre na reunião, e a aba Reuniões agrupa por esse texto. Ele
+      perguntou onde cadastra (02/10) e decidiu deixar pra depois:
+      *"eu deixo anotado, mas por enquanto não vou fazer não, mas quem
+      sabe mais pra frente"*. Se for feito: tabela própria com contato e
+      histórico, e o campo da reunião passa a apontar pra ela em vez de
+      repetir o nome — repetido, qualquer diferença de digitação cria um
+      "cliente" novo na aba.
 - [x] Status de tarefa customizável
 - [x] Lista de lembretes — specs acima, implementado (tela própria +
       bloco no Painel do dia)
