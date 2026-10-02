@@ -184,6 +184,61 @@ por dificuldade:
   Depende da chave de API da Anthropic estar configurada; entra como
   a "cara" (UI) desse assistente de IA maior, não como feature isolada.
 
+### Fase 2 detalhada: o FARO que conversa e te conhece (alinhado em 02/10, NÃO iniciado)
+
+**O que o Leandro descreveu (escopo fechado, "depois iremos começar a implementar")**:
+1. **Ele fala, o FARO age**: toca no botão, pede "adiciona um lembrete" e o
+   FARO cria. Conversa por texto e, se o teste do ditado no celular for bom,
+   por voz.
+2. **O FARO aparece sozinho**: o balão do mascote abre com avisos do tipo
+   "você está trabalhando acima do esperado, precisa descansar", "faltou
+   gratidão", "faltou lazer".
+3. **Frases dos aprendizados e da crença dele** (sinapses, livros), e frases
+   conforme o humor do dia.
+4. **Ele vai conhecendo a jornada**: mapeia tudo o que há no app e traz
+   insights; conversa cada vez mais ajustada.
+5. **Medidor de custo da IA**, igual ao do WhatsApp, para ele ver quanto custa
+   por mês, com **teto mensal** que bloqueia.
+
+**Como fazer (desenho combinado)**:
+- "Conhecer" = **resumo do Leandro mantido pelo FARO** (valores, rotina, o que
+  o desgasta) + trechos relevantes por conversa. Não é treinar modelo, e
+  barateia (não manda tudo a cada vez). Tela **"O que o FARO sabe sobre
+  mim"**: ver, corrigir, apagar, exportar. Feedback "útil / não era isso" por
+  fala; revisão semanal onde só o que ele aceita entra na memória.
+- **Avisos espontâneos**: regras fixas decidem QUANDO (horas da semana acima
+  da média, dias sem gratidão/lazer); a IA só escreve o texto no tom dele.
+  Teto de avisos por dia (sugerido: no máximo 2).
+- **Ações (criar lembrete/tarefa)** sempre mostram o que vão fazer e só
+  executam depois do OK dele.
+- **Custo**: cada chamada grava unidades de entrada/saída e valor estimado
+  (tabela no Supabase, mesmo padrão do livro-caixa do WhatsApp); painel
+  mensal no Dashboard; teto que bloqueia.
+
+**Etapas e tempo estimado**: 1) conversa + medidor + teto (1 sessão);
+2) lê os dados e executa pedidos com confirmação (1 a 2); 3) avisos
+espontâneos, frases e humor (1 a 2); 4) resumo da jornada que evolui +
+insights semanais (1 a 2). Total 4 a 7 sessões, cerca de 1 a 2 semanas
+corridas contando os testes dele. Só a etapa 1 já deixa o mascote conversando.
+
+**Custo estimado (chute dele aprovou, "acho ótimo")**: modelo Sonnet 5.5
+(US$ 2 entrada / US$ 10 saída por milhão, tabela de 25/09/2026). Leve
+~US$ 2/mês, médio ~US$ 6, pesado ~US$ 17; o raciocínio longo pode dobrar o
+das conversas; cache da parte fixa e modelo menor nos avisos baixam. Chute
+de partida: US$ 3 a 8/mês.
+
+**Decisões que ainda dependem dele antes da etapa 1**:
+1. Dados sensíveis (humor, hábitos, tratamento/medicação) vão para o serviço
+   de IA? Sugestão: saúde e medicamentos de fora no começo.
+2. Quantos avisos por dia aceita (sugestão: no máximo 2).
+3. Teto mensal em dólar (ex.: US$ 10).
+4. Passos dele (uns 10 min): criar a chave de API na Anthropic, pôr crédito,
+   definir limite de gasto lá, colar a chave **direto na Vercel**
+   (`ANTHROPIC_API_KEY`); eu nunca vejo o valor.
+
+**Ordem geral combinada**: teste do celular, modo estudo, esta IA com teto,
+depois Google Agenda.
+
 ## Humor (check-in diário)
 
 - Escala 1–5 com emoji (Péssimo/Ruim/Neutro/Bom/Ótimo), rótulo discreto
