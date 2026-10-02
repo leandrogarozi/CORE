@@ -25,6 +25,7 @@
     "@tiptap/react": "^3.30.5",
     "@tiptap/starter-kit": "^3.30.5",
     "date-fns": "^4.4.0",
+    "jszip": "^3.10.2",
     "mammoth": "^1.12.2",
     "next": "16.3.2",
     "pdf-parse": "^2.4.5",

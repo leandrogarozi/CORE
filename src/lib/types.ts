@@ -271,6 +271,11 @@ export interface Settings {
   // intensidades diferentes pro mesmo tom, e quem traduz isso é o código.
   bgTone: string | null; // id em TONS_DO_FUNDO; null = padrão
   bgIntensity: number | null; // 0 neutro .. 3 presente; null = padrão
+  // Backup de aprendizado. Guarda os ids das áreas escolhidas, não um booleano
+  // por área: ferramenta nova entra na lista do código e já aparece na tela,
+  // sem migração de banco.
+  backupAreas: string[] | null; // null = nunca configurou, vale "todas"
+  backupName: string | null; // vira o título do índice e o nome do .zip
 }
 
 // Funcionalidades opcionais que podem ser ligadas/desligadas em Configurações.

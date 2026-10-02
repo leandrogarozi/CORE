@@ -968,6 +968,8 @@ export type Database = {
       }
       settings: {
         Row: {
+          backup_areas: string[] | null
+          backup_name: string | null
           bg_intensity: number | null
           bg_tone: string | null
           avatar_url: string | null
@@ -990,6 +992,8 @@ export type Database = {
           whatsapp_usd_brl: number
         }
         Insert: {
+          backup_areas?: string[] | null
+          backup_name?: string | null
           bg_intensity?: number | null
           bg_tone?: string | null
           avatar_url?: string | null
@@ -1012,6 +1016,8 @@ export type Database = {
           whatsapp_usd_brl?: number
         }
         Update: {
+          backup_areas?: string[] | null
+          backup_name?: string | null
           bg_intensity?: number | null
           bg_tone?: string | null
           avatar_url?: string | null

@@ -130,6 +130,8 @@ const EMPTY_STATE: BoardState = {
     whatsappUsdBrl: 5.1,
     bgTone: null,
     bgIntensity: null,
+    backupAreas: null,
+    backupName: null,
     tagColors: DEFAULT_TAG_COLORS,
     dailyBudgetHours: 12,
     waterGoalMl: 2000,
@@ -2756,6 +2758,8 @@ export function useBoard(userId: string | null) {
           whatsapp_usd_brl: merged.whatsappUsdBrl,
           bg_tone: merged.bgTone,
           bg_intensity: merged.bgIntensity,
+          backup_areas: merged.backupAreas,
+          backup_name: merged.backupName,
         })
         .then(({ error }) => {
           if (error) reportSaveError("updateSettings", error);

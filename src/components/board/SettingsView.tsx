@@ -14,8 +14,20 @@ import {
   type IntensidadeDoFundo,
 } from "@/lib/board/fundo";
 import {
+  AREAS_DE_BACKUP,
+  AREAS_PADRAO,
+  arquivosDoBackup,
+  ehAreaDeBackup,
+  nomeDoZip,
+  quantosArquivos,
+  type AreaDeBackup,
+  type DadosDoBackup,
+} from "@/lib/learning-export";
+import { temConteudo } from "@/lib/html-para-markdown";
+import {
   ArchiveIcon,
   BellIcon,
+  BookOpenIcon,
   ChevronIcon,
   ClockIcon,
   FlagIcon,
@@ -327,6 +339,159 @@ function BackupBox() {
         <br />
         <br />
         Anexos e fotos ficam no Storage do Supabase — o arquivo guarda a referência, não os arquivos em si.
+      </div>
+    </CollapsibleBox>
+  );
+}
+
+/**
+ * Backup de aprendizado: sinapses e resumos de livro viram arquivos de texto.
+ *
+ * Caixa separada do "Backup" de cima de propósito — são coisas diferentes e
+ * confundir as duas é caro. O de cima é COFRE: JSON com tudo, serve pra
+ * restaurar o app, ninguém lê. Este é BIBLIOTECA: texto legível, pra abrir no
+ * celular e ler sem o FARO existir.
+ *
+ * O app NÃO escreve no Drive de ninguém. O arquivo é baixado e a pessoa guarda
+ * onde quiser. É o que torna isto seguro de entregar pra terceiros: sem token de
+ * Google de cliente no banco, sem verificação do Google, e sem risco de
+ * atropelar a organização de pastas que a pessoa já tem.
+ */
+function BackupDeAprendizadoBox() {
+  const { board } = useBoardCtx();
+  const { backupAreas, backupName } = board.state.settings;
+  const [nomeDraft, setNomeDraft] = useState<string | null>(null);
+  const [gerando, setGerando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [ultimo, setUltimo] = useState<{ arquivos: number; nome: string } | null>(null);
+
+  // null = nunca configurou. Trata como tudo marcado em vez de nada: um backup
+  // que nasce sem nada selecionado parece quebrado no primeiro clique.
+  const areas = (backupAreas ?? AREAS_PADRAO).filter(ehAreaDeBackup);
+  const nome = nomeDraft ?? backupName ?? "";
+
+  const dados: DadosDoBackup = {
+    livros: board.state.books,
+    sinapses: board.state.synapses,
+  };
+
+  // Quantos TÊM anotação, por área — o número que importa, porque é o que vai
+  // sair. Mostrar "47 livros" prometeria 47 arquivos e sairiam 4.
+  const comAnotacao = {
+    sinapses: dados.sinapses.filter((x) => temConteudo(x.learning) || temConteudo(x.questions)).length,
+    livros: dados.livros.filter((x) => temConteudo(x.insights)).length,
+  };
+  const totalNaArea = { sinapses: dados.sinapses.length, livros: dados.livros.length };
+  // Menos o índice, que não é aprendizado — o número é a promessa do botão.
+  const quantos = Math.max(0, quantosArquivos(dados, areas) - 1);
+
+  function alternarArea(id: AreaDeBackup, ligado: boolean) {
+    const nova = ligado ? [...areas, id] : areas.filter((a) => a !== id);
+    board.updateSettings({ backupAreas: nova });
+  }
+
+  async function gerar() {
+    setErro(null);
+    setGerando(true);
+    try {
+      // Import dinâmico: a biblioteca do zip só é baixada por quem clica. Ela
+      // não tem o que fazer nas outras telas e pesaria no carregamento de todas.
+      const { default: JSZip } = await import("jszip");
+      const agora = new Date().toISOString();
+      const arquivos = arquivosDoBackup(dados, areas, nome, agora);
+      const zip = new JSZip();
+      for (const a of arquivos) zip.file(a.nome, a.conteudo);
+      const blob = await zip.generateAsync({ type: "blob" });
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = nomeDoZip(nome, agora);
+      link.click();
+      // Sem o revoke o blob fica na memória da aba até recarregar.
+      URL.revokeObjectURL(url);
+      setUltimo({ arquivos: arquivos.length, nome: link.download });
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Falha ao gerar o backup");
+    } finally {
+      setGerando(false);
+    }
+  }
+
+  return (
+    <CollapsibleBox title="Backup de aprendizado" icon={<BookOpenIcon />}>
+      <div className="settings-row-standalone">
+        <span className="settings-label">Nome do backup</span>
+        <input
+          type="text"
+          className="budget-input"
+          placeholder="Meu aprendizado"
+          value={nome}
+          onChange={(e) => setNomeDraft(e.target.value)}
+          onBlur={() => {
+            if (nomeDraft === null) return;
+            board.updateSettings({ backupName: nomeDraft.trim() || null });
+            setNomeDraft(null);
+          }}
+          onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+        />
+      </div>
+
+      <span className="edit-field-label" style={{ marginTop: 12 }}>
+        O que entra
+      </span>
+      <div className="settings-rows">
+        {AREAS_DE_BACKUP.map((a) => (
+          <div className="settings-toggle-row" key={a.id}>
+            <span>
+              <span className="settings-label">{a.rotulo}</span>
+              <span className="settings-toggle-hint">
+                {comAnotacao[a.id]} com anotação
+                {totalNaArea[a.id] > comAnotacao[a.id] && ` (de ${totalNaArea[a.id]})`}
+              </span>
+            </span>
+            <ToggleSwitch
+              checked={areas.includes(a.id)}
+              onChange={(v) => alternarArea(a.id, v)}
+              ariaLabel={a.rotulo}
+            />
+          </div>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        className="btn btn-accent"
+        style={{ marginTop: 12 }}
+        onClick={gerar}
+        disabled={gerando || quantos === 0}
+      >
+        {gerando ? "Gerando..." : quantos === 0 ? "Nada com anotação pra gerar" : `Gerar e baixar (${quantos})`}
+      </button>
+
+      {ultimo && (
+        <div className="hint-text" style={{ marginTop: 8 }}>
+          Baixado: <strong>{ultimo.nome}</strong>, com {ultimo.arquivos} arquivos (contando o índice).
+        </div>
+      )}
+
+      {erro && (
+        <div className="wa-cost-warn">
+          <WarningIcon /> {erro}
+        </div>
+      )}
+
+      <div className="hint-text">
+        Um arquivo de texto por item, mais um índice, dentro de um <code>.zip</code>. Abre em qualquer lugar e
+        importa formatado no Google Docs ou no Word.
+        <br />
+        <br />
+        <strong>Só sai o que tem anotação.</strong> Livro que ainda é só título na estante não vira arquivo — ele
+        aparece no índice, na lista de leitura.
+        <br />
+        <br />
+        O arquivo é baixado pra você guardar onde quiser (Drive, HD, e-mail). O FARO não escreve em nuvem nenhuma,
+        então nada aqui mexe na organização de pastas que você já tem.
       </div>
     </CollapsibleBox>
   );
@@ -834,6 +999,10 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
         <PushNotificationsBox />
 
         <WhatsAppCostBox />
+
+        {/* Os dois backups ficam vizinhos, e nessa ordem: o de aprendizado é o
+            que ele vai usar, o cofre JSON é o que ele raramente toca. */}
+        <BackupDeAprendizadoBox />
 
         <BackupBox />
       </div>

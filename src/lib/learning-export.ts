@@ -1,22 +1,28 @@
+import { htmlParaMarkdown, temConteudo } from "@/lib/html-para-markdown";
+
 /**
- * Transforma o aprendizado guardado no FARO em arquivos de texto legíveis.
+ * Transforma o que está guardado no FARO em arquivos de texto legíveis.
  *
- * Por que texto e não o JSON que `/api/backup/export` já devolve: aquele é
- * cofre, serve pra restaurar o app. Este é biblioteca — ele pediu *"para sempre
- * ficar guardado para a pessoa ali ter como pegar aqueles arquivos de forma
- * fácil"*. Pegar fácil significa abrir no celular, achar pela busca do Drive e
- * ler sem o FARO existir.
+ * Por que texto e não o JSON de `/api/backup/export`: aquele é cofre, serve pra
+ * restaurar o app. Este é biblioteca — ele pediu *"para sempre ficar guardado
+ * para a pessoa ali ter como pegar aqueles arquivos de forma fácil"*. Pegar
+ * fácil é abrir no celular e ler sem o FARO existir.
  *
- * Markdown, não .txt: abre como texto puro em qualquer lugar E vira documento
- * formatado no Google Docs. Não custa nada e ganha os dois.
+ * Markdown: abre como texto puro em qualquer lugar E importa formatado no Google
+ * Docs ou no Word. Não custa nada e serve os dois.
  *
- * Módulo puro de propósito — nada de rede, banco ou Drive aqui. É o que permite
- * testar o conteúdo dos arquivos sem credencial do Google, e é o que faz este
- * mesmo gerador servir tanto pro backup automático quanto pra uma geração
- * manual.
+ * O APP NÃO ESCREVE NO DRIVE DE NINGUÉM. O arquivo é baixado e a pessoa guarda
+ * onde quiser. Essa decisão é o que torna o recurso seguro pra terceiros: sem
+ * token de Google de cliente no banco, sem verificação do Google, e sem risco de
+ * atropelar a organização que a pessoa já tem. (O arquivamento do Leandro segue
+ * por fora, pela Regra 19 da skill do Drive — este recurso não toca nele.)
+ *
+ * Módulo puro: sem rede, sem env, sem banco. É o que deixa conferir o conteúdo
+ * dos arquivos em teste, sem navegador e sem credencial.
  */
 
 export interface ArquivoDeAprendizado {
+  /** Caminho dentro do zip, com a subpasta da área. */
   nome: string;
   conteudo: string;
 }
@@ -24,9 +30,21 @@ export interface ArquivoDeAprendizado {
 export interface LivroParaExportar {
   title: string;
   insights: string | null;
+  /** O status cru do banco ("finalizado"). Quem traduz é o `rotuloDoStatus`. */
   status?: string | null;
-  source?: string | null;
 }
+
+/**
+ * "finalizado" é nome de coluna, não é o que a pessoa lê na tela. O arquivo é
+ * pra ela, então vai o rótulo que ela conhece.
+ */
+const ROTULO_DO_STATUS: Record<string, string> = {
+  para_ler: "Para ler",
+  lendo: "Em leitura",
+  finalizado: "Concluído",
+};
+const rotuloDoStatus = (s: string | null | undefined) =>
+  s?.trim() ? ROTULO_DO_STATUS[s.trim()] ?? s.trim() : null;
 
 export interface SinapseParaExportar {
   title: string;
@@ -36,30 +54,50 @@ export interface SinapseParaExportar {
   createdAt?: string | null;
 }
 
-const VAZIO = (t: string | null | undefined) => !t || !t.trim();
+/**
+ * As áreas que a pessoa escolhe nas Configurações.
+ *
+ * Lista explícita, e é aqui que ferramenta nova entra — ele já avisou que vem
+ * mais (*"se tiver outras ferramentas a gente acrescenta lá"*). Área nova é uma
+ * entrada aqui mais a função que monta os arquivos dela; a tela se desenha a
+ * partir desta lista e não precisa ser mexida.
+ */
+export const AREAS_DE_BACKUP = [
+  { id: "sinapses", rotulo: "Sinapses", pasta: "Sinapses" },
+  { id: "livros", rotulo: "Resumos de livro", pasta: "Livros" },
+] as const;
+
+export type AreaDeBackup = (typeof AREAS_DE_BACKUP)[number]["id"];
+export const AREAS_PADRAO: AreaDeBackup[] = ["sinapses", "livros"];
+
+export function ehAreaDeBackup(v: string): v is AreaDeBackup {
+  return AREAS_DE_BACKUP.some((a) => a.id === v);
+}
+
+const pastaDaArea = (id: AreaDeBackup) => AREAS_DE_BACKUP.find((a) => a.id === id)!.pasta;
 
 /**
- * Título vira nome de arquivo sem quebrar o Drive nem virar ilegível.
+ * Título vira nome de arquivo sem quebrar nada nem ficar ilegível.
  *
- * A barra é o caso que importa: "E/OU" num título criaria uma subpasta ou
- * simplesmente falharia. Acento fica — o Drive lida bem com UTF-8 e tirar
- * deixaria "Ação" como "Acao", que ele teria que decifrar na lista.
+ * A barra é o caso que importa: "E/OU" num título criaria subpasta ou falharia.
+ * Acento fica — tirar deixaria "Ação" como "Acao", que a pessoa teria que
+ * decifrar na lista.
  */
 export function nomeDeArquivo(titulo: string, extensao = "md"): string {
   const limpo = titulo
     .trim()
-    .replace(/[\/\\:*?"<>|]/g, "-") // proibidos ou arriscados em nome de arquivo
+    .replace(/[\/\\:*?"<>|]/g, "-")
     .replace(/\s+/g, " ")
-    .replace(/^[.\s-]+|[.\s-]+$/g, "") // ponto na frente esconde o arquivo
+    .replace(/^[.\s-]+|[.\s-]+$/g, "")
     .slice(0, 80)
     .trim();
   return `${limpo || "sem-titulo"}.${extensao}`;
 }
 
 /**
- * Garante nomes únicos na pasta. Dois livros com o mesmo título existem, e o
- * segundo sobrescreveria o primeiro sem avisar — perder anotação calado é
- * exatamente o que um backup não pode fazer.
+ * Nomes únicos. Dois itens com o mesmo título existem, e o segundo sobrescreveria
+ * o primeiro dentro do zip — perder anotação calado é o que um backup não pode
+ * fazer.
  */
 export function semNomesRepetidos(arquivos: ArquivoDeAprendizado[]): ArquivoDeAprendizado[] {
   const vistos = new Map<string, number>();
@@ -76,89 +114,113 @@ export function semNomesRepetidos(arquivos: ArquivoDeAprendizado[]): ArquivoDeAp
 }
 
 export function arquivoDoLivro(livro: LivroParaExportar): ArquivoDeAprendizado | null {
-  // Livro sem resumo escrito não vira arquivo. São a maioria da estante dele
-  // (43 de 47 na primeira exportação): só o título, ainda sem anotação. Gerar
-  // 43 arquivos vazios enterraria os 4 que têm conteúdo de verdade — eles
-  // continuam listados no índice, que é o lugar certo pra uma lista de leitura.
-  if (VAZIO(livro.insights)) return null;
+  // Regra dele, dita duas vezes: *"todo backup nessa situação só deve sair
+  // daquilo que tem anotação. Não deve fazer backup de livro que não tem
+  // anotação."* A checagem é no HTML convertido, não no campo cru: o editor
+  // salva `<p></p>` quando a pessoa abre e fecha sem escrever, e isso não é
+  // anotação.
+  if (!temConteudo(livro.insights)) return null;
   const partes = [`# ${livro.title.trim()}`, ""];
-  if (livro.source?.trim()) partes.push(`**Fonte:** ${livro.source.trim()}`, "");
-  partes.push("## O que ficou", "", livro.insights!.trim(), "");
-  return { nome: nomeDeArquivo(livro.title), conteudo: partes.join("\n") };
+  const status = rotuloDoStatus(livro.status);
+  if (status) partes.push(`**Status:** ${status}`, "");
+  partes.push("## O que ficou", "", htmlParaMarkdown(livro.insights), "");
+  return { nome: `${pastaDaArea("livros")}/${nomeDeArquivo(livro.title)}`, conteudo: partes.join("\n") };
 }
 
 export function arquivoDaSinapse(s: SinapseParaExportar): ArquivoDeAprendizado | null {
-  // Sinapse só vale como arquivo se tem aprendizado OU pergunta. Título sozinho
-  // é um lembrete de escrever, não um aprendizado guardado.
-  if (VAZIO(s.learning) && VAZIO(s.questions)) return null;
+  // Sinapse vale se tem aprendizado OU pergunta. Título sozinho é lembrete de
+  // escrever, não aprendizado guardado.
+  if (!temConteudo(s.learning) && !temConteudo(s.questions)) return null;
   const partes = [`# ${s.title.trim()}`, ""];
   if (s.source?.trim()) partes.push(`**Fonte:** ${s.source.trim()}`, "");
   if (s.createdAt) partes.push(`**Anotado em:** ${s.createdAt.slice(0, 10)}`, "");
-  if (!VAZIO(s.learning)) partes.push("## Aprendizado", "", s.learning!.trim(), "");
-  if (!VAZIO(s.questions)) partes.push("## Perguntas em aberto", "", s.questions!.trim(), "");
-  return { nome: nomeDeArquivo(s.title), conteudo: partes.join("\n") };
+  if (temConteudo(s.learning)) partes.push("## Aprendizado", "", htmlParaMarkdown(s.learning), "");
+  // A pergunta é a parte que faz a sinapse ser lembrada — não é apêndice.
+  if (temConteudo(s.questions)) partes.push("## Perguntas que isso gera", "", htmlParaMarkdown(s.questions), "");
+  return { nome: `${pastaDaArea("sinapses")}/${nomeDeArquivo(s.title)}`, conteudo: partes.join("\n") };
+}
+
+export interface DadosDoBackup {
+  livros: LivroParaExportar[];
+  sinapses: SinapseParaExportar[];
 }
 
 /**
- * O índice. Cumpre duas funções: dá o mapa da pasta e é o único lugar onde a
- * estante inteira aparece, inclusive os livros ainda sem anotação — a lista de
- * leitura é informação, e sumir com ela faria o backup contar menos do que o
- * app sabe.
+ * O índice. Dá o mapa do zip e é o único lugar onde aparece o que NÃO virou
+ * arquivo — livro na estante ainda sem anotação. A lista de leitura é
+ * informação; sumir com ela faria o backup contar menos do que o app sabe.
  */
-export function indiceDoAprendizado(
-  livros: LivroParaExportar[],
-  sinapses: SinapseParaExportar[],
+export function indiceDoBackup(
+  dados: DadosDoBackup,
+  areas: AreaDeBackup[],
+  nomeDoBackup: string,
   geradoEm: string
 ): ArquivoDeAprendizado {
-  const comResumo = livros.filter((l) => !VAZIO(l.insights));
-  const semResumo = livros.filter((l) => VAZIO(l.insights));
-  const sinapsesComTexto = sinapses.filter((s) => !VAZIO(s.learning) || !VAZIO(s.questions));
+  const linhas = [`# ${nomeDoBackup.trim() || "Backup do FARO"}`, "", `Gerado em ${geradoEm.slice(0, 10)}.`, ""];
 
-  const linhas = [
-    "# Aprendizado — FARO",
-    "",
-    `Backup gerado em ${geradoEm.slice(0, 10)}.`,
-    "",
-    `${sinapsesComTexto.length} sinapse(s) e ${comResumo.length} livro(s) com anotação, um arquivo cada.`,
-    "",
-  ];
-
-  if (sinapsesComTexto.length) {
-    linhas.push("## Sinapses", "");
-    for (const s of sinapsesComTexto) linhas.push(`- ${s.title.trim()}`);
+  if (areas.includes("sinapses")) {
+    const comTexto = dados.sinapses.filter((s) => temConteudo(s.learning) || temConteudo(s.questions));
+    linhas.push(`## Sinapses (${comTexto.length})`, "");
+    if (!comTexto.length) linhas.push("_Nenhuma sinapse com texto ainda._", "");
+    for (const s of comTexto) linhas.push(`- ${s.title.trim()}`);
     linhas.push("");
   }
-  if (comResumo.length) {
-    linhas.push("## Livros com anotação", "");
-    for (const l of comResumo) linhas.push(`- ${l.title.trim()}`);
+
+  if (areas.includes("livros")) {
+    const comNota = dados.livros.filter((l) => temConteudo(l.insights));
+    const semNota = dados.livros.filter((l) => !temConteudo(l.insights));
+    linhas.push(`## Resumos de livro (${comNota.length})`, "");
+    if (!comNota.length) linhas.push("_Nenhum livro com anotação ainda._", "");
+    for (const l of comNota) linhas.push(`- ${l.title.trim()}`);
     linhas.push("");
-  }
-  if (semResumo.length) {
-    linhas.push(
-      "## Estante — ainda sem anotação",
-      "",
-      "Estes não têm arquivo próprio porque ainda não têm nada escrito.",
-      ""
-    );
-    for (const l of semResumo) {
-      linhas.push(`- ${l.title.trim()}${l.status?.trim() ? ` — ${l.status.trim()}` : ""}`);
+    if (semNota.length) {
+      linhas.push(
+        `## Estante — sem anotação (${semNota.length})`,
+        "",
+        "Estes não têm arquivo próprio porque ainda não têm nada escrito.",
+        ""
+      );
+      for (const l of semNota) {
+        const st = rotuloDoStatus(l.status);
+        linhas.push(`- ${l.title.trim()}${st ? ` — ${st}` : ""}`);
+      }
+      linhas.push("");
     }
-    linhas.push("");
   }
 
   return { nome: "00 — Índice.md", conteudo: linhas.join("\n") };
 }
 
-/** A pasta inteira, pronta pra subir. */
-export function pastaDeAprendizado(
-  livros: LivroParaExportar[],
-  sinapses: SinapseParaExportar[],
+/** Tudo que vai pro zip, nas áreas escolhidas. */
+export function arquivosDoBackup(
+  dados: DadosDoBackup,
+  areas: AreaDeBackup[],
+  nomeDoBackup: string,
   geradoEm: string
 ): ArquivoDeAprendizado[] {
-  const arquivos = [
-    indiceDoAprendizado(livros, sinapses, geradoEm),
-    ...sinapses.map(arquivoDaSinapse).filter((a): a is ArquivoDeAprendizado => a !== null),
-    ...livros.map(arquivoDoLivro).filter((a): a is ArquivoDeAprendizado => a !== null),
-  ];
+  const arquivos: ArquivoDeAprendizado[] = [indiceDoBackup(dados, areas, nomeDoBackup, geradoEm)];
+  if (areas.includes("sinapses")) {
+    for (const s of dados.sinapses) {
+      const a = arquivoDaSinapse(s);
+      if (a) arquivos.push(a);
+    }
+  }
+  if (areas.includes("livros")) {
+    for (const l of dados.livros) {
+      const a = arquivoDoLivro(l);
+      if (a) arquivos.push(a);
+    }
+  }
   return semNomesRepetidos(arquivos);
+}
+
+/** Quantos arquivos sairiam — pra tela dizer isso ANTES de gerar. */
+export function quantosArquivos(dados: DadosDoBackup, areas: AreaDeBackup[]): number {
+  return arquivosDoBackup(dados, areas, "x", "2026-01-01").length;
+}
+
+/** Nome do .zip. Data na frente pra ordenar sozinho na pasta de downloads. */
+export function nomeDoZip(nomeDoBackup: string, geradoEm: string): string {
+  const base = nomeDoBackup.trim().replace(/[\/\\:*?"<>|]/g, "-").slice(0, 60).trim() || "Backup FARO";
+  return `${geradoEm.slice(0, 10)} — ${base}.zip`;
 }
