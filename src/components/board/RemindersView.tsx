@@ -111,6 +111,7 @@ export function ReminderDateButton({
   const [weekDraft, setWeekDraft] = useState<number[]>(weekDays ?? []);
   const [alertDraft, setAlertDraft] = useState<number | null>(alertMinutesBefore);
   const [zapDraft, setZapDraft] = useState(whatsapp ?? false);
+  const [erro, setErro] = useState<string | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
   const pos = useClampedPopoverPos(anchorRect, popRef);
@@ -138,6 +139,7 @@ export function ReminderDateButton({
     setWeekDraft(weekDays ?? []);
     setAlertDraft(alertMinutesBefore);
     setZapDraft(whatsapp ?? false);
+    setErro(null);
     if (btnRef.current) {
       setAnchorRect(btnRef.current.getBoundingClientRect());
     }
@@ -150,18 +152,33 @@ export function ReminderDateButton({
   function save() {
     const nextDate = dateDraft || null;
     const hasWeekDays = weekDraft.length > 0 && weekDraft.length < 7;
+
+    // O zap aceso exige quando mandar. Em vez de travar o botão, cobra aqui e
+    // diz o que falta — a pessoa marcou o que queria e só precisa completar.
+    if (zapDraft && !nextDate && !hasWeekDays) {
+      setErro("Pra avisar no WhatsApp, coloque uma data (ou marque os dias da semana).");
+      return;
+    }
+    if (zapDraft && !timeDraft) {
+      setErro("Pra avisar no WhatsApp, coloque também a hora.");
+      return;
+    }
     onSave({
       date: nextDate,
       time: nextDate || hasWeekDays ? timeDraft || null : null,
       repeat: hasWeekDays ? "none" : nextDate ? repeatDraft : "none",
       weekDays: hasWeekDays ? [...weekDraft].sort((a, b) => a - b) : null,
-      alertMinutesBefore: nextDate || hasWeekDays ? alertDraft : null,
+      // Zap aceso sem aviso escolhido recebe o padrão: o motor de envio só
+      // olha lembrete com antecedência preenchida, e sem isso o verde que ele
+      // acabou de acender não sairia.
+      alertMinutesBefore:
+        nextDate || hasWeekDays ? (zapDraft ? (alertDraft ?? ANTECEDENCIA_PADRAO_MIN) : alertDraft) : null,
       // Só manda o campo quando ESTA tela usa a opção. Sem isso, os três outros
       // lugares que abrem este mesmo popover (a tabela de Lembretes) passariam
       // a salvar `whatsapp: false` e apagariam em silêncio o zap que ele tinha
       // acendido na coluna ao lado.
       // E sem aviso não há quando mandar, então nunca sai ligado daqui.
-      ...(whatsapp !== undefined ? { whatsapp: alertDraft !== null && zapDraft } : {}),
+      ...(whatsapp !== undefined ? { whatsapp: zapDraft } : {}),
     });
     setAnchorRect(null);
   }
@@ -272,30 +289,29 @@ export function ReminderDateButton({
                 no mesmo lugar.
                 Exige aviso marcado pela regra de sempre: sem aviso não existe
                 quando mandar, e o verde não pode prometer o que não sai. */}
+            {/* Sempre visível e sempre clicável. Antes ela ficava inerte sem
+                aviso marcado, e ele achou que estava quebrada: "o botãozinho
+                fica tipo uma bolinha, não dá pra marcar". Esconder ou travar um
+                controle porque falta OUTRO campo faz a pessoa procurar defeito
+                onde não tem. Acende, e quem cobra os campos é o salvar. */}
             {whatsapp !== undefined && (
-              <label
-                className={"reminder-zap-opcao" + (alertDraft === null ? " inerte" : "")}
-                title={
-                  alertDraft === null
-                    ? "Escolha um aviso acima — sem aviso não há quando mandar"
-                    : undefined
-                }
+              <button
+                type="button"
+                className={"reminder-zap-opcao" + (zapDraft ? " ativo" : "")}
+                onClick={() => {
+                  const novo = !zapDraft;
+                  setZapDraft(novo);
+                  setErro(null);
+                  // Com lembrete já existente, aplica na hora; sem ele, o
+                  // rascunho viaja no salvar e vale na criação.
+                  onWhatsappChange?.(novo);
+                }}
               >
-                <input
-                  type="checkbox"
-                  checked={zapDraft && alertDraft !== null}
-                  disabled={alertDraft === null}
-                  onChange={(e) => {
-                    setZapDraft(e.target.checked);
-                    // Quando o lembrete já existe, aplica na hora; quando ainda
-                    // não, o rascunho viaja no save e vale na criação.
-                    onWhatsappChange?.(e.target.checked);
-                  }}
-                />
-                <WhatsAppIcon filled={zapDraft && alertDraft !== null} />
+                <WhatsAppIcon filled={zapDraft} />
                 <span>Avisar no WhatsApp</span>
-              </label>
+              </button>
             )}
+            {erro && <div className="reminder-zap-erro">{erro}</div>}
             <div className="edit-actions edit-actions-split">
               <button
                 type="button"

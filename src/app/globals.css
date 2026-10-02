@@ -90,16 +90,18 @@
         que tira a impressão de mancha. Duas bolhas só nas quinas começavam e
         não iam a lugar nenhum, e o Leandro leu isso como sujeira;
      2. uma mancha de roxo mais fechado deslocada pra direita, que dá o
-        movimento e impede que a faixa pareça uma listra reta. Era rosa
-        (#FCEAF4) e lia como rosa mesmo, não como variação do roxo da marca —
-        no escuro passava, no claro não;
+        movimento e impede que a faixa pareça uma listra reta;
      3. um respiro frio embaixo à esquerda, pra página não terminar branca.
+     As cores saem do ROXO DA MARCA com alfa, não de lilases escolhidos à mão:
+     foi tentando acertar o tom solto que saiu um #FCEAF4 que ele leu como rosa
+     duas vezes. Com o alfa sobre a mesma base, o matiz não tem como fugir —
+     muda só a presença, que é o que ele estava pedindo.
      O MEIO fica limpo de propósito: é onde o conteúdo mora. É essa alternância
      — cor, limpo, cor — que ele chamou de dinâmico nas referências. */
   --fundo-degrade:
-    linear-gradient(176deg, #F2EFFE 0%, rgba(242,239,254,.55) 18%, rgba(242,239,254,0) 42%),
-    radial-gradient(900px 520px at 86% 1%, #EBE4FC 0%, rgba(235,228,252,0) 58%),
-    radial-gradient(780px 500px at 2% 92%, #EDF2FE 0%, rgba(237,242,254,0) 62%);
+    linear-gradient(176deg, rgba(74,71,213,.17) 0%, rgba(74,71,213,.085) 18%, rgba(74,71,213,0) 44%),
+    radial-gradient(900px 520px at 86% 1%, rgba(106,63,200,.14) 0%, rgba(106,63,200,0) 58%),
+    radial-gradient(780px 500px at 2% 92%, rgba(56,118,245,.11) 0%, rgba(56,118,245,0) 62%);
 
   /* Linha de 1px que separa sem pesar. Mais clara que --border,
      que hoje faz as vezes de divisor e de contorno ao mesmo
@@ -1998,19 +2000,27 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
    foi isso que ele chamou de desorganizado.
    `nowrap` porque o popover tem min-width de 170px e a largura vem dos selects:
    sem isso a frase quebrava em três linhas. */
+/* Mesma caixa dos selects acima — é a terceira decisão da mesma pergunta:
+   quando avisar, com quanta antecedência, e por onde.
+   Apagada, o ícone é contorno cinza; acesa, verde cheia e a caixa toda ganha a
+   cor. É o mesmo verde que significa "vai sair" no resto do app. */
 .reminder-zap-opcao{
-  display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text);
+  display:flex; align-items:center; gap:8px; width:100%; font-size:12px;
+  color:var(--text-muted); text-align:left;
   background:var(--bg); border:1px solid var(--border-strong); border-radius:7px;
   padding:6px 9px; cursor:pointer; white-space:nowrap;
-  transition:border-color var(--mov);
+  transition:border-color var(--mov), color var(--mov), background var(--mov);
 }
-.reminder-zap-opcao:hover:not(.inerte){ border-color:var(--success); }
-.reminder-zap-opcao svg{ width:13px; height:13px; color:var(--success); flex:none; }
-.reminder-zap-opcao input{ margin:0; width:13px; height:13px; flex:none; accent-color:var(--success); }
-/* Sem aviso marcado ela continua visível, só apagada: esconder faria o controle
-   aparecer e sumir conforme o campo de cima, e ninguém entende o que some. */
-.reminder-zap-opcao.inerte{ color:var(--text-faint); cursor:not-allowed; opacity:.6; }
-.reminder-zap-opcao.inerte svg{ color:var(--text-faint); }
+.reminder-zap-opcao:hover{ border-color:var(--success); color:var(--text); }
+.reminder-zap-opcao svg{ width:13px; height:13px; color:var(--text-faint); flex:none; }
+.reminder-zap-opcao.ativo{
+  color:var(--success); border-color:var(--success);
+  background:color-mix(in srgb, var(--success) 10%, transparent);
+  font-weight:var(--fw-medio);
+}
+.reminder-zap-opcao.ativo svg{ color:var(--success); }
+/* O que falta pra mensagem poder sair. Aparece só quando ele tenta salvar. */
+.reminder-zap-erro{ font-size:11px; color:var(--danger); line-height:1.4; }
 .project-row:last-child{ border-bottom:none; }
 .project-row:hover{ background:var(--surface-2); }
 .project-row.done{ opacity:0.6; }
