@@ -4694,6 +4694,50 @@ de feature flags que já existe pra água/dieta/sono/humor
 
 ### 🔴 Grandes
 
+- [ ] **Backup do aprendizado numa pasta do Drive** (pedido em 02/10) —
+      *"uma pasta backup para todo tipo de aprendizado. Toda anotação que
+      está em sinapses, que está em... Resumo de livro, tudo aquilo que
+      anota de forma que é um aprendizado e vai ter outras pastas
+      futuramente ali... ter como indicar uma pasta no Drive para ele
+      fazer esse backup... num arquivo de texto para o Drive para sempre
+      ficar guardado"*.
+
+      **É possível.** Hoje existe `/api/backup/export`, que só lê e
+      devolve JSON do banco inteiro — serve de cofre, não de biblioteca.
+      O que ele quer é diferente: texto legível, na pasta dele, pegável
+      sem o app.
+
+      **Caminho técnico decidido pela pesquisa (02/10):**
+
+      1. Projeto no Google Cloud + cliente OAuth, com UM escopo só:
+         `drive.file`. É escopo **não sensível** — o app só alcança os
+         arquivos que ele mesmo criou, nunca o resto do Drive. Além de
+         ser o mais seguro, é o que evita a verificação pesada (sem
+         *security assessment*).
+      2. O consent screen tem que ir pra **"In Production"**. Em
+         "Testing" o Google **expira o refresh token em 7 dias** — o
+         backup pararia sozinho na semana seguinte e só daria notícia
+         quando ele precisasse do arquivo.
+      3. Ele autoriza uma vez dentro do FARO; o refresh token fica no
+         Vercel, como o segredo do WhatsApp (ele mesmo cola, não passa
+         pelo chat).
+      4. **O app CRIA a pasta** ("FARO — Aprendizado") e guarda o id.
+         Com `drive.file` o app não consegue escrever numa pasta
+         qualquer que ele aponte, mas consegue na que ele próprio criou
+         — e mover a pasta no Drive **não muda o id**. Então ele arrasta
+         a pasta pra onde quiser na estrutura dele e o backup continua
+         caindo lá. Resolve o "indicar uma pasta" sem precisar de
+         Picker.
+      5. Cron reescreve os arquivos (sinapses, resumos de livro, e o que
+         vier das telas futuras de aprendizado). Reescrever, não
+         acumular versão — senão a pasta vira um depósito.
+
+      **Pendente de decisão dele:** um arquivo por anotação/livro (mais
+      fácil de pegar e achar pela busca do Drive, abre no Docs) ou um
+      arquivo único com tudo. Volume hoje: 8 sinapses, 47 livros.
+
+
+
 - [ ] Painel de frases diárias / motivacionais
 - [ ] IA de distribuição de tarefas
 - [ ] IA de recomendação do próximo livro — cruza livros/insights/humor/
