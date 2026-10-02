@@ -1630,6 +1630,71 @@ está certo; o que não pode voltar é o app reordenar sozinho.
   não consigo editar.
 
 
+## Como cada integração se conecta quando houver TERCEIROS (briefado por ele em 02/10)
+
+Ele definiu o modelo, por integração. Registrado literalmente, com o que cada
+escolha implica:
+
+### IA (API) — chave DO PRÓPRIO cliente
+
+*"a pessoa conectar isso dentro do faro... ela entra lá, conectar a API, aí o
+aplicativo conecta a API dela e vai ter ali o que ela está gastando por mês. E
+ela que renova."*
+
+- Campo pra chave nas Configurações, **criptografada**, nunca devolvida pra tela
+  depois de salva e nunca em log.
+- Medidor de uso por mês, no desenho do bloco de custo do WhatsApp.
+- **Honestidade obrigatória na tela**: o FARO só sabe o que ELE mesmo gastou com
+  aquela chave. Se a pessoa usar a mesma chave em outro lugar, o número do FARO
+  não vai bater com a fatura dela. O rótulo tem que ser "gasto pelo FARO", não
+  "sua fatura" — senão vira reclamação justa.
+- Vantagem do modelo: o custo não passa pelo Leandro e ele não vira
+  intermediário financeiro de ninguém.
+
+### Google Agenda — conta DO PRÓPRIO cliente
+
+*"tem que ter um botão lá, conectar o Google Agenda. E aí o cliente clica e ele
+faz essa conexão."*
+
+- Botão "Conectar Google Agenda" → OAuth → token daquele usuário.
+- **Custo de API: zero.** O Google Calendar API não cobra por requisição; o
+  limite é de 1.000.000 de requisições por dia por projeto, e o Google avisou que
+  detalhes de cobrança futuros virão com 90 dias de antecedência.
+  (https://developers.google.com/calendar/pricing)
+- **O custo não é dinheiro, é verificação**: `calendar.events` é escopo
+  **sensível** — mais pesado que o `drive.file` do backup, que é não-sensível.
+  Exige verificação do Google (uns 3–5 dias úteis), mas **não** exige o
+  *security assessment* dos escopos restritos.
+  (https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification)
+- Fazendo o OAuth do Google pro Calendar, o backup do Drive pode pegar carona no
+  mesmo app depois.
+
+### WhatsApp — número DO LEANDRO, para todos
+
+*"Ele não deve conectar no dele, né? Ele ativa e vai pelo meu número... a
+configuração é nossa e gera o custo lá. A gente calcula quanto é esse custo, a
+gente já bota no valor dele mensal."*
+
+Modelo certo pela simplicidade (o cliente não configura nada), mas carrega três
+consequências que precisam estar resolvidas ANTES de abrir:
+
+1. **A reputação do número é compartilhada.** Sai tudo do número do Leandro,
+   então a *quality rating* dele passa a depender do comportamento dos clientes
+   de TODOS os usuários. Bloqueio e denúncia de desconhecidos derrubam o número
+   — e derrubado, para pra todo mundo, inclusive pra ele.
+2. **Opt-in é exigência da Meta, não formalidade.** Cada pessoa que for receber
+   precisa ter aceitado receber daquele número. Isso tem que estar no cadastro,
+   não num combinado verbal.
+3. **Teto GLOBAL de gasto, que hoje não existe.** O teto atual é por usuário
+   (`settings.whatsapp_monthly_cap_brl`, uma linha por pessoa). Com o custo na
+   conta do Leandro, dez usuários distraídos estouram a conta dele sem que
+   nenhum deles passe do próprio teto. O teto global é pré-requisito de abrir,
+   não melhoria.
+
+Pra precificar a mensalidade o dado já existe: `whatsapp_sends` registra cada
+envio com usuário e data, então dá pra calcular o custo médio por usuário/mês com
+os números reais em vez de chutar.
+
 ## Captura por voz e agenda do Google — combinado em 01/10, a fazer
 
 O pedido nasceu dele fora de casa, jogando bola com o filho: *"tem algumas
