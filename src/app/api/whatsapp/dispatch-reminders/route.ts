@@ -87,17 +87,19 @@ export async function POST(req: NextRequest) {
     dueRows = semLembreteDeTarefaApagada(dueRows, naLixeira);
   }
 
-  // Os lembretes que o zap criou e que JÁ foram avisados — são os candidatos a
-  // virar a página do dia. Note que eles não aparecem na consulta acima, que
-  // exige whatsapp_notified_at nulo: é justamente por já terem sido avisados
-  // que precisam de uma data nova.
+  // Os lembretes que o zap criou — são os candidatos a virar a página do dia,
+  // tenham sido avisados ou NÃO. Os avisados precisam de uma data nova porque o
+  // motor marca whatsapp_notified_at e nunca mais olha pra eles. Os não avisados
+  // entram pelo mesmo motivo, só que mais traiçoeiro: se o aviso de hoje não
+  // saiu (motor fora do ar, teto de gasto, janela perdida), o lembrete ficava
+  // preso na data de hoje pra sempre e o dia seguinte também não avisava.
+  // Foi o que aconteceu com a rosuvastatina em 02/10.
   const { data: paraVirar } = await supabase
     .from("reminders")
     .select("*")
     .not("source_kind", "is", null)
     .is("deleted_at", null)
-    .eq("done", false)
-    .not("whatsapp_notified_at", "is", null);
+    .eq("done", false);
   const viradaRows = paraVirar ?? [];
 
   const userIdById = new Map(dueRows.map((row) => [row.id, row.user_id]));
