@@ -2535,3 +2535,100 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .settings-grade{ column-count:2; column-gap:var(--sp-3); }
 .settings-grade > .dash-box{ break-inside:avoid; width:100%; margin:0 0 var(--sp-3); }
 @media (max-width:900px){ .settings-grade{ column-count:1; } }
+
+/* ==========================================================================
+   CELULAR — um bloco só, no fim do arquivo
+
+   Tudo aqui vale SÓ em tela pequena; o desktop não é tocado (ele falou que lá
+   "já tá ok"). Fica no fim de propósito: assim essas regras vencem as de cima
+   sem precisar de `!important` espalhado.
+
+   O diagnóstico veio de medida, não de palpite — a 390px a página pedia 444px
+   e rolava pro lado inteira. Os culpados, em ordem de estrago:
+     1. .topbar-right  — 336px que não encolhem, empurrando a página toda;
+     2. .task-row      — grid de 9 colunas pedindo 912px;
+     3. .checklist-head — 348px numa tela de 390 com padding.
+   ========================================================================== */
+@media (max-width:640px){
+
+  /* --- 1. Barra de cima: o grupo da direita desce pra linha própria ---
+     `flex:none` fazia os oito botões empurrarem a página inteira pra fora da
+     tela. Em vez de esconder botão (ele perderia função), o grupo ganha uma
+     linha só dele, onde cabe inteiro. */
+  .topbar{ flex-wrap:wrap; row-gap:8px; }
+  .topbar-right{ flex:1 1 100%; justify-content:flex-start; flex-wrap:wrap; row-gap:6px; }
+
+  /* --- 2. A tarefa deixa de ser planilha e vira ficha ---
+     No computador a linha é uma tabela de 9 colunas que rola de lado. No
+     celular isso é o que corta a descrição no meio. Vira flex: o título ganha
+     a largura toda e QUEBRA em duas linhas (ele pediu: "quebre aí as frases"),
+     e os controles descem pra linha de baixo. Nada é escondido — só
+     reempilhado.
+
+     `display:flex` também desarma o `grid-template-columns` que vem inline no
+     elemento (as colunas redimensionáveis do desktop), sem precisar de
+     `!important` pra vencer o estilo inline. */
+  .task-list-header{ display:none; }
+  .task-row{
+    display:flex; flex-wrap:wrap; align-items:center;
+    column-gap:8px; row-gap:6px; min-width:0; padding:10px 12px;
+  }
+  .task-row > *{ flex:0 0 auto; order:2; }
+
+  /* A ordem é explícita porque o "cabe mas ficou feio" mora aqui.
+     Linha de cima: bolinha de status + título. Linha de baixo: o resto, como
+     uma faixa de informação. Sem isso, o título dividia a primeira linha com a
+     tag e o tempo, ficava espremido em 290px, e a hora caía sozinha numa
+     terceira linha — tecnicamente dentro da tela, visualmente quebrado. */
+  .task-row > .status-dot{ order:0; }
+  /* A base é "a linha toda menos a bolinha": assim bolinha + título preenchem
+     exatamente a primeira linha, e TUDO que vem depois (raios, tempo, tag,
+     bandeirinha, anexo, excluir) cai junto numa faixa só embaixo. Com
+     `flex-basis:100%` nos raios eles ganhavam uma linha inteira só pra si, e a
+     tarefa ficava com três linhas de altura. */
+  .row-desc-cell{ order:1; flex:1 1 calc(100% - 23px); min-width:0; align-items:flex-start; }
+  .task-row > .quick-bolts{ margin-top:1px; }
+  /* O título quebra em quantas linhas precisar; o `overflow:hidden` com
+     reticências que serve no desktop é justamente o que escondia o texto. */
+  .row-title{
+    white-space:normal; overflow:visible; text-overflow:clip;
+    line-height:1.35; word-break:break-word;
+  }
+  .row-category-cell{ min-width:0; }
+  .task-row .chip{ max-width:42vw; }
+  /* O punho de arrastar sai no celular: arrastar linha compete com a rolagem da
+     página e quase nunca acerta. Reordenar continua no computador. */
+  .task-row .drag-handle{ display:none; }
+
+  /* As etapas de projeto usam a mesma linha; mesma regra vale. */
+  .project-wide .task-table-scroll{ overflow-x:auto; }
+
+  /* --- 3. Checklist: cabeçalho em duas linhas ---
+     Título em cima, e tipo + progresso + gasto embaixo. Era o "0/24 R$…"
+     cortado na borda. */
+  .checklist-head{ flex-wrap:wrap; row-gap:4px; padding:10px 12px 10px 4px; }
+  /* `min-width:0` é o que faz o campo respeitar a largura do cartão em vez de
+     esticar com o texto. Sem ele o título empurrava a linha pra fora.
+     O título continua num `input`, e input não quebra em duas linhas — então
+     nome muito longo ainda fica cortado DENTRO do campo. O que dá pra fazer no
+     CSS é o que está aqui: mandar tipo/progresso/valor pra linha de baixo, o
+     que mais que dobra o espaço do nome. */
+  .checklist-title-input{ flex:1 1 100%; min-width:0; order:1; }
+  .checklist-head .chevron{ order:0; }
+  .checklist-type-chip{ order:2; }
+  .checklist-progress{ order:3; }
+  .checklist-spent{ order:4; }
+
+  /* --- 4. Linhas de formulário (Perfil, Configurações) ---
+     Rótulo, campo e botão lado a lado não cabem; o botão ficava fora da tela
+     (era o "Testar WhatsApp" do print). Empilha. */
+  .profile-row, .settings-row-standalone{ flex-wrap:wrap; row-gap:8px; }
+  .profile-row > input, .profile-row > select{ flex:1 1 100%; min-width:0; }
+
+  /* --- 5. Rede de segurança ---
+     Mesmo que algo novo passe da borda, a PÁGINA não rola de lado. O que
+     precisa rolar (a tabela de etapas do projeto) tem o container próprio pra
+     isso e continua funcionando. */
+  html, body{ overflow-x:hidden; }
+  .wrap{ padding-left:14px; padding-right:14px; }
+}
