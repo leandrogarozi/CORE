@@ -936,3 +936,19 @@ export function MoodFaceIcon({ value, size = 20 }: { value: number; size?: numbe
     </svg>
   );
 }
+
+// Paleta de amostras — do pacote (Edit/Swatches_Palette.svg), como toda a
+// iconografia do FARO. Serve o bloco de cor do fundo nas Configurações.
+export function PaletteIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none">
+      <path
+        d="M6.5 21H20.47C20.76 21 21 20.76 21 20.47L21 14.53M7.98 20.67L20.64 14.77C20.91 14.64 21.02 14.33 20.9 14.06L18.39 8.68C18.26 8.41 17.95 8.3 17.68 8.42L12.03 11.06M9.88 18.4C9.38 20.27 7.46 21.38 5.6 20.88C3.73 20.38 2.62 18.46 3.12 16.59L6.74 3.1C6.81 2.82 7.1 2.65 7.38 2.72L13.12 4.26C13.41 4.34 13.57 4.63 13.5 4.91L9.88 18.4ZM6.5 17.6H6.5L6.5 17.6L6.5 17.6V17.6Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}

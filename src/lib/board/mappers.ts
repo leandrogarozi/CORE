@@ -427,6 +427,8 @@ export function rowToSettings(row: SettingsRow | null): Settings {
         ? null
         : Number(row.whatsapp_monthly_cap_brl),
     whatsappUsdBrl: Number(row?.whatsapp_usd_brl ?? 5.1),
+    bgTone: row?.bg_tone ?? null,
+    bgIntensity: row?.bg_intensity ?? null,
   };
 }
 

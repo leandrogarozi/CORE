@@ -13,6 +13,13 @@ import { Dashboard } from "./Dashboard";
 import { HoursPanel } from "./HoursPanel";
 import { DailyLogPanel } from "./DailyLogPanel";
 import { DayAgendaPanel } from "./DayAgendaPanel";
+import {
+  INTENSIDADE_PADRAO,
+  TOM_PADRAO,
+  degradeDoFundo,
+  tomPorId,
+  type IntensidadeDoFundo,
+} from "@/lib/board/fundo";
 import { RecurringSection } from "./RecurringSection";
 import { SettingsView } from "./SettingsView";
 import { BooksView } from "./BooksView";
@@ -114,6 +121,22 @@ function BoardShell() {
       requestFocus({ kind: "book", id: result.book.id });
     }
   }
+
+  /**
+   * Escreve a escolha de fundo dele nas duas variáveis de tema.
+   *
+   * O CSS tem `--fundo-claro` e `--fundo-escuro`, e o `--fundo-degrade` só
+   * escolhe entre as duas conforme o `data-theme`. Por isso dá pra escrever
+   * aqui UMA vez: trocar de tema depois não precisa passar por este código.
+   */
+  const { bgTone, bgIntensity } = board.state.settings;
+  useEffect(() => {
+    const tom = tomPorId(bgTone ?? TOM_PADRAO);
+    const n = (bgIntensity ?? INTENSIDADE_PADRAO) as IntensidadeDoFundo;
+    const raiz = document.documentElement.style;
+    raiz.setProperty("--fundo-claro", degradeDoFundo(tom, n, "claro"));
+    raiz.setProperty("--fundo-escuro", degradeDoFundo(tom, n, "escuro"));
+  }, [bgTone, bgIntensity]);
 
   const weekDatesISO = useMemo(() => {
     const from = new Date(weekAnchor);

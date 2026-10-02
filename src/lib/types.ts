@@ -267,6 +267,10 @@ export interface Settings {
   whatsappMsgCostUsd: number; // tarifa por mensagem enviada (utility no Brasil = US$ 0,0068 desde 01/07/2026)
   whatsappMonthlyCapBrl: number | null; // teto de gasto no mês, EM REAIS; null = sem trava
   whatsappUsdBrl: number; // câmbio que converte a tarifa em dólar pra real
+  // Fundo da tela. Guarda a ESCOLHA, não o CSS: claro e escuro precisam de
+  // intensidades diferentes pro mesmo tom, e quem traduz isso é o código.
+  bgTone: string | null; // id em TONS_DO_FUNDO; null = padrão
+  bgIntensity: number | null; // 0 neutro .. 3 presente; null = padrão
 }
 
 // Funcionalidades opcionais que podem ser ligadas/desligadas em Configurações.

@@ -4,6 +4,13 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useBoardCtx } from "./board-context";
 import { useWhatsAppCost } from "@/lib/board/use-whatsapp-cost";
 import {
+  INTENSIDADE_PADRAO,
+  ROTULO_DA_INTENSIDADE,
+  TOM_PADRAO,
+  TONS_DO_FUNDO,
+  type IntensidadeDoFundo,
+} from "@/lib/board/fundo";
+import {
   ArchiveIcon,
   BellIcon,
   ChevronIcon,
@@ -15,6 +22,7 @@ import {
   WarningIcon,
   WaterDropIcon,
   WhatsAppIcon,
+  PaletteIcon,
 } from "./icons";
 import { fmtBRL } from "@/lib/money";
 import { ToggleSwitch } from "./ToggleSwitch";
@@ -519,6 +527,70 @@ function WhatsAppCostBox() {
   );
 }
 
+/**
+ * Escolha do fundo: tom e intensidade, valendo nos dois temas.
+ *
+ * Nasceu de um vai e volta: eu acertava o tom no olho, mandava print, ele dizia
+ * "está rosa", eu tentava de novo. Com o controle aqui, ele compara na tela de
+ * verdade em segundos — e a pergunta "qual roxo" deixa de custar um deploy.
+ *
+ * Tons escolhidos em vez de seletor livre: um seletor aberto deixa escolher um
+ * verde-limão forte, e aí o fundo briga com o roxo dos botões e das barras.
+ */
+function CorDoFundoBox() {
+  const { board } = useBoardCtx();
+  const { bgTone, bgIntensity } = board.state.settings;
+  const tomAtual = bgTone ?? TOM_PADRAO;
+  const intensidadeAtual = (bgIntensity ?? INTENSIDADE_PADRAO) as IntensidadeDoFundo;
+
+  return (
+    <CollapsibleBox title="Cor do fundo" icon={<PaletteIcon />}>
+      <span className="edit-field-label">Tom</span>
+      <div className="note-options-chips fundo-tons">
+        {TONS_DO_FUNDO.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            className={"note-chip" + (tomAtual === t.id ? " active" : "")}
+            onClick={() => board.updateSettings({ bgTone: t.id })}
+          >
+            {/* A bolinha mostra o tom antes de clicar: nome de cor é discutível
+                ("índigo" é azul ou roxo?), amostra não é. */}
+            <span
+              className="fundo-amostra"
+              style={{ background: `rgb(${t.base[0]},${t.base[1]},${t.base[2]})` }}
+            />
+            {t.rotulo}
+          </button>
+        ))}
+      </div>
+
+      <span className="edit-field-label" style={{ marginTop: 12 }}>
+        Intensidade
+      </span>
+      <div className="view-toggle fundo-intensidade">
+        {([0, 1, 2, 3] as IntensidadeDoFundo[]).map((n) => (
+          <button
+            key={n}
+            type="button"
+            className={"view-toggle-btn" + (intensidadeAtual === n ? " active" : "")}
+            onClick={() => board.updateSettings({ bgIntensity: n })}
+          >
+            {ROTULO_DA_INTENSIDADE[n]}
+          </button>
+        ))}
+      </div>
+
+      <div className="hint-text">
+        A mesma escolha vale pro tema claro e pro escuro, com força diferente em
+        cada um: no escuro o degradê tinge em vez de clarear, e acima de um certo
+        ponto ele vira névoa cinza e come o contraste do texto.{" "}
+        <strong>Neutro</strong> é sem degradê nenhum.
+      </div>
+    </CollapsibleBox>
+  );
+}
+
 export function SettingsView({ onBack }: { onBack: () => void }) {
   const { board } = useBoardCtx();
   const [budgetInput, setBudgetInput] = useState<string | null>(null);
@@ -717,6 +789,8 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
           </div>
         )}
       </CollapsibleBox>
+
+        <CorDoFundoBox />
 
         <PushNotificationsBox />
 

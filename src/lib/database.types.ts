@@ -968,6 +968,8 @@ export type Database = {
       }
       settings: {
         Row: {
+          bg_intensity: number | null
+          bg_tone: string | null
           avatar_url: string | null
           birth_date: string | null
           daily_budget_hours: number
@@ -988,6 +990,8 @@ export type Database = {
           whatsapp_usd_brl: number
         }
         Insert: {
+          bg_intensity?: number | null
+          bg_tone?: string | null
           avatar_url?: string | null
           birth_date?: string | null
           daily_budget_hours?: number
@@ -1008,6 +1012,8 @@ export type Database = {
           whatsapp_usd_brl?: number
         }
         Update: {
+          bg_intensity?: number | null
+          bg_tone?: string | null
           avatar_url?: string | null
           birth_date?: string | null
           daily_budget_hours?: number

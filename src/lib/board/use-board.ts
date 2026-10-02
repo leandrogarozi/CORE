@@ -124,6 +124,8 @@ const EMPTY_STATE: BoardState = {
     whatsappMsgCostUsd: 0.0068,
     whatsappMonthlyCapBrl: 20,
     whatsappUsdBrl: 5.1,
+    bgTone: null,
+    bgIntensity: null,
     tagColors: DEFAULT_TAG_COLORS,
     dailyBudgetHours: 12,
     waterGoalMl: 2000,
@@ -2687,6 +2689,8 @@ export function useBoard(userId: string | null) {
           whatsapp_msg_cost_usd: merged.whatsappMsgCostUsd,
           whatsapp_monthly_cap_brl: merged.whatsappMonthlyCapBrl,
           whatsapp_usd_brl: merged.whatsappUsdBrl,
+          bg_tone: merged.bgTone,
+          bg_intensity: merged.bgIntensity,
         })
         .then(({ error }) => {
           if (error) reportSaveError("updateSettings", error);
