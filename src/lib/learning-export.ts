@@ -219,8 +219,41 @@ export function quantosArquivos(dados: DadosDoBackup, areas: AreaDeBackup[]): nu
   return arquivosDoBackup(dados, areas, "x", "2026-01-01").length;
 }
 
+/**
+ * Nome do .zip — SÓ ASCII, e isso não é preciosismo.
+ *
+ * Medido no Chromium: um único caractere fora do ASCII no atributo `download`
+ * faz o navegador DESCARTAR o nome inteiro e salvar como "download", sem
+ * extensão. Vale pra acento ("família"), pra travessão e pro ponto médio. Num
+ * app em português, com o nome escrito pelo usuário, isso aconteceria quase
+ * sempre.
+ *
+ * Só o nome do .zip tem essa restrição. Os arquivos DENTRO dele mantêm acento
+ * normalmente, porque ali o nome é uma entrada do zip (UTF-8), não um atributo
+ * de HTML — "Seja água.md" abre certo, e é o nome que ele reconhece.
+ */
+function soAscii(texto: string): string {
+  return (
+    texto
+      // Separa o acento da letra e joga o acento fora: "ção" -> "cao", em vez de
+      // virar "-" e deixar o nome ilegível.
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      // O que sobrou fora do ASCII imprimível vira hífen.
+      .replace(/[^\x20-\x7E]/g, "-")
+      .replace(/-{2,}/g, "-")
+  );
+}
+
 /** Nome do .zip. Data na frente pra ordenar sozinho na pasta de downloads. */
 export function nomeDoZip(nomeDoBackup: string, geradoEm: string): string {
-  const base = nomeDoBackup.trim().replace(/[\/\\:*?"<>|]/g, "-").slice(0, 60).trim() || "Backup FARO";
-  return `${geradoEm.slice(0, 10)} — ${base}.zip`;
+  const base =
+    soAscii(nomeDoBackup.trim())
+      .replace(/[\/\\:*?"<>|]/g, "-")
+      .replace(/^[.\s-]+|[.\s-]+$/g, "")
+      .slice(0, 60)
+      .trim() || "Backup FARO";
+  // Hífen simples, não travessão: o travessão é justamente um dos que o
+  // navegador rejeita.
+  return `${geradoEm.slice(0, 10)} - ${base}.zip`;
 }

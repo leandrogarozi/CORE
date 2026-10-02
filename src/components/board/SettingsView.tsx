@@ -407,9 +407,15 @@ function BackupDeAprendizadoBox() {
       const link = document.createElement("a");
       link.href = url;
       link.download = nomeDoZip(nome, agora);
+      // No documento antes de clicar: link solto não dispara download em todo
+      // navegador.
+      document.body.appendChild(link);
       link.click();
-      // Sem o revoke o blob fica na memória da aba até recarregar.
-      URL.revokeObjectURL(url);
+      link.remove();
+      // Revoga DEPOIS. O clique é assíncrono: revogar na mesma linha corre o
+      // risco de tirar o blob debaixo do download que acabou de começar — e sem
+      // revogar nunca, o zip fica na memória da aba até recarregar a página.
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
       setUltimo({ arquivos: arquivos.length, nome: link.download });
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Falha ao gerar o backup");
