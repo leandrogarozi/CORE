@@ -438,6 +438,7 @@ export interface Checklist {
   expensesEnabled: boolean; // liga a aba Gastos desse checklist
   expenses: ChecklistExpense[];
   budgetCents: number | null; // quanto planejou gastar — opcional, só pra comparar
+  order: number; // ordem manual na tela — ele arrasta o próximo pro topo
 }
 
 export interface DietMeal {

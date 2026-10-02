@@ -262,7 +262,10 @@ export function useBoard(userId: string | null) {
       supabase.from("reminders").select("*").not("deleted_at", "is", null),
       supabase.from("medications").select("*").order("created_at"),
       supabase.from("medication_groups").select("*").order("created_at"),
-      supabase.from("checklists").select("*").order("created_at"),
+      // Pela ordem manual, não pela criação: é ele quem decide qual checklist
+      // fica no topo. `nullsFirst: false` manda linha sem ordem (salva antes
+      // desta coluna existir) pro fim, em vez de pro começo.
+      supabase.from("checklists").select("*").order("sort_order", { ascending: true, nullsFirst: false }),
       supabase.from("diet_meals").select("*").order("meal_time"),
       supabase.from("settings").select("*").maybeSingle(),
       supabase.from("active_timer").select("*"),
@@ -2126,6 +2129,9 @@ export function useBoard(userId: string | null) {
         expensesEnabled: false,
         expenses: [],
         budgetCents: null,
+        // Nasce no fim da lista. Ele arrasta pro topo o que vem primeiro — quem
+        // decide a ordem é ele, não a hora em que criou.
+        order: stateRef.current.checklists.length,
       };
       apply((s) => ({ ...s, checklists: [...s.checklists, c] }));
       supabase.from("checklists").insert(checklistToInsertRow(c, userId)).then(({ error }) => {
@@ -2158,6 +2164,32 @@ export function useBoard(userId: string | null) {
     [apply, supabase]
   );
 
+  /**
+   * Nova ordem dos checklists, na sequência que ele deixou na tela.
+   *
+   * Mesmo desenho do `reorderBooks`: grava a posição de cada um pelo índice.
+   * Reescrever todas as posições (em vez de só as que mudaram) é o que mantém a
+   * numeração sem buraco e sem empate — e empate aqui voltaria a dar ordem
+   * indefinida, que é justamente o que ele quer resolver.
+   */
+  const reorderChecklists = useCallback(
+    (orderedIds: string[]) => {
+      apply((s) => ({
+        ...s,
+        checklists: s.checklists.map((c) => {
+          const idx = orderedIds.indexOf(c.id);
+          return idx === -1 ? c : { ...c, order: idx };
+        }),
+      }));
+      orderedIds.forEach((id, idx) => {
+        supabase.from("checklists").update({ sort_order: idx }).eq("id", id).then(({ error }) => {
+          if (error) reportSaveError("reorderChecklists", error);
+        });
+      });
+    },
+    [apply, supabase]
+  );
+
   const duplicateChecklist = useCallback(
     (id: string) => {
       if (!userId) return;
@@ -2174,6 +2206,7 @@ export function useBoard(userId: string | null) {
         expensesEnabled: src.expensesEnabled,
         expenses: [],
         budgetCents: src.budgetCents,
+        order: stateRef.current.checklists.length,
       };
       apply((s) => ({ ...s, checklists: [...s.checklists, copy] }));
       supabase.from("checklists").insert(checklistToInsertRow(copy, userId)).then(({ error }) => {
@@ -3138,6 +3171,7 @@ export function useBoard(userId: string | null) {
     updateChecklist,
     deleteChecklist,
     duplicateChecklist,
+    reorderChecklists,
     addRecurring,
     updateRecurring,
     setRecurringCategory,

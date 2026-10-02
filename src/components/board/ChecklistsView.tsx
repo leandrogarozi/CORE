@@ -3,11 +3,22 @@
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { ToggleSwitch } from "./ToggleSwitch";
-import { CartIcon, ChecklistIcon, ChevronIcon, CheckIcon, DuplicateIcon, MoneyIcon, SendIcon, TrashIcon } from "./icons";
+import {
+  CartIcon,
+  ChecklistIcon,
+  ChevronIcon,
+  CheckIcon,
+  DragGripIcon,
+  DuplicateIcon,
+  MoneyIcon,
+  SendIcon,
+  TrashIcon,
+} from "./icons";
 import { fmtAmount, fmtBRL, parseAmountToCents } from "@/lib/money";
 import { fmtShortDate, todayISO } from "@/lib/date-utils";
 import type { Checklist, ChecklistExpense, ChecklistItem } from "@/lib/types";
 import type { UseBoard } from "@/lib/board/use-board";
+import { listaReordenada } from "@/lib/board/reordenar";
 
 function uid(): string {
   return crypto.randomUUID();
@@ -106,7 +117,23 @@ function ExpenseRow({
 
 type ChecklistTab = "itens" | "gastos";
 
-function ChecklistRow({ checklist, board }: { checklist: Checklist; board: UseBoard }) {
+function ChecklistRow({
+  checklist,
+  board,
+  posicao,
+  arrastando,
+  onDragStart,
+  onDragOverCard,
+  onDrop,
+}: {
+  checklist: Checklist;
+  board: UseBoard;
+  posicao: number;
+  arrastando: boolean;
+  onDragStart: (id: string) => void;
+  onDragOverCard: (id: string) => void;
+  onDrop: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<ChecklistTab>("itens");
   const [titleDraft, setTitleDraft] = useState<string | null>(null);
@@ -244,7 +271,34 @@ function ChecklistRow({ checklist, board }: { checklist: Checklist; board: UseBo
   const leftCents = checklist.budgetCents != null ? checklist.budgetCents - spentCents : null;
 
   return (
-    <div className="checklist-card">
+    <div
+      className={"checklist-card" + (arrastando ? " dragging" : "")}
+      onDragOver={(e) => {
+        e.preventDefault();
+        onDragOverCard(checklist.id);
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        onDrop();
+      }}
+    >
+      {/* Só o punho é arrastável, não o cartão inteiro: o cabeçalho tem campos
+          de texto (título e tipo), e cartão arrastável atrapalha selecionar
+          texto dentro deles. O cartão continua sendo o alvo do soltar. */}
+      <div className="checklist-topo">
+      <span
+        className="checklist-grip"
+        title="Arraste pra reordenar — o próximo pode ficar no topo"
+        draggable
+        onDragStart={(e) => {
+          e.stopPropagation();
+          onDragStart(checklist.id);
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <DragGripIcon />
+        <span className="checklist-grip-num mono">{posicao}</span>
+      </span>
       <button
         type="button"
         className={"checklist-head" + (open ? " has-body" : "")}
@@ -280,6 +334,7 @@ function ChecklistRow({ checklist, board }: { checklist: Checklist; board: UseBo
           </span>
         )}
       </button>
+      </div>
       {open && (
         <div className="checklist-body">
           <div className="checklist-tabs">
@@ -456,8 +511,15 @@ export function ChecklistsView({ onBack }: { onBack: () => void }) {
   const { board } = useBoardCtx();
   const [newTitle, setNewTitle] = useState("");
   const [newType, setNewType] = useState("");
+  const [arrastandoId, setArrastandoId] = useState<string | null>(null);
+  const [sobreId, setSobreId] = useState<string | null>(null);
 
-  const checklists = [...board.state.checklists].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  // Pela ordem MANUAL, não pela data. Antes era o mais recente primeiro — com
+  // isso, arrastar não teria efeito nenhum na tela. O desempate por título
+  // mantém a lista estável se duas ordens empatarem por algum motivo.
+  const checklists = [...board.state.checklists].sort(
+    (a, b) => a.order - b.order || a.title.localeCompare(b.title)
+  );
   const existingTypes = Array.from(new Set(board.state.checklists.map((c) => c.type))).sort();
 
   function handleAdd() {
@@ -466,6 +528,16 @@ export function ChecklistsView({ onBack }: { onBack: () => void }) {
     board.addChecklist(title, newType);
     setNewTitle("");
     setNewType("");
+  }
+
+  function soltar() {
+    const ids = checklists.map((c) => c.id);
+    const novos = listaReordenada(ids, arrastandoId, sobreId);
+    // Só grava se mudou de lugar: soltar no mesmo ponto não vale uma escrita no
+    // banco por checklist.
+    if (novos !== ids) board.reorderChecklists(novos);
+    setArrastandoId(null);
+    setSobreId(null);
   }
 
   return (
@@ -518,7 +590,18 @@ export function ChecklistsView({ onBack }: { onBack: () => void }) {
           {checklists.length === 0 ? (
             <div className="hp-empty">Nenhum checklist ainda.</div>
           ) : (
-            checklists.map((c) => <ChecklistRow key={c.id} checklist={c} board={board} />)
+            checklists.map((c, i) => (
+              <ChecklistRow
+                key={c.id}
+                checklist={c}
+                board={board}
+                posicao={i + 1}
+                arrastando={arrastandoId === c.id}
+                onDragStart={setArrastandoId}
+                onDragOverCard={setSobreId}
+                onDrop={soltar}
+              />
+            ))
           )}
         </div>
       </div>

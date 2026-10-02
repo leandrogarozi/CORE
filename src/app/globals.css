@@ -2165,6 +2165,21 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 /* checklists */
 .checklist-card{ border-bottom:1px solid var(--border); }
 .checklist-card:last-child{ border-bottom:none; }
+/* Linha de cima do cartão: punho + cabeçalho lado a lado. O cartão continua
+   bloco porque o corpo expandido mora embaixo dele. */
+.checklist-topo{ display:flex; align-items:stretch; }
+/* Mesmo punho da fila de leitura em Livros — é o que ele reconhece. */
+.checklist-grip{
+  display:inline-flex; align-items:center; gap:3px; flex:none; color:var(--text-faint);
+  padding:0 2px 0 10px; cursor:grab; background:var(--surface);
+}
+.checklist-grip:active{ cursor:grabbing; }
+.checklist-grip:hover{ color:var(--text-muted); }
+.checklist-grip svg{ width:11px; height:11px; }
+.checklist-grip-num{ font-size:10.5px; width:14px; text-align:center; }
+/* Com o punho na frente, o padding da esquerda do cabeçalho vira espaço morto. */
+.checklist-topo .checklist-head{ padding-left:4px; }
+.checklist-card.dragging{ opacity:0.35; }
 .checklist-head{
   display:flex; align-items:center; gap:8px; width:100%; padding:10px 12px;
   background:var(--surface); text-align:left; border:none;

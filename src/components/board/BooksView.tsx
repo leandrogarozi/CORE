@@ -21,6 +21,7 @@ import { priorityColor, priorityLabel, nextPriority } from "./TaskRow";
 import { fmtShortDate } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 import { stripHtml } from "@/lib/rich-text";
+import { listaReordenada } from "@/lib/board/reordenar";
 import {
   BOOK_GROUP_LABEL,
   BOOK_STATUS_COLOR,
@@ -401,15 +402,11 @@ export function BooksView({ onBack }: { onBack: () => void }) {
   }
 
   function handleDrop(books: Book[]) {
-    if (!draggingId) return;
     const ids = books.map((b) => b.id);
-    const fromIdx = ids.indexOf(draggingId);
-    let toIdx = overId ? ids.indexOf(overId) : ids.length - 1;
-    if (fromIdx === -1) return;
-    if (toIdx === -1) toIdx = ids.length - 1;
-    ids.splice(fromIdx, 1);
-    ids.splice(toIdx, 0, draggingId);
-    board.reorderBooks(ids);
+    // Mesma conta dos checklists, agora num lugar só (`listaReordenada`): eram
+    // duas cópias de um laço com índice fácil de errar.
+    const novos = listaReordenada(ids, draggingId, overId);
+    if (novos !== ids) board.reorderBooks(novos);
     setDraggingId(null);
     setOverId(null);
   }

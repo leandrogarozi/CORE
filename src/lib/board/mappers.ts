@@ -708,6 +708,9 @@ export function rowToChecklist(row: ChecklistRow): Checklist {
     expensesEnabled: row.expenses_enabled,
     expenses: ((row.expenses as unknown as ChecklistExpense[] | null) ?? []),
     budgetCents: row.expenses_budget_cents,
+    // Linha salva antes da ordem manual existir vem com null; ela vai pro fim da
+    // lista em vez de brigar pela primeira posição com as que têm ordem 0.
+    order: row.sort_order ?? Number.MAX_SAFE_INTEGER,
   };
 }
 
@@ -721,6 +724,7 @@ export function checklistToInsertRow(c: Checklist, userId: string): TablesInsert
     expenses_enabled: c.expensesEnabled,
     expenses: c.expenses as unknown as Json,
     expenses_budget_cents: c.budgetCents,
+    sort_order: c.order,
   };
 }
 
