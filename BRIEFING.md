@@ -4732,9 +4732,51 @@ de feature flags que já existe pra água/dieta/sono/humor
          vier das telas futuras de aprendizado). Reescrever, não
          acumular versão — senão a pasta vira um depósito.
 
-      **Pendente de decisão dele:** um arquivo por anotação/livro (mais
-      fácil de pegar e achar pela busca do Drive, abre no Docs) ou um
-      arquivo único com tudo. Volume hoje: 8 sinapses, 47 livros.
+      **CORREÇÃO IMPORTANTE (02/10) — isto é pra TERCEIROS, não pra ele.**
+
+      Ele perguntou se não ia embolar com o arquivamento que já existe, e
+      ia. Já existe convenção definida (Regra 19 da skill
+      `organizar-drive-leandro`, escrita em 30/09 pelo Claude deste mesmo
+      projeto), e ela JÁ ESTÁ RODANDO:
+
+      - Casa fixa: CLAUDE - IA > Apps Leandro Garozi > App faro >
+        Sinapses (`1nb1dqB3A2hrV9SBOup-Gp2iZsLDnq97c`) e > Livros
+        (`1p389Kmx55n6gedU9NQc-cInKSs58smVU`).
+      - Um **Google Doc NATIVO** por item, nunca consolidado. Nomes
+        "Nova sinapse — <título> · FARO" e "Resumo livro — <título> · FARO".
+      - Livro só vira doc se tem anotação (mesma regra que o gerador
+        novo chegou por conta própria).
+      - O FARO é a fonte da verdade; o doc é espelho. Destino final: o
+        Mapa de Aprendizados.
+
+      **Dois choques se o backup automático fosse feito pra ele:**
+
+      1. **Formato e nome.** O gerador de `src/lib/learning-export.ts`
+         produz Markdown com índice, nomes diferentes, pasta nova. Seria
+         uma SEGUNDA cópia do mesmo material no Drive dele, divergindo
+         da primeira. Duas bibliotecas do mesmo acervo é pior que uma.
+      2. **Técnico, e este decide.** Com o escopo seguro `drive.file` o
+         app só alcança arquivos que ELE mesmo criou. As pastas e os docs
+         de hoje foram criados pelo Claude via conector — o app não
+         conseguiria escrever neles sem o escopo `drive` (restrito, com
+         *security assessment*). Ou seja: automatizar dentro da estrutura
+         existente é caro; criar pasta própria é barato mas duplica.
+
+      **Decisão:** o fluxo dele continua como está (export manual pelo
+      Claude, Regra 19). O backup automático no app fica como feature de
+      TERCEIROS, onde cada usuário parte do zero e não há convenção
+      anterior pra atropelar — aí o Markdown com índice serve bem, e
+      `learning-export.ts` já está pronto e testado pra isso.
+
+      **NÃO construir isto como segundo arquivo pro Leandro.**
+
+      **Estado do espelho em 02/10 (conferido):** 5 sinapses e 2 livros
+      no Drive, contra 8 sinapses e 4 livros no banco. Faltam exportar:
+      sinapses "Aprendizo sobre liderança com filme F1", "Seja água -
+      Filosofia do Bruce Lee", "Ted Lasso Série de Liderança"; livros
+      "Decifre e influencie pessoas", "Especialista em pessoas - Thiago
+      Brunet". Todos de 29-30/09, criados depois da exportação daquele
+      dia. É a prova de que o espelho manual atrasa sozinho.
 
 
 
