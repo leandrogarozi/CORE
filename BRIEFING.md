@@ -146,6 +146,20 @@ por dificuldade:
     brinquedos robô que ele mandou. Nenhuma versão desenhada à mão
     ficou parecida o suficiente com a referência (render 3D metálico
     fotorrealista é fora do alcance de SVG feito à mão).
+  - **Mascote e ícone novos (aprovados por print)**: robô-cão em traço
+    fino: cabeça quadrada arredondada, dois traços de olho,
+    orelhas-painel retas e pedestal. Sem nariz (testado: o oval funciona
+    no mascote grande, mas devolve a "carinha"; decisão do Leandro:
+    ficar sem). Mesma linha do app parceiro Meta Saúde (traço ~3,8% do
+    ícone; duas versões). **A** = contorno branco no roxo (favicon e
+    mascote); **B** = preenchido com o degradê do layout (ícone do
+    celular: apple-touch e manifest, "por enquanto"). Fontes SVG/PNG em
+    `design/icone-app/` e cópia no Drive (App faro > Icon do app). O 3D
+    cromado antigo foi para `design/referencias/faro-dog-3d.png`.
+    Mascote = `public/faro-mascote.svg`; ícones do app = PNG em
+    `src/lib/icon-data.ts` (cache-bust `?v=2`, porque a rota serve
+    `immutable` por 1 ano; o ícone já instalado na tela inicial só
+    troca ao reinstalar o PWA).
   - **Versão atual**: Leandro gerou o render em outra IA (imagem, não
     código) e mandou o PNG com fundo transparente
     (`public/faro-dog.png`, recortado/otimizado de 2000×1750 pra

@@ -47,7 +47,7 @@ export function FaroMascot() {
         title="FARO"
         onClick={() => setOpen((v) => !v)}
       >
-        <Image src="/faro-dog.png" alt="" width={294} height={320} priority className="faro-avatar-img" />
+        <Image src="/faro-mascote.svg" alt="" width={74} height={68} priority className="faro-avatar-img" />
       </button>
     </div>
   );

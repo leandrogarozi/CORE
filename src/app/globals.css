@@ -2415,7 +2415,9 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 }
 .faro-avatar{
   width:64px; height:64px; border-radius:50%; flex:none; overflow:hidden;
-  background:var(--accent); box-shadow:var(--shadow); padding:11px;
+  /* Roxo da marca fixo nos dois temas: no escuro o --accent clareia (#8583F0)
+     e o mascote perdia a identidade; o branco do desenho também lê melhor. */
+  background:#4A47D5; box-shadow:var(--shadow); padding:11px;
   display:flex; align-items:center; justify-content:center;
 }
 .faro-avatar:hover{ filter:brightness(1.06); }
