@@ -2120,7 +2120,7 @@ export function useBoard(userId: string | null) {
       const order = stateRef.current[listKey].length
         ? Math.max(...stateRef.current[listKey].map((x) => x.order)) + 1
         : 0;
-      const item: RecurringItem = { id: uid(), name: name.trim(), durationMin, order, logs: {} };
+      const item: RecurringItem = { id: uid(), name: name.trim(), durationMin, order, logs: {}, category: null };
       apply((s) => ({ ...s, [listKey]: [...s[listKey], item] }));
       supabase
         .from(tableFor(kind))
@@ -2145,6 +2145,33 @@ export function useBoard(userId: string | null) {
         .eq("id", id)
         .then(({ error }) => {
           if (error) reportSaveError("updateRecurring", error);
+        });
+    },
+    [apply, supabase]
+  );
+
+  /**
+   * A tag do hábito ou bloco fixo.
+   *
+   * Com tag, o tempo do bloco soma na categoria no relatório em vez de virar
+   * fatia própria — foi o que ele pediu olhando o "Lazer": na cabeça dele
+   * aquilo é tempo de família, e aparecia como uma terceira coisa ao lado.
+   * Sem tag, nada muda: "Crossfit" não é categoria de tarefa nenhuma e continua
+   * com fatia própria.
+   */
+  const setRecurringCategory = useCallback(
+    (kind: "habit" | "block", id: string, category: Category | null) => {
+      const listKey = listKeyFor(kind);
+      apply((s) => ({
+        ...s,
+        [listKey]: s[listKey].map((x) => (x.id === id ? { ...x, category } : x)),
+      }));
+      supabase
+        .from(tableFor(kind))
+        .update({ category })
+        .eq("id", id)
+        .then(({ error }) => {
+          if (error) reportSaveError("setRecurringCategory", error);
         });
     },
     [apply, supabase]
@@ -3034,6 +3061,7 @@ export function useBoard(userId: string | null) {
     duplicateChecklist,
     addRecurring,
     updateRecurring,
+    setRecurringCategory,
     updateRecurringNoteOptions,
     deleteRecurringItem,
     clearRecurringDay,

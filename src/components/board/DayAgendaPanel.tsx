@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { isMeetingTask, type Task } from "@/lib/types";
-import { DAY_NAMES, MONTH_NAMES, dateFromISO, isoFromDate, todayISO } from "@/lib/date-utils";
 
 type Marca = "reuniao" | "tarefa" | "lembrete";
 type Item = {
@@ -25,25 +24,25 @@ type Item = {
  * preenchido". O de conteúdo: faltava a leitura do dia em ordem de relógio.
  *
  * - **Dia**: o que tem horário, em ordem de relógio. Responde "o que vem agora".
- * - **Mês**: o calendário com marca nos dias ocupados. Responde "como está meu mês".
  * - **Lembretes**: os lembretes daquele dia, INCLUSIVE os sem horário — que por
- *   definição não cabem numa linha do tempo e some do modo Dia. Ele pediu os
- *   dois botões lado a lado; virou um alternador só de três porque dois
- *   alternadores empilhados num painel estreito é mais controle que conteúdo.
+ *   definição não cabem numa linha do tempo e sumiam do modo Dia.
+ *
+ * Teve um modo **Mês**, com o calendário do mês e marca nos dias ocupados, e
+ * ele mandou tirar: *"só fica as datas, não faz sentido"*. Num painel estreito
+ * o calendário só cabia como grade de números, e número de dia sem o que tem
+ * naquele dia não é agenda — é calendário de parede.
  */
 export function DayAgendaPanel({
   selectedDate,
-  onSelectDate,
   onAbrirTarefa,
   onAbrirLembrete,
 }: {
   selectedDate: string;
-  onSelectDate: (iso: string) => void;
   onAbrirTarefa: (task: Task) => void;
   onAbrirLembrete: (id: string) => void;
 }) {
   const { board } = useBoardCtx();
-  const [modo, setModo] = useState<"dia" | "mes" | "lembretes">("dia");
+  const [modo, setModo] = useState<"dia" | "lembretes">("dia");
 
   // Um item de agenda é qualquer coisa COM HORÁRIO num dia. Sem hora não há
   // lugar numa linha do tempo, e enfiar no topo ou no fim inventaria uma ordem
@@ -83,8 +82,6 @@ export function DayAgendaPanel({
     .filter((r) => !r.deletedAt && r.date === selectedDate)
     .sort((a, b) => (a.time ?? "99:99").localeCompare(b.time ?? "99:99"));
 
-  const hoje = todayISO();
-
   return (
     <div className="section agenda-section">
       <div className="section-head agenda-head">
@@ -93,7 +90,6 @@ export function DayAgendaPanel({
           {(
             [
               ["dia", "Dia"],
-              ["mes", "Mês"],
               ["lembretes", "Lembretes"],
             ] as const
           ).map(([valor, rotulo]) => (
@@ -148,84 +144,6 @@ export function DayAgendaPanel({
             ))
           ))}
 
-        {modo === "mes" && (
-          <MesDaAgenda
-            selectedDate={selectedDate}
-            hoje={hoje}
-            itens={todos}
-            onSelectDate={onSelectDate}
-          />
-        )}
-      </div>
-    </div>
-  );
-}
-
-/** O mês do `selectedDate`, começando no domingo, com marca nos dias ocupados. */
-function MesDaAgenda({
-  selectedDate,
-  hoje,
-  itens,
-  onSelectDate,
-}: {
-  selectedDate: string;
-  hoje: string;
-  itens: Item[];
-  onSelectDate: (iso: string) => void;
-}) {
-  const base = dateFromISO(selectedDate);
-  const ano = base.getFullYear();
-  const mes = base.getMonth();
-  const primeiro = new Date(ano, mes, 1);
-  const diasNoMes = new Date(ano, mes + 1, 0).getDate();
-
-  // Quantos quadrados vazios antes do dia 1 — a semana começa no domingo, que é
-  // a ordem do DAY_NAMES e da faixa de dias do app.
-  const vazios = primeiro.getDay();
-
-  // Quantos itens por dia, calculado uma vez: olhar a lista inteira dentro do
-  // laço dos 31 dias seria varrer tudo 31 vezes.
-  const porDia = new Map<string, number>();
-  for (const i of itens) porDia.set(i.dia, (porDia.get(i.dia) ?? 0) + 1);
-
-  const celulas: (string | null)[] = [
-    ...Array<null>(vazios).fill(null),
-    ...Array.from({ length: diasNoMes }, (_, k) => isoFromDate(new Date(ano, mes, k + 1))),
-  ];
-
-  return (
-    <div className="agenda-mes">
-      <div className="agenda-mes-titulo">
-        {MONTH_NAMES[mes]} de {ano}
-      </div>
-      <div className="agenda-mes-grade">
-        {DAY_NAMES.map((n) => (
-          <span className="agenda-mes-cab" key={n}>
-            {n[0]}
-          </span>
-        ))}
-        {celulas.map((iso, idx) =>
-          iso === null ? (
-            <span key={`v${idx}`} />
-          ) : (
-            <button
-              type="button"
-              key={iso}
-              className={
-                "agenda-mes-dia" +
-                (iso === selectedDate ? " sel" : "") +
-                (iso === hoje ? " hoje" : "")
-              }
-              title={`${porDia.get(iso) ?? 0} com horário`}
-              onClick={() => onSelectDate(iso)}
-            >
-              {dateFromISO(iso).getDate()}
-              {/* Um ponto, não a contagem: o número do dia já ocupa a célula, e
-                  dois números juntos num quadrado de 26px não se leem. */}
-              {porDia.has(iso) && <span className="agenda-mes-ponto" />}
-            </button>
-          )
-        )}
       </div>
     </div>
   );

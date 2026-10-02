@@ -285,7 +285,10 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
               campo do item estava duplicando — e o que faltava mesmo era
               escolher o texto que chega no celular. Vazio, a mensagem cai no
               padrão "Manutenção: <nome do item>". */}
-          <label className="prop-row">
+          {/* Esta linha é a única do painel em que o valor é texto longo, e na
+              grade de duas colunas ele ficava espremido contra o rótulo. Vira
+              empilhada: rótulo em cima, caixa inteira embaixo. */}
+          <label className="prop-row prop-row-empilhada">
             <span className="prop-label">Mensagem no WhatsApp</span>
             <div className="prop-value">
               <CommentButton

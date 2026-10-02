@@ -237,6 +237,7 @@ export type Database = {
       }
       fixed_blocks: {
         Row: {
+          category: string | null
           created_at: string
           duration_minutes: number | null
           id: string
@@ -246,6 +247,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          category?: string | null
           created_at?: string
           duration_minutes?: number | null
           id?: string
@@ -255,6 +257,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          category?: string | null
           created_at?: string
           duration_minutes?: number | null
           id?: string
@@ -343,6 +346,7 @@ export type Database = {
       }
       habits: {
         Row: {
+          category: string | null
           created_at: string
           duration_minutes: number | null
           id: string
@@ -352,6 +356,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          category?: string | null
           created_at?: string
           duration_minutes?: number | null
           id?: string
@@ -361,6 +366,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          category?: string | null
           created_at?: string
           duration_minutes?: number | null
           id?: string

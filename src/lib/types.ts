@@ -241,6 +241,11 @@ export interface RecurringItem {
   order: number;
   logs: Record<string, DayLog>; // iso date -> log
   noteOptions?: string[]; // fixed blocks only: registered options to pick instead of typing a note
+  // Tag opcional. Com ela, o tempo do bloco soma na categoria no relatório em
+  // vez de virar fatia própria — "Lazer" marcado como Família é tempo de
+  // família, não uma terceira coisa ao lado. Null mantém o comportamento
+  // antigo, que é o certo pro "Crossfit", que não é categoria de tarefa nenhuma.
+  category: Category | null;
 }
 
 export interface Settings {

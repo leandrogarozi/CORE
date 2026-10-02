@@ -8,7 +8,8 @@ import { MinutesPicker } from "./TimePicker";
 import { EditIcon, TrashIcon } from "./icons";
 import { fmtDayLabel, fmtHM, isoFromDate, todayISO, weekDatesFrom } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
-import type { DayLogEntry, RecurringItem } from "@/lib/types";
+import type { Category, DayLogEntry, RecurringItem } from "@/lib/types";
+import { CATEGORY_LABEL } from "@/lib/types";
 
 type Kind = "habit" | "block";
 
@@ -392,17 +393,22 @@ function RecurringRow({ kind, item, weekAnchor }: { kind: Kind; item: RecurringI
   );
 }
 
+// Mesma derivação usada nas Configurações: a ordem do rótulo é a ordem da tela.
+const CATEGORIAS = (Object.keys(CATEGORY_LABEL) as Category[]).filter((c) => c !== "sem_categoria");
+
 function RecurringEditRow({ kind, item, onDone }: { kind: Kind; item: RecurringItem; onDone: () => void }) {
   const { board } = useBoardCtx();
   const [name, setName] = useState(item.name);
   const [duration, setDuration] = useState<number | null>(item.durationMin);
   const [options, setOptions] = useState<string[]>(item.noteOptions ?? []);
+  const [categoria, setCategoria] = useState<Category | null>(item.category);
   const [newOption, setNewOption] = useState("");
 
   function save() {
     onDone();
     board.updateRecurring(kind, item.id, name.trim() || item.name, duration);
     board.updateRecurringNoteOptions(kind, item.id, options);
+    board.setRecurringCategory(kind, item.id, categoria);
   }
 
   function addOption() {
@@ -423,6 +429,32 @@ function RecurringEditRow({ kind, item, onDone }: { kind: Kind; item: RecurringI
           onKeyDown={(e) => e.key === "Enter" && save()}
         />
         <MinutesPicker minutes={duration} onChange={setDuration} />
+      </div>
+      {/* A tag decide ONDE esse tempo aparece no relatório. Sem tag, o item
+          vira fatia própria no gráfico, com o nome dele — que é o certo pro
+          "Crossfit". Com tag, o tempo soma na categoria: foi o que ele pediu
+          olhando o "Lazer", que na cabeça dele é tempo de família. */}
+      <div className="note-options-editor">
+        <span className="edit-field-label">Tag (soma esse tempo na categoria)</span>
+        <div className="note-options-chips">
+          <button
+            type="button"
+            className={"note-chip" + (categoria === null ? " active" : "")}
+            onClick={() => setCategoria(null)}
+          >
+            Sem tag
+          </button>
+          {CATEGORIAS.map((c) => (
+            <button
+              key={c}
+              type="button"
+              className={"note-chip" + (categoria === c ? " active" : "")}
+              onClick={() => setCategoria(c)}
+            >
+              {CATEGORY_LABEL[c]}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="note-options-editor">
         <span className="edit-field-label">Opções de nota (marcar em vez de escrever)</span>

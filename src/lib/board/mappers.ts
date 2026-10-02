@@ -386,6 +386,9 @@ export function buildRecurring(
           itemLogs[e.log_date] = { ...log, entries };
         });
       const noteOptions = "note_options" in item ? ((item.note_options as string[] | null) ?? []) : undefined;
+      // A coluna nasceu depois: linha antiga vem sem ela e fica sem tag, que é
+      // exatamente o comportamento de antes.
+      const category = (item as { category?: string | null }).category ?? null;
       return {
         id: item.id,
         name: item.name,
@@ -393,6 +396,7 @@ export function buildRecurring(
         order: item.sort_order,
         logs: itemLogs,
         noteOptions,
+        category: (category as Category | null) ?? null,
       };
     })
     .sort((a, b) => a.order - b.order);

@@ -129,10 +129,27 @@ export function Dashboard() {
     const taskMinTotal = taskTime.total;
 
     const days = eachDateInRange(fromISO, toISO);
+
+    // Bloco COM tag soma na categoria dela; sem tag, segue com fatia própria.
+    // Ele marcou "Lazer" como Família e esperava ver aquele tempo em Família no
+    // relatório — e aparecia como uma terceira coisa ao lado. Somar nos dois
+    // lugares seria pior: o total do período contaria o mesmo tempo duas vezes.
+    const minutosDoItem = (item: { logs: Record<string, { checked: boolean; trackedSeconds: number }> }) =>
+      days.reduce(
+        (sum, iso) => sum + (item.logs[iso]?.checked ? Math.round(item.logs[iso].trackedSeconds / 60) : 0),
+        0
+      );
+    for (const item of [...s.habits, ...s.fixedBlocks]) {
+      if (!item.category) continue;
+      const min = minutosDoItem(item);
+      if (min > 0) byCategory[item.category] = (byCategory[item.category] || 0) + min;
+    }
+
     const habitStats = s.habits
       .map((h) => ({
         id: h.id,
         name: h.name,
+        category: h.category,
         min: days.reduce((sum, iso) => sum + (h.logs[iso]?.checked ? Math.round(h.logs[iso].trackedSeconds / 60) : 0), 0),
         count: days.filter((iso) => h.logs[iso]?.checked).length,
       }))
@@ -141,6 +158,7 @@ export function Dashboard() {
       .map((b) => ({
         id: b.id,
         name: b.name,
+        category: b.category,
         min: days.reduce((sum, iso) => sum + (b.logs[iso]?.checked ? Math.round(b.logs[iso].trackedSeconds / 60) : 0), 0),
         count: days.filter((iso) => b.logs[iso]?.checked).length,
       }))
@@ -203,11 +221,13 @@ export function Dashboard() {
       .filter((e) => e.min > 0),
     // Hábitos e blocos entram como fatias próprias: Lazer é bloco fixo e
     // Corrida/Crossfit são hábitos, então nenhum deles tem categoria de tarefa.
+    // Com tag, o tempo já entrou na categoria acima — repetir aqui seria contar
+    // duas vezes no mesmo gráfico.
     ...stats.habitStats
-      .filter((h) => h.min > 0)
+      .filter((h) => h.min > 0 && !h.category)
       .map((h, i) => ({ key: `hab-${h.id}`, label: h.name, min: h.min, color: EXTRA_COLORS[i % EXTRA_COLORS.length] })),
     ...stats.blockStats
-      .filter((b) => b.min > 0)
+      .filter((b) => b.min > 0 && !b.category)
       .map((b, i) => ({
         key: `blk-${b.id}`,
         label: b.name,

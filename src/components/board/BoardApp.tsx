@@ -345,7 +345,6 @@ function BoardShell() {
                   {viewMode === "day" && (
                     <DayAgendaPanel
                       selectedDate={selectedDate}
-                      onSelectDate={setSelectedDate}
                       // Mesma navegação da busca: leva pro dia da tarefa e
                       // acende a linha dela. Reaproveitar isso é o que faz a
                       // agenda abrir o item no lugar certo em vez de só rolar.
