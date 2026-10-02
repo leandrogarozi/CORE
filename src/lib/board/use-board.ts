@@ -538,6 +538,40 @@ export function useBoard(userId: string | null) {
     [apply, defaultStatusId, newTaskCode, supabase, userId]
   );
 
+  /**
+   * Apagar a reunião/tarefa leva o lembrete dela junto pra lixeira.
+   *
+   * Sem isto o lembrete fica órfão e VIVO: ele não aparece mais vinculado a
+   * nada, mas o motor do WhatsApp continua olhando só pro `deleted_at` dele e
+   * dispara. Foi o que aconteceu com a "Reunião: Reuniao" — ele apagou a
+   * reunião às 23:02 e a mensagem chegou às 01:50, quase três horas depois.
+   *
+   * O carimbo é o MESMO instante da tarefa, de propósito: é ele que diz, na
+   * hora de restaurar, qual lembrete desceu junto e qual ele já tinha apagado
+   * à mão antes — restaurar a reunião não pode ressuscitar um lembrete que ele
+   * jogou fora por conta própria.
+   */
+  const levarLembretesJunto = useCallback(
+    (taskIds: string[], nowIso: string) => {
+      const alvos = stateRef.current.reminders.filter((r) => r.taskId && taskIds.includes(r.taskId));
+      if (!alvos.length) return;
+      const ids = alvos.map((r) => r.id);
+      apply((s) => ({
+        ...s,
+        reminders: s.reminders.filter((r) => !ids.includes(r.id)),
+        trashedReminders: [...s.trashedReminders, ...alvos.map((r) => ({ ...r, deletedAt: nowIso }))],
+      }));
+      supabase
+        .from("reminders")
+        .update({ deleted_at: nowIso })
+        .in("id", ids)
+        .then(({ error }) => {
+          if (error) reportSaveError("apagar lembrete da tarefa", error);
+        });
+    },
+    [apply, supabase]
+  );
+
   const deleteTask = useCallback(
     (id: string, scope: ScopeChoice | null) => {
       const t = stateRef.current.tasks.find((x) => x.id === id);
@@ -562,6 +596,7 @@ export function useBoard(userId: string | null) {
         supabase.from("tasks").update({ deleted_at: nowIso }).eq("id", id).then(({ error }) => {
           if (error) reportSaveError("deleteTask", error);
         });
+        levarLembretesJunto([id], nowIso);
         if (t.seriesId) {
           const series = stateRef.current.taskSeries.find((sr) => sr.id === t.seriesId);
           if (series) {
@@ -602,6 +637,7 @@ export function useBoard(userId: string | null) {
       supabase.from("tasks").update({ deleted_at: nowIso }).in("id", toDeleteIds).then(({ error }) => {
         if (error) reportSaveError("deleteTask bulk", error);
       });
+      levarLembretesJunto(toDeleteIds, nowIso);
       apply((s) => ({
         ...s,
         taskSeries: s.taskSeries.map((sr) => (sr.id === seriesId ? { ...sr, repeat: "none" } : sr)),
@@ -610,7 +646,7 @@ export function useBoard(userId: string | null) {
         if (error) reportSaveError("deleteTask stop series", error);
       });
     },
-    [apply, supabase]
+    [apply, supabase, levarLembretesJunto]
   );
 
   const restoreTask = useCallback(
@@ -625,6 +661,27 @@ export function useBoard(userId: string | null) {
       supabase.from("tasks").update({ deleted_at: null }).eq("id", id).then(({ error }) => {
         if (error) reportSaveError("restoreTask", error);
       });
+
+      // Só os que desceram NESTE delete, reconhecidos pelo carimbo igual ao da
+      // tarefa. Um lembrete que ele apagou à mão antes tem outro instante e
+      // fica onde está.
+      const voltam = stateRef.current.trashedReminders.filter(
+        (r) => r.taskId === id && r.deletedAt && r.deletedAt === t.deletedAt
+      );
+      if (!voltam.length) return;
+      const ids = voltam.map((r) => r.id);
+      apply((s) => ({
+        ...s,
+        trashedReminders: s.trashedReminders.filter((r) => !ids.includes(r.id)),
+        reminders: [...s.reminders, ...voltam.map((r) => ({ ...r, deletedAt: null }))],
+      }));
+      supabase
+        .from("reminders")
+        .update({ deleted_at: null })
+        .in("id", ids)
+        .then(({ error }) => {
+          if (error) reportSaveError("restaurar lembrete da tarefa", error);
+        });
     },
     [apply, supabase]
   );

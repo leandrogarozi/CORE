@@ -229,3 +229,18 @@ export function lembreteDaRefeicao(
     alertMinutesBefore: ANTECEDENCIA_PADRAO_MIN,
   };
 }
+
+/**
+ * Tira da fila os lembretes cuja tarefa/reunião está na lixeira.
+ *
+ * Mora aqui, fora da rota, pra poder ser testada sem banco: é a trava que
+ * impede a repetição do caso da "Reunião: Reuniao" — reunião apagada às 23:02,
+ * mensagem chegando às 01:50 porque o lembrete órfão continuou vivo.
+ */
+export function semLembreteDeTarefaApagada<T extends { task_id: string | null }>(
+  linhas: T[],
+  tarefasNaLixeira: Set<string>
+): T[] {
+  if (tarefasNaLixeira.size === 0) return linhas;
+  return linhas.filter((l) => !l.task_id || !tarefasNaLixeira.has(l.task_id));
+}

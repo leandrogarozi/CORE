@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { rowToReminder } from "@/lib/board/mappers";
 import { isReminderAlertingInZone, zonedDateTimeToMs } from "@/lib/board/reminder-alerts";
-import { proximaOcorrencia } from "@/lib/board/zap-engine";
+import { proximaOcorrencia, semLembreteDeTarefaApagada } from "@/lib/board/zap-engine";
 import { sendWhatsAppReminderMessage } from "@/lib/whatsapp/send";
 import { fmtDayMonth } from "@/lib/date-utils";
 
@@ -63,7 +63,29 @@ export async function POST(req: NextRequest) {
     .eq("whatsapp", true)
     .is("whatsapp_notified_at", null);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  const dueRows = rows ?? [];
+  let dueRows = rows ?? [];
+
+  // Segunda trava: lembrete de tarefa/reunião que foi pra lixeira não avisa.
+  //
+  // Quem leva o lembrete junto é o `deleteTask`, na tela. Esta checagem existe
+  // porque o motor não pode depender disso ter dado certo: lembrete salvo antes
+  // dessa correção, aba fechada no meio do delete, escrita que falhou — em
+  // qualquer um desses casos sobra um lembrete vivo apontando pra uma tarefa
+  // apagada, e a mensagem sai sem que ninguém tenha pedido. Mandar mensagem
+  // demais é o pior defeito que este motor pode ter.
+  const taskIds = [...new Set(dueRows.map((r) => r.task_id).filter(Boolean))] as string[];
+  if (taskIds.length) {
+    const { data: apagadas, error: erroTarefas } = await supabase
+      .from("tasks")
+      .select("id")
+      .in("id", taskIds)
+      .not("deleted_at", "is", null);
+    // Falha aqui não deixa passar: sem saber quais tarefas foram apagadas, o
+    // motor se cala em vez de arriscar mandar o que não devia.
+    if (erroTarefas) return NextResponse.json({ error: erroTarefas.message }, { status: 500 });
+    const naLixeira = new Set((apagadas ?? []).map((t) => t.id));
+    dueRows = semLembreteDeTarefaApagada(dueRows, naLixeira);
+  }
 
   // Os lembretes que o zap criou e que JÁ foram avisados — são os candidatos a
   // virar a página do dia. Note que eles não aparecem na consulta acima, que
