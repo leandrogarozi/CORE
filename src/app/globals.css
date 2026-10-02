@@ -1962,7 +1962,16 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .project-row-topo{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
 /* A barra fica fina aqui: na lista ela é um sinal de relance, não o assunto —
    dentro do projeto aberto, onde é o assunto, ela continua na altura cheia. */
-.project-row-barra .hp-bar{ height:4px; }
+/* Três coisas que a barra da lista precisa e que eu não tinha dado:
+   1. `position:relative` — o pedaço "em andamento" é posicionado ABSOLUTO, e
+      sem referência aqui ele se prendia num ancestral qualquer e atravessava a
+      tela. Foi a barra roxa solta que ele viu;
+   2. margem zerada — `.hp-bar` nasce com `margin:11px 16px 5px` pro painel de
+      Horas, e dentro da linha isso desalinhava;
+   3. os filhos como bloco, porque aqui eles são `span` (um botão não pode ter
+      `div` dentro) e `height:100%` não vale em elemento inline. */
+.project-row-barra .hp-bar{ height:4px; margin:0; position:relative; }
+.project-row-barra .hp-bar-fill, .project-row-barra .hp-bar-doing{ display:block; }
 
 /* Linha única que substitui a lista de um tratamento desligado. */
 .med-group-recolhido{
