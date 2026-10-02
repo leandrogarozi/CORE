@@ -1091,9 +1091,11 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
               alertMinutesBefore={linkedReminder?.alertMinutesBefore ?? null}
               onSave={(fields) => board.setTaskReminder(t.id, fields)}
               emptyLabel="Vazio"
-              // Só depois que o lembrete existe há o que marcar. Antes disso a
-              // opção não aparece, em vez de aparecer desligada e sem efeito.
-              whatsapp={linkedReminder ? linkedReminder.whatsapp : undefined}
+              // Sempre presente: antes a opção só aparecia DEPOIS que o
+              // lembrete existia, então ao marcar a data pela primeira vez ela
+              // não estava lá — ele procurou e não achou. Agora a escolha viaja
+              // junto no salvar e vale já na criação.
+              whatsapp={linkedReminder ? linkedReminder.whatsapp : false}
               onWhatsappChange={
                 linkedReminder
                   ? (ligado) =>

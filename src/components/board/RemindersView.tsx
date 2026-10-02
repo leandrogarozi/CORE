@@ -96,9 +96,10 @@ export function ReminderDateButton({
   whatsapp,
   onWhatsappChange,
 }: ReminderScheduleFields & {
-  onSave: (fields: ReminderScheduleFields) => void;
+  onSave: (fields: ReminderScheduleFields & { whatsapp?: boolean }) => void;
   emptyLabel?: string;
-  /** Só chega preenchido quando já existe um lembrete pra marcar. */
+  /** Presente quando a tela aceita o zap. `false` num lembrete que ainda não
+   *  existe é o estado normal — a opção aparece desde o começo. */
   whatsapp?: boolean;
   onWhatsappChange?: (ligado: boolean) => void;
 }) {
@@ -109,6 +110,7 @@ export function ReminderDateButton({
   const [repeatDraft, setRepeatDraft] = useState<Repeat>(repeat);
   const [weekDraft, setWeekDraft] = useState<number[]>(weekDays ?? []);
   const [alertDraft, setAlertDraft] = useState<number | null>(alertMinutesBefore);
+  const [zapDraft, setZapDraft] = useState(whatsapp ?? false);
   const btnRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
   const pos = useClampedPopoverPos(anchorRect, popRef);
@@ -135,6 +137,7 @@ export function ReminderDateButton({
     setRepeatDraft(repeat);
     setWeekDraft(weekDays ?? []);
     setAlertDraft(alertMinutesBefore);
+    setZapDraft(whatsapp ?? false);
     if (btnRef.current) {
       setAnchorRect(btnRef.current.getBoundingClientRect());
     }
@@ -153,6 +156,12 @@ export function ReminderDateButton({
       repeat: hasWeekDays ? "none" : nextDate ? repeatDraft : "none",
       weekDays: hasWeekDays ? [...weekDraft].sort((a, b) => a - b) : null,
       alertMinutesBefore: nextDate || hasWeekDays ? alertDraft : null,
+      // Só manda o campo quando ESTA tela usa a opção. Sem isso, os três outros
+      // lugares que abrem este mesmo popover (a tabela de Lembretes) passariam
+      // a salvar `whatsapp: false` e apagariam em silêncio o zap que ele tinha
+      // acendido na coluna ao lado.
+      // E sem aviso não há quando mandar, então nunca sai ligado daqui.
+      ...(whatsapp !== undefined ? { whatsapp: alertDraft !== null && zapDraft } : {}),
     });
     setAnchorRect(null);
   }
@@ -263,7 +272,7 @@ export function ReminderDateButton({
                 no mesmo lugar.
                 Exige aviso marcado pela regra de sempre: sem aviso não existe
                 quando mandar, e o verde não pode prometer o que não sai. */}
-            {whatsapp !== undefined && onWhatsappChange && (
+            {whatsapp !== undefined && (
               <label
                 className={"reminder-zap-opcao" + (alertDraft === null ? " inerte" : "")}
                 title={
@@ -274,11 +283,16 @@ export function ReminderDateButton({
               >
                 <input
                   type="checkbox"
-                  checked={whatsapp && alertDraft !== null}
+                  checked={zapDraft && alertDraft !== null}
                   disabled={alertDraft === null}
-                  onChange={(e) => onWhatsappChange(e.target.checked)}
+                  onChange={(e) => {
+                    setZapDraft(e.target.checked);
+                    // Quando o lembrete já existe, aplica na hora; quando ainda
+                    // não, o rascunho viaja no save e vale na criação.
+                    onWhatsappChange?.(e.target.checked);
+                  }}
                 />
-                <WhatsAppIcon filled={whatsapp && alertDraft !== null} />
+                <WhatsAppIcon filled={zapDraft && alertDraft !== null} />
                 <span>Avisar no WhatsApp</span>
               </label>
             )}

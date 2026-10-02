@@ -1928,8 +1928,12 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 /* 13px → 11px → 8px. Ele pediu os 15% e depois mais 30%: continuava com mais
    destaque que o título do livro, que é o que a linha tem de mais importante.
    Em 8px ela vira sinal, não protagonista. */
+/* `padding:0` é o que faz dela um círculo. O botão herdava `padding:1px 6px`,
+   e com `box-sizing:border-box` os 12px de padding horizontal viram piso de
+   largura: pedir 8px dava 12x8, uma cápsula. Em 13px isso não aparecia porque a
+   largura era maior que o piso — foi diminuindo que o defeito saiu do esconderijo. */
 .book-status-dot{
-  width:8px; height:8px; border-radius:50%; flex:none; border:none;
+  width:8px; height:8px; padding:0; border-radius:50%; flex:none; border:none;
   background:var(--pill-color);
 }
 .book-status-dot:hover{ filter:brightness(0.9); }

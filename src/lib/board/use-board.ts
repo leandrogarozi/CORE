@@ -1281,6 +1281,10 @@ export function useBoard(userId: string | null) {
         repeat: Repeat;
         weekDays: number[] | null;
         alertMinutesBefore: number | null;
+        // Vem do próprio popover de data. Antes o lembrete da tarefa nascia
+        // sempre com whatsapp: true — herança de quando a coluna tinha default
+        // true, que foi justamente o erro que fez ele receber verde em tudo.
+        whatsapp?: boolean;
       }
     ) => {
       if (!userId) return;
@@ -1312,7 +1316,9 @@ export function useBoard(userId: string | null) {
         taskId,
         sourceKind: null,
         sourceId: null,
-        whatsapp: true,
+        // Quem decide é a opção que ele marcou no mesmo popover. Sem marcação,
+        // nasce apagado — a regra do app é que ele acende o que quer.
+        whatsapp: fields.whatsapp ?? false,
       };
       apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
       supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
