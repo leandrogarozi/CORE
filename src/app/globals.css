@@ -2035,6 +2035,19 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
   /* Contorno porque o tom claro quase some sobre o cartão branco. */
   box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);
 }
+/* "Sem cor" não tem o que mostrar: bolinha vazada, com um risco diagonal — o
+   mesmo gesto que significa "nada" em qualquer paleta. */
+.fundo-amostra.vazia{
+  background:
+    linear-gradient(135deg, transparent 45%, var(--danger) 45%, var(--danger) 55%, transparent 55%),
+    var(--surface);
+}
+/* O input de cor some: quem o abre é a pílula inteira. Ele não pode ocupar
+   espaço na linha nem desenhar o quadradinho padrão do sistema. */
+.fundo-seletor{
+  position:absolute; width:1px; height:1px; opacity:0; pointer-events:none;
+}
+.fundo-tons label.note-chip{ position:relative; cursor:pointer; }
 .fundo-intensidade{ margin-top:6px; width:max-content; }
 .project-row:last-child{ border-bottom:none; }
 .project-row:hover{ background:var(--surface-2); }

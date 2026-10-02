@@ -24,7 +24,13 @@ export type TomDoFundo = {
  * o roxo dos botões e das barras. Estes conversam com a paleta do app; a
  * liberdade que ele ganha é a que importa, sem a de estragar.
  */
+/** O id do "Sem cor": fundo liso, branco no claro e preto no escuro. */
+export const SEM_COR = "nenhum";
+
 export const TONS_DO_FUNDO: TomDoFundo[] = [
+  // Primeiro da lista: "sem cor" é uma decisão de COR, e é lá que ele foi
+  // procurar. As bases aqui não são usadas — o degradê sai `none`.
+  { id: SEM_COR, rotulo: "Sem cor", base: [255, 255, 255], apoio: [255, 255, 255] },
   { id: "roxo", rotulo: "Roxo", base: [74, 71, 213], apoio: [56, 118, 245] },
   { id: "indigo", rotulo: "Índigo", base: [49, 68, 190], apoio: [38, 140, 230] },
   { id: "azul", rotulo: "Azul", base: [36, 110, 220], apoio: [30, 170, 210] },
@@ -37,12 +43,32 @@ export const TONS_DO_FUNDO: TomDoFundo[] = [
 export const TOM_PADRAO = "roxo";
 export const INTENSIDADE_PADRAO: IntensidadeDoFundo = 3;
 
+/**
+ * Os graus que a tela oferece. O 0 continua existindo no tipo porque linha
+ * salva antes pode ter esse valor — e ele significa a mesma coisa que "Sem
+ * cor". Oferecer os dois seria dois controles pra uma decisão só, que foi
+ * exatamente o que ele estranhou ao procurar "sem cor" entre as cores.
+ */
+export const GRAUS_NA_TELA: IntensidadeDoFundo[] = [1, 2, 3];
+
 export const ROTULO_DA_INTENSIDADE: Record<IntensidadeDoFundo, string> = {
-  0: "Neutro",
+  0: "Sem cor",
   1: "Suave",
   2: "Médio",
   3: "Presente",
 };
+
+/** Um hex "#RRGGBB" vira os números que o degradê usa. */
+function doHex(hex: string): [number, number, number] | null {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return null;
+  const n = parseInt(m[1], 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+export function ehCorPersonalizada(id: string | null | undefined): boolean {
+  return !!id && doHex(id) !== null;
+}
 
 /**
  * A mesma escolha dele vale pros dois temas, mas NÃO com o mesmo número.
@@ -55,7 +81,27 @@ const ALFA_CLARO: Record<IntensidadeDoFundo, number> = { 0: 0, 1: 0.06, 2: 0.11,
 const ALFA_ESCURO: Record<IntensidadeDoFundo, number> = { 0: 0, 1: 0.04, 2: 0.07, 3: 0.11 };
 
 export function tomPorId(id: string | null | undefined): TomDoFundo {
-  return TONS_DO_FUNDO.find((t) => t.id === id) ?? TONS_DO_FUNDO[0];
+  const daLista = TONS_DO_FUNDO.find((t) => t.id === id);
+  if (daLista) return daLista;
+
+  // Cor escolhida a dedo por ele, guardada como hex. O respiro de baixo é
+  // derivado da própria cor, puxado pro frio: usar a MESMA cor nas três camadas
+  // acharia uma chapa só e o movimento sumiria — que é o defeito que a gente
+  // passou a sessão inteira corrigindo.
+  const rgb = doHex(id ?? "");
+  if (rgb) {
+    const [r, g, b] = rgb;
+    return {
+      id: id as string,
+      rotulo: "Personalizada",
+      base: rgb,
+      apoio: [Math.round(r * 0.6), Math.round(g * 0.8), Math.min(255, Math.round(b * 1.15))],
+    };
+  }
+  // Id que não existe mais (tom renomeado, lixo no banco): volta pro padrão.
+  // Nunca pro primeiro da lista, que hoje é o "Sem cor" — um id estranho não
+  // pode ter o efeito de desligar o fundo dele.
+  return TONS_DO_FUNDO.find((t) => t.id === TOM_PADRAO) ?? TONS_DO_FUNDO[0];
 }
 
 function rgba([r, g, b]: [number, number, number], a: number): string {
@@ -78,6 +124,9 @@ export function degradeDoFundo(
   intensidade: IntensidadeDoFundo,
   tema: "claro" | "escuro"
 ): string {
+  // "Sem cor" e grau zero são a mesma coisa: fundo liso, branco no claro e
+  // preto no escuro.
+  if (tom.id === SEM_COR) return "none";
   const alfa = (tema === "claro" ? ALFA_CLARO : ALFA_ESCURO)[intensidade];
   if (alfa === 0) return "none";
 

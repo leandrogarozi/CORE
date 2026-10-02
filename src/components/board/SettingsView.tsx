@@ -4,10 +4,13 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useBoardCtx } from "./board-context";
 import { useWhatsAppCost } from "@/lib/board/use-whatsapp-cost";
 import {
+  GRAUS_NA_TELA,
   INTENSIDADE_PADRAO,
   ROTULO_DA_INTENSIDADE,
+  SEM_COR,
   TOM_PADRAO,
   TONS_DO_FUNDO,
+  ehCorPersonalizada,
   type IntensidadeDoFundo,
 } from "@/lib/board/fundo";
 import {
@@ -540,8 +543,23 @@ function WhatsAppCostBox() {
 function CorDoFundoBox() {
   const { board } = useBoardCtx();
   const { bgTone, bgIntensity } = board.state.settings;
-  const tomAtual = bgTone ?? TOM_PADRAO;
-  const intensidadeAtual = (bgIntensity ?? INTENSIDADE_PADRAO) as IntensidadeDoFundo;
+  const salva = (bgIntensity ?? INTENSIDADE_PADRAO) as IntensidadeDoFundo;
+  // Grau 0 era escolhível na versão anterior e significava a mesma coisa que
+  // "Sem cor". Quem parou nele vê "Sem cor" marcado, não um tom marcado com
+  // fundo liso e nenhum grau aceso — estado que não se explica na tela.
+  const tomAtual = salva === 0 ? SEM_COR : bgTone ?? TOM_PADRAO;
+  const intensidadeAtual = salva === 0 ? INTENSIDADE_PADRAO : salva;
+  const personalizada = ehCorPersonalizada(tomAtual);
+
+  // Escolher cor estando no 0 tem que pintar algo: sem isto o clique no tom
+  // não muda nada na tela e parece quebrado.
+  function escolherTom(id: string) {
+    board.updateSettings(
+      salva === 0 && id !== SEM_COR
+        ? { bgTone: id, bgIntensity: INTENSIDADE_PADRAO }
+        : { bgTone: id }
+    );
+  }
 
   return (
     <CollapsibleBox title="Cor do fundo" icon={<PaletteIcon />}>
@@ -552,28 +570,49 @@ function CorDoFundoBox() {
             key={t.id}
             type="button"
             className={"note-chip" + (tomAtual === t.id ? " active" : "")}
-            onClick={() => board.updateSettings({ bgTone: t.id })}
+            onClick={() => escolherTom(t.id)}
           >
             {/* A bolinha mostra o tom antes de clicar: nome de cor é discutível
-                ("índigo" é azul ou roxo?), amostra não é. */}
+                ("índigo" é azul ou roxo?), amostra não é. No "Sem cor" ela fica
+                vazada, porque não há cor pra mostrar. */}
             <span
-              className="fundo-amostra"
-              style={{ background: `rgb(${t.base[0]},${t.base[1]},${t.base[2]})` }}
+              className={"fundo-amostra" + (t.id === SEM_COR ? " vazia" : "")}
+              style={t.id === SEM_COR ? undefined : { background: `rgb(${t.base[0]},${t.base[1]},${t.base[2]})` }}
             />
             {t.rotulo}
           </button>
         ))}
+
+        {/* Cor livre, pro caso de nenhum dos tons servir. É um `label` com
+            input de cor dentro: o seletor do sistema abre no clique, com a
+            roda de cores que ele descreveu, e a escolha já vale ao mexer. */}
+        <label className={"note-chip" + (personalizada ? " active" : "")}>
+          <span
+            className="fundo-amostra"
+            style={{ background: personalizada ? tomAtual : "linear-gradient(135deg,#f66,#6cf,#6f9)" }}
+          />
+          Personalizada
+          <input
+            type="color"
+            className="fundo-seletor"
+            value={personalizada ? tomAtual : "#4A47D5"}
+            onChange={(e) => escolherTom(e.target.value)}
+          />
+        </label>
       </div>
 
       <span className="edit-field-label" style={{ marginTop: 12 }}>
         Intensidade
       </span>
       <div className="view-toggle fundo-intensidade">
-        {([0, 1, 2, 3] as IntensidadeDoFundo[]).map((n) => (
+        {GRAUS_NA_TELA.map((n) => (
           <button
             key={n}
             type="button"
             className={"view-toggle-btn" + (intensidadeAtual === n ? " active" : "")}
+            // Com "Sem cor" não há o que graduar — o controle fica visível, pra
+            // ele ver que existe, e inerte até escolher uma cor.
+            disabled={tomAtual === SEM_COR}
             onClick={() => board.updateSettings({ bgIntensity: n })}
           >
             {ROTULO_DA_INTENSIDADE[n]}
