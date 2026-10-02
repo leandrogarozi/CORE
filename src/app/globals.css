@@ -1246,7 +1246,14 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 
 /* Edição da tarefa: título grande e discreto no topo */
 .reminder-new-date{ width:128px; flex:none; font-size:11.5px; padding:5px 6px; }
-.reminder-new-time{ width:74px; flex:none; font-size:11.5px; padding:5px 6px; }
+/* O seletor de hora da linha de criação. Acompanha a fonte menor da linha, mas
+   herda o resto do `.time-picker-btn` — o campo tem que ser o MESMO das outras
+   telas, não um parecido. */
+.reminder-new-time{ flex:none; font-size:11.5px; padding:5px 8px; }
+/* Data e hora do popover do sininho: linha própria, porque em 340px os três
+   campos lado a lado não dão alvo pra acertar. */
+.reminders-pop-quando{ display:flex; align-items:center; gap:8px; padding:0 2px; }
+.reminders-pop-quando input[type="date"]{ flex:1; min-width:0; font-size:11.5px; padding:5px 6px; }
 
 /* Fatia clara logo depois da parte concluída: o que já saiu do papel mas
    ainda não terminou. */
@@ -2080,6 +2087,9 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
   border-radius:50%; background:var(--danger); border:1px solid var(--surface);
 }
 .task-reminder-badge{ color:var(--book-yellow); }
+/* Verde do zap, o MESMO que o botão aceso usa: o selo na linha e o botão no
+   editor têm que ser reconhecíveis como a mesma coisa. */
+.task-zap-badge{ color:var(--success); }
 .task-attachment-badge{ color:var(--text-faint); }
 .task-pautas-badge{
   gap:2px; padding:1px 5px; border-radius:9px; font-size:10px; font-weight:600;

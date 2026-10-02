@@ -57,7 +57,11 @@ import { isoAddDays, occurrenceDates, todayISO } from "@/lib/date-utils";
 import { studyDatesInRange } from "@/lib/board/study-plan";
 import { lembreteDaManutencao, lembreteDaMedicacao, lembreteDaRefeicao } from "@/lib/board/zap-engine";
 import { maintenanceStatus } from "@/lib/board/maintenance";
-import { isRecurringReminder, nextReminderOccurrenceDate } from "@/lib/board/reminder-alerts";
+import {
+  isRecurringReminder,
+  nextReminderOccurrenceDate,
+  oQueFaltaNoLembrete,
+} from "@/lib/board/reminder-alerts";
 import { reportSaveError } from "@/lib/board/error-toast";
 
 const TIMER_ENTRY_NOTE = "Cronômetro";
@@ -1225,6 +1229,10 @@ export function useBoard(userId: string | null) {
     // tinha que caçar a linha no fim da lista pra preencher depois.
     async (title: string, date: string | null = null, time: string | null = null): Promise<boolean> => {
       if (!userId || !title.trim()) return false;
+      // A trava de verdade mora aqui, não só na tela: é por esta função que
+      // TODO lembrete nasce, então nenhuma tela nova consegue criar um sem
+      // quando avisar sem antes decidir o que fazer com essa regra.
+      if (oQueFaltaNoLembrete(date, time)) return false;
       const r: Reminder = {
         id: uid(),
         title: title.trim(),

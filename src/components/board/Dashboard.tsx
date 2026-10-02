@@ -172,6 +172,15 @@ export function Dashboard() {
       if (!t.done) priorityPending[t.priority]++;
     });
 
+    // Horas por cliente: do maior pro menor, que é a ordem da pergunta que ele
+    // faz ("quanto eu estou gastando com aquele cliente"). Cliente com zero fica
+    // fora — linha com 0h não informa nada e só empurra as outras pra baixo.
+    const clientStats = Object.entries(taskTime.byClient)
+      .filter(([, min]) => min > 0)
+      .map(([nome, min]) => ({ nome, min }))
+      .sort((a, b) => b.min - a.min);
+    const clientMinTotal = clientStats.reduce((sum, c) => sum + c.min, 0);
+
     const workMin = (byCategory.trabalho || 0) + (byCategory.pessoal || 0);
     const studyMin = (byCategory.estudo || 0) + (byCategory.dev || 0);
 
@@ -196,6 +205,8 @@ export function Dashboard() {
       workMin,
       studyMin,
       byCategory,
+      clientStats,
+      clientMinTotal,
       habitStats,
       blockStats,
       // Quantos dias o período tem — é o denominador do "1/7d".
@@ -492,6 +503,45 @@ export function Dashboard() {
                 ))}
               </>
             )}
+          </div>
+        )}
+
+        {/* Horas por cliente. Só aparece quando existe tempo em tarefa COM
+            cliente preenchido — num período sem isso, o cartão seria uma caixa
+            vazia ocupando uma coluna da grade.
+
+            A barra mede a fatia de cada cliente no tempo de cliente do período,
+            não no tempo total: comparar com o total do período faria todas as
+            barras parecerem curtas por causa das tarefas sem cliente, e a
+            pergunta dele é como o tempo de cliente se reparte. */}
+        {stats.clientStats.length > 0 && (
+          <div className="dsh-card">
+            <div className="dsh-card-title">
+              Horas por cliente <span className="dsh-card-tag">no período</span>
+            </div>
+            {stats.clientStats.map((c) => (
+              <div className="dsh-hab" key={c.nome}>
+                <div className="dsh-hab-topo">
+                  <span className="dsh-hab-nome">{c.nome}</span>
+                  <span className="mono dsh-hab-n">
+                    <Tempo min={c.min} />
+                  </span>
+                  <span className="mono dsh-hab-d">
+                    {Math.round((c.min / stats.clientMinTotal) * 100)}%
+                  </span>
+                </div>
+                <div className="dsh-bar">
+                  <span style={{ width: `${(c.min / stats.clientMinTotal) * 100}%` }} />
+                </div>
+              </div>
+            ))}
+            <div className="dsh-sep" />
+            <div className="dsh-row">
+              <span className="dsh-row-name">Total com clientes</span>
+              <span className="mono dsh-row-n">
+                <Tempo min={stats.clientMinTotal} />
+              </span>
+            </div>
           </div>
         )}
 

@@ -361,29 +361,36 @@ function BoardShell() {
               </div>
               {/* A coluna da esquerda é uma pilha: Horas é baixo e o Registro
                   do dia é alto, então sobrava um vão ao lado. A Agenda entra
-                  embaixo do Horas e fecha a linha. */}
+                  embaixo do Horas e fecha a linha.
+
+                  Tudo isto é da tela do DIA. Na Semana o Horas também aparecia,
+                  e ele pediu pra sair: *"na aba semana, retirar o bloco horas
+                  trabalhada... é só uma visão geral de como foi a semana ali de
+                  tarefa"*. Sem o Horas, a linha inteira ficava vazia na Semana —
+                  Agenda e Registro do dia já eram só do dia —, então a condição
+                  subiu pra linha toda em vez de ficar repetida em cada bloco. */}
+              {viewMode === "day" && (
               <div className="day-below-row">
                 <div className="day-below-col">
                   <HoursPanel selectedDate={selectedDate} />
-                  {viewMode === "day" && (
-                    <DayAgendaPanel
-                      selectedDate={selectedDate}
-                      // Mesma navegação da busca: leva pro dia da tarefa e
-                      // acende a linha dela. Reaproveitar isso é o que faz a
-                      // agenda abrir o item no lugar certo em vez de só rolar.
-                      onAbrirTarefa={(task) => {
-                        goToTask(task);
-                        requestFocus({ kind: "task", id: task.id });
-                      }}
-                      onAbrirLembrete={(id) => {
-                        setViewMode("reminders");
-                        requestFocus({ kind: "reminder", id });
-                      }}
-                    />
-                  )}
+                  <DayAgendaPanel
+                    selectedDate={selectedDate}
+                    // Mesma navegação da busca: leva pro dia da tarefa e
+                    // acende a linha dela. Reaproveitar isso é o que faz a
+                    // agenda abrir o item no lugar certo em vez de só rolar.
+                    onAbrirTarefa={(task) => {
+                      goToTask(task);
+                      requestFocus({ kind: "task", id: task.id });
+                    }}
+                    onAbrirLembrete={(id) => {
+                      setViewMode("reminders");
+                      requestFocus({ kind: "reminder", id });
+                    }}
+                  />
                 </div>
-                {viewMode === "day" && <DailyLogPanel selectedDate={selectedDate} />}
+                <DailyLogPanel selectedDate={selectedDate} />
               </div>
+              )}
             </div>
           )}
 

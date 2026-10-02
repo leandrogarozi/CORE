@@ -5,6 +5,11 @@ type TimeState = Pick<BoardState, "tasks" | "taskTimeEntries">;
 export interface TaskTimeBreakdown {
   total: number; // minutos
   byCategory: Partial<Record<Category, number>>;
+  // Minutos por cliente, só das tarefas que têm cliente preenchido. Sai da MESMA
+  // conta das categorias de propósito: se tivesse laço próprio, o "tempo com o
+  // cliente" e o "tempo em trabalho" discordariam no dia em que uma das regras
+  // mudasse — e discordando, nenhum dos dois serve pra cobrar nada.
+  byClient: Record<string, number>;
   loggedMin: number; // veio do tempo por dia (cronômetro ou lançamento manual)
   typedMin: number; // veio da duração digitada de tarefa concluída sem tempo por dia
 }
@@ -25,11 +30,17 @@ export function taskMinutesInRange(state: TimeState, fromISO: string, toISO: str
   const taskById = new Map(state.tasks.map((t) => [t.id, t]));
   const comTempoLancado = new Set(state.taskTimeEntries.filter((e) => e.seconds > 0).map((e) => e.taskId));
   const byCategory: Partial<Record<Category, number>> = {};
+  const byClient: Record<string, number> = {};
   let loggedMin = 0;
   let typedMin = 0;
 
-  function add(cat: Category, min: number) {
+  function add(cat: Category, min: number, client: string | null) {
     byCategory[cat] = (byCategory[cat] || 0) + min;
+    // O nome do cliente é texto livre, então "Metalosa " e "Metalosa" seriam
+    // dois clientes no relatório. Normaliza aqui, uma vez, em vez de deixar o
+    // erro aparecer como duas linhas parecidas na tela.
+    const nome = client?.trim();
+    if (nome) byClient[nome] = (byClient[nome] || 0) + min;
   }
 
   for (const e of state.taskTimeEntries) {
@@ -39,7 +50,7 @@ export function taskMinutesInRange(state: TimeState, fromISO: string, toISO: str
     const min = Math.round(e.seconds / 60);
     if (min <= 0) continue;
     loggedMin += min;
-    add(t.category, min);
+    add(t.category, min, t.client);
   }
 
   for (const t of state.tasks) {
@@ -47,10 +58,10 @@ export function taskMinutesInRange(state: TimeState, fromISO: string, toISO: str
     if (!t.date || t.date < fromISO || t.date > toISO) continue;
     if (comTempoLancado.has(t.id)) continue;
     typedMin += t.durationMin;
-    add(t.category, t.durationMin);
+    add(t.category, t.durationMin, t.client);
   }
 
-  return { total: loggedMin + typedMin, byCategory, loggedMin, typedMin };
+  return { total: loggedMin + typedMin, byCategory, byClient, loggedMin, typedMin };
 }
 
 // Tempo lançado numa tarefa num dia específico (segundos).

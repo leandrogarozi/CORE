@@ -35,6 +35,7 @@ import {
   UsersGroupIcon,
   WarningIcon,
   WeekIcon,
+  WhatsAppIcon,
 } from "./icons";
 import { fmtDayMonth, fmtHM, todayISO } from "@/lib/date-utils";
 import { taskEntriesOf } from "@/lib/board/task-time";
@@ -43,6 +44,7 @@ import { ToggleSwitch } from "./ToggleSwitch";
 import { countOpenChecklistItems } from "@/lib/rich-text";
 import { CATEGORY_LABEL, isMeetingTask, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
 import { ANTECEDENCIA_PADRAO_MIN } from "@/lib/board/zap-engine";
+import { oZapVaiSair } from "@/lib/board/reminder-alerts";
 import type { TaskEditFields } from "@/lib/board/use-board";
 
 const CATEGORIES = Object.keys(CATEGORY_LABEL) as Category[];
@@ -268,7 +270,16 @@ export function TaskRow({
 }: TaskRowProps) {
   const { board, askScope, askConfirm, openProject, focusRequest, consumeFocusRequest } = useBoardCtx();
   const [editing, setEditing] = useState(false);
-  const hasReminder = board.state.reminders.some((r) => r.taskId === t.id);
+  // O lembrete da tarefa interessa duas vezes: pra mostrar o sininho e pra
+  // dizer se o zap vai sair. Ele pediu os dois selos juntos *"assim como mostra
+  // o sininho... mostra o íconezinho do WhatsApp também pequenininho, que a
+  // gente tem uma leitura rápida de como está configurada essa task"*.
+  const lembreteDaTarefa = board.state.reminders.find((r) => r.taskId === t.id) ?? null;
+  const hasReminder = lembreteDaTarefa !== null;
+  // Mesma regra da lista de lembretes: só pinta se a mensagem realmente sai.
+  // Um selo que aparece por estar "marcado" mentiria, porque sem antecedência o
+  // motor nunca pega a linha.
+  const zapDaTarefaVaiSair = lembreteDaTarefa !== null && oZapVaiSair(lembreteDaTarefa);
   const hasAttachment = board.state.attachmentKeys.has(`task:${t.id}`);
   // Tópico em aberto é caixinha não marcada na observação — vale pra qualquer
   // tarefa, não só reunião (antes só reunião mostrava o selo).
@@ -424,6 +435,11 @@ export function TaskRow({
             {hasReminder && (
               <span className="task-badge task-reminder-badge" title="Tarefa com lembrete">
                 <BellIcon filled />
+              </span>
+            )}
+            {zapDaTarefaVaiSair && (
+              <span className="task-badge task-zap-badge" title="Avisa no WhatsApp">
+                <WhatsAppIcon filled />
               </span>
             )}
             {t.note.trim() && (

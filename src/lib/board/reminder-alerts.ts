@@ -106,3 +106,42 @@ export function nextReminderOccurrenceDate(
   }
   return null;
 }
+
+/**
+ * O que falta pro lembrete poder nascer, em português, ou null se está pronto.
+ *
+ * Lembrete sem data e hora não avisa, não entra na agenda e não aparece como
+ * atrasado — nasce como linha morta que ele teria que caçar depois. Vale pra
+ * CRIAÇÃO; editar um lembrete antigo sem data continua liberado, senão os que
+ * já existem ficariam impossíveis de salvar.
+ *
+ * Mora fora dos componentes porque as duas portas de criação (a tela de
+ * Lembretes e o popover do sininho) têm que cobrar a mesma coisa, com a mesma
+ * frase.
+ */
+export function oQueFaltaNoLembrete(date: string | null, time: string | null): string | null {
+  const temData = !!date?.trim();
+  const temHora = !!time?.trim();
+  if (temData && temHora) return null;
+  const falta = !temData && !temHora ? "data e hora" : !temData ? "a data" : "a hora";
+  return `Falta ${falta} — o lembrete precisa saber quando avisar.`;
+}
+
+/**
+ * O lembrete vai REALMENTE mandar WhatsApp?
+ *
+ * Marcado não basta: sem data e sem antecedência o motor nunca pega essa linha,
+ * então pintar o ícone de verde seria prometer uma mensagem que não sai. Foi a
+ * regra que ele pediu com todas as letras — *"botão verde do WhatsApp marcado =
+ * vai sair / desmarquei - para de sair"* — depois de encontrar cem lembretes
+ * verdes dos quais só um podia disparar.
+ *
+ * Mora aqui porque agora são DUAS telas desenhando esse ícone (a lista de
+ * lembretes e a linha da tarefa). Duas cópias da regra viram duas verdades no
+ * dia em que uma delas mudar.
+ */
+export function oZapVaiSair(
+  reminder: Pick<Reminder, "whatsapp" | "date" | "alertMinutesBefore">
+): boolean {
+  return reminder.whatsapp && reminder.date !== null && reminder.alertMinutesBefore !== null;
+}

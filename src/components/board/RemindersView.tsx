@@ -25,7 +25,14 @@ import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 import { countOpenChecklistItems } from "@/lib/rich-text";
 import { MicButton } from "./MicButton";
 import { isMeetingTask } from "@/lib/types";
-import { REMINDER_ALERT_PRESETS, isReminderOverdue, isRecurringReminder, reminderTargetMs } from "@/lib/board/reminder-alerts";
+import {
+  REMINDER_ALERT_PRESETS,
+  isReminderOverdue,
+  isRecurringReminder,
+  oQueFaltaNoLembrete,
+  oZapVaiSair,
+  reminderTargetMs,
+} from "@/lib/board/reminder-alerts";
 import { ANTECEDENCIA_PADRAO_MIN } from "@/lib/board/zap-engine";
 import type { Reminder, ReminderStatus, Repeat } from "@/lib/types";
 
@@ -641,7 +648,7 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
   const status = reminderStatus(reminder, overdue, dueToday);
   // Marcado E com quando mandar. Enquanto faltar um dos dois, o ícone fica
   // apagado mesmo que a coluna esteja true — o desenho não mente.
-  const zapVaiSair = reminder.whatsapp && reminder.date !== null && reminder.alertMinutesBefore !== null;
+  const zapVaiSair = oZapVaiSair(reminder);
 
   return (
     <div
@@ -822,6 +829,9 @@ export function RemindersButton({ onOpenFull }: { onOpenFull: () => void }) {
   const { board } = useBoardCtx();
   const [open, setOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
+  const [newDate, setNewDate] = useState("");
+  const [newTime, setNewTime] = useState("");
+  const [faltando, setFaltando] = useState<string | null>(null);
   const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
@@ -858,12 +868,24 @@ export function RemindersButton({ onOpenFull }: { onOpenFull: () => void }) {
     setOpen((v) => !v);
   }
 
-  async function handleAdd() {
+  async function handleAdd(cobrando = true) {
     const title = newTitle.trim();
     if (!title) return;
+    // Mesma regra da tela cheia: esta é a OUTRA porta de criação, e deixar ela
+    // criar lembrete sem data faria a trava valer só metade das vezes.
+    const falta = oQueFaltaNoLembrete(newDate, newTime);
+    if (falta) {
+      if (cobrando) setFaltando(falta);
+      return;
+    }
+    setFaltando(null);
     setNewTitle("");
-    const ok = await board.addReminder(title);
+    const ok = await board.addReminder(title, newDate, newTime);
     if (!ok) setNewTitle(title);
+    else {
+      setNewDate("");
+      setNewTime("");
+    }
   }
 
   return (
@@ -905,6 +927,30 @@ export function RemindersButton({ onOpenFull }: { onOpenFull: () => void }) {
                 onKeyDown={(e) => e.key === "Enter" && handleAdd()}
               />
             </div>
+            {/* Data e hora em linha própria: o popover tem 340px e os três
+                campos lado a lado ficariam apertados demais pra acertar. */}
+            <div className="reminders-pop-quando">
+              <input
+                type="date"
+                className="budget-input"
+                aria-label="Data do lembrete"
+                value={newDate}
+                onChange={(e) => {
+                  setNewDate(e.target.value);
+                  setFaltando(null);
+                }}
+                onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+              />
+              <TimePicker
+                value={newTime}
+                onChange={(v) => {
+                  setNewTime(v);
+                  setFaltando(null);
+                }}
+                onClear={() => setNewTime("")}
+              />
+            </div>
+            {faltando && <div className="reminder-zap-erro">{faltando}</div>}
             {pending.length === 0 ? (
               <div className="hp-empty">Nenhum lembrete pendente.</div>
             ) : (
@@ -927,15 +973,34 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
   const [filter, setFilter] = useState<ReminderFilter>("todos");
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("");
+  const [faltando, setFaltando] = useState<string | null>(null);
   const openMeetingsCount = board.state.tasks.filter(
     (t) => isMeetingTask(t) && countOpenChecklistItems(t.note) > 0
   ).length;
 
-  async function handleAdd() {
+  async function handleAdd(cobrando = true) {
     const title = newTitle.trim();
     if (!title) return;
+
+    // Data e hora são obrigatórias pra nascer.
+    //
+    // Antes o Enter salvava só com o título e o lembrete nascia sem quando —
+    // e lembrete sem quando não avisa nada, não entra na agenda e não dá pra
+    // atrasar: é uma linha morta que ele ia ter que caçar depois pra arrumar.
+    // A trava é no criar, não no editar: os lembretes antigos sem data
+    // continuam editáveis e o "Limpar" do editor continua existindo.
+    const falta = oQueFaltaNoLembrete(newDate, newTime);
+    if (falta) {
+      // Só o Enter cobra. No `blur` ficaria chato: clicar no campo de data pra
+      // preencher tira o foco do título e levaria uma bronca por não ter
+      // preenchido ainda o campo que ele acabou de abrir pra preencher.
+      if (cobrando) setFaltando(falta);
+      return;
+    }
+
+    setFaltando(null);
     setNewTitle("");
-    const ok = await board.addReminder(title, newDate || null, newTime || null);
+    const ok = await board.addReminder(title, newDate, newTime);
     if (!ok) setNewTitle(title);
     else {
       setNewDate("");
@@ -1001,7 +1066,7 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-              onBlur={handleAdd}
+              onBlur={() => handleAdd(false)}
             />
             {/* Data e hora aqui na criação: antes o lembrete nascia sem data e
                 ele tinha que procurar a linha no fim da lista pra preencher. */}
@@ -1010,19 +1075,28 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
               className="budget-input reminder-new-date"
               aria-label="Data do lembrete"
               value={newDate}
-              onChange={(e) => setNewDate(e.target.value)}
+              onChange={(e) => {
+                setNewDate(e.target.value);
+                setFaltando(null);
+              }}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             />
-            <input
-              type="time"
-              className="budget-input reminder-new-time"
-              aria-label="Hora do lembrete"
+            {/* O mesmo seletor de hora do resto do app. Aqui era um
+                `input type="time"` cru — o único que sobrou no FARO: desenho
+                diferente de todos os outros campos de hora e sem o "Limpar"
+                que eles têm. */}
+            <TimePicker
               value={newTime}
-              onChange={(e) => setNewTime(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+              className="reminder-new-time"
+              onChange={(v) => {
+                setNewTime(v);
+                setFaltando(null);
+              }}
+              onClear={() => setNewTime("")}
             />
             <MicButton onText={(t) => setNewTitle((v) => (v ? `${v} ${t}` : t))} ariaLabel="Ditar o lembrete" />
           </div>
+          {faltando && <div className="reminder-zap-erro">{faltando}</div>}
         </div>
 
         <div className="reminder-filter-bar">
