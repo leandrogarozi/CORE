@@ -2048,8 +2048,21 @@ export function useBoard(userId: string | null) {
     [apply, supabase]
   );
 
-  // Espalha o estudo pelos dias escolhidos. Só cria o que falta: rodar de novo
-  // não duplica sessão, e dia que já tem sessão desse plano é pulado.
+  /**
+   * Monta (ou REFAZ) o calendário de sessões do plano.
+   *
+   * Antes isto só ACRESCENTAVA o que faltava, e foi o que estragou o plano da
+   * mentoria dele: ele gerou uma vez, depois mudou a data de início e os dias
+   * da semana, gerou de novo — e as sessões da primeira rodada continuaram lá,
+   * embaralhadas com as novas. O resultado ficou com a "sessão 1" caindo DEPOIS
+   * da sessão 6, porque a numeração vinha da ordem de criação, não da data.
+   *
+   * Agora recriar substitui: as sessões ainda não feitas são apagadas e o
+   * calendário é remontado do zero, numerado por DATA.
+   *
+   * O que foi feito NÃO é tocado — é histórico, e tem tempo cronometrado
+   * pendurado nele. As novas continuam a numeração de onde as feitas pararam.
+   */
   const generateStudySessions = useCallback(
     async (planId: string): Promise<number> => {
       if (!userId) return 0;
@@ -2058,15 +2071,35 @@ export function useBoard(userId: string | null) {
 
       const hoje = todayISO();
       const inicio = plan.startDate && plan.startDate > hoje ? plan.startDate : hoje;
-      const jaCriadas = stateRef.current.tasks.filter((t) => t.studyPlanId === planId);
-      const diasOcupados = new Set(jaCriadas.map((t) => t.date));
+
+      const doPlano = stateRef.current.tasks.filter((t) => t.studyPlanId === planId);
+      const feitas = doPlano.filter((t) => t.done);
+      const aDescartar = doPlano.filter((t) => !t.done);
+
+      // Fora as feitas, nada sobrevive: o calendário é remontado inteiro.
+      if (aDescartar.length) {
+        const agora = new Date().toISOString();
+        const ids = aDescartar.map((t) => t.id);
+        apply((st) => ({
+          ...st,
+          tasks: st.tasks.filter((t) => !ids.includes(t.id)),
+          trashedTasks: [...st.trashedTasks, ...aDescartar.map((t) => ({ ...t, deletedAt: agora }))],
+        }));
+        const { error } = await supabase.from("tasks").update({ deleted_at: agora }).in("id", ids);
+        if (error) {
+          reportSaveError("refazer plano de estudo", error);
+          return 0;
+        }
+      }
+
+      const diasOcupados = new Set(feitas.map((t) => t.date));
 
       // Com tamanho total, o alvo é cobrir o estudo inteiro. Sem tamanho, gera
       // as próximas 4 semanas — dá ritmo sem prometer um fim que não se sabe.
       const alvo = plan.totalMinutes
         ? Math.ceil(plan.totalMinutes / Math.max(1, plan.sessionMinutes))
         : studyDatesInRange(inicio, isoAddDays(inicio, 28), plan.weekDays).length;
-      const faltamCriar = Math.max(0, alvo - jaCriadas.length);
+      const faltamCriar = Math.max(0, alvo - feitas.length);
       if (faltamCriar === 0) return 0;
 
       const limite = plan.deadline && plan.deadline > inicio ? plan.deadline : isoAddDays(inicio, 730);
@@ -2078,7 +2111,7 @@ export function useBoard(userId: string | null) {
       const novas: Task[] = datas.map((date, i) => ({
         id: uid(),
         code: newTaskCode(),
-        title: `${plan.name} — sessão ${jaCriadas.length + i + 1}`,
+        title: `${plan.name} — sessão ${feitas.length + i + 1}`,
         category: plan.category,
         category2: plan.category2,
         priority: "media",
@@ -2086,7 +2119,12 @@ export function useBoard(userId: string | null) {
         time: "",
         endDate: null,
         endTime: null,
-        durationMin: null,
+        // Nasce com a DURAÇÃO preenchida, não só a prevista: ele definiu 30 min
+        // por dia e quer ver 30 min na tarefa. Isso também faz a sessão entrar
+        // no Painel de Horas assim que for concluída — o tempo digitado só
+        // conta quando a tarefa está feita e não tem cronômetro lançado, então
+        // preencher agora não infla número nenhum antes da hora.
+        durationMin: plan.sessionMinutes,
         expectedDurationMin: plan.sessionMinutes,
         note: "",
         done: false,

@@ -1345,6 +1345,25 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 /* O nome precisa do próprio bloco pra reticências: text-overflow não vale
    direto num container flex. */
 .task-client-name{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* Plano de estudo: mesma pílula do cliente, em amarelo de livro. A cor é a
+   mesma de "Em leitura" nos Livros — estudo e leitura são a mesma família na
+   cabeça dele, e repetir a cor é o que torna o selo reconhecível sem legenda. */
+.task-badge.task-study-badge{
+  font-size:9px; font-weight:600;
+  color:var(--book-yellow); background:color-mix(in srgb, var(--book-yellow) 14%, var(--surface));
+  border-radius:4px; padding:1px 6px 1px 4px; max-width:120px; min-width:0; gap:3px; white-space:nowrap;
+}
+.task-badge.task-study-badge svg{ width:9px; height:9px; flex:none; }
+
+/* Constância do plano de estudo: verde quando está em dia, âmbar quando
+   começou a pular. Não é vermelho de propósito — pular estudo é um aviso pra
+   retomar, não um erro do sistema. */
+.study-constancia{
+  display:flex; align-items:center; gap:6px; margin-top:8px;
+  font-size:11px; color:var(--success);
+}
+.study-constancia.alerta{ color:var(--book-yellow); }
+.study-constancia svg{ width:12px; height:12px; flex:none; }
 
 /* Tarefa desafiadora — a marca tem que ser evidente sem competir com o
    vermelho de "atrasada": âmbar na borda esquerda, escudo no selo. */

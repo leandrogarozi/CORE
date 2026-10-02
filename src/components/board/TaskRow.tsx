@@ -13,6 +13,7 @@ import { NoteField } from "./NoteField";
 import {
   BellIcon,
   BoltIcon,
+  BookOpenIcon,
   ClockIcon,
   CommentIcon,
   DragGripIcon,
@@ -399,6 +400,14 @@ export function TaskRow({
             {t.isEvent && (
               <span className="task-badge task-event-badge" title="Evento — compromisso com hora marcada">
                 <CalendarCheckIcon />
+              </span>
+            )}
+            {/* Mesma pílula do cliente, mas com livrinho e em amarelo: olhando o
+                dia ele vê de relance que ali tem hora marcada pra estudar. */}
+            {t.studyPlanId && (
+              <span className="task-badge task-study-badge" title="Sessão de um plano de estudo">
+                <BookOpenIcon />
+                <span className="task-client-name">Plano de estudo</span>
               </span>
             )}
             {t.client && (

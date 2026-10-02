@@ -6,7 +6,7 @@ import { NoteField } from "./NoteField";
 import { MicButton } from "./MicButton";
 import { BookIcon, CheckIcon, ChevronIcon, TrashIcon, WarningIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
-import { studyPlanMath } from "@/lib/board/study-plan";
+import { constanciaDoEstudo, studyPlanMath } from "@/lib/board/study-plan";
 import { fmtHM, fmtShortDate, todayISO } from "@/lib/date-utils";
 import type { StudyPlan } from "@/lib/types";
 
@@ -35,6 +35,9 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
       .reduce((soma, e) => soma + e.seconds, 0) / 60
   );
   const m = studyPlanMath(plan, feitoMin, todayISO());
+  // Quantas ele deixou passar. Não depende de marcar nada: sessão com data
+  // vencida e não concluída já é um pulo.
+  const constancia = constanciaDoEstudo(sessoes, todayISO());
   const proxima = sessoes
     .filter((t) => !t.done && t.date)
     .sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""))[0];
@@ -125,6 +128,26 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
           </button>
         )}
       </div>
+
+      {/* Constância. Só aparece quando já venceu alguma sessão — antes disso
+          não há o que medir, e um "0 puladas" no primeiro dia seria elogio
+          vazio. */}
+      {constancia.cobradas > 0 && (
+        <div className={"study-constancia" + (constancia.puladas > 0 ? " alerta" : "")}>
+          {constancia.puladas === 0 ? (
+            <>
+              <CheckIcon /> {constancia.cobradas} de {constancia.cobradas} em dia
+              {constancia.sequenciaAtual > 1 && <> · {constancia.sequenciaAtual} seguidas</>}
+            </>
+          ) : (
+            <>
+              <WarningIcon /> {constancia.puladas}{" "}
+              {constancia.puladas === 1 ? "sessão passou sem fazer" : "sessões passaram sem fazer"} ·{" "}
+              {constancia.pctComparecimento}% de {constancia.cobradas} cobradas
+            </>
+          )}
+        </div>
+      )}
 
       {open && (
         <div className="study-card-body">

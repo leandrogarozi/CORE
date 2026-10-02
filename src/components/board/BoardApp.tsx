@@ -105,8 +105,18 @@ function BoardShell() {
   }
 
   function goToTask(task: Task) {
-    if (task.date) goToDate(task.date);
-    else setViewMode("day");
+    if (task.date) {
+      goToDate(task.date);
+      return;
+    }
+    // Tarefa sem data mora no bloco "Sem data", que pode estar recolhido — e
+    // recolhido ela nem é renderizada, então o atalho da busca levava pra tela
+    // certa e parecia não fazer nada. Abre o bloco pra ela aparecer.
+    //
+    // Abre SÓ na tela, sem gravar a preferência: ele continua decidindo como o
+    // bloco começa da próxima vez que entrar.
+    setViewMode("day");
+    setBacklogOpen(true);
   }
 
   function handleSearchNavigate(result: SearchResult) {

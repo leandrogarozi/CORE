@@ -82,3 +82,53 @@ export function studyPlanMath(
     naoCabeNoPrazo,
   };
 }
+
+export interface SessaoDoPlano {
+  date: string | null;
+  done: boolean;
+}
+
+export interface ConstanciaDoEstudo {
+  /** Sessões cuja data já passou e não foram feitas. */
+  puladas: number;
+  /** Sessões com data no passado (feitas ou não) — o denominador honesto. */
+  cobradas: number;
+  /** Quantas em sequência, a partir da mais recente pra trás, foram feitas. */
+  sequenciaAtual: number;
+  /** % de comparecimento até aqui. null quando ainda não venceu nenhuma. */
+  pctComparecimento: number | null;
+}
+
+/**
+ * Constância: quantas sessões ele deixou passar.
+ *
+ * Ele pediu "uma opção de marcar no status como estudo não concluído, pra mapear
+ * se estamos pulando". Esta é a resposta sem status novo: a sessão tem data, e
+ * data que passou sem a tarefa concluída JÁ é um pulo — o app não precisa que
+ * ninguém marque nada pra saber disso. Um status novo entraria na lista global
+ * de status (que vale pra toda tarefa do app) e ainda dependeria de ele lembrar
+ * de marcar justamente no dia em que não estudou.
+ *
+ * O dia de HOJE não conta como pulado: o dia ainda não acabou.
+ */
+export function constanciaDoEstudo(sessoes: SessaoDoPlano[], todayISO: string): ConstanciaDoEstudo {
+  const vencidas = sessoes
+    .filter((s): s is { date: string; done: boolean } => !!s.date && s.date < todayISO)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const puladas = vencidas.filter((s) => !s.done).length;
+  const cobradas = vencidas.length;
+
+  let sequenciaAtual = 0;
+  for (let i = vencidas.length - 1; i >= 0; i--) {
+    if (!vencidas[i].done) break;
+    sequenciaAtual++;
+  }
+
+  return {
+    puladas,
+    cobradas,
+    sequenciaAtual,
+    pctComparecimento: cobradas > 0 ? Math.round(((cobradas - puladas) / cobradas) * 100) : null,
+  };
+}
