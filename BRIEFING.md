@@ -1818,6 +1818,54 @@ fechado por um tempo com pessoas que ele já tem, e só então vender.
 - Menores: tarefa-evento no motor do zap, checklist do zap, camadas 2 e 3 do
   backup, blocos arrastáveis.
 
+## Roteiro até o teste, em passos (03/10) e o canal de feedback e novidades
+
+Ordem combinada. Cada passo só fecha quando o "pronto quando" é verdade.
+
+1. **Isolamento dos dados.** Pronto quando: duas contas de teste, nenhuma vê nada
+   da outra, RLS em todas as tabelas e os alertas críticos do Supabase zerados.
+2. **Conta nova limpa e sem "Leandro" fixo.** Saudação do mascote e descrição do
+   layout usam o nome do perfil. Pronto quando: conta recém-criada abre vazia e
+   sem nenhum traço dele.
+3. **Recepção de primeira vez (onboarding).** Nome, fuso, WhatsApp com aceite,
+   o que quer acompanhar e o passo guiado de instalar o app + ligar o push
+   (iPhone e Android, já escritos). Pronto quando: a pessoa sai do cadastro com
+   push e WhatsApp funcionando sem ajuda.
+4. **Alerta de falha do motor.** Quando o agendador responder erro, avisa o
+   Leandro (e-mail ou WhatsApp). Pronto quando: forçar um erro e o aviso chegar.
+5. **WhatsApp para terceiros.** Aceite no cadastro, saldo de mensagens por
+   usuário, teto global, aviso de crédito acabando, nome do número. Pronto
+   quando: um usuário sem crédito não gasta e o Leandro não estoura a conta.
+6. **Canal de feedback e novidades** (detalhe abaixo).
+7. **Termos de uso, privacidade, exportar e apagar conta** (dados de saúde).
+8. **FARO conversacional, etapas 1 e 2** (conversa, custo com teto, ações com
+   confirmação). Depende das 3 decisões dele e da chave de API.
+9. **Google Agenda.** Abrir o pedido de verificação do Google logo (3 a 5 dias
+   úteis), antes mesmo de codar.
+10. **Captura por voz**, conforme o teste do microfone dele.
+11. **Ensaio geral.** Duas contas novas, iPhone e Android reais, passando por
+    cadastro, lembrete, WhatsApp, push, backup. Só convida depois de passar.
+12. **Teste fechado**: 5 a 10 pessoas dele, 2 a 4 semanas, crédito de WhatsApp
+    dado à mão. Medir: uso semanal, lembretes entregues, falhas, pedidos.
+
+### Canal de feedback e novidades (pedido dele em 03/10, para o teste)
+
+*"um campinho de aviso: quem está testando diz 'tá falhando isso, precisa
+melhorar isso'. Quando melhora, a gente manda de volta: isso foi melhorado, essa
+aba entrou agora no FARO, o FARO tem mais isso."*
+
+- **Ida**: botão de feedback dentro do app, em qualquer tela. Campos: tipo
+  (algo falhando / sugestão / dúvida), texto, print opcional, e a tela em que
+  estava. Vai para uma caixa que o Leandro lê (tabela própria).
+- **Volta**: cada feedback tem status (recebido, em andamento, melhorado). Ao
+  marcar "melhorado" a pessoa que pediu recebe um aviso dentro do app (e push),
+  dizendo o que mudou. Fecha o ciclo e dá motivo para ela continuar testando.
+- **Novidades**: uma aba/lista "O que há de novo no FARO" com cada melhoria e
+  funcionalidade nova, com data. Aparece um sinal quando há novidade não vista.
+- **Cuidados**: feedback é dado da pessoa (isolado por usuário, como o resto); o
+  aviso de "melhorado" não pode virar spam (um por feedback); o texto das
+  novidades é escrito em linguagem de usuário, não de programador.
+
 ## Captura por voz e agenda do Google — combinado em 01/10, a fazer
 
 O pedido nasceu dele fora de casa, jogando bola com o filho: *"tem algumas
