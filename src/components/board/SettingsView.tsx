@@ -143,13 +143,25 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 
 function PushNotificationsBox() {
   const [supported, setSupported] = useState(true);
+  // iPhone/iPad com o FARO aberto numa aba do navegador. Lá o iOS simplesmente
+  // não expõe o push (Safari ou Chrome, tanto faz: os dois usam o motor da
+  // Apple) — só existe dentro do app instalado na tela inicial. Dizer "esse
+  // navegador não suporta" aqui é verdade e inútil: o que ele precisa saber é
+  // o que fazer.
+  const [precisaInstalar, setPrecisaInstalar] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+      const ua = navigator.userAgent;
+      const ehIos = /iPhone|iPad|iPod/.test(ua) || (ua.includes("Macintosh") && navigator.maxTouchPoints > 1);
+      const instalado =
+        window.matchMedia?.("(display-mode: standalone)").matches ||
+        (navigator as Navigator & { standalone?: boolean }).standalone === true;
       // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time feature/support detection on mount
+      setPrecisaInstalar(ehIos && !instalado);
       setSupported(false);
       return;
     }
@@ -237,7 +249,16 @@ function PushNotificationsBox() {
   return (
     <CollapsibleBox title="Notificações push" icon={<BellIcon />}>
       {!supported ? (
-        <div className="hint-text">Esse navegador não suporta notificações push.</div>
+        precisaInstalar ? (
+          <div className="hint-text">
+            No iPhone, as notificações só funcionam com o FARO instalado na tela inicial — numa aba do Safari ou do
+            Chrome o iOS não oferece isso. Abra o FARO no <strong>Safari</strong>, toque em <strong>Compartilhar</strong>{" "}
+            (o quadrado com a seta pra cima), escolha <strong>Adicionar à Tela de Início</strong> e depois abra o FARO
+            pelo ícone novo. Volte aqui e ligue as notificações.
+          </div>
+        ) : (
+          <div className="hint-text">Esse navegador não suporta notificações push.</div>
+        )
       ) : (
         <>
           <div className="settings-toggle-row">
