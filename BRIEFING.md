@@ -3265,6 +3265,48 @@ fundação (ativar/testar). Conectar isso ao motor de alertas de Lembretes
 (pra realmente notificar quando um lembrete vence) fica pro próximo passo,
 depois de confirmar que o teste manual chega.
 
+## Push de celular ligado aos lembretes (03/10)
+
+Pedido do Leandro: *"a notificação celular pode ser em tudo que tiver lembrete
+definido com data e hora"*, para reduzir o WhatsApp (que é pago).
+
+- **Regra**: todo lembrete com data E hora, não feito e fora da lixeira, manda
+  push. O WhatsApp continua só nos lembretes com o zap aceso. Os dois canais
+  são independentes.
+- **Quando sai**: `alert_minutes_before` antes da hora (sem aviso configurado,
+  na hora exata) e deixa de valer 2 min depois dela (`PUSH_FOLGA_MIN`), para um
+  aviso velho de motor que caiu não chegar horas depois.
+- **Sem repetição**: coluna `reminders.push_sent_for` guarda a chave
+  "data hora" da ocorrência já avisada. Remarcou ou virou a próxima data de um
+  recorrente: a chave deixa de bater e avisa de novo, sem zerar nada.
+- **Código**: `src/lib/push/dispatch.ts` (envio), `pushDevido` em
+  `reminder-alerts.ts` (regra pura, testada em 12 casos), chamado de dentro do
+  `dispatch-reminders` ANTES do WhatsApp e isolado dele (um não cala o outro).
+  Aparelhos mortos (404/410) são apagados de `push_subscriptions`.
+- **Banco** (migração `push_nos_lembretes_marca_por_ocorrencia`): coluna nova e
+  `grant select, delete on push_subscriptions to service_role`. Mesma armadilha
+  do incidente de 02/10: o papel do motor não tem permissão em tabela nenhuma
+  por padrão, então toda tabela nova que o motor lê precisa de grant.
+- **iPhone**: push só chega com o FARO instalado na tela inicial (iOS 16.4+),
+  aberto por lá, com a permissão dada em Configurações. Em 03/10 as 3
+  inscrições no banco eram todas do Chrome (`fcm.googleapis.com`), nenhuma do
+  iPhone: ele ainda abria pelo Safari.
+- **Falta**: o teste real no celular dele.
+
+## Incidente do motor de lembretes (02/10)
+
+O motor (`dispatch-reminders`) respondeu 500 "permission denied for table tasks"
+a cada minuto, a tarde toda: a trava que não avisa de tarefa na lixeira lê
+`tasks`, e o `service_role` nunca teve SELECT nessa tabela. Com 3 dos 10
+lembretes pendentes ligados a tarefas, a consulta rodava toda vez e o motor se
+calava inteiro (por desenho: na dúvida, não manda). Perdeu-se o aviso das 20:20
+da rosuvastatina. Corrigido com `grant select on public.tasks to service_role`.
+Segundo defeito achado na investigação: o motor só avançava a data de lembrete
+recorrente do zap DEPOIS de avisar, então um aviso perdido deixava o lembrete
+preso na data de hoje e o dia seguinte também não saía. Agora avança mesmo sem
+ter avisado. Lição: depois de qualquer mudança no motor, conferir a resposta do
+agendador (`net._http_response`), não só se o app builda.
+
 ## Ícone de abrir lembrete movido pro início da linha (30/08)
 
 Pedido do Leandro: **"o ícone de expandir que você colocou no lembrete

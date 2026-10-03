@@ -648,6 +648,7 @@ export type Database = {
           whatsapp: boolean | null
           week_days: number[] | null
           whatsapp_notified_at: string | null
+          push_sent_for: string | null
         }
         Insert: {
           alert_minutes_before?: number | null
@@ -668,6 +669,7 @@ export type Database = {
           whatsapp?: boolean | null
           week_days?: number[] | null
           whatsapp_notified_at?: string | null
+          push_sent_for?: string | null
         }
         Update: {
           alert_minutes_before?: number | null
@@ -688,6 +690,7 @@ export type Database = {
           whatsapp?: boolean | null
           week_days?: number[] | null
           whatsapp_notified_at?: string | null
+          push_sent_for?: string | null
         }
         Relationships: [
           {

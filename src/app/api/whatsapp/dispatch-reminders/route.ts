@@ -5,6 +5,7 @@ import { isReminderAlertingInZone, zonedDateTimeToMs } from "@/lib/board/reminde
 import { proximaOcorrencia, semLembreteDeTarefaApagada } from "@/lib/board/zap-engine";
 import { sendWhatsAppReminderMessage } from "@/lib/whatsapp/send";
 import { fmtDayMonth } from "@/lib/date-utils";
+import { enviarPushesDosLembretes } from "@/lib/push/dispatch";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +47,22 @@ export async function POST(req: NextRequest) {
   if (!secret || auth !== `Bearer ${secret}`) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
+
+  // O push de celular roda primeiro e sozinho: é grátis, vale pra todo lembrete
+  // com data e hora, e uma falha do WhatsApp (teto, template, Meta fora do ar)
+  // não pode calar o outro canal — nem o contrário.
+  let push: Awaited<ReturnType<typeof enviarPushesDosLembretes>>;
+  try {
+    push = await enviarPushesDosLembretes(createServiceClient(), Date.now());
+  } catch (e) {
+    push = { candidatos: 0, avisados: 0, semAparelho: 0, erros: [e instanceof Error ? e.message : "falha no push"] };
+  }
+  const resposta = await dispararWhatsApp();
+  const corpo = await resposta.json();
+  return NextResponse.json({ ...corpo, push }, { status: resposta.status });
+}
+
+async function dispararWhatsApp(): Promise<NextResponse> {
 
   const supabase = createServiceClient();
   const nowMs = Date.now();

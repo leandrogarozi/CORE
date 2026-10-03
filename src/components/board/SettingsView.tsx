@@ -244,7 +244,7 @@ function PushNotificationsBox() {
             <span>
               <span className="settings-label">Receber lembretes como notificação</span>
               <span className="settings-toggle-hint">
-                Grátis, direto do navegador ou do app instalado — sem depender de WhatsApp.
+                Grátis, direto do navegador ou do app instalado. Avisa em todo lembrete que tenha data e hora, mesmo sem o zap aceso — o WhatsApp fica só pros que você acender. No iPhone, só funciona com o FARO instalado na tela inicial.
               </span>
             </span>
             <ToggleSwitch

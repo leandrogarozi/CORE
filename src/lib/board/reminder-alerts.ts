@@ -145,3 +145,33 @@ export function oZapVaiSair(
 ): boolean {
   return reminder.whatsapp && reminder.date !== null && reminder.alertMinutesBefore !== null;
 }
+
+/** Folga depois da hora marcada em que o push ainda sai. Cobre um minuto de
+ *  atraso do agendador sem deixar um aviso velho (motor que ficou fora do ar)
+ *  chegar horas depois, quando já não serve pra nada. */
+export const PUSH_FOLGA_MIN = 2;
+
+/**
+ * A "ocorrência" que o push de celular deve avisar agora, ou null.
+ *
+ * Vale pra TODO lembrete com data e hora — não depende do zap (o WhatsApp é o
+ * canal pago, escolhido lembrete a lembrete; o push é o grátis, de todos). O
+ * aviso sai `alertMinutesBefore` antes da hora (sem aviso configurado, na hora
+ * exata) e para de valer `PUSH_FOLGA_MIN` minutos depois dela.
+ *
+ * Devolve a chave "data hora" da ocorrência. O motor grava essa chave quando
+ * envia, e só envia de novo se ela mudar: remarcou, ou o recorrente virou a
+ * próxima data, e a chave deixa de bater sozinha.
+ */
+export function pushDevido(
+  r: { date: string | null; time: string | null; done: boolean; alertMinutesBefore: number | null },
+  nowMs: number,
+  timeZone: string
+): string | null {
+  if (r.done || !r.date || !r.time) return null;
+  const alvoMs = zonedDateTimeToMs(r.date, r.time, timeZone);
+  if (Number.isNaN(alvoMs)) return null;
+  const inicioMs = alvoMs - (r.alertMinutesBefore ?? 0) * 60000;
+  if (nowMs < inicioMs || nowMs >= alvoMs + PUSH_FOLGA_MIN * 60000) return null;
+  return `${r.date} ${r.time}`;
+}
