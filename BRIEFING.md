@@ -1892,6 +1892,19 @@ quer renovar? Isso é um custo extra, fora a mensalidade do aplicativo."*
   que o teste mostrar quantos conectam a chave sozinhos. O desenho do medidor e
   do teto por usuário já serve aos dois modelos.
 
+### Decisões da IA tomadas em 03/10 (fecham as 3 pendências do passo 8)
+
+1. **Dados que entram na IA**: tudo, **menos saúde e medicamentos** (dieta, sono,
+   humor, água e medicação ficam de fora por ora). Tarefas, agenda, lembretes,
+   hábitos, livros, sinapses e horas entram.
+2. **Avisos espontâneos por dia**: **o próprio usuário escolhe**, num campo nas
+   Configurações (inclui "nenhum"). Valor inicial sugerido: 2. Vira uma coluna
+   em `settings` por usuário.
+3. **Teto mensal de gasto com IA**: **R$ 20 por mês** para começar o teste e
+   validar o gosto de uso. Em reais, como o teto do WhatsApp; a conversão do
+   dólar usa o câmbio já guardado em `settings`. O medidor mostra o gasto real e
+   o teto bloqueia ao chegar.
+
 ### Canal de feedback e novidades (pedido dele em 03/10, para o teste)
 
 *"um campinho de aviso: quem está testando diz 'tá falhando isso, precisa
