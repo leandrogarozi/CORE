@@ -533,9 +533,9 @@ function BackupAutomaticoBox() {
       ? `bash -c "$(curl -fsSL '${base}/api/backup/instalar?so=mac')" _ '${estado.token}' '${PASTA_DO_DRIVE}' '${PASTA_DO_APRENDIZADO}'`
       : `& ([scriptblock]::Create((irm '${base}/api/backup/instalar?so=win'))) -Token '${estado.token}' -Pasta '${PASTA_DO_DRIVE}' -PastaAprendizado '${PASTA_DO_APRENDIZADO}'`;
 
-  async function copiar() {
+  async function copiar(ensaio = false) {
     try {
-      await navigator.clipboard.writeText(comando);
+      await navigator.clipboard.writeText(ensaio ? `FARO_SIMULAR=1 ${comando}` : comando);
       setCopiado(true);
       setTimeout(() => setCopiado(false), 2500);
     } catch {
@@ -651,7 +651,17 @@ function BackupAutomaticoBox() {
               </span>
             ),
             <span key="b">
-              <button type="button" className="btn btn-accent" onClick={copiar}>
+              {so === "mac" && (
+                <>
+                  <button type="button" className="btn btn-ghost" onClick={() => copiar(true)}>
+                    Copiar o comando de ENSAIO
+                  </button>{" "}
+                  (opcional, recomendado na primeira vez): cole e aperte Enter. Ele só <strong>mostra</strong> quais
+                  pastas usaria e o que instalaria; não cria nada.
+                  <br />
+                </>
+              )}
+              <button type="button" className="btn btn-accent" onClick={() => copiar()}>
                 {copiado ? "Copiado!" : "Copiar o comando"}
               </button>{" "}
               e cole na janela, depois aperte <strong>Enter</strong>.

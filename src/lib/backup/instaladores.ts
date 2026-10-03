@@ -19,7 +19,6 @@ if [ -z "$TOKEN" ]; then echo "Faltou a chave. Copie o comando inteiro das Confi
 [ -z "$SUB_APR" ] && SUB_APR="FARO Aprendizado"
 
 PASTA="$HOME/Library/Application Support/FARO-Backup"
-mkdir -p "$PASTA" "$HOME/Library/Logs"
 
 # Onde está o Google Drive neste Mac (app "Drive para computador").
 DRIVE=""
@@ -33,6 +32,8 @@ if [ -z "$DRIVE" ]; then
     if [ -d "$m" ]; then DRIVE="$m"; break; fi
   done
 fi
+DRIVE_ACHADO="$DRIVE"
+[ -z "$DRIVE_ACHADO" ] && DRIVE_ACHADO="nenhum"
 # Só usa o Drive se a pasta PAI já existir lá. Criar o caminho inteiro por conta
 # própria geraria uma árvore de pastas nova e repetida no Drive.
 if [ -n "$DRIVE" ] && { [ ! -d "$DRIVE/$(dirname "$SUB")" ] || [ ! -d "$DRIVE/$(dirname "$SUB_APR")" ]; }; then
@@ -48,6 +49,27 @@ else
   DESTINO_APR="$HOME/Documents/FARO Aprendizado"
   echo "Os backups vão para $DESTINO (fora do Drive). Corrija o que apareceu acima e rode o comando de novo."
 fi
+
+# Ensaio: com FARO_SIMULAR=1 o instalador só MOSTRA o que faria e sai, sem criar
+# pasta, arquivo, agendamento nem fazer nenhuma chamada ao FARO.
+if [ "$FARO_SIMULAR" = "1" ]; then
+  echo "=== ENSAIO: nada foi criado nem instalado ==="
+  echo "Drive encontrado em: $DRIVE_ACHADO"
+  echo "Pasta dos backups (.json):  $DESTINO"
+  echo "Pasta dos aprendizados:     $DESTINO_APR"
+  for d in "$DESTINO" "$DESTINO_APR"; do
+    if [ -d "$d" ]; then echo "  já existe: $d"; else echo "  seria criada (só o último nível): $d"; fi
+    pai=$(dirname "$d")
+    echo "  pasta pai: $pai"
+    if command -v xattr >/dev/null 2>&1 && [ -d "$pai" ]; then
+      xattr -l "$pai" 2>/dev/null | grep -i drivefs | sed 's/^/    atributo do Drive: /'
+    fi
+  done
+  echo "Seriam criados em: $PASTA (config com a chave, script) e o agendamento br.app.faro.backup."
+  exit 0
+fi
+
+mkdir -p "$PASTA" "$HOME/Library/Logs"
 mkdir -p "$DESTINO" "$DESTINO_APR" || { echo "Não consegui criar as pastas de destino"; exit 1; }
 
 {
