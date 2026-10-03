@@ -784,8 +784,15 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   box-shadow:var(--sh-1); overflow:hidden;
 }
 @media (max-width:640px){
-  .day-below-row{ flex-direction:column; align-items:stretch; }
-  .day-below-row > .hours-section, .day-below-row > .daily-log-section{ max-width:none; }
+  .day-below-row{ flex-direction:column; flex-wrap:nowrap; align-items:stretch; }
+  /* No celular a linha vira coluna, e aí o `flex-basis` das regras de cima
+     (260px / 320px) passa a valer como ALTURA. A coluna Horas+Agenda ficava
+     com 260px e o resto transbordava por cima do Registro do dia. Cada bloco
+     volta a ter a altura do próprio conteúdo. */
+  .day-below-row > .day-below-col,
+  .day-below-row > .daily-log-section{ flex:none; max-width:none; min-width:0; min-height:auto; }
+  .day-below-col > .agenda-section{ flex:none; }
+  .agenda-section > .agenda-panel{ flex:none; max-height:none; }
 }
 
 /* daily log panel (água, dieta, sono) */
