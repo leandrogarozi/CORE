@@ -1885,6 +1885,13 @@ quer renovar? Isso é um custo extra, fora a mensalidade do aplicativo."*
   conecta for baixa no teste, a alternativa é o FARO vender pacote de crédito de
   IA, como já pensado para o WhatsApp (decisão para depois dos dados).
 
+- **Vender o crédito de IA também (decisão dele em 03/10: "se der para vender,
+  o FARO vende")**: além da chave do próprio cliente, o FARO poderá oferecer
+  pacotes de crédito de IA dentro do plano. Isso o torna intermediário
+  financeiro (cobrança, nota, saldo por usuário, reembolso), então entra depois
+  que o teste mostrar quantos conectam a chave sozinhos. O desenho do medidor e
+  do teto por usuário já serve aos dois modelos.
+
 ### Canal de feedback e novidades (pedido dele em 03/10, para o teste)
 
 *"um campinho de aviso: quem está testando diz 'tá falhando isso, precisa
@@ -1902,6 +1909,72 @@ aba entrou agora no FARO, o FARO tem mais isso."*
 - **Cuidados**: feedback é dado da pessoa (isolado por usuário, como o resto); o
   aviso de "melhorado" não pode virar spam (um por feedback); o texto das
   novidades é escrito em linguagem de usuário, não de programador.
+
+## Planos, módulos habilitáveis, Cadernos Rotineiros e Meta Saúde dentro do FARO (03/10)
+
+Visão de produto dele, para mapear. **Nada disso é prioridade para o teste**:
+fica registrado para o produto vendável.
+
+### Planos e módulos que a pessoa liga e desliga
+
+*"A pessoa compra o plano básico, só as ferramentas mais básicas do dia a dia.
+Há um outro plano em que ela escolhe quais abas quer habilitar: manutenção,
+sinapses, rotineiros, o app de saúde. Quando habilita, tudo está englobado num
+aplicativo só."*
+
+- **Plano básico**: o dia a dia (tarefas, lembretes, agenda, hábitos, blocos,
+  horas). **Módulos opcionais**, um por aba: Manutenção, Sinapses/Livros, Plano
+  de Estudo, Dieta, Medicação, Cadernos Rotineiros, Meta Saúde, e os que vierem.
+  O que entra no básico e o que é módulo, e o preço de cada um, ele define
+  depois ("o que entra, o que sai").
+- **Implicações técnicas** (minhas, a validar quando chegar a vez):
+  1. Lista de módulos ligados POR USUÁRIO (coluna em `settings` ou tabela), com
+     o menu lateral e o Dashboard mostrando só o que está ligado.
+  2. **Desligar um módulo nunca apaga dado.** Só esconde. Religar traz tudo de
+     volta ("só não podemos perder dados").
+  3. A trava tem que ser **no servidor**, não só esconder botão: a API de um
+     módulo desligado recusa. Senão o plano se burla pelo navegador.
+  4. O onboarding (passo 3) já pergunta "o que quer acompanhar": é a mesma
+     escolha de módulos, então os dois viram uma coisa só. Menos abas também é
+     menos peso para quem está começando e testando.
+  5. Depois, a cobrança liga o plano ao conjunto de módulos (sem integração de
+     pagamento ainda: hoje é só a estrutura).
+
+### Cadernos Rotineiros (aba nova, módulo opcional)
+
+*"Uma aba de cadernos rotineiros: um caderno de gratidão, um caderno de ganhos,
+um 'eu sou'... ferramentas que depois eu vou colocar lá."* Ele ainda vai listar
+as ferramentas. Não é a parte mais importante para quem vai testar.
+
+- **Ideia de desenho (proposta minha)**: um caderno é um MODELO configurável
+  (nome, campos, frequência, lembrete), com entradas por data e sequência de
+  dias. Assim cada ferramenta nova que ele trouxer é configuração, não código
+  novo, e o usuário pode até criar o próprio caderno.
+- **Liga com o resto**: o lembrete diário usa o motor de lembretes (push/zap) já
+  pronto; e os cadernos alimentam o FARO conversacional ("faltou gratidão
+  essa semana", "traga uma frase dos seus ganhos"), que é justamente o que ele
+  descreveu para a IA.
+- **A definir com ele**: a lista de cadernos de partida e o formato de cada um.
+
+### Meta Saúde dentro do FARO (decisão dele em 03/10)
+
+*"O FARO já vai ter... a gente vai jogar o app saúde para dentro dele, o Meta
+Saúde, que é um treinador de saúde."* Isto muda o que estava combinado antes,
+de não misturar apps: o **Meta Saúde entra no FARO** como módulo. O app de
+contas dele continua separado (aquela regra não mudou).
+
+- **Papel**: assistente/treinador, nunca profissional de saúde. A pessoa coloca
+  a dieta e o treino; o app sugere buscar nutricionista e traçar um plano de
+  atividade física com profissional, e **sempre avisa que é importante procurar
+  um médico antes**. Esse aviso tem que estar visível na tela e nos termos, não
+  só no texto de venda.
+- **Cuidados**: dado de saúde é dado pessoal sensível (LGPD): consentimento,
+  política de privacidade, exportar e apagar. A IA não diagnostica nem prescreve.
+  Medicação segue a regra de nunca mexer sem a pessoa pedir.
+- **Antes de construir**: olhar o Meta Saúde como ele é hoje (dados, telas,
+  como já conversa com o FARO) para decidir entre trazer o código/dados ou
+  integrar. Hoje o FARO já tem Dieta, Medicação, Registro do dia (água, sono) e
+  Humor, que se sobrepõem a ele.
 
 ## Captura por voz e agenda do Google — combinado em 01/10, a fazer
 
