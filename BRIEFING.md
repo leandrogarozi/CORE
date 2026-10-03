@@ -2034,6 +2034,34 @@ selo de plano de estudo), só o ícone na linha da tarefa.
   foram tratadas à parte; se alguém ligar "segue" numa delas, o comportamento é o
   mesmo da regra acima.
 
+## Voz de uma frase no "adicionar tarefa" e domínio do FARO (03/10)
+
+**Voz**: ele testou o microfone no celular: o ditado não percebia que ele parou de
+falar (ficava gravando até tocar de novo) e ainda pedia OK para criar. Queria
+tocar, falar "Faro, cria isso" e a tarefa já nascer. Feito, só no campo de
+adicionar tarefa (`TaskListCard`), sem IA e sem custo:
+- `useDictation` ganhou o modo `oneShot`: o navegador para sozinho quando a pessoa
+  se cala e a frase inteira vai de uma vez para `onDone`; nunca religa; trava de
+  segurança de 20 s; tocar de novo para parar também entrega o que já foi falado.
+  Os outros campos de ditado (textos longos) continuam contínuos, como antes.
+- `limparComandoDeVoz` (`src/lib/board/voz-comando.ts`) tira a ordem do começo da
+  frase: "Faro, cria pra mim comprar pilha" vira "Comprar pilha". O verbo só sai
+  quando a frase é dirigida ao FARO ou a ordem é explícita ("cria pra mim", "adiciona
+  uma tarefa"): "Criar um site novo" continua sendo o título. "Faro, cria" sozinho
+  não cria nada.
+- Limite assumido: é regra simples, não entendimento. "Cria um lembrete amanhã às
+  10" vira uma TAREFA com essas palavras. Entender data, hora e tipo (tarefa,
+  lembrete, evento) é a captura por voz com IA (passo 14 e FARO conversacional).
+- Se o navegador ouvir errado, a tarefa é editada ou apagada (vai para a Lixeira).
+- Teste de armadilha para o futuro: no Chromium de teste, `window.SpeechRecognition`
+  nativo tem precedência sobre um `webkitSpeechRecognition` falso; para simular, sobrescrever
+  os dois.
+
+**Domínio**: ele já tem um domínio próprio e vai registrar também o do FARO em breve.
+O Google só verifica o app de Agenda com domínio do dono e página pública de política
+de privacidade; `vercel.app` não serve. Ordem: registrar o domínio do FARO, apontar
+para a Vercel, publicar termos e privacidade (passo 7), só então pedir a verificação.
+
 ## Captura por voz e agenda do Google — combinado em 01/10, a fazer
 
 O pedido nasceu dele fora de casa, jogando bola com o filho: *"tem algumas

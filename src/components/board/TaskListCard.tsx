@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { TaskRow } from "./TaskRow";
 import { MicButton } from "./MicButton";
+import { limparComandoDeVoz } from "@/lib/board/voz-comando";
 import { TASK_COLUMNS, type ColumnKey } from "@/lib/board/column-widths";
 import type { Priority, Task } from "@/lib/types";
 
@@ -171,7 +172,18 @@ export function TaskListCard({
           onKeyDown={(e) => e.key === "Enter" && handleAdd()}
           onBlur={handleAdd}
         />
-        <MicButton onText={(t) => setInputVal((v) => (v ? `${v} ${t}` : t))} ariaLabel="Ditar a tarefa" />
+        <MicButton
+          oneShot
+          onText={() => {}}
+          // Toca, fala, para de falar: a tarefa já nasce. Sem tocar de novo pra
+          // parar e sem confirmar — se o navegador ouviu errado, a tarefa pode
+          // ser editada ou apagada (vai pra Lixeira) como qualquer outra.
+          onDone={(frase) => {
+            const title = limparComandoDeVoz(frase);
+            if (title) void board.addTask(bucketKey, title);
+          }}
+          ariaLabel="Falar uma tarefa"
+        />
       </div>
       {!items.length && <div className="empty-row">{emptyLabel}</div>}
       {items.length > 0 && (

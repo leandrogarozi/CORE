@@ -10,12 +10,18 @@ export function MicButton({
   onText,
   ariaLabel = "Ditar por voz",
   className = "icon-btn",
+  oneShot = false,
+  onDone,
 }: {
   onText: (text: string) => void;
   ariaLabel?: string;
   className?: string;
+  // Modo de uma frase: para sozinho quando a pessoa se cala e entrega o texto
+  // inteiro em `onDone` (ver useDictation).
+  oneShot?: boolean;
+  onDone?: (text: string) => void;
 }) {
-  const { supported, listening, partial, error, toggle } = useDictation({ onText });
+  const { supported, listening, partial, error, toggle } = useDictation({ onText, oneShot, onDone });
 
   if (!supported) return null;
 

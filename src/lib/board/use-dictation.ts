@@ -51,11 +51,20 @@ const ERRO_LEGIVEL: Record<string, string> = {
 export function useDictation({
   onText,
   lang = "pt-BR",
+  oneShot = false,
+  onDone,
 }: {
   // Recebe cada trecho JÁ FECHADO da fala. Chamado várias vezes enquanto se
   // fala, pra ir escrevendo em vez de esperar terminar tudo.
   onText: (text: string) => void;
   lang?: string;
+  // Modo "fala uma frase e pronto": o navegador para sozinho quando a pessoa
+  // se cala, e o texto inteiro vai de uma vez pra `onDone`. É o modo do campo
+  // "adicionar tarefa", onde a ideia é tocar, falar e a tarefa já nascer, sem
+  // tocar de novo pra parar nem confirmar. No ditado de textos longos o modo
+  // contínuo continua valendo (uma pausa pra pensar não pode encerrar tudo).
+  oneShot?: boolean;
+  onDone?: (text: string) => void;
 }) {
   // Inicializador preguiçoso em vez de efeito: o navegador ou tem
   // reconhecimento de voz ou não tem, isso não muda depois. Mesmo padrão do
@@ -67,6 +76,9 @@ export function useDictation({
   const [error, setError] = useState<string | null>(null);
   const recRef = useRef<Recognition | null>(null);
   const onTextRef = useRef(onText);
+  const onDoneRef = useRef(onDone);
+  const bufferRef = useRef("");
+  const limiteRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Só o usuário encerra o ditado. O reconhecimento do navegador se desliga
   // sozinho depois de um silêncio curto — sem religar, uma pausa pra pensar
   // no meio da frase mataria o ditado.
@@ -74,7 +86,8 @@ export function useDictation({
 
   useEffect(() => {
     onTextRef.current = onText;
-  }, [onText]);
+    onDoneRef.current = onDone;
+  }, [onText, onDone]);
 
   const stop = useCallback(() => {
     queroOuvirRef.current = false;
@@ -90,8 +103,9 @@ export function useDictation({
 
     const rec = new Ctor();
     rec.lang = lang;
-    rec.continuous = true;
+    rec.continuous = !oneShot;
     rec.interimResults = true;
+    bufferRef.current = "";
 
     rec.onresult = (e) => {
       let fechado = "";
@@ -102,7 +116,10 @@ export function useDictation({
         else emAndamento += r[0].transcript;
       }
       setPartial(emAndamento);
-      if (fechado.trim()) onTextRef.current(fechado.trim());
+      if (fechado.trim()) {
+        if (oneShot) bufferRef.current = `${bufferRef.current} ${fechado.trim()}`.trim();
+        else onTextRef.current(fechado.trim());
+      }
     };
 
     rec.onerror = (e) => {
@@ -118,6 +135,18 @@ export function useDictation({
 
     rec.onend = () => {
       setPartial("");
+      if (oneShot) {
+        // Acabou a fala (silêncio ou toque no microfone): entrega a frase
+        // inteira UMA vez. Nunca religa, senão a próxima conversa na sala
+        // viraria tarefa.
+        queroOuvirRef.current = false;
+        setListening(false);
+        if (limiteRef.current) clearTimeout(limiteRef.current);
+        const texto = bufferRef.current.trim();
+        bufferRef.current = "";
+        if (texto) onDoneRef.current?.(texto);
+        return;
+      }
       if (queroOuvirRef.current) {
         // Religa depois de um silêncio, mantendo o ditado vivo.
         try {
@@ -136,11 +165,17 @@ export function useDictation({
     try {
       rec.start();
       setListening(true);
+      // Trava de segurança do modo de uma frase: se o navegador nunca detectar
+      // o fim da fala (ruído de fundo), encerra em 20 s em vez de ficar ouvindo.
+      if (oneShot) {
+        if (limiteRef.current) clearTimeout(limiteRef.current);
+        limiteRef.current = setTimeout(() => rec.stop(), 20000);
+      }
     } catch {
       // start() em cima de uma sessão que ainda não morreu: ignora, o onend
       // religa.
     }
-  }, [lang]);
+  }, [lang, oneShot]);
 
   const toggle = useCallback(() => {
     if (listening) stop();
