@@ -1024,7 +1024,7 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
                 onChange={(v) => board.setFollows(t.id, v)}
               />
               <span className="challenging-hint">
-                {t.follows ? "O FARO rastreia: passa pra hoje até você concluir" : "Peça pro FARO rastrear"}
+                {t.follows ? "O FARO rastreia: ela te segue até você concluir" : "Peça pro FARO rastrear"}
               </span>
             </label>
           </div>
