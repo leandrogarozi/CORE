@@ -2057,6 +2057,17 @@ adicionar tarefa (`TaskListCard`), sem IA e sem custo:
   nativo tem precedência sobre um `webkitSpeechRecognition` falso; para simular, sobrescrever
   os dois.
 
+**A voz principal que ele quer (adiada para a etapa da IA, 03/10)**: tocar no ícone
+do FARO (o mascote) dentro do app, o microfone abre, e ele fala "cria uma tarefa X",
+"cria um lembrete X às 10:00 amanhã"; o FARO entende e cria. Isso EXIGE a IA ligada
+(a transcrição da fala continua de graça no navegador; quem entende data, hora e
+tipo é a IA). Combinado: avançar para isso junto do passo 8 (FARO conversacional) e
+do passo 14 (captura por voz). Ponto de desenho a decidir com ele: ele quer
+"automático, sem clicar OK"; a proposta é **criar na hora e mostrar um cartão
+"Criei: ... " com Desfazer por alguns segundos** (automático, mas reversível),
+em vez de pedir confirmação antes. O que vale hoje é só o campo de adicionar
+tarefa (acima), que já cria sozinho.
+
 **Domínio**: ele já tem um domínio próprio e vai registrar também o do FARO em breve.
 O Google só verifica o app de Agenda com domínio do dono e página pública de política
 de privacidade; `vercel.app` não serve. Ordem: registrar o domínio do FARO, apontar
