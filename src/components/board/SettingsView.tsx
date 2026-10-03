@@ -149,19 +149,28 @@ function PushNotificationsBox() {
   // navegador não suporta" aqui é verdade e inútil: o que ele precisa saber é
   // o que fazer.
   const [precisaInstalar, setPrecisaInstalar] = useState(false);
+  const [plataforma, setPlataforma] = useState<"ios" | "android" | "outro">("outro");
+  const [instalado, setInstalado] = useState(false);
+  const [bloqueado, setBloqueado] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
-      const ua = navigator.userAgent;
-      const ehIos = /iPhone|iPad|iPod/.test(ua) || (ua.includes("Macintosh") && navigator.maxTouchPoints > 1);
-      const instalado =
-        window.matchMedia?.("(display-mode: standalone)").matches ||
-        (navigator as Navigator & { standalone?: boolean }).standalone === true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time feature/support detection on mount
-      setPrecisaInstalar(ehIos && !instalado);
+    if (typeof window === "undefined") return;
+    const ua = navigator.userAgent;
+    const ehIos = /iPhone|iPad|iPod/.test(ua) || (ua.includes("Macintosh") && navigator.maxTouchPoints > 1);
+    const ehAndroid = /Android/i.test(ua);
+    const rodandoInstalado =
+      window.matchMedia?.("(display-mode: standalone)").matches ||
+      (navigator as Navigator & { standalone?: boolean }).standalone === true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time feature/support detection on mount
+    setPlataforma(ehIos ? "ios" : ehAndroid ? "android" : "outro");
+    setInstalado(rodandoInstalado);
+    if (typeof Notification !== "undefined") setBloqueado(Notification.permission === "denied");
+
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      setPrecisaInstalar(ehIos && !rodandoInstalado);
       setSupported(false);
       return;
     }
@@ -178,7 +187,8 @@ function PushNotificationsBox() {
     try {
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
-        setStatus("Permissão de notificação negada pelo navegador.");
+        setBloqueado(permission === "denied");
+        setStatus("A permissão de notificação não foi dada.");
         return;
       }
       const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -248,16 +258,28 @@ function PushNotificationsBox() {
 
   return (
     <CollapsibleBox title="Notificações push" icon={<BellIcon />}>
+      <div className="hint-text">
+        O lembrete chega na tela do celular, mesmo com o FARO fechado — como a notificação de qualquer app. Vale pra todo
+        lembrete que tenha data e hora, mesmo sem o zap aceso; o WhatsApp fica só pros que você acender.
+      </div>
       {!supported ? (
         precisaInstalar ? (
-          <div className="hint-text">
-            No iPhone, as notificações só funcionam com o FARO instalado na tela inicial — numa aba do Safari ou do
-            Chrome o iOS não oferece isso. Abra o FARO no <strong>Safari</strong>, toque em <strong>Compartilhar</strong>{" "}
-            (o quadrado com a seta pra cima), escolha <strong>Adicionar à Tela de Início</strong> e depois abra o FARO
-            pelo ícone novo. Volte aqui e ligue as notificações.
-          </div>
+          <PushPassos
+            titulo="Primeiro, instale o FARO na tela inicial"
+            porque="No iPhone, o aviso só chega com o FARO instalado — numa aba do Safari ou do Chrome o iOS não oferece isso."
+            passos={[
+              <>Abra o FARO no <strong>Safari</strong> (a instalação precisa ser por ele).</>,
+              <>Toque em <strong>Compartilhar</strong> (o quadrado com a seta pra cima) e em <strong>Adicionar à Tela de Início</strong>.</>,
+              <>Deixe <strong>&ldquo;Abrir como app da Web&rdquo;</strong> ligado e toque em <strong>Adicionar</strong>.</>,
+              <>Abra o FARO pelo <strong>ícone novo</strong> da tela inicial (não pelo Safari) e volte aqui.</>,
+            ]}
+          />
         ) : (
-          <div className="hint-text">Esse navegador não suporta notificações push.</div>
+          <div className="hint-text">
+            {plataforma === "android"
+              ? "Esse navegador não oferece notificações. No Android, use o Chrome."
+              : "Esse navegador não oferece notificações push. Tente o Chrome, o Edge ou o Safari atualizados."}
+          </div>
         )
       ) : (
         <>
@@ -265,7 +287,7 @@ function PushNotificationsBox() {
             <span>
               <span className="settings-label">Receber lembretes como notificação</span>
               <span className="settings-toggle-hint">
-                Grátis, direto do navegador ou do app instalado. Avisa em todo lembrete que tenha data e hora, mesmo sem o zap aceso — o WhatsApp fica só pros que você acender. No iPhone, só funciona com o FARO instalado na tela inicial.
+                {subscribed ? "Ligado neste aparelho." : "Desligado neste aparelho. Ligue e toque em Permitir."}
               </span>
             </span>
             <ToggleSwitch
@@ -274,15 +296,67 @@ function PushNotificationsBox() {
               ariaLabel="Notificações push"
             />
           </div>
+          {bloqueado && !subscribed && (
+            <PushPassos
+              titulo="As notificações estão bloqueadas neste aparelho"
+              porque="Você (ou o navegador) negou a permissão antes. É preciso liberar nas configurações do aparelho:"
+              passos={
+                plataforma === "ios"
+                  ? [
+                      <>Abra o app <strong>Ajustes</strong> do iPhone e vá em <strong>Notificações</strong>.</>,
+                      <>Procure o <strong>FARO</strong> e ligue <strong>Permitir notificações</strong>.</>,
+                      <>Volte ao FARO e ligue a chave acima.</>,
+                    ]
+                  : plataforma === "android"
+                    ? [
+                        <>Segure o ícone do <strong>FARO</strong> e toque em <strong>Informações do app</strong> (ou, no Chrome, no cadeado ao lado do endereço).</>,
+                        <>Entre em <strong>Notificações</strong> e libere.</>,
+                        <>Volte ao FARO e ligue a chave acima.</>,
+                      ]
+                    : [
+                        <>Clique no <strong>cadeado</strong> ao lado do endereço do site.</>,
+                        <>Em <strong>Notificações</strong>, escolha <strong>Permitir</strong>.</>,
+                        <>Recarregue a página e ligue a chave acima.</>,
+                      ]
+              }
+            />
+          )}
+          {plataforma === "android" && !instalado && !bloqueado && (
+            <div className="hint-text">
+              Dica: pra o aviso chegar com mais segurança com o FARO fechado, instale-o — no Chrome, toque nos três
+              pontinhos e em <strong>Instalar app</strong> (ou <strong>Adicionar à tela inicial</strong>).
+            </div>
+          )}
           {subscribed && (
-            <button type="button" className="btn btn-ghost" disabled={busy} onClick={sendTest}>
-              Testar notificação
-            </button>
+            <>
+              <button type="button" className="btn btn-ghost" disabled={busy} onClick={sendTest}>
+                Testar notificação
+              </button>
+              <div className="hint-text">
+                Pra testar de verdade: toque em testar, feche o FARO e espere. A notificação deve aparecer na tela do
+                celular em alguns segundos.
+              </div>
+            </>
           )}
           {status && <div className="hint-text">{status}</div>}
         </>
       )}
     </CollapsibleBox>
+  );
+}
+
+/** Instrução numerada. Um passo por linha: é pra ser seguida com o celular na mão. */
+function PushPassos({ titulo, porque, passos }: { titulo: string; porque: string; passos: ReactNode[] }) {
+  return (
+    <div className="push-passos">
+      <div className="push-passos-titulo">{titulo}</div>
+      <div className="hint-text">{porque}</div>
+      <ol>
+        {passos.map((p, i) => (
+          <li key={i}>{p}</li>
+        ))}
+      </ol>
+    </div>
   );
 }
 

@@ -2660,3 +2660,13 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
   html, body{ overflow-x:hidden; }
   .wrap{ padding-left:14px; padding-right:14px; }
 }
+
+/* Passo a passo das notificações push (instalar no iPhone, liberar permissão). */
+.push-passos{
+  border:1px solid var(--linha); border-radius:var(--r-3); background:var(--segmento-fundo);
+  padding:12px 14px; margin:8px 0;
+}
+.push-passos-titulo{ font-size:13px; font-weight:var(--fw-forte); color:var(--text); }
+.push-passos ol{ margin:6px 0 0; padding-left:20px; display:flex; flex-direction:column; gap:6px; }
+.push-passos li{ font-size:12.5px; line-height:1.5; color:var(--text-muted); }
+.push-passos li strong{ color:var(--text); font-weight:var(--fw-forte); }
