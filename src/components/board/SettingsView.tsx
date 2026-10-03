@@ -415,7 +415,7 @@ function BackupBox() {
           textos e baixou um .json. Dois blocos começando com a mesma palavra,
           um ao lado do outro — a culpa é do nome, não dele. */}
       <div className="hint-text" style={{ marginTop: 0, marginBottom: 8 }}>
-        Este é o <strong>cofre</strong>: um arquivo técnico com tudo, pra
+        Este é o <strong>cofre</strong> (baixado na mão): um arquivo técnico com tudo, pra
         restaurar o app se algo der errado. Não é pra ler. Os textos de
         aprendizado pra ler estão no outro bloco, <strong>Backup de
         aprendizado</strong>.
@@ -476,6 +476,7 @@ function BackupAutomaticoBox() {
   const [copiado, setCopiado] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [agora] = useState(() => Date.now());
+  const [pedindo, setPedindo] = useState(false);
 
   useEffect(() => {
     let vivo = true;
@@ -511,6 +512,20 @@ function BackupAutomaticoBox() {
     }
   }
 
+  async function enviarParaODrive() {
+    setErro(null);
+    setPedindo(true);
+    try {
+      const r = await fetch("/api/backup/pedido", { method: "POST" });
+      if (!r.ok) throw new Error(`O servidor respondeu ${r.status}`);
+      setEstado((e) => (e ? { ...e, aprendizadoPedidoEm: new Date().toISOString() } : e));
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Falha ao pedir o envio");
+    } finally {
+      setPedindo(false);
+    }
+  }
+
   const base = typeof window !== "undefined" ? window.location.origin : "";
   const comando = !estado?.token
     ? ""
@@ -534,11 +549,28 @@ function BackupAutomaticoBox() {
   const mb = estado?.ultimoBytes ? (estado.ultimoBytes / 1048576).toFixed(2).replace(".", ",") : null;
 
   return (
-    <CollapsibleBox title="Backup automático (no seu computador)" icon={<ArchiveIcon />}>
+    <CollapsibleBox title="Backup automático no meu computador" icon={<ArchiveIcon />}>
       <div className="hint-text" style={{ marginTop: 0, marginBottom: 8 }}>
         Todo dia o seu computador busca o backup completo (guarda os 7 últimos) e os textos de aprendizado, e
         grava tudo na pasta do Drive. Se o computador estiver desligado e o dia passar sem backup, o FARO avisa no
         celular às 18h.
+      </div>
+
+      <div className="backup-saidas">
+        <div className="backup-saida">
+          <strong>1. Cofre (.json)</strong>
+          <span>
+            Tudo do app, para restaurar se algo der errado. Ninguém lê. Pasta <code>{PASTA_DO_DRIVE}</code>, os 7
+            mais recentes.
+          </span>
+        </div>
+        <div className="backup-saida">
+          <strong>2. Aprendizados (.md)</strong>
+          <span>
+            Sinapses e resumos de livro em texto, <strong>é esta pasta que a minha IA lê</strong>. Pasta{" "}
+            <code>{PASTA_DO_APRENDIZADO}</code>.
+          </span>
+        </div>
       </div>
 
       {estado?.configurado ? (
@@ -563,6 +595,26 @@ function BackupAutomaticoBox() {
         </div>
       )}
 
+      {estado?.configurado && (
+        <div style={{ marginTop: 10 }}>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={enviarParaODrive}
+            disabled={pedindo || !!estado.aprendizadoPedidoEm}
+          >
+            {estado.aprendizadoPedidoEm ? "Pedido feito, aguardando o computador…" : "Enviar aprendizados para o Drive agora"}
+          </button>
+          <div className="hint-text" style={{ marginTop: 6 }}>
+            {estado.aprendizadoPedidoEm
+              ? "O seu computador (precisa estar ligado) confere a cada 15 minutos e grava os textos na pasta do Drive."
+              : estado.aprendizadoEnviadoEm
+                ? `Último envio dos aprendizados: ${new Date(estado.aprendizadoEnviadoEm).toLocaleDateString("pt-BR")} às ${new Date(estado.aprendizadoEnviadoEm).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}${estado.aprendizadoArquivos ? ` (${estado.aprendizadoArquivos} arquivos)` : ""}. Também vai sozinho todo dia.`
+                : "Também vai sozinho todo dia, junto com o backup."}
+          </div>
+        </div>
+      )}
+
       <div className="edit-actions" style={{ justifyContent: "flex-start", gap: 8, marginTop: 8 }}>
         {!estado?.configurado ? (
           <button type="button" className="btn btn-accent" onClick={gerarChave}>
@@ -578,7 +630,7 @@ function BackupAutomaticoBox() {
       {mostrar && estado?.token && (
         <PushPassos
           titulo="Instalar neste computador"
-          porque="Faça isto uma vez em cada computador que fica ligado (estúdio e notebook). A chave é a mesma e vale para os dois."
+          porque="Faça isto em cada computador que fica ligado (estúdio e notebook). A chave é a mesma e vale para os dois. Para atualizar um computador que já tem o backup, é só repetir: não duplica nem apaga nada, só troca o programa por um novo."
           passos={[
             <span key="so">
               Escolha o seu sistema:{" "}
@@ -655,34 +707,6 @@ function BackupDeAprendizadoBox() {
   const [gerando, setGerando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [ultimo, setUltimo] = useState<{ arquivos: number; nome: string } | null>(null);
-  const [drive, setDrive] = useState<EstadoDoBackupAuto | null>(null);
-  const [pedindo, setPedindo] = useState(false);
-
-  useEffect(() => {
-    let vivo = true;
-    fetch("/api/backup/chave")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d: EstadoDoBackupAuto | null) => vivo && d && setDrive(d))
-      .catch(() => {});
-    return () => {
-      vivo = false;
-    };
-  }, []);
-
-  async function enviarParaODrive() {
-    setErro(null);
-    setPedindo(true);
-    try {
-      const r = await fetch("/api/backup/pedido", { method: "POST" });
-      if (!r.ok) throw new Error(r.status === 409 ? "Ligue antes o backup automático (bloco abaixo)." : `O servidor respondeu ${r.status}`);
-      setDrive((d) => (d ? { ...d, aprendizadoPedidoEm: new Date().toISOString() } : d));
-    } catch (e) {
-      setErro(e instanceof Error ? e.message : "Falha ao pedir o envio");
-    } finally {
-      setPedindo(false);
-    }
-  }
-
   // null = nunca configurou. Trata como tudo marcado em vez de nada: um backup
   // que nasce sem nada selecionado parece quebrado no primeiro clique.
   const areas = (backupAreas ?? AREAS_PADRAO).filter(ehAreaDeBackup);
@@ -796,26 +820,6 @@ function BackupDeAprendizadoBox() {
             ? "Nada com anotação pra gerar"
             : `Baixar .zip com ${quantos} ${quantos === 1 ? "texto" : "textos"}`}
       </button>
-
-      {drive?.configurado && (
-        <div style={{ marginTop: 12 }}>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={enviarParaODrive}
-            disabled={pedindo || !!drive.aprendizadoPedidoEm || quantos === 0}
-          >
-            {drive.aprendizadoPedidoEm ? "Pedido feito, aguardando o computador…" : "Enviar para o meu Drive agora"}
-          </button>
-          <div className="hint-text" style={{ marginTop: 6 }}>
-            {drive.aprendizadoPedidoEm
-              ? "O seu computador (precisa estar ligado) confere a cada 15 minutos e grava os textos na pasta do Drive."
-              : drive.aprendizadoEnviadoEm
-                ? `Último envio ao Drive: ${new Date(drive.aprendizadoEnviadoEm).toLocaleDateString("pt-BR")} às ${new Date(drive.aprendizadoEnviadoEm).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}${drive.aprendizadoArquivos ? ` (${drive.aprendizadoArquivos} arquivos)` : ""}. Também vai sozinho todo dia.`
-                : "Também vai sozinho todo dia, junto com o backup."}
-          </div>
-        </div>
-      )}
 
       {ultimo && (
         <div className="hint-text" style={{ marginTop: 8 }}>
@@ -1351,9 +1355,21 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
 
         {/* Os dois backups ficam vizinhos, e nessa ordem: o de aprendizado é o
             que ele vai usar, o cofre JSON é o que ele raramente toca. */}
-        <BackupDeAprendizadoBox />
+        {/* Bloco só do Leandro: segurança dele, não é função de cliente. Fica
+            separado dos backups manuais (que servem a qualquer usuário) para
+            ele saber o que é o quê. */}
+        <div className="settings-particular">
+          <div className="settings-particular-titulo">
+            <span className="settings-particular-selo">Particular do Leandro</span>
+            Segurança minha. Não vai para os clientes.
+          </div>
+          <BackupAutomaticoBox />
+        </div>
 
-        <BackupAutomaticoBox />
+        <div className="settings-particular-titulo settings-particular-titulo-geral">
+          Backups manuais (valem para qualquer usuário)
+        </div>
+        <BackupDeAprendizadoBox />
 
         <BackupBox />
       </div>
