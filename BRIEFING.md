@@ -2130,6 +2130,26 @@ do passo 14 (captura por voz). Ponto de desenho a decidir com ele: ele quer
 em vez de pedir confirmação antes. O que vale hoje é só o campo de adicionar
 tarefa (acima), que já cria sozinho.
 
+**Domínio do FARO registrado em 03/10: `soufaro.app.br`** (Registro.br). Escolhido por
+estar disponível; a marca continua sendo FARO. Pendências em volta dele, na ordem:
+1. Busca de marca "FARO" no INPI (gratuita; software e serviços online) antes de
+   investir mais em marca/mascote/venda. "Faro" é palavra comum e já existe empresa
+   com o nome. O domínio não protege a marca.
+2. Ver se `faro.app.br` e variações (`usefaro`, `meufaro`) estão livres e, se
+   estiverem, pegar e redirecionar para o principal; checar o `@soufaro` nas redes.
+3. Apontar `soufaro.app.br` para a Vercel (adicionar o domínio no projeto e criar os
+   registros de DNS no Registro.br).
+4. **Fazer a troca de endereço ANTES de os testadores instalarem o app**: o PWA
+   instalado e as inscrições de push ficam presos à origem (`core-app-seven-gamma.vercel.app`).
+   Quem trocar de endereço precisa reinstalar e religar as notificações.
+5. Atualizar os endereços permitidos de login no Supabase (URL do site e
+   redirecionamentos), o endereço do webhook do WhatsApp na Meta e, se houver, o
+   `NEXT_PUBLIC_SITE_URL`. Manter o endereço da Vercel funcionando em paralelo e
+   decidir se redireciona.
+6. Publicar termos e política de privacidade no domínio novo (passo 7) e só então
+   pedir a verificação do Google Agenda.
+7. E-mail de contato/suporte no domínio (ex.: `contato@soufaro.app.br`).
+
 **Domínio**: ele já tem um domínio próprio e vai registrar também o do FARO em breve.
 O Google só verifica o app de Agenda com domínio do dono e página pública de política
 de privacidade; `vercel.app` não serve. Ordem: registrar o domínio do FARO, apontar
