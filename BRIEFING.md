@@ -1976,6 +1976,24 @@ contas dele continua separado (aquela regra não mudou).
   integrar. Hoje o FARO já tem Dieta, Medicação, Registro do dia (água, sono) e
   Humor, que se sobrepõem a ele.
 
+- **Conflito de informação a resolver quando o Meta Saúde entrar (anotado em
+  03/10, a ajustar depois, não agora)**: hoje o FARO já guarda coisas que, no
+  desenho, pertencem ao Meta Saúde, e elas aparecem na home: **meta de água**,
+  **fidelidade à dieta ("seguir o plano")**, refeições, sono, treino. Se o Meta
+  Saúde também marcar "seguiu o plano", a mesma informação passa a existir em dois
+  lugares e vai divergir. Regra dele: **ou um marca o outro, ou se tira a
+  duplicidade, mas nunca marcar em dois lugares sem que conversem.**
+  - Fazer, no momento da integração: (1) inventário do que já existe no FARO que
+    é "saúde" (Dieta, Registro do dia com água/sono/fidelidade, Medicação, Humor)
+    contra o que o Meta Saúde guarda; (2) escolher UMA fonte da verdade por dado
+    (provavelmente o Meta Saúde vira a dona de dieta, treino e meta de água, e o
+    FARO só exibe o resumo na home); (3) migrar o histórico sem perder nada
+    ("só não podemos perder dados"); (4) a home passa a ler da fonte única.
+  - Medicação não entra nessa troca sem ordem expressa dele.
+  - Quando o módulo de saúde estiver DESLIGADO no plano da pessoa (módulos
+    habilitáveis), a home não pode mostrar água e dieta como se existissem: o
+    bloco da home tem que respeitar o módulo ligado/desligado.
+
 ## Captura por voz e agenda do Google — combinado em 01/10, a fazer
 
 O pedido nasceu dele fora de casa, jogando bola com o filho: *"tem algumas
