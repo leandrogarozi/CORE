@@ -59,7 +59,10 @@ export function DayAgendaPanel({
       task: t,
     }));
 
-  const lembretesComHora: Item[] = board.state.reminders
+  // "Venceu e não fiz" é contingência (só acontece se o item passar do dia sem
+  // "Feito"): fica fora da agenda pra não aparecer em dias que talvez nem cheguem.
+  const naAgenda = board.state.reminders.filter((r) => !r.sourceStage?.startsWith("vencido"));
+  const lembretesComHora: Item[] = naAgenda
     .filter((r) => !r.deletedAt && !r.done && r.date && r.time)
     .map((r) => ({
       id: r.id,
@@ -78,7 +81,7 @@ export function DayAgendaPanel({
 
   // No modo Lembretes entram TODOS os do dia, com hora ou sem. Os sem hora vão
   // pro fim: eles não concorrem com os marcados, mas também não podem sumir.
-  const lembretesDoDia = board.state.reminders
+  const lembretesDoDia = naAgenda
     .filter((r) => !r.deletedAt && r.date === selectedDate)
     .sort((a, b) => (a.time ?? "99:99").localeCompare(b.time ?? "99:99"));
 

@@ -211,6 +211,11 @@ export function rowToMaintenanceItem(row: MaintenanceItemRow): MaintenanceItem {
     active: row.active,
     order: row.sort_order,
     whatsapp: row.whatsapp ?? false,
+    buyDaysBefore: row.buy_days_before,
+    boughtOn: row.bought_on,
+    whatsappBuy: row.whatsapp_buy ?? false,
+    whatsappOverdue: row.whatsapp_overdue ?? false,
+    overdueFrom: row.overdue_from,
   };
 }
 
@@ -226,6 +231,11 @@ export function maintenanceItemToUpdateRow(i: Partial<MaintenanceItem>): TablesU
   if (i.note !== undefined) row.note = i.note;
   if (i.active !== undefined) row.active = i.active;
   if (i.whatsapp !== undefined) row.whatsapp = i.whatsapp;
+  if (i.buyDaysBefore !== undefined) row.buy_days_before = i.buyDaysBefore;
+  if (i.boughtOn !== undefined) row.bought_on = i.boughtOn;
+  if (i.whatsappBuy !== undefined) row.whatsapp_buy = i.whatsappBuy;
+  if (i.whatsappOverdue !== undefined) row.whatsapp_overdue = i.whatsappOverdue;
+  if (i.overdueFrom !== undefined) row.overdue_from = i.overdueFrom;
   return row;
 }
 
@@ -572,6 +582,7 @@ export function rowToReminder(row: ReminderRow): Reminder {
     taskId: row.task_id,
     sourceKind: (row.source_kind as Reminder["sourceKind"]) ?? null,
     sourceId: row.source_id,
+    sourceStage: row.source_stage,
     whatsapp: row.whatsapp ?? true,
   };
 }
@@ -593,6 +604,7 @@ export function reminderToInsertRow(r: Reminder, userId: string): TablesInsert<"
     task_id: r.taskId,
     source_kind: r.sourceKind,
     source_id: r.sourceId,
+    source_stage: r.sourceStage,
     whatsapp: r.whatsapp,
   };
 }
@@ -612,6 +624,7 @@ export function reminderToUpdateRow(r: Partial<Reminder>): TablesUpdate<"reminde
   if (r.taskId !== undefined) row.task_id = r.taskId;
   if (r.sourceKind !== undefined) row.source_kind = r.sourceKind;
   if (r.sourceId !== undefined) row.source_id = r.sourceId;
+  if (r.sourceStage !== undefined) row.source_stage = r.sourceStage;
   if (r.whatsapp !== undefined) row.whatsapp = r.whatsapp;
   return row;
 }

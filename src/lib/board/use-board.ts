@@ -55,7 +55,7 @@ import {
 } from "@/lib/board/mappers";
 import { isoAddDays, occurrenceDates, todayISO } from "@/lib/date-utils";
 import { studyDatesInRange } from "@/lib/board/study-plan";
-import { lembreteDaManutencao, lembreteDaMedicacao, lembreteDaRefeicao } from "@/lib/board/zap-engine";
+import { lembreteDaMedicacao, lembreteDaRefeicao, lembretesDaManutencao } from "@/lib/board/zap-engine";
 import { maintenanceStatus } from "@/lib/board/maintenance";
 import {
   isRecurringReminder,
@@ -1760,6 +1760,11 @@ export function useBoard(userId: string | null) {
         note: "",
         active: true,
         whatsapp: false,
+        buyDaysBefore: null,
+        boughtOn: null,
+        whatsappBuy: false,
+        whatsappOverdue: false,
+        overdueFrom: null,
         order: stateRef.current.maintenanceItems.filter((i) => i.assetId === assetId).length,
       };
       apply((st) => ({ ...st, maintenanceItems: [...st.maintenanceItems, item] }));
@@ -1782,56 +1787,143 @@ export function useBoard(userId: string | null) {
     [apply, supabase, userId]
   );
 
-  // ---------- motor do zap: manutenção ----------
+  // ---------- avisos da manutenção ----------
   /**
-   * Mesma ideia da medicação: a tela não envia nada, ela acende o ícone; quem
-   * envia é o motor de lembretes. A data de vencimento vem do
-   * `maintenanceStatus`, que é quem sabe juntar "vence em 12 meses" com "vence
-   * em 16.000 km".
+   * Os avisos de uma manutenção (comprar, antes, hoje, vencido x3) viram
+   * lembretes de verdade, um por etapa. O push chega sempre; o zap de cada
+   * momento escolhe se vai também pro WhatsApp. A data de vencimento vem do
+   * `maintenanceStatus`, que junta "vence em 12 meses" com "vence em 16.000 km".
+   *
+   * É idempotente: compara o que existe com o que deveria existir e só mexe na
+   * diferença. Chamada a cada mudança do item, ao registrar "Feito", ao ler o
+   * odômetro e uma vez na abertura do app.
    */
-  const sincronizarZapDaManutencao = useCallback(
+  const sincronizarAvisosDaManutencao = useCallback(
     (itemId: string) => {
       if (!userId) return;
       const atual = stateRef.current;
       const item = atual.maintenanceItems.find((i) => i.id === itemId) ?? null;
-      const existente = atual.reminders.find(
+      const asset = item ? atual.maintenanceAssets.find((a) => a.id === item.assetId) ?? null : null;
+      const doItem = atual.reminders.filter(
         (r) => r.sourceKind === "maintenance" && r.sourceId === itemId && !r.deletedAt
       );
-      const asset = item ? atual.maintenanceAssets.find((a) => a.id === item.assetId) ?? null : null;
 
-      let campos = null as ReturnType<typeof lembreteDaManutencao>;
-      if (item && item.whatsapp && item.active && asset) {
+      let desejados: ReturnType<typeof lembretesDaManutencao> = [];
+      if (item && item.active && asset) {
         const leituras = atual.odometerReadings.filter((l) => l.assetId === asset.id);
         const status = maintenanceStatus(item, asset, leituras);
-        campos = lembreteDaManutencao(item, status.dueDate);
+        desejados = lembretesDaManutencao(item, status.dueDate, todayISO());
       }
 
-      if (!campos) {
-        if (existente) deleteReminder(existente.id);
-        return;
+      // Um por etapa. Sobra (duplicata de duas abas abertas) e lembrete do
+      // desenho antigo, sem etapa, saem.
+      const porEtapa = new Map<string, Reminder>();
+      const apagar: Reminder[] = [];
+      for (const r of doItem) {
+        if (!r.sourceStage || porEtapa.has(r.sourceStage)) apagar.push(r);
+        else porEtapa.set(r.sourceStage, r);
       }
-      if (existente) {
-        updateReminder(existente.id, campos);
-        return;
+      const querEtapas = new Set(desejados.map((d) => d.etapa as string));
+      for (const [etapa, r] of porEtapa) {
+        if (!querEtapas.has(etapa)) {
+          apagar.push(r);
+          porEtapa.delete(etapa);
+        }
       }
-      const r: Reminder = {
-        id: uid(),
-        ...campos,
-        note: null,
-        done: false,
-        status: "pending",
-        deletedAt: null,
-        taskId: null,
-        sourceKind: "maintenance",
-        sourceId: itemId,
-        whatsapp: true,
-      };
-      apply((st) => ({ ...st, reminders: [...st.reminders, r] }));
-      supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
-        if (error) reportSaveError("sincronizarZapDaManutencao", error);
-      });
+
+      const novos: Reminder[] = [];
+      const mudancas = new Map<string, Partial<Reminder>>();
+      for (const d of desejados) {
+        const ja = porEtapa.get(d.etapa);
+        if (!ja) {
+          novos.push({
+            id: uid(),
+            ...d.campos,
+            note: null,
+            done: false,
+            status: "pending",
+            deletedAt: null,
+            taskId: null,
+            sourceKind: "maintenance",
+            sourceId: itemId,
+            sourceStage: d.etapa,
+            whatsapp: d.whatsapp,
+          });
+          continue;
+        }
+        const novaData = ja.date !== d.campos.date || ja.time !== d.campos.time;
+        if (novaData || ja.title !== d.campos.title || ja.whatsapp !== d.whatsapp) {
+          mudancas.set(ja.id, {
+            title: d.campos.title,
+            date: d.campos.date,
+            time: d.campos.time,
+            alertMinutesBefore: d.campos.alertMinutesBefore,
+            whatsapp: d.whatsapp,
+            // Outra data é outra ocorrência: tem que poder avisar de novo.
+            ...(novaData ? { done: false, status: "pending" as const } : {}),
+          });
+        }
+      }
+
+      if (!apagar.length && !novos.length && mudancas.size === 0) return;
+
+      const idsApagar = new Set(apagar.map((r) => r.id));
+      apply((st) => ({
+        ...st,
+        reminders: [
+          ...st.reminders
+            .filter((r) => !idsApagar.has(r.id))
+            .map((r) => (mudancas.has(r.id) ? { ...r, ...mudancas.get(r.id)! } : r)),
+          ...novos,
+        ],
+      }));
+
+      // Apaga de vez: o lembrete foi o FARO que criou, e mandar 6 por item pra
+      // Lixeira só encheria ela.
+      if (idsApagar.size) {
+        supabase.from("reminders").delete().in("id", [...idsApagar]).then(({ error }) => {
+          if (error) reportSaveError("avisos da manutenção: apagar", error);
+        });
+      }
+      if (novos.length) {
+        supabase.from("reminders").insert(novos.map((r) => reminderToInsertRow(r, userId))).then(({ error }) => {
+          if (error) reportSaveError("avisos da manutenção: criar", error);
+        });
+      }
+      for (const [id, patch] of mudancas) {
+        const linha = reminderToUpdateRow(patch);
+        const reativa = patch.date !== undefined && atual.reminders.some((r) => r.id === id && r.date !== patch.date);
+        supabase
+          .from("reminders")
+          .update(reativa ? { ...linha, whatsapp_notified_at: null, push_sent_for: null } : linha)
+          .eq("id", id)
+          .then(({ error }) => {
+            if (error) reportSaveError("avisos da manutenção: atualizar", error);
+          });
+      }
     },
-    [apply, deleteReminder, supabase, updateReminder, userId]
+    [apply, supabase, userId]
+  );
+
+  // Na abertura, garante que todo item ativo tenha seus avisos — é o que cria
+  // os lembretes dos itens que já existiam antes dos três momentos.
+  const avisosDaManutencaoJaSincronizados = useRef(false);
+  useEffect(() => {
+    if (loading || !userId || avisosDaManutencaoJaSincronizados.current) return;
+    avisosDaManutencaoJaSincronizados.current = true;
+    for (const item of stateRef.current.maintenanceItems) sincronizarAvisosDaManutencao(item.id);
+  }, [loading, userId, sincronizarAvisosDaManutencao]);
+
+  // Uma leitura nova do odômetro muda o ritmo de rodagem, e com ele a data em
+  // que cada item do veículo vence por uso.
+  const addOdometerReadingEAvisos = useCallback(
+    (assetId: string, reading: number, readOn: string) => {
+      addOdometerReading(assetId, reading, readOn);
+      for (const i of stateRef.current.maintenanceItems) {
+        if (i.assetId === assetId) sincronizarAvisosDaManutencao(i.id);
+      }
+    },
+    [addOdometerReading, sincronizarAvisosDaManutencao]
   );
 
   /** Acende ou apaga o ícone do zap de um item de manutenção. */
@@ -1844,9 +1936,9 @@ export function useBoard(userId: string | null) {
       supabase.from("maintenance_items").update({ whatsapp: ligado }).eq("id", id).then(({ error }) => {
         if (error) reportSaveError("setMaintenanceWhatsapp", error);
       });
-      sincronizarZapDaManutencao(id);
+      sincronizarAvisosDaManutencao(id);
     },
-    [apply, sincronizarZapDaManutencao, supabase]
+    [apply, sincronizarAvisosDaManutencao, supabase]
   );
 
   const updateMaintenanceItem = useCallback(
@@ -1861,9 +1953,9 @@ export function useBoard(userId: string | null) {
       // Sincroniza em qualquer mudança do item: intervalo, última troca e
       // antecedência mexem na data de vencimento, e a anotação É o texto que
       // chega no WhatsApp. Qualquer um dos quatro muda o lembrete.
-      sincronizarZapDaManutencao(id);
+      sincronizarAvisosDaManutencao(id);
     },
-    [apply, sincronizarZapDaManutencao, supabase]
+    [apply, sincronizarAvisosDaManutencao, supabase]
   );
 
   const deleteMaintenanceItem = useCallback(
@@ -1872,8 +1964,10 @@ export function useBoard(userId: string | null) {
       supabase.from("maintenance_items").update({ deleted_at: new Date().toISOString() }).eq("id", id).then(({ error }) => {
         if (error) reportSaveError("deleteMaintenanceItem", error);
       });
+      // Item apagado não avisa mais: sem o item, os avisos dele saem.
+      sincronizarAvisosDaManutencao(id);
     },
-    [apply, supabase]
+    [apply, sincronizarAvisosDaManutencao, supabase]
   );
 
   // "Fiz hoje": guarda no histórico E move o item pra frente. O próximo
@@ -1894,7 +1988,9 @@ export function useBoard(userId: string | null) {
         ...st,
         maintenanceServices: [servico, ...st.maintenanceServices],
         maintenanceItems: st.maintenanceItems.map((i) =>
-          i.id === itemId ? { ...i, lastDoneOn: doneOn, lastDoneOdometer: servico.odometer } : i
+          i.id === itemId
+            ? { ...i, lastDoneOn: doneOn, lastDoneOdometer: servico.odometer, boughtOn: null, overdueFrom: null }
+            : i
         ),
       }));
       supabase
@@ -1913,7 +2009,7 @@ export function useBoard(userId: string | null) {
         });
       supabase
         .from("maintenance_items")
-        .update({ last_done_on: doneOn, last_done_odometer: servico.odometer })
+        .update({ last_done_on: doneOn, last_done_odometer: servico.odometer, bought_on: null, overdue_from: null })
         .eq("id", itemId)
         .then(({ error }) => {
           if (error) reportSaveError("atualizar item de manutenção", error);
@@ -1923,8 +2019,15 @@ export function useBoard(userId: string | null) {
       // o ritmo de rodagem atualizado sem pedir o número duas vezes.
       const item = stateRef.current.maintenanceItems.find((i) => i.id === itemId);
       if (item && servico.odometer !== null) addOdometerReading(item.assetId, servico.odometer, doneOn);
+      // Nova data de vencimento: os avisos do ciclo anterior saem e os do novo entram.
+      sincronizarAvisosDaManutencao(itemId);
+      if (item && servico.odometer !== null) {
+        for (const irmao of stateRef.current.maintenanceItems) {
+          if (irmao.assetId === item.assetId && irmao.id !== itemId) sincronizarAvisosDaManutencao(irmao.id);
+        }
+      }
     },
-    [addOdometerReading, apply, supabase, userId]
+    [addOdometerReading, apply, sincronizarAvisosDaManutencao, supabase, userId]
   );
 
   // ---------- tarefa desafiadora e adiamentos ----------
@@ -3187,7 +3290,7 @@ export function useBoard(userId: string | null) {
     addMaintenanceAsset,
     updateMaintenanceAsset,
     deleteMaintenanceAsset,
-    addOdometerReading,
+    addOdometerReading: addOdometerReadingEAvisos,
     addMaintenanceItem,
     updateMaintenanceItem,
     deleteMaintenanceItem,

@@ -2096,6 +2096,19 @@ selo de plano de estudo), só o ícone na linha da tarefa.
   foram tratadas à parte; se alguém ligar "segue" numa delas, o comportamento é o
   mesmo da regra acima.
 
+## Manutenção em três momentos: comprar, fazer, vencido (03/10)
+
+Pedido do Leandro: avisar para **comprar** a peça com antecedência (filtro que demora a chegar), avisar para **fazer**, e **insistir** se o dia passar sem ele marcar "Feito".
+
+- **Comprar:** só nos itens que pedem compra (campo "dias antes", vazio = sem aviso; IPVA e afins não usam). Para quando ele marca "Comprei" (botão na linha e no painel do item; "Comprado" desfaz).
+- **Fazer:** `alertDaysBefore` dias antes **e** no dia do vencimento ("Em 7 dias vence: X" / "Hoje vence: X"). É o segundo disparo que estava pendente desde 01/10. A anotação do item continua sendo o texto da mensagem.
+- **Vencido:** insiste 3 vezes e para: 1 dia depois do vencimento, 2 dias depois disso e 4 dias depois disso (dias 1, 3 e 7 após vencer). Para quando ele marca "Feito". "Lembrar de novo" (botão que aparece no item vencido) recomeça a contagem de hoje.
+- **Canais:** o **push chega sempre**, nos três momentos. O ícone do **WhatsApp é por momento** (comprar, fazer, vencido), e o usuário descobre o que prefere. Padrão desligado nos novos momentos; o de "fazer" mantém o que já estava aceso.
+- **Como funciona por baixo:** cada aviso é um lembrete comum (09:00) com `source_stage` (`comprar`, `antes`, `hoje`, `vencido1..3`). `sincronizarAvisosDaManutencao` compara o que existe com o que deveria existir e só mexe na diferença; roda ao editar o item, ao marcar "Feito", ao registrar odômetro e uma vez na abertura do app (cria os avisos dos itens que já existiam). Marcar "Feito" muda a data de vencimento e os avisos do ciclo velho saem sozinhos. Mudou a data, o aviso rearma (zera `whatsapp_notified_at` e `push_sent_for`). Só nascem avisos de hoje em diante, então nada atrasado dispara de uma vez.
+- Os lembretes de "Venceu e não fiz" ficam fora da Agenda do dia (contingência); aparecem em Lembretes, seção de automáticos.
+- Banco: `maintenance_items` ganhou `buy_days_before`, `bought_on`, `whatsapp_buy`, `whatsapp_overdue`, `overdue_from`; `reminders` ganhou `source_stage`.
+- Pendente: ver a tela renderizada no celular e no desktop (só passou por tipos, lint, build e testes do cálculo); medir se a seção de lembretes automáticos fica longa (até 6 por item).
+
 ## Insight de sono, sem API (03/10)
 
 - No Registro do dia, abaixo de "Sono", aparece: "De acordo com os dados que você tem enviado, você tem dormido em média X por noite" (últimos 14 dias, mínimo 3 noites com dormir e acordar preenchidos). No Dashboard há um card "Sono" (14 dias; 30 no filtro mês) com média, horário médio de deitar e a mesma dica.

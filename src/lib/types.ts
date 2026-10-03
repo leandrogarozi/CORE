@@ -130,7 +130,15 @@ export interface MaintenanceItem {
   intervalDistance: number | null; // null = não vence por uso
   alertDaysBefore: number;
   alertDistanceBefore: number;
-  whatsapp: boolean; // zap aceso = avisa no WhatsApp com a antecedência de alertDaysBefore
+  whatsapp: boolean; // zap do momento "fazer": avisa no WhatsApp (antes e no dia). Push chega sempre.
+  // Momento "comprar": avisa buyDaysBefore dias antes do vencimento, só nos itens
+  // que pedem compra (filtro, peça). null = esse item não tem aviso de compra.
+  buyDaysBefore: number | null;
+  boughtOn: string | null; // "Comprei": para o aviso de compra até o próximo ciclo
+  whatsappBuy: boolean;
+  // Momento "vencido": se passar do dia sem marcar "Feito", insiste 3 vezes.
+  whatsappOverdue: boolean;
+  overdueFrom: string | null; // "Lembrar de novo": a insistência recomeça a contar desta data
   lastDoneOn: string | null;
   lastDoneOdometer: number | null;
   note: string;
@@ -388,6 +396,9 @@ export interface Reminder {
   // pelo Leandro, e nesse caso nada automático mexe nele.
   sourceKind: "medication" | "maintenance" | "diet_meal" | "event" | null;
   sourceId: string | null;
+  // Qual aviso do item de origem este lembrete é (manutenção: comprar, antes,
+  // hoje, vencido1..3). Permite ao app atualizar cada um sem duplicar.
+  sourceStage?: string | null;
   // Ícone do zap do lembrete. Nasce LIGADO: antes dele, todo lembrete com aviso
   // já ia pro WhatsApp, e desligar por padrão silenciaria tudo sem ninguém pedir.
   whatsapp: boolean;

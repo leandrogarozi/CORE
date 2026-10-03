@@ -13,7 +13,7 @@ import {
   maintenanceStatus,
   odometerCheckDue,
 } from "@/lib/board/maintenance";
-import { fmtShortDate, todayISO } from "@/lib/date-utils";
+import { fmtShortDate, isoAddDays, todayISO } from "@/lib/date-utils";
 import { fmtBRL, parseAmountToCents } from "@/lib/money";
 import type { MaintenanceAsset, MaintenanceItem } from "@/lib/types";
 
@@ -77,6 +77,11 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
           : `passou ${fmtKm(-st.distanceLeft)} ${asset.odometerUnit}`
       );
     }
+    if (item.buyDaysBefore && st.dueDate) {
+      partes.push(
+        item.boughtOn ? "comprado" : `comprar até ${fmtShortDate(isoAddDays(st.dueDate, -item.buyDaysBefore))}`
+      );
+    }
     if (st.dueBy === "uso") partes.push("pelo uso");
     else if (st.dueBy === "tempo" && st.dueOdometer) partes.push("pelo tempo");
     if (!partes.length) return "Sem intervalo definido — clique em \"definir intervalo\"";
@@ -108,6 +113,17 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
           </span>
         )}
         {st.state === "proximo" && <span className="maint-flag proximo">chegando</span>}
+        {/* "Comprei" na própria linha: é o gesto que para o aviso de compra. */}
+        {item.buyDaysBefore && !item.boughtOn && st.dueDate && todayISO() >= isoAddDays(st.dueDate, -item.buyDaysBefore) && (
+          <button
+            type="button"
+            className="btn btn-ghost maint-done-btn"
+            title="Já comprei o que precisa: para o aviso de compra"
+            onClick={() => board.updateMaintenanceItem(item.id, { boughtOn: todayISO() })}
+          >
+            <CheckIcon /> Comprei
+          </button>
+        )}
         {/* O intervalo fica à vista: ele estava só dentro do item aberto, e o
             Leandro não achou onde trocar 10.000 por 16.000 km. Clicar abre
             direto o lugar de editar. */}
@@ -265,7 +281,7 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
               </label>
             )}
             <label className="prop-row">
-              <span className="prop-label">Avisar (dias antes)</span>
+              <span className="prop-label">Avisar para fazer (dias antes)</span>
               <div className="prop-value">
                 <input
                   type="number"
@@ -278,6 +294,117 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
                 />
               </div>
             </label>
+          </div>
+
+          <div className="maint-momentos">
+            <div className="maint-momentos-titulo">Quando o FARO avisa</div>
+            <div className="maint-explain">
+              O aviso no celular (push) chega sempre. O ícone do WhatsApp liga o aviso também por lá, momento a momento.
+            </div>
+
+            <div className="maint-momento">
+              <div className="maint-momento-texto">
+                <strong>Comprar</strong>
+                <span>
+                  {item.buyDaysBefore
+                    ? st.dueDate
+                      ? `Avisa em ${fmtShortDate(isoAddDays(st.dueDate, -item.buyDaysBefore))}, ${item.buyDaysBefore} dia(s) antes de vencer.`
+                      : `Avisa ${item.buyDaysBefore} dia(s) antes de vencer.`
+                    : "Só pra item que precisa de peça ou compra (filtro, por exemplo). Preencha os dias pra ativar."}
+                </span>
+              </div>
+              <label className="maint-momento-dias">
+                <input
+                  type="number"
+                  min={0}
+                  placeholder="dias"
+                  aria-label="Dias antes para avisar da compra"
+                  defaultValue={item.buyDaysBefore ?? ""}
+                  onBlur={(e) => {
+                    const v = Number(e.target.value);
+                    board.updateMaintenanceItem(item.id, { buyDaysBefore: Number.isFinite(v) && v > 0 ? v : null });
+                  }}
+                />
+              </label>
+              <button
+                type="button"
+                className={"icon-btn zap-btn" + (item.whatsappBuy && item.buyDaysBefore ? " active" : "")}
+                disabled={!item.buyDaysBefore}
+                title={item.whatsappBuy ? "Aviso de compra também no WhatsApp. Clique pra desligar." : "Avisar a compra também no WhatsApp"}
+                onClick={() => board.updateMaintenanceItem(item.id, { whatsappBuy: !item.whatsappBuy })}
+              >
+                <WhatsAppIcon filled={!!(item.whatsappBuy && item.buyDaysBefore)} />
+              </button>
+              {item.buyDaysBefore ? (
+                item.boughtOn ? (
+                  <button
+                    type="button"
+                    className="btn btn-ghost maint-done-btn concluido"
+                    onClick={() => board.updateMaintenanceItem(item.id, { boughtOn: null })}
+                    title="Desfazer: voltar a avisar da compra"
+                  >
+                    <CheckIcon /> Comprado <span className="maint-done-data mono">{fmtShortDate(item.boughtOn)}</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn btn-ghost maint-done-btn"
+                    onClick={() => board.updateMaintenanceItem(item.id, { boughtOn: todayISO() })}
+                  >
+                    <CheckIcon /> Comprei
+                  </button>
+                )
+              ) : null}
+            </div>
+
+            <div className="maint-momento">
+              <div className="maint-momento-texto">
+                <strong>Fazer</strong>
+                <span>
+                  {item.alertDaysBefore > 0
+                    ? `Avisa ${item.alertDaysBefore} dia(s) antes e no dia em que vence.`
+                    : "Avisa no dia em que vence."}
+                </span>
+              </div>
+              <button
+                type="button"
+                className={"icon-btn zap-btn" + (item.whatsapp && st.dueDate ? " active" : "")}
+                disabled={!st.dueDate}
+                title={item.whatsapp ? "Aviso de fazer também no WhatsApp. Clique pra desligar." : "Avisar também no WhatsApp"}
+                onClick={() => board.setMaintenanceWhatsapp(item.id, !item.whatsapp)}
+              >
+                <WhatsAppIcon filled={!!(item.whatsapp && st.dueDate)} />
+              </button>
+            </div>
+
+            <div className="maint-momento">
+              <div className="maint-momento-texto">
+                <strong>Venceu e não fiz</strong>
+                <span>
+                  Insiste 3 vezes: no dia seguinte, 2 dias depois e mais 4 dias depois. Para quando você marca
+                  &quot;Feito&quot;.
+                </span>
+              </div>
+              <button
+                type="button"
+                className={"icon-btn zap-btn" + (item.whatsappOverdue && st.dueDate ? " active" : "")}
+                disabled={!st.dueDate}
+                title={item.whatsappOverdue ? "A insistência também vai pro WhatsApp. Clique pra desligar." : "Insistir também no WhatsApp"}
+                onClick={() => board.updateMaintenanceItem(item.id, { whatsappOverdue: !item.whatsappOverdue })}
+              >
+                <WhatsAppIcon filled={!!(item.whatsappOverdue && st.dueDate)} />
+              </button>
+              {st.state === "vencido" && (
+                <button
+                  type="button"
+                  className="btn btn-ghost maint-done-btn"
+                  title="Ainda não deu pra fazer: a insistência recomeça a contar de hoje"
+                  onClick={() => board.updateMaintenanceItem(item.id, { overdueFrom: todayISO() })}
+                >
+                  Lembrar de novo
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Este campo começou como "Anotações" e virou a MENSAGEM. Ele

@@ -158,45 +158,103 @@ export function proximaOcorrencia(
   return null;
 }
 
+export type EtapaDaManutencao = "comprar" | "antes" | "hoje" | "vencido1" | "vencido2" | "vencido3";
+
 /**
- * Os campos do lembrete que representa uma manutenção.
- *
- * `dueDate` vem do `maintenanceStatus` — ele é quem sabe juntar as duas naturezas
- * (vence por tempo, vence por quilometragem). Quando ele devolve `null`, não
- * existe data: é o caso de um item que vence por uso e ainda não tem leituras de
- * odômetro suficientes pra estimar quando. Sem data não há o que agendar, e o
- * lembrete honesto é nenhum.
- *
- * A antecedência sai do `alertDaysBefore` que o Leandro já configurou item a
- * item. Criar um campo novo pra isso seria pedir duas vezes a mesma coisa.
- *
- * E a anotação do item, quando existe, É a mensagem. Ele apontou que a
- * observação do "Fiz" já cobre o registro por serviço, então o campo do item
- * ficava sem função — virou o texto que chega no celular dele.
+ * Dias depois do vencimento em que o FARO insiste, se o item não foi marcado
+ * como feito: no dia seguinte, 2 dias depois disso e 4 dias depois disso. Três
+ * e para — mais que isso vira ruído e o aviso passa a ser ignorado.
  */
-export function lembreteDaManutencao(
-  item: { name: string; alertDaysBefore: number; note?: string | null },
-  dueDate: string | null
-): CamposDoLembrete | null {
-  if (!dueDate) return null;
-  const dias = Math.max(0, item.alertDaysBefore);
-  // O título vira o CORPO da mensagem no WhatsApp. Se ele escreveu a anotação
-  // do item, é ela que ele quer receber — "Trocar o refil Intex A, R$ 89 na
-  // Piscinas Vitória" diz o que fazer; "Manutenção: Filtros piscina" só diz que
-  // existe. O campo do item era redundante com a observação do "Fiz", que é por
-  // serviço, então passa a ter esse trabalho.
-  const texto = item.note?.trim();
-  return {
-    title: texto ? texto : `Manutenção: ${item.name}`,
-    date: dueDate,
-    // Manhã: aviso de manutenção que chega às 23h não dá pra resolver no dia.
-    time: "09:00",
-    repeat: "none",
-    weekDays: null,
-    // Zero antecedência não serve: o motor de envio ignora lembrete com
-    // alertMinutesBefore falso, e zero é falso em JavaScript.
-    alertMinutesBefore: dias > 0 ? dias * 24 * 60 : ANTECEDENCIA_PADRAO_MIN,
+export const INSISTENCIA_DIAS_APOS_VENCER = [1, 3, 7] as const;
+
+export interface LembreteDeEtapa {
+  etapa: EtapaDaManutencao;
+  campos: CamposDoLembrete;
+  /** O zap do momento a que a etapa pertence. O push chega sempre. */
+  whatsapp: boolean;
+}
+
+type ItemParaLembretes = {
+  name: string;
+  note?: string | null;
+  alertDaysBefore: number;
+  buyDaysBefore: number | null;
+  boughtOn: string | null;
+  whatsapp: boolean;
+  whatsappBuy: boolean;
+  whatsappOverdue: boolean;
+  overdueFrom: string | null;
+};
+
+function diasEntre(deISO: string, ateISO: string): number {
+  return Math.round((Date.parse(`${ateISO}T00:00:00Z`) - Date.parse(`${deISO}T00:00:00Z`)) / 86400000);
+}
+
+function plural(n: number, um: string, varios: string): string {
+  return n === 1 ? um : varios;
+}
+
+/**
+ * Os avisos de uma manutenção, nos três momentos que o Leandro pediu:
+ *
+ * 1. **Comprar** (só nos itens que pedem compra): `buyDaysBefore` dias antes.
+ *    Para quando ele marca "Comprei".
+ * 2. **Fazer**: `alertDaysBefore` dias antes e no próprio dia do vencimento.
+ * 3. **Vencido**: se passar do dia sem "Feito", insiste 3 vezes (ver
+ *    INSISTENCIA_DIAS_APOS_VENCER). "Lembrar de novo" (`overdueFrom`)
+ *    recomeça a contagem de uma data nova.
+ *
+ * Cada aviso é um lembrete comum com data e hora (09:00): é assim que o push e
+ * o WhatsApp, o teto de gasto e o registro de envio funcionam igual pra tudo.
+ * Quem escolhe o canal pago é o zap de cada momento; o push chega sempre.
+ *
+ * Só entram avisos de hoje em diante. Marcar "Feito" muda a data de
+ * vencimento, e quem chama recalcula tudo: o que ficou pra trás some sozinho.
+ *
+ * A anotação do item, quando existe, É o texto do aviso de fazer — ele a
+ * escolheu como a mensagem que quer receber.
+ */
+export function lembretesDaManutencao(
+  item: ItemParaLembretes,
+  dueDate: string | null,
+  hojeISO: string
+): LembreteDeEtapa[] {
+  if (!dueDate) return [];
+  const saida: LembreteDeEtapa[] = [];
+  const texto = item.note?.trim() || item.name;
+  const base = { time: "09:00", repeat: "none" as const, weekDays: null, alertMinutesBefore: ANTECEDENCIA_PADRAO_MIN };
+  const adicionar = (etapa: EtapaDaManutencao, date: string, title: string, whatsapp: boolean) => {
+    if (date < hojeISO) return;
+    saida.push({ etapa, campos: { ...base, date, title }, whatsapp });
   };
+
+  if (item.buyDaysBefore && item.buyDaysBefore > 0 && !item.boughtOn) {
+    adicionar("comprar", isoAddDays(dueDate, -item.buyDaysBefore), `Comprar para a manutenção: ${item.name}`, item.whatsappBuy);
+  }
+
+  const antes = Math.max(0, item.alertDaysBefore);
+  if (antes > 0) {
+    adicionar(
+      "antes",
+      isoAddDays(dueDate, -antes),
+      antes === 1 ? `Amanhã vence: ${texto}` : `Em ${antes} dias vence: ${texto}`,
+      item.whatsapp
+    );
+  }
+  adicionar("hoje", dueDate, `Hoje vence: ${texto}`, item.whatsapp);
+
+  const inicio = item.overdueFrom && item.overdueFrom > dueDate ? item.overdueFrom : dueDate;
+  INSISTENCIA_DIAS_APOS_VENCER.forEach((dias, i) => {
+    const date = isoAddDays(inicio, dias);
+    const atraso = diasEntre(dueDate, date);
+    adicionar(
+      `vencido${i + 1}` as EtapaDaManutencao,
+      date,
+      `Venceu há ${atraso} ${plural(atraso, "dia", "dias")} e ainda não foi feito: ${texto}`,
+      item.whatsappOverdue
+    );
+  });
+  return saida;
 }
 
 /**
