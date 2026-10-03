@@ -412,7 +412,7 @@ export function TaskRow({
               </span>
             )}
             {t.follows && (
-              <span className="task-badge task-follow-badge" title="Segue comigo — se o dia virar sem concluir, passa pra hoje">
+              <span className="task-badge task-follow-badge" title="O FARO está rastreando esta tarefa">
                 <FollowIcon />
               </span>
             )}
@@ -1006,25 +1006,25 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
         </div>
         <div className="prop-row">
           <span className="prop-label has-explain" tabIndex={0}>
-            <FollowIcon /> Segue comigo
+            <FollowIcon /> Rastrear
             {/* Abre ao passar o mouse (e ao focar, pra quem usa teclado). No
                 celular não existe hover: o texto ao lado do botão diz o estado. */}
             <span className="explain-pop" role="tooltip">
-              <strong>Segue comigo</strong>
-              Pra tarefa que dura vários dias. Se o dia virar e ela não estiver concluída, passa
-              sozinha pra hoje, mantendo o status e o horário. Não conta como adiamento e não
-              fica atrasada. Para de seguir quando você conclui a tarefa ou desliga aqui.
+              <strong>Faro, rastreia!</strong>
+              Pra tarefa que dura vários dias. Se o dia virar e ela não estiver concluída, o FARO
+              leva ela pra hoje, mantendo o status e o horário. Não conta como adiamento e não
+              fica atrasada. Ele para de rastrear quando você conclui a tarefa ou desliga aqui.
             </span>
           </span>
           <div className="prop-value">
             <label className="challenging-toggle">
               <ToggleSwitch
                 checked={t.follows}
-                ariaLabel="Marcar como tarefa que segue comigo"
+                ariaLabel="Pedir pro FARO rastrear esta tarefa"
                 onChange={(v) => board.setFollows(t.id, v)}
               />
               <span className="challenging-hint">
-                {t.follows ? "Passa pra hoje até você concluir" : "Fica no dia marcado"}
+                {t.follows ? "O FARO rastreia: passa pra hoje até você concluir" : "Peça pro FARO rastrear"}
               </span>
             </label>
           </div>

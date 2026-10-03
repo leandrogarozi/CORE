@@ -335,7 +335,7 @@ export function useBoard(userId: string | null) {
       });
     }
 
-    // "Segue comigo": a tarefa aberta que ficou pra trás passa pra hoje. O banco
+    // "Rastrear": a tarefa aberta que ficou pra trás passa pra hoje. O banco
     // já faz isso de 10 em 10 minutos (faro_jobs.rolar_tarefas_que_seguem); aqui
     // é o mesmo gesto na hora de abrir, pra tela já nascer certa em vez de
     // mostrar a data velha até a próxima rodada. Escreve direto, sem passar pelo

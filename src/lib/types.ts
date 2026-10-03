@@ -56,7 +56,7 @@ export interface Task {
   // Adiar uma dessas pede um motivo — é o que revela o padrão do que está sendo
   // evitado.
   challenging: boolean;
-  // "Segue comigo": se o dia virar e a tarefa não estiver concluída, ela passa sozinha
+  // "Rastrear" (o FARO rastreia a tarefa): se o dia virar e a tarefa não estiver concluída, ela passa sozinha
   // pra hoje, mantendo status e horário. Não é adiamento: não pede justificativa
   // nem entra no registro de adiamentos.
   follows: boolean;

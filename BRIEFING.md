@@ -1994,11 +1994,13 @@ contas dele continua separado (aquela regra não mudou).
     habilitáveis), a home não pode mostrar água e dieta como se existissem: o
     bloco da home tem que respeitar o módulo ligado/desligado.
 
-## Tarefa "Segue comigo" (03/10)
+## Tarefa "Rastrear" (03/10)
 
 Pedido do Leandro: uma tarefa grande, que dura vários dias, "me segue": se o dia
 vira e ela não foi concluída, passa sozinha para o dia seguinte, sem mudar o
-status. Apelido dele: "tag chiclete". Nome na tela: **Segue comigo**. Ícone
+status. Apelido dele: "tag chiclete". Nome na tela: **Rastrear** (decidido em 03/10: o FARO
+rastreia a tarefa; comando "Faro, rastreia!"; "Seguir" foi descartado por lembrar
+rede social; o nome provisório foi "Segue comigo"). Ícone
 aprovado por print: duas setas (») do icon-pack, em amarelo (mesma família do
 selo de plano de estudo), só o ícone na linha da tarefa.
 
@@ -2012,7 +2014,7 @@ selo de plano de estudo), só o ícone na linha da tarefa.
   `settings.timezone`; e o `load()` do app faz o mesmo ao abrir, para a tela já
   nascer certa. Testado em transação revertida: 1 tarefa aberta movida para hoje,
   tarefa concluída intocada.
-- **Interface**: no editor da tarefa, linha "Segue comigo" com chave; ao passar o
+- **Interface**: no editor da tarefa, linha "Rastrear" com chave; ao passar o
   mouse (ou focar) no rótulo abre a explicação da função. No celular não há hover:
   o texto ao lado da chave diz o estado.
 - **Não fez / a observar**: tarefas de série (repetição) e de plano de estudo não
