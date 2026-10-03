@@ -455,6 +455,7 @@ function BackupBox() {
 // computador ficou desligado e o dia passou sem backup, o servidor manda um push
 // às 18h. Por enquanto é só do dono; o desenho para clientes vem depois.
 const PASTA_DO_DRIVE = "CLAUDE - IA/Apps Leandro Garozi/App faro/Backups";
+const PASTA_DO_APRENDIZADO = "CLAUDE - IA/Apps Leandro Garozi/App faro/Aprendizado (cópia automática)";
 
 type EstadoDoBackupAuto = {
   configurado: boolean;
@@ -463,6 +464,9 @@ type EstadoDoBackupAuto = {
   ultimoBytes: number | null;
   ultimasLinhas: number | null;
   ultimoArquivo: string | null;
+  aprendizadoPedidoEm: string | null;
+  aprendizadoEnviadoEm: string | null;
+  aprendizadoArquivos: number | null;
 };
 
 function BackupAutomaticoBox() {
@@ -497,6 +501,9 @@ function BackupAutomaticoBox() {
         ultimoBytes: e?.ultimoBytes ?? null,
         ultimasLinhas: e?.ultimasLinhas ?? null,
         ultimoArquivo: e?.ultimoArquivo ?? null,
+        aprendizadoPedidoEm: e?.aprendizadoPedidoEm ?? null,
+        aprendizadoEnviadoEm: e?.aprendizadoEnviadoEm ?? null,
+        aprendizadoArquivos: e?.aprendizadoArquivos ?? null,
       }));
       setMostrar(true);
     } catch (e) {
@@ -508,8 +515,8 @@ function BackupAutomaticoBox() {
   const comando = !estado?.token
     ? ""
     : so === "mac"
-      ? `bash -c "$(curl -fsSL '${base}/api/backup/instalar?so=mac')" _ '${estado.token}' '${PASTA_DO_DRIVE}'`
-      : `& ([scriptblock]::Create((irm '${base}/api/backup/instalar?so=win'))) -Token '${estado.token}' -Pasta '${PASTA_DO_DRIVE}'`;
+      ? `bash -c "$(curl -fsSL '${base}/api/backup/instalar?so=mac')" _ '${estado.token}' '${PASTA_DO_DRIVE}' '${PASTA_DO_APRENDIZADO}'`
+      : `& ([scriptblock]::Create((irm '${base}/api/backup/instalar?so=win'))) -Token '${estado.token}' -Pasta '${PASTA_DO_DRIVE}' -PastaAprendizado '${PASTA_DO_APRENDIZADO}'`;
 
   async function copiar() {
     try {
@@ -529,8 +536,9 @@ function BackupAutomaticoBox() {
   return (
     <CollapsibleBox title="Backup automático (no seu computador)" icon={<ArchiveIcon />}>
       <div className="hint-text" style={{ marginTop: 0, marginBottom: 8 }}>
-        Todo dia o seu computador busca o backup completo e guarda na pasta do Drive. Se o computador estiver
-        desligado e o dia passar sem backup, o FARO avisa no celular às 18h.
+        Todo dia o seu computador busca o backup completo (guarda os 7 últimos) e os textos de aprendizado, e
+        grava tudo na pasta do Drive. Se o computador estiver desligado e o dia passar sem backup, o FARO avisa no
+        celular às 18h.
       </div>
 
       {estado?.configurado ? (
@@ -600,8 +608,9 @@ function BackupAutomaticoBox() {
               Ele mostra <strong>&quot;Pronto. Backup guardado em…&quot;</strong>. O primeiro backup já sai na hora.
             </span>,
             <span key="d">
-              O computador precisa ter o app <strong>Drive para computador</strong> do Google para a pasta subir ao
-              Drive. A pasta é <strong>{PASTA_DO_DRIVE}</strong>.
+              O computador precisa ter o app <strong>Drive para computador</strong> do Google para as pastas subirem
+              ao Drive. Backups: <strong>{PASTA_DO_DRIVE}</strong>. Textos de aprendizado:{" "}
+              <strong>{PASTA_DO_APRENDIZADO}</strong>.
             </span>,
           ]}
         />
@@ -646,6 +655,33 @@ function BackupDeAprendizadoBox() {
   const [gerando, setGerando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [ultimo, setUltimo] = useState<{ arquivos: number; nome: string } | null>(null);
+  const [drive, setDrive] = useState<EstadoDoBackupAuto | null>(null);
+  const [pedindo, setPedindo] = useState(false);
+
+  useEffect(() => {
+    let vivo = true;
+    fetch("/api/backup/chave")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: EstadoDoBackupAuto | null) => vivo && d && setDrive(d))
+      .catch(() => {});
+    return () => {
+      vivo = false;
+    };
+  }, []);
+
+  async function enviarParaODrive() {
+    setErro(null);
+    setPedindo(true);
+    try {
+      const r = await fetch("/api/backup/pedido", { method: "POST" });
+      if (!r.ok) throw new Error(r.status === 409 ? "Ligue antes o backup automático (bloco abaixo)." : `O servidor respondeu ${r.status}`);
+      setDrive((d) => (d ? { ...d, aprendizadoPedidoEm: new Date().toISOString() } : d));
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Falha ao pedir o envio");
+    } finally {
+      setPedindo(false);
+    }
+  }
 
   // null = nunca configurou. Trata como tudo marcado em vez de nada: um backup
   // que nasce sem nada selecionado parece quebrado no primeiro clique.
@@ -761,6 +797,26 @@ function BackupDeAprendizadoBox() {
             : `Baixar .zip com ${quantos} ${quantos === 1 ? "texto" : "textos"}`}
       </button>
 
+      {drive?.configurado && (
+        <div style={{ marginTop: 12 }}>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={enviarParaODrive}
+            disabled={pedindo || !!drive.aprendizadoPedidoEm || quantos === 0}
+          >
+            {drive.aprendizadoPedidoEm ? "Pedido feito, aguardando o computador…" : "Enviar para o meu Drive agora"}
+          </button>
+          <div className="hint-text" style={{ marginTop: 6 }}>
+            {drive.aprendizadoPedidoEm
+              ? "O seu computador (precisa estar ligado) confere a cada 15 minutos e grava os textos na pasta do Drive."
+              : drive.aprendizadoEnviadoEm
+                ? `Último envio ao Drive: ${new Date(drive.aprendizadoEnviadoEm).toLocaleDateString("pt-BR")} às ${new Date(drive.aprendizadoEnviadoEm).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}${drive.aprendizadoArquivos ? ` (${drive.aprendizadoArquivos} arquivos)` : ""}. Também vai sozinho todo dia.`
+                : "Também vai sozinho todo dia, junto com o backup."}
+          </div>
+        </div>
+      )}
+
       {ultimo && (
         <div className="hint-text" style={{ marginTop: 8 }}>
           Baixado: <strong>{ultimo.nome}</strong>, com {ultimo.arquivos} arquivos (contando o índice).
@@ -782,8 +838,9 @@ function BackupDeAprendizadoBox() {
         aparece no índice, na lista de leitura.
         <br />
         <br />
-        O arquivo é baixado pra você guardar onde quiser (Drive, HD, e-mail). O FARO não escreve em nuvem nenhuma,
-        então nada aqui mexe na organização de pastas que você já tem.
+        O .zip é baixado pra você guardar onde quiser. Com o backup automático ligado, o seu computador também grava
+        esses textos sozinho na pasta de aprendizado do Drive, sem mexer nas outras pastas que você já tem: o FARO
+        não escreve na sua nuvem, quem grava é o seu computador.
       </div>
     </CollapsibleBox>
   );

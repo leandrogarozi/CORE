@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { montarBackup } from "@/lib/backup/montar";
+import { donoDaChave } from "@/lib/backup/dono-da-chave";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -13,14 +14,6 @@ export const maxDuration = 60;
  * arquivo (é esse registro que apaga o aviso de "backup não feito"). Nada aqui
  * escreve nos dados do usuário; a leitura filtra sempre pelo dono da chave.
  */
-async function donoDaChave(req: NextRequest): Promise<string | null> {
-  const auth = req.headers.get("authorization") ?? "";
-  const token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
-  if (!token.startsWith("faro_bk_")) return null;
-  const { data } = await createServiceClient().from("backup_status").select("user_id").eq("token", token).maybeSingle();
-  return data?.user_id ?? null;
-}
-
 export async function GET(req: NextRequest) {
   const usuario = await donoDaChave(req);
   if (!usuario) return NextResponse.json({ error: "chave inválida" }, { status: 401 });

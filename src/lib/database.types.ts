@@ -1508,6 +1508,9 @@ export type Database = {
       }
       backup_status: {
         Row: {
+          aprendizado_arquivos: number | null
+          aprendizado_enviado_em: string | null
+          aprendizado_pedido_em: string | null
           created_at: string
           token: string | null
           ultimas_linhas: number | null
@@ -1518,6 +1521,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          aprendizado_arquivos?: number | null
+          aprendizado_enviado_em?: string | null
+          aprendizado_pedido_em?: string | null
           created_at?: string
           token?: string | null
           ultimas_linhas?: number | null
@@ -1528,6 +1534,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          aprendizado_arquivos?: number | null
+          aprendizado_enviado_em?: string | null
+          aprendizado_pedido_em?: string | null
           created_at?: string
           token?: string | null
           ultimas_linhas?: number | null

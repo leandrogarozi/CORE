@@ -26,7 +26,9 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: "not authenticated" }, { status: 401 });
   const { data } = await createServiceClient()
     .from("backup_status")
-    .select("token, ultimo_backup_em, ultimo_bytes, ultimas_linhas, ultimo_arquivo")
+    .select(
+      "token, ultimo_backup_em, ultimo_bytes, ultimas_linhas, ultimo_arquivo, aprendizado_pedido_em, aprendizado_enviado_em, aprendizado_arquivos"
+    )
     .eq("user_id", user.id)
     .maybeSingle();
   return NextResponse.json({
@@ -36,6 +38,9 @@ export async function GET() {
     ultimoBytes: data?.ultimo_bytes ?? null,
     ultimasLinhas: data?.ultimas_linhas ?? null,
     ultimoArquivo: data?.ultimo_arquivo ?? null,
+    aprendizadoPedidoEm: data?.aprendizado_pedido_em ?? null,
+    aprendizadoEnviadoEm: data?.aprendizado_enviado_em ?? null,
+    aprendizadoArquivos: data?.aprendizado_arquivos ?? null,
   });
 }
 
