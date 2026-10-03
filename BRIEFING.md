@@ -2096,6 +2096,25 @@ selo de plano de estudo), só o ícone na linha da tarefa.
   foram tratadas à parte; se alguém ligar "segue" numa delas, o comportamento é o
   mesmo da regra acima.
 
+## Backup automático no computador do Leandro (03/10)
+
+**Por quê:** a conta do Supabase está no plano **Free, que não faz backup automático**. O que o BRIEFING dizia ("o Supabase tem backup próprio de infraestrutura") só vale para plano pago. Hoje a proteção era o zip baixado na mão.
+
+**Decisão do Leandro:** esperar os primeiros convidados para subir o banco para o Pro (aí entra o backup diário do Supabase). Até lá, backup automático **no computador dele**, com cópia no Drive, e aviso se não rodar. Interno por enquanto.
+
+**Como funciona:**
+- Em Configurações > "Backup automático (no seu computador)" ele liga o recurso e copia **um comando** para colar no Terminal (Mac) ou PowerShell (Windows). Uma vez por computador (estúdio e notebook; a chave é a mesma).
+- O comando instala uma tarefa agendada (Mac: LaunchAgent `br.app.faro.backup`; Windows: tarefa "FARO Backup") que **tenta de hora em hora** e só trabalha se ainda não existir backup do dia. Computador desligado = não roda; ao ligar, roda.
+- Busca `/api/backup/auto` (chave pessoal `faro_bk_...` no cabeçalho, só leitura, filtrada pelo dono), confere que veio **completo** (cabeçalho `X-Faro-Completo`), grava `faro-backup-AAAA-MM-DD-HHMM.json` na pasta e **registra** no FARO (POST). Guarda 30 dias.
+- Pasta no Drive: `CLAUDE - IA > Apps Leandro Garozi > App faro > Backups` (já existia, id `1-si9KDpYR2jIZ8DWYfaBz1lpNnMun9wG`). Requer o app "Drive para computador" do Google; sem ele o script grava em `Documentos/FARO Backups` e avisa.
+- **Aviso:** o servidor confere a cada minuto; a partir das **18h (fuso dele)**, sem backup do dia, manda **push no celular** "O backup do FARO não foi feito hoje", uma vez por dia até voltar. Falhas locais (chave inválida, backup incompleto, pasta inacessível) viram notificação no Mac.
+- Banco: `backup_status` (chave, último backup, bytes, linhas, último aviso); `service_role` ganhou **SELECT** nas 34 tabelas do backup (o incidente do lembrete mostrou que a chave de serviço não tem grant por padrão).
+- Código: `src/lib/backup/{montar,aviso,instaladores}.ts`, rotas `/api/backup/{auto,chave,instalar}`; o botão antigo (baixar .json) continua.
+
+**Não testado de verdade:** o script do Mac foi testado em Linux contra um servidor de mentira (instalação, pular se já tem do dia, incompleto, chave inválida, sem conexão, achar o Drive). O de **Windows não foi testado** (sem PowerShell aqui). O LaunchAgent/Tarefa agendada só valida no computador dele.
+
+**Para a fase de clientes:** backup é responsabilidade da plataforma (Pro + cópia noturna na nuvem + "Exportar meus dados"); este desenho de script local é só do dono.
+
 ## Manutenção em três momentos: comprar, fazer, vencido (03/10)
 
 Pedido do Leandro: avisar para **comprar** a peça com antecedência (filtro que demora a chegar), avisar para **fazer**, e **insistir** se o dia passar sem ele marcar "Feito".

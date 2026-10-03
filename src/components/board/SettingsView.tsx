@@ -449,6 +449,183 @@ function BackupBox() {
   );
 }
 
+// Backup automático no computador. Um script agendado (Mac ou Windows) busca o
+// backup completo uma vez por dia e grava na pasta do Google Drive que o "Drive
+// para computador" já sincroniza — o FARO não escreve no Drive de ninguém. Se o
+// computador ficou desligado e o dia passou sem backup, o servidor manda um push
+// às 18h. Por enquanto é só do dono; o desenho para clientes vem depois.
+const PASTA_DO_DRIVE = "CLAUDE - IA/Apps Leandro Garozi/App faro/Backups";
+
+type EstadoDoBackupAuto = {
+  configurado: boolean;
+  token: string | null;
+  ultimoEm: string | null;
+  ultimoBytes: number | null;
+  ultimasLinhas: number | null;
+  ultimoArquivo: string | null;
+};
+
+function BackupAutomaticoBox() {
+  const [estado, setEstado] = useState<EstadoDoBackupAuto | null>(null);
+  const [so, setSo] = useState<"mac" | "win">("mac");
+  const [mostrar, setMostrar] = useState(false);
+  const [copiado, setCopiado] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [agora] = useState(() => Date.now());
+
+  useEffect(() => {
+    let vivo = true;
+    fetch("/api/backup/chave")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`O servidor respondeu ${r.status}`))))
+      .then((d: EstadoDoBackupAuto) => vivo && setEstado(d))
+      .catch((e) => vivo && setErro(e instanceof Error ? e.message : "Falha ao ler o estado do backup"));
+    return () => {
+      vivo = false;
+    };
+  }, []);
+
+  async function gerarChave() {
+    setErro(null);
+    try {
+      const r = await fetch("/api/backup/chave", { method: "POST" });
+      if (!r.ok) throw new Error(`O servidor respondeu ${r.status}`);
+      const { token } = (await r.json()) as { token: string };
+      setEstado((e) => ({
+        configurado: true,
+        token,
+        ultimoEm: e?.ultimoEm ?? null,
+        ultimoBytes: e?.ultimoBytes ?? null,
+        ultimasLinhas: e?.ultimasLinhas ?? null,
+        ultimoArquivo: e?.ultimoArquivo ?? null,
+      }));
+      setMostrar(true);
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Falha ao gerar a chave");
+    }
+  }
+
+  const base = typeof window !== "undefined" ? window.location.origin : "";
+  const comando = !estado?.token
+    ? ""
+    : so === "mac"
+      ? `bash -c "$(curl -fsSL '${base}/api/backup/instalar?so=mac')" _ '${estado.token}' '${PASTA_DO_DRIVE}'`
+      : `& ([scriptblock]::Create((irm '${base}/api/backup/instalar?so=win'))) -Token '${estado.token}' -Pasta '${PASTA_DO_DRIVE}'`;
+
+  async function copiar() {
+    try {
+      await navigator.clipboard.writeText(comando);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2500);
+    } catch {
+      setErro("Não consegui copiar sozinho. Selecione o comando e copie na mão.");
+    }
+  }
+
+  const ultimo = estado?.ultimoEm ? new Date(estado.ultimoEm) : null;
+  const horasDesde = ultimo ? (agora - ultimo.getTime()) / 3600000 : null;
+  const atrasado = horasDesde !== null && horasDesde > 30;
+  const mb = estado?.ultimoBytes ? (estado.ultimoBytes / 1048576).toFixed(2).replace(".", ",") : null;
+
+  return (
+    <CollapsibleBox title="Backup automático (no seu computador)" icon={<ArchiveIcon />}>
+      <div className="hint-text" style={{ marginTop: 0, marginBottom: 8 }}>
+        Todo dia o seu computador busca o backup completo e guarda na pasta do Drive. Se o computador estiver
+        desligado e o dia passar sem backup, o FARO avisa no celular às 18h.
+      </div>
+
+      {estado?.configurado ? (
+        ultimo ? (
+          <div className={atrasado ? "wa-cost-warn" : "hint-text"} style={{ marginTop: 0 }}>
+            {atrasado && <WarningIcon />} Último backup:{" "}
+            <strong>
+              {ultimo.toLocaleDateString("pt-BR")} às {ultimo.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+            </strong>
+            {mb ? ` · ${mb} MB` : ""}
+            {estado.ultimasLinhas ? ` · ${estado.ultimasLinhas.toLocaleString("pt-BR")} linhas` : ""}
+            {atrasado ? " — faz mais de um dia. Ligue o computador e abra o Drive." : ""}
+          </div>
+        ) : (
+          <div className="hint-text" style={{ marginTop: 0 }}>
+            Chave criada, mas nenhum backup chegou ainda. Rode o comando abaixo no computador.
+          </div>
+        )
+      ) : (
+        <div className="hint-text" style={{ marginTop: 0 }}>
+          Ainda não ligado.
+        </div>
+      )}
+
+      <div className="edit-actions" style={{ justifyContent: "flex-start", gap: 8, marginTop: 8 }}>
+        {!estado?.configurado ? (
+          <button type="button" className="btn btn-accent" onClick={gerarChave}>
+            Ligar o backup automático
+          </button>
+        ) : (
+          <button type="button" className="btn btn-ghost" onClick={() => setMostrar((v) => !v)}>
+            {mostrar ? "Esconder o comando" : "Instalar em um computador"}
+          </button>
+        )}
+      </div>
+
+      {mostrar && estado?.token && (
+        <PushPassos
+          titulo="Instalar neste computador"
+          porque="Faça isto uma vez em cada computador que fica ligado (estúdio e notebook). A chave é a mesma e vale para os dois."
+          passos={[
+            <span key="so">
+              Escolha o seu sistema:{" "}
+              <button type="button" className={"btn btn-ghost" + (so === "mac" ? " active" : "")} onClick={() => setSo("mac")}>
+                Mac
+              </button>{" "}
+              <button type="button" className={"btn btn-ghost" + (so === "win" ? " active" : "")} onClick={() => setSo("win")}>
+                Windows
+              </button>
+            </span>,
+            so === "mac" ? (
+              <span key="a">
+                Abra o app <strong>Terminal</strong> (aperte Cmd+Espaço e digite Terminal).
+              </span>
+            ) : (
+              <span key="a">
+                Abra o <strong>PowerShell</strong> (menu Iniciar, digite PowerShell).
+              </span>
+            ),
+            <span key="b">
+              <button type="button" className="btn btn-accent" onClick={copiar}>
+                {copiado ? "Copiado!" : "Copiar o comando"}
+              </button>{" "}
+              e cole na janela, depois aperte <strong>Enter</strong>.
+            </span>,
+            <span key="c">
+              Ele mostra <strong>&quot;Pronto. Backup guardado em…&quot;</strong>. O primeiro backup já sai na hora.
+            </span>,
+            <span key="d">
+              O computador precisa ter o app <strong>Drive para computador</strong> do Google para a pasta subir ao
+              Drive. A pasta é <strong>{PASTA_DO_DRIVE}</strong>.
+            </span>,
+          ]}
+        />
+      )}
+
+      {mostrar && estado?.token && (
+        <div className="hint-text">
+          O comando contém a sua chave pessoal de backup: não mande para ninguém. Se vazar, clique em &quot;Gerar nova
+          chave&quot; — a antiga para de valer e é preciso rodar o comando novo nos computadores.{" "}
+          <button type="button" className="btn btn-ghost" onClick={gerarChave}>
+            Gerar nova chave
+          </button>
+        </div>
+      )}
+
+      {erro && (
+        <div className="wa-cost-warn">
+          <WarningIcon /> {erro}
+        </div>
+      )}
+    </CollapsibleBox>
+  );
+}
+
 /**
  * Backup de aprendizado: sinapses e resumos de livro viram arquivos de texto.
  *
@@ -1118,6 +1295,8 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
         {/* Os dois backups ficam vizinhos, e nessa ordem: o de aprendizado é o
             que ele vai usar, o cofre JSON é o que ele raramente toca. */}
         <BackupDeAprendizadoBox />
+
+        <BackupAutomaticoBox />
 
         <BackupBox />
       </div>

@@ -1506,6 +1506,39 @@ export type Database = {
         }
         Relationships: []
       }
+      backup_status: {
+        Row: {
+          created_at: string
+          token: string | null
+          ultimas_linhas: number | null
+          ultimo_arquivo: string | null
+          ultimo_aviso_em: string | null
+          ultimo_backup_em: string | null
+          ultimo_bytes: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          token?: string | null
+          ultimas_linhas?: number | null
+          ultimo_arquivo?: string | null
+          ultimo_aviso_em?: string | null
+          ultimo_backup_em?: string | null
+          ultimo_bytes?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          token?: string | null
+          ultimas_linhas?: number | null
+          ultimo_arquivo?: string | null
+          ultimo_aviso_em?: string | null
+          ultimo_backup_em?: string | null
+          ultimo_bytes?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       push_subscriptions: {
         Row: {
           auth: string

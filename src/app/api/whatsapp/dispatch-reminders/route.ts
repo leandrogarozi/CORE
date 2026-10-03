@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { rowToReminder } from "@/lib/board/mappers";
 import { isReminderAlertingInZone, zonedDateTimeToMs } from "@/lib/board/reminder-alerts";
 import { proximaOcorrencia, semLembreteDeTarefaApagada } from "@/lib/board/zap-engine";
+import { avisarBackupAtrasado } from "@/lib/backup/aviso";
 import { sendWhatsAppReminderMessage } from "@/lib/whatsapp/send";
 import { fmtDayMonth } from "@/lib/date-utils";
 import { enviarPushesDosLembretes } from "@/lib/push/dispatch";
@@ -57,9 +58,17 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     push = { candidatos: 0, avisados: 0, semAparelho: 0, erros: [e instanceof Error ? e.message : "falha no push"] };
   }
+  // Aviso de backup do dia não feito: canal próprio, também não pode calar nem
+  // ser calado pelos outros.
+  let backup: { avisados: number } | { erro: string };
+  try {
+    backup = await avisarBackupAtrasado(createServiceClient(), Date.now());
+  } catch (e) {
+    backup = { erro: e instanceof Error ? e.message : "falha no aviso de backup" };
+  }
   const resposta = await dispararWhatsApp();
   const corpo = await resposta.json();
-  return NextResponse.json({ ...corpo, push }, { status: resposta.status });
+  return NextResponse.json({ ...corpo, push, backup }, { status: resposta.status });
 }
 
 async function dispararWhatsApp(): Promise<NextResponse> {
