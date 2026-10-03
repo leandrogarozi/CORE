@@ -1848,6 +1848,43 @@ Ordem combinada. Cada passo só fecha quando o "pronto quando" é verdade.
 12. **Teste fechado**: 5 a 10 pessoas dele, 2 a 4 semanas, crédito de WhatsApp
     dado à mão. Medir: uso semanal, lembretes entregues, falhas, pedidos.
 
+### Passo 8 detalhado: a IA com a chave DO CLIENTE (alinhado em 03/10)
+
+*"a pessoa tem um botão lá dentro do FARO, conecta com a API e põe um crédito.
+Antes da pessoa ter acesso, a gente testa: quanto eu usei em um mês? A gente
+coloca um teto um pouquinho mais, uma base para ela calcular. Ela conecta a API
+dela, a gente mostra um atalho rápido. E o FARO avisa: seu crédito vai acabar,
+quer renovar? Isso é um custo extra, fora a mensalidade do aplicativo."*
+
+- **Dois custos separados na venda**: a mensalidade do FARO (com o crédito do
+  WhatsApp embutido) e o gasto de IA, que a pessoa paga direto ao provedor com a
+  chave dela. O Leandro não vira intermediário financeiro.
+- **Etapa 8a (primeiro, com a chave dele)**: conversa + medidor + teto, usando
+  a conta do próprio Leandro. Durante cerca de um mês (ou o que der) o medidor
+  grava o gasto real por tipo de uso (conversa, avisos, insight semanal). Esse
+  número vira a "base" mostrada ao cliente ("uso típico: US$ X/mês, reserve um
+  pouco mais"). Sem dado real, não se inventa base.
+- **Etapa 8b (o que o cliente vê)**: tela "Conectar IA" nas Configurações, com
+  atalho para criar a chave e adicionar crédito no provedor, passo a passo.
+  Chave salva **criptografada, só no servidor**, nunca devolvida à tela nem em
+  log. Medidor "gasto pelo FARO no mês".
+- **O aviso "seu crédito vai acabar"**, com a limitação a confirmar na
+  documentação antes de construir: pelo que se sabe, uma chave comum **não lê o
+  saldo** da conta (relatórios de uso e custo exigem uma chave de administrador
+  da organização, que NUNCA se pede ao cliente). Então o FARO avisa por dois
+  caminhos que ele consegue ver: (1) a pessoa informa quanto de crédito colocou
+  e o FARO compara com o que ele mesmo gastou, avisando em 80%; (2) quando o
+  provedor responde "sem crédito", o FARO mostra a mensagem amigável e o atalho
+  de renovar. Rótulo honesto: "gasto pelo FARO", não "sua fatura".
+- **Recomendar o limite mensal no próprio provedor** (a pessoa define lá um teto
+  de gasto), como segunda camada de proteção que não depende do FARO.
+- **O app inteiro funciona SEM a chave.** A IA é um acréscimo opcional: sem
+  chave, o mascote só saúda como hoje e nenhuma função some. Isso protege o
+  teste, porque criar conta no provedor, pôr cartão (cobrança em dólar) e
+  comprar crédito é atrito alto para quem não é técnico. Se a taxa de quem
+  conecta for baixa no teste, a alternativa é o FARO vender pacote de crédito de
+  IA, como já pensado para o WhatsApp (decisão para depois dos dados).
+
 ### Canal de feedback e novidades (pedido dele em 03/10, para o teste)
 
 *"um campinho de aviso: quem está testando diz 'tá falhando isso, precisa
