@@ -110,9 +110,19 @@ baixar() {
   return 0
 }
 
+# Quem decide se já houve backup hoje (em QUALQUER computador) é o servidor: ele
+# sabe a hora do último backup registrado. Não confio em listar a pasta do Drive:
+# no Mac a listagem de pasta sincronizada pode vir vazia quando o programa roda
+# em segundo plano, e isso fazia um backup novo a cada 15 minutos.
+ESTADO=$(curl -sS --max-time 30 -H "Authorization: Bearer $TOKEN" "$BASE/api/backup/pedido" 2>/dev/null)
+
 backup_completo() {
   mkdir -p "$DESTINO" 2>/dev/null || { avisar "Não consegui abrir a pasta de backup."; return 1; }
-  if [ $FORCAR = 0 ] && ls "$DESTINO"/faro-backup-"$hoje"-*.json >/dev/null 2>&1; then return 0; fi
+  if [ $FORCAR = 0 ]; then
+    if [ -f "$PASTA/backup-ultimo" ] && [ "$(cat "$PASTA/backup-ultimo")" = "$hoje" ]; then return 0; fi
+    if [ -z "$ESTADO" ]; then registrar "Sem conexão com o FARO; tento de novo daqui a pouco."; return 1; fi
+    if echo "$ESTADO" | grep -q '"backupHoje":true'; then echo "$hoje" > "$PASTA/backup-ultimo"; return 0; fi
+  fi
   local tmp cab completo linhas bytes arquivo
   tmp=$(mktemp); cab=$(mktemp)
   if ! baixar /api/backup/auto "$tmp" "$cab"; then rm -f "$tmp" "$cab"; return 1; fi
@@ -127,6 +137,7 @@ backup_completo() {
   arquivo="faro-backup-$(date +%F-%H%M).json"
   mv "$tmp" "$DESTINO/$arquivo" || { avisar "Não consegui gravar o backup na pasta."; rm -f "$tmp" "$cab"; return 1; }
   rm -f "$cab"
+  echo "$hoje" > "$PASTA/backup-ultimo"
   curl -sS --max-time 60 -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
     -d "{\"arquivo\":\"$arquivo\",\"bytes\":$bytes,\"linhas\":$linhas}" "$BASE/api/backup/auto" >/dev/null 2>>"$LOG" \
     || registrar "Backup guardado, mas não consegui avisar o FARO."
@@ -141,7 +152,7 @@ aprendizado() {
   [ "$FORCAR" = 1 ] && pedido=1
   [ -f "$PASTA/aprendizado-ultimo" ] && [ "$(cat "$PASTA/aprendizado-ultimo")" = "$hoje" ] && feito_hoje=1
   if [ $pedido = 0 ]; then
-    if curl -sS --max-time 30 -H "Authorization: Bearer $TOKEN" "$BASE/api/backup/pedido" 2>/dev/null | grep -q '"pendente":true'; then pedido=1; fi
+    if echo "$ESTADO" | grep -q '"pendente":true'; then pedido=1; fi
   fi
   if [ $pedido = 0 ] && [ $feito_hoje = 1 ]; then return 0; fi
 
@@ -251,9 +262,18 @@ $forcar = ($Modo -eq 'forcar')
 function Registrar($t) { Add-Content $log ((Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + ' ' + $t) }
 $cab = @{ Authorization = ('Bearer ' + $c.token) }
 
+# Quem decide se já houve backup hoje (em qualquer computador) é o servidor.
+$estado = $null
+try { $estado = Invoke-RestMethod -TimeoutSec 30 -Headers $cab -Uri ($c.base + '/api/backup/pedido') } catch { }
+$marcaBackup = Join-Path $dir 'backup-ultimo'
+
 function BackupCompleto {
   New-Item -ItemType Directory -Force $c.destino | Out-Null
-  if ((-not $forcar) -and (Get-ChildItem $c.destino -Filter ('faro-backup-' + $hoje + '-*.json') -ErrorAction SilentlyContinue)) { return }
+  if (-not $forcar) {
+    if ((Test-Path $marcaBackup) -and ((Get-Content $marcaBackup -Raw).Trim() -eq $hoje)) { return }
+    if (-not $estado) { Registrar 'Sem conexão com o FARO; tento de novo daqui a pouco.'; return }
+    if ($estado.backupHoje) { Set-Content $marcaBackup $hoje; return }
+  }
   $tmp = [IO.Path]::GetTempFileName()
   try {
     $r = Invoke-WebRequest -UseBasicParsing -TimeoutSec 180 -Headers $cab -Uri ($c.base + '/api/backup/auto') -OutFile $tmp -PassThru
@@ -268,6 +288,7 @@ function BackupCompleto {
   if (($completo -ne 'sim') -or ($bytes -lt 1000)) { Registrar 'O backup veio incompleto e não foi guardado.'; Remove-Item $tmp; return }
   $arquivo = 'faro-backup-' + (Get-Date -Format 'yyyy-MM-dd-HHmm') + '.json'
   Move-Item $tmp (Join-Path $c.destino $arquivo) -Force
+  Set-Content $marcaBackup $hoje
   try {
     $corpo = @{ arquivo = $arquivo; bytes = $bytes; linhas = [int]$linhas } | ConvertTo-Json
     Invoke-RestMethod -Method Post -TimeoutSec 60 -Headers $cab -ContentType 'application/json' -Body $corpo -Uri ($c.base + '/api/backup/auto') | Out-Null
@@ -283,7 +304,7 @@ function Aprendizado {
   $feitoHoje = (Test-Path $marca) -and ((Get-Content $marca -Raw).Trim() -eq $hoje)
   $pedido = $forcar
   if (-not $pedido) {
-    try { $p = Invoke-RestMethod -TimeoutSec 30 -Headers $cab -Uri ($c.base + '/api/backup/pedido'); if ($p.pendente) { $pedido = $true } } catch { }
+    if ($estado -and $estado.pendente) { $pedido = $true }
   }
   if ((-not $pedido) -and $feitoHoje) { return }
   $zip = [IO.Path]::GetTempFileName() + '.zip'
