@@ -22,7 +22,8 @@ export async function GET(req: NextRequest) {
 
   const supabase = createServiceClient();
   const [livros, sinapses, config] = await Promise.all([
-    supabase.from("books").select("*").eq("user_id", usuario).is("deleted_at", null),
+    // A tabela de livros não tem exclusão suave (deleted_at): apagar é apagar.
+    supabase.from("books").select("*").eq("user_id", usuario),
     supabase.from("synapses").select("*").eq("user_id", usuario).is("deleted_at", null),
     supabase.from("settings").select("backup_areas, backup_name").eq("user_id", usuario).maybeSingle(),
   ]);

@@ -33,14 +33,20 @@ if [ -z "$DRIVE" ]; then
     if [ -d "$m" ]; then DRIVE="$m"; break; fi
   done
 fi
+# Só usa o Drive se a pasta PAI já existir lá. Criar o caminho inteiro por conta
+# própria geraria uma árvore de pastas nova e repetida no Drive.
+if [ -n "$DRIVE" ] && { [ ! -d "$DRIVE/$(dirname "$SUB")" ] || [ ! -d "$DRIVE/$(dirname "$SUB_APR")" ]; }; then
+  echo "ATENÇÃO: não achei no seu Drive a pasta $(dirname "$SUB")."
+  echo "Confira se ela já foi baixada pelo 'Drive para computador' (pasta aberta e sincronizada)."
+  DRIVE=""
+fi
 if [ -n "$DRIVE" ]; then
   DESTINO="$DRIVE/$SUB"
   DESTINO_APR="$DRIVE/$SUB_APR"
 else
   DESTINO="$HOME/Documents/FARO Backups"
   DESTINO_APR="$HOME/Documents/FARO Aprendizado"
-  echo "ATENÇÃO: não achei o Google Drive neste Mac. Os backups vão para $DESTINO."
-  echo "Instale o 'Drive para computador' e rode este comando de novo para guardá-los no Drive."
+  echo "Os backups vão para $DESTINO (fora do Drive). Corrija o que apareceu acima e rode o comando de novo."
 fi
 mkdir -p "$DESTINO" "$DESTINO_APR" || { echo "Não consegui criar as pastas de destino"; exit 1; }
 
@@ -199,11 +205,15 @@ if (-not $drive) {
     if (Test-Path $p) { $drive = $p; break }
   }
 }
+if ($drive -and ((-not (Test-Path (Join-Path $drive (Split-Path $Pasta -Parent)))) -or (-not (Test-Path (Join-Path $drive (Split-Path $PastaAprendizado -Parent)))))) {
+  Write-Host ('ATENÇÃO: não achei no seu Drive a pasta ' + (Split-Path $Pasta -Parent) + '. Confira se o Drive para computador já a sincronizou.')
+  $drive = $null
+}
 if ($drive) { $destino = Join-Path $drive $Pasta; $destinoApr = Join-Path $drive $PastaAprendizado }
 else {
   $destino = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'FARO Backups'
   $destinoApr = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'FARO Aprendizado'
-  Write-Host ('ATENÇÃO: não achei o Google Drive. Os backups vão para ' + $destino)
+  Write-Host ('Os backups vão para ' + $destino + ' (fora do Drive). Corrija o que apareceu acima e rode o comando de novo.')
 }
 New-Item -ItemType Directory -Force $destino | Out-Null
 New-Item -ItemType Directory -Force $destinoApr | Out-Null

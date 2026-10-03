@@ -454,8 +454,8 @@ function BackupBox() {
 // para computador" já sincroniza — o FARO não escreve no Drive de ninguém. Se o
 // computador ficou desligado e o dia passou sem backup, o servidor manda um push
 // às 18h. Por enquanto é só do dono; o desenho para clientes vem depois.
-const PASTA_DO_DRIVE = "CLAUDE - IA/Apps Leandro Garozi/App faro/Backups";
-const PASTA_DO_APRENDIZADO = "CLAUDE - IA/Apps Leandro Garozi/App faro/Aprendizado (cópia automática)";
+const PASTA_DO_DRIVE = "LEANDRO GAROZI/Claude - IA/Apps Leandro Garozi/App faro/Backups";
+const PASTA_DO_APRENDIZADO = "LEANDRO GAROZI/Claude - IA/Apps Leandro Garozi/App faro/Aprendizado (cópia automática)";
 
 type EstadoDoBackupAuto = {
   configurado: boolean;
