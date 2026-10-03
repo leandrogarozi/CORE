@@ -1905,6 +1905,39 @@ quer renovar? Isso é um custo extra, fora a mensalidade do aplicativo."*
    dólar usa o câmbio já guardado em `settings`. O medidor mostra o gasto real e
    o teto bloqueia ao chegar.
 
+### Base de custo para montar os planos (esclarecido por ele em 03/10)
+
+**O objetivo NÃO é o quanto ele gasta para CONSTRUIR o FARO** (créditos do plano do
+Claude, tela "Seu uso" — isso foi um mal-entendido meu e não entra aqui). O objetivo
+é saber **quanto cada canal custa por mês DENTRO do FARO**, para ele e para o
+cliente final: **WhatsApp** + **IA (a API)** (push é grátis). Com essa média ele
+monta os planos e dá previsão ao cliente ("X mensagens por mês", "uso típico de IA").
+
+- **Ninguém anota na mão: o FARO registra sozinho.** WhatsApp já registra (livro-caixa
+  `whatsapp_sends`, com usuário, data, tipo e se deu certo; custo = tarifa em
+  `settings.whatsapp_msg_cost_usd` × câmbio `settings.whatsapp_usd_brl`). A IA vai
+  registrar do mesmo jeito na etapa 8a: tabela `ia_uso` (usuário, data, função
+  — conversa, aviso espontâneo, insight semanal, voz —, modelo, unidades de entrada
+  e saída, cache, custo estimado em dólar e em real).
+- **Número real do WhatsApp hoje**: custo por mensagem = US$ 0,0068 × R$ 5,10 =
+  **R$ 0,035**. Em 03/10: 4 mensagens bem-sucedidas em outubro (3 lembretes + 1
+  teste) = R$ 0,14; setembro 2 ok e 7 falhas (falha não é cobrada). É teste, não
+  média: a média de verdade só existe depois de ele usar o zap no dia a dia.
+  Tabela de referência (R$ 0,035 por mensagem): 100 msgs = R$ 3,47 · 300 = R$ 10,40
+  · 600 = R$ 20,81 por mês.
+- **Painel "Custos e planos" (só do Leandro, a construir junto com a etapa 8a)**: por
+  usuário e por mês, gasto de WhatsApp e de IA, separados; média, mediana e o mais
+  pesado; mensagens por usuário. É a fonte para precificar. Estimativa: cerca de
+  1 sessão.
+- **Como chegar à média**: (1) ele usa o FARO normalmente por cerca de 1 mês com a
+  IA ligada (teto R$ 20) e o zap no dia a dia: dá a linha de base dele; (2) o teste
+  fechado com 5 a 10 pessoas mostra a distribuição (leve, médio, pesado); (3) a
+  mensalidade cobre: base do app + pacote de mensagens de WhatsApp + margem; a IA do
+  cliente é paga por ele ao provedor (chave própria) e o FARO publica o "uso típico"
+  tirado desses dados; se o FARO vender crédito de IA, o custo entra na conta do plano.
+- **Planilha simuladora de plano** (a fazer sob pedido): linhas por perfil de uso,
+  colunas WhatsApp, IA, push (zero), margem e preço sugerido.
+
 ### Canal de feedback e novidades (pedido dele em 03/10, para o teste)
 
 *"um campinho de aviso: quem está testando diz 'tá falhando isso, precisa
