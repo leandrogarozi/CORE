@@ -1764,6 +1764,60 @@ Pra precificar a mensalidade o dado já existe: `whatsapp_sends` registra cada
 envio com usuário e data, então dá pra calcular o custo médio por usuário/mês com
 os números reais em vez de chutar.
 
+## Modelo comercial do WhatsApp: crédito de mensagens no plano (alinhado em 03/10)
+
+Decisão dele, para pensar na venda (ainda NÃO construído, só no radar):
+
+- **Tudo sai de um número só, o do FARO** (conta do Leandro), com o nome de
+  exibição configurado por nós ("FARO" em vez de "LEANDRO GAROZI", que está em
+  análise/deixado como está por enquanto). O cliente não configura nada.
+- **A pessoa tem um crédito de mensagens dentro do app**, que comporta X
+  mensagens por mês. Na venda o plano já diz "X mensagens por mês", com o custo
+  embutido na mensalidade. Acabando o crédito, a pessoa recompra/aumenta.
+- **O que isso exige** (some com o item "teto global" e o opt-in já listados na
+  seção de terceiros): saldo/cota de mensagens POR USUÁRIO (hoje existe o teto em
+  reais por usuário, `settings.whatsapp_monthly_cap_brl`, e o livro-caixa
+  `whatsapp_sends` com usuário e data, que é a base do saldo); teto global
+  acima de todos; opt-in no cadastro; aviso na tela quando o crédito está
+  acabando; precificação com o custo médio real por usuário/mês, tirado do
+  livro-caixa em vez de chute.
+- **Push de celular é o escape de custo**: grátis, vale pra todo lembrete com
+  data e hora. O crédito do WhatsApp fica só pros lembretes que a pessoa acender
+  o zap. Isso é argumento de venda e de margem.
+- **Quando decidir o preço**, lembrar: tarifa da Meta por mensagem utility no
+  Brasil (já gravada em `settings.whatsapp_msg_cost_usd`), câmbio
+  (`whatsapp_usd_brl`) e margem. Revisar com os dados reais do teste fechado.
+
+## Antes do teste com pessoas — próximos passos (03/10)
+
+Ele quer colocar as funções mais importantes que faltam, depois rodar um teste
+fechado por um tempo com pessoas que ele já tem, e só então vender.
+
+**A. Para um testador entrar com segurança**
+1. Auditoria de isolamento: provar que um usuário não vê dado do outro (RLS em
+   TODAS as tabelas + advisors do Supabase). Crítico, antes de convidar.
+2. Tirar o "Leandro" fixo: a saudação do mascote (`FaroMascot.tsx`) e a
+   descrição do layout; usar o nome do perfil. Conta nova nasce limpa, com
+   padrões razoáveis.
+3. Onboarding de primeira vez: nome, fuso, número de WhatsApp com opt-in, o que
+   quer acompanhar. Hoje existe cadastro e login, mas nenhuma recepção.
+4. WhatsApp para terceiros: opt-in no cadastro, teto global, saldo por usuário
+   (modelo acima), nome do número.
+5. Alerta quando o motor de lembretes falha. O incidente de 02/10 ficou horas
+   no ar sem ninguém saber: precisa avisar o Leandro (e-mail/WhatsApp) quando o
+   agendador responder erro.
+6. Botão de feedback/reportar problema dentro do app, para os testadores.
+7. Termos de uso e política de privacidade simples (dados de saúde, LGPD),
+   com forma de exportar e apagar a conta (o backup já cobre exportar).
+
+**B. Funções que faltam e ele quer antes de vender**
+- FARO conversacional (etapas 1 e 2: conversa, custo e ação com confirmação).
+- Google Agenda (OAuth próprio de cada cliente). **A verificação do Google leva
+  de 3 a 5 dias úteis: abrir o pedido cedo, em paralelo.**
+- Captura por voz (depende do teste do ditado dele).
+- Menores: tarefa-evento no motor do zap, checklist do zap, camadas 2 e 3 do
+  backup, blocos arrastáveis.
+
 ## Captura por voz e agenda do Google — combinado em 01/10, a fazer
 
 O pedido nasceu dele fora de casa, jogando bola com o filho: *"tem algumas
