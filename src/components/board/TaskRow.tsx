@@ -30,6 +30,7 @@ import {
   ChevronIcon,
   RepeatIcon,
   ShieldWarningIcon,
+  FollowIcon,
   TagIcon,
   TrashIcon,
   UserIcon,
@@ -393,7 +394,7 @@ export function TaskRow({
         <button type="button" className="row-title" title={t.title} onClick={() => setEditing(true)}>
           {t.title}
         </button>
-        {(t.isEvent || t.client || t.challenging || openTopics > 0 || hasReminder || t.note.trim() || hasAttachment) && (
+        {(t.isEvent || t.client || t.challenging || t.follows || openTopics > 0 || hasReminder || t.note.trim() || hasAttachment) && (
           <span className="row-badges">
             {/* Só o ícone: o horário já aparece do lado do sininho, e repetir
                 o mesmo 15:00 duas vezes na linha é ruído. */}
@@ -408,6 +409,11 @@ export function TaskRow({
               <span className="task-badge task-study-badge" title="Sessão de um plano de estudo">
                 <BookOpenIcon />
                 <span className="task-client-name">Plano de estudo</span>
+              </span>
+            )}
+            {t.follows && (
+              <span className="task-badge task-follow-badge" title="Segue comigo — se o dia virar sem concluir, passa pra hoje">
+                <FollowIcon />
               </span>
             )}
             {t.client && (
@@ -994,6 +1000,31 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
               />
               <span className="challenging-hint">
                 {t.isEvent ? "Compromisso com hora marcada" : "Tarefa comum, posso mover"}
+              </span>
+            </label>
+          </div>
+        </div>
+        <div className="prop-row">
+          <span className="prop-label has-explain" tabIndex={0}>
+            <FollowIcon /> Segue comigo
+            {/* Abre ao passar o mouse (e ao focar, pra quem usa teclado). No
+                celular não existe hover: o texto ao lado do botão diz o estado. */}
+            <span className="explain-pop" role="tooltip">
+              <strong>Segue comigo</strong>
+              Pra tarefa que dura vários dias. Se o dia virar e ela não estiver concluída, passa
+              sozinha pra hoje, mantendo o status e o horário. Não conta como adiamento e não
+              fica atrasada. Para de seguir quando você conclui a tarefa ou desliga aqui.
+            </span>
+          </span>
+          <div className="prop-value">
+            <label className="challenging-toggle">
+              <ToggleSwitch
+                checked={t.follows}
+                ariaLabel="Marcar como tarefa que segue comigo"
+                onChange={(v) => board.setFollows(t.id, v)}
+              />
+              <span className="challenging-hint">
+                {t.follows ? "Passa pra hoje até você concluir" : "Fica no dia marcado"}
               </span>
             </label>
           </div>

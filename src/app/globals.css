@@ -2670,3 +2670,22 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .push-passos ol{ margin:6px 0 0; padding-left:20px; display:flex; flex-direction:column; gap:6px; }
 .push-passos li{ font-size:12.5px; line-height:1.5; color:var(--text-muted); }
 .push-passos li strong{ color:var(--text); font-weight:var(--fw-forte); }
+
+/* Tarefa que segue comigo: duas setas em amarelo (mesma família do selo de plano
+   de estudo), só o ícone — o que ela faz está na explicação ao passar o mouse. */
+.task-badge.task-follow-badge{
+  color:var(--book-yellow); background:color-mix(in srgb, var(--book-yellow) 14%, var(--surface));
+  border-radius:4px; padding:1px 4px;
+}
+.task-badge.task-follow-badge svg{ width:11px; height:11px; }
+
+/* Explicação que abre ao passar o mouse (ou focar) sobre o rótulo de uma opção. */
+.has-explain{ position:relative; cursor:help; }
+.has-explain .explain-pop{
+  display:none; position:absolute; left:0; top:calc(100% + 6px); z-index:30;
+  width:min(300px, 80vw); padding:10px 12px; border-radius:10px;
+  background:var(--surface); color:var(--text-muted); border:1px solid var(--border);
+  box-shadow:var(--shadow); font-size:11.5px; line-height:1.5; font-weight:400; text-align:left; white-space:normal;
+}
+.has-explain .explain-pop strong{ display:block; color:var(--text); font-size:12px; margin-bottom:3px; }
+.has-explain:hover .explain-pop, .has-explain:focus .explain-pop, .has-explain:focus-within .explain-pop{ display:block; }

@@ -1994,6 +1994,31 @@ contas dele continua separado (aquela regra não mudou).
     habilitáveis), a home não pode mostrar água e dieta como se existissem: o
     bloco da home tem que respeitar o módulo ligado/desligado.
 
+## Tarefa "Segue comigo" (03/10)
+
+Pedido do Leandro: uma tarefa grande, que dura vários dias, "me segue": se o dia
+vira e ela não foi concluída, passa sozinha para o dia seguinte, sem mudar o
+status. Apelido dele: "tag chiclete". Nome na tela: **Segue comigo**. Ícone
+aprovado por print: duas setas (») do icon-pack, em amarelo (mesma família do
+selo de plano de estudo), só o ícone na linha da tarefa.
+
+- **Comportamento**: opção da TAREFA (coluna `tasks.follows`, padrão falso). Se
+  `follows`, não concluída, fora da lixeira e com data anterior a hoje, a data
+  vira hoje. Status, horário e demais campos ficam como estão. `end_date` anterior
+  ao novo dia é limpo. **Não é adiamento**: não pede justificativa e não entra no
+  registro de adiamentos (o banco escreve direto). Para ao concluir ou desligar.
+- **Quem faz**: `faro_jobs.rolar_tarefas_que_seguem()` no pg_cron a cada 10 min
+  (job `faro-tarefas-que-seguem`), com o "hoje" de cada usuário por
+  `settings.timezone`; e o `load()` do app faz o mesmo ao abrir, para a tela já
+  nascer certa. Testado em transação revertida: 1 tarefa aberta movida para hoje,
+  tarefa concluída intocada.
+- **Interface**: no editor da tarefa, linha "Segue comigo" com chave; ao passar o
+  mouse (ou focar) no rótulo abre a explicação da função. No celular não há hover:
+  o texto ao lado da chave diz o estado.
+- **Não fez / a observar**: tarefas de série (repetição) e de plano de estudo não
+  foram tratadas à parte; se alguém ligar "segue" numa delas, o comportamento é o
+  mesmo da regra acima.
+
 ## Captura por voz e agenda do Google — combinado em 01/10, a fazer
 
 O pedido nasceu dele fora de casa, jogando bola com o filho: *"tem algumas

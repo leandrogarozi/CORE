@@ -335,6 +335,29 @@ export function useBoard(userId: string | null) {
       });
     }
 
+    // "Segue comigo": a tarefa aberta que ficou pra trás passa pra hoje. O banco
+    // já faz isso de 10 em 10 minutos (faro_jobs.rolar_tarefas_que_seguem); aqui
+    // é o mesmo gesto na hora de abrir, pra tela já nascer certa em vez de
+    // mostrar a data velha até a próxima rodada. Escreve direto, sem passar pelo
+    // registro de adiamentos: seguir não é adiar.
+    const seguem = next.tasks.filter((t) => t.follows && !t.done && !t.deletedAt && t.date && t.date < today);
+    if (seguem.length > 0) {
+      const ids = new Set(seguem.map((t) => t.id));
+      next.tasks = next.tasks.map((t) =>
+        ids.has(t.id) ? { ...t, date: today, endDate: t.endDate && t.endDate < today ? null : t.endDate } : t
+      );
+      seguem.forEach((t) => {
+        const fimAntes = !!t.endDate && t.endDate < today;
+        supabase
+          .from("tasks")
+          .update(fimAntes ? { date: today, end_date: null } : { date: today })
+          .eq("id", t.id)
+          .then(({ error }) => {
+            if (error) reportSaveError("task follows rollover", error);
+          });
+      });
+    }
+
     stateRef.current = next;
     setState(next);
     setLoading(false);
@@ -407,6 +430,7 @@ export function useBoard(userId: string | null) {
         seriesId: null,
         studyPlanId: null,
         challenging: false,
+        follows: false,
         isEvent: false,
         trackedSeconds: 0,
         quick: 0,
@@ -888,6 +912,7 @@ export function useBoard(userId: string | null) {
             seriesId: series.id,
             studyPlanId: null,
             challenging: false,
+            follows: false,
             isEvent: false,
             trackedSeconds: 0,
             quick: 0,
@@ -1208,6 +1233,7 @@ export function useBoard(userId: string | null) {
         seriesId: null,
         studyPlanId: null,
         challenging: false,
+        follows: false,
         isEvent: false,
         trackedSeconds: 0,
         quick: 0,
@@ -1943,6 +1969,16 @@ export function useBoard(userId: string | null) {
     [apply, supabase]
   );
 
+  const setFollows = useCallback(
+    (id: string, follows: boolean) => {
+      apply((st) => ({ ...st, tasks: st.tasks.map((t) => (t.id === id ? { ...t, follows } : t)) }));
+      supabase.from("tasks").update({ follows }).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("setFollows", error);
+      });
+    },
+    [apply, supabase]
+  );
+
   // Adiar é empurrar pra frente OU tirar a data (mandar pro limbo do "sem
   // data", que é o jeito mais silencioso de fugir de uma tarefa). Antecipar
   // não é adiamento e não entra no histórico.
@@ -2132,6 +2168,7 @@ export function useBoard(userId: string | null) {
         seriesId: null,
         studyPlanId: plan.id,
         challenging: false,
+        follows: false,
         isEvent: false,
         trackedSeconds: 0,
         quick: 0,
@@ -2697,6 +2734,7 @@ export function useBoard(userId: string | null) {
         seriesId: null,
         studyPlanId: null,
         challenging: false,
+        follows: false,
         // Reunião aberta pelo cronômetro tem hora e cliente e está acontecendo
         // agora: é evento por definição.
         isEvent: true,
@@ -3155,6 +3193,7 @@ export function useBoard(userId: string | null) {
     deleteMaintenanceItem,
     registerMaintenanceService,
     setChallenging,
+    setFollows,
     setIsEvent,
     logPostponement,
     addStudyPlan,

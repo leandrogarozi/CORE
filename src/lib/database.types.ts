@@ -1339,6 +1339,7 @@ export type Database = {
           category: string
           category2: string | null
           challenging: boolean
+          follows: boolean
           client: string | null
           code: string | null
           created_at: string
@@ -1369,6 +1370,7 @@ export type Database = {
           category: string
           category2?: string | null
           challenging?: boolean
+          follows?: boolean
           client?: string | null
           code?: string | null
           created_at?: string
@@ -1399,6 +1401,7 @@ export type Database = {
           category?: string
           category2?: string | null
           challenging?: boolean
+          follows?: boolean
           client?: string | null
           code?: string | null
           created_at?: string
