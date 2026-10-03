@@ -1938,6 +1938,35 @@ monta os planos e dá previsão ao cliente ("X mensagens por mês", "uso típico
 - **Planilha simuladora de plano** (a fazer sob pedido): linhas por perfil de uso,
   colunas WhatsApp, IA, push (zero), margem e preço sugerido.
 
+### Decisão em 03/10: a IA entra AGORA como primeira fatia, para medir o custo real
+
+Ele quer a tabela de custo da IA dentro do FARO (como a do WhatsApp) e uma base real
+de gasto para montar os planos. Como a medição leva cerca de 1 mês, a IA vem antes
+do resto e roda em paralelo ao trabalho de segurança. O passo 1 (isolamento) só é
+necessário antes de convidar outras pessoas.
+
+- **Quando**: depois do reinício do limite do plano dele, **terça 06/10, 19:00**
+  (sem gastar a redefinição grátis, que expira em 22/10). Até lá ele prepara a chave.
+- **Modelo**: **Sonnet 5.5** (`claude-sonnet-5-5`), decisão dele. Deixar a escolha
+  do modelo numa constante fácil de trocar para comparar custo e qualidade no
+  medidor depois. (Observação: sem pedido dele o padrão seria o Opus; aqui o
+  Sonnet foi escolhido de propósito por custo.)
+- **Fatia 1 (cerca de 2 sessões)**: (1) rota de servidor com o SDK oficial, chave
+  só em `ANTHROPIC_API_KEY`, nunca no navegador; (2) conversa por TEXTO ao tocar
+  no mascote, com resposta em fluxo; (3) contexto = resumo do dia (tarefas,
+  lembretes, atrasadas, hábitos), SEM saúde e SEM medicamentos; (4) tabela
+  `ia_uso` (usuário, data, função, modelo, entrada, saída, cache, custo em dólar e
+  em real) + painel "Custo da IA" no molde do bloco do WhatsApp; (5) teto de R$ 20
+  por mês aplicado no servidor (bloqueia e avisa ao chegar); (6) o app inteiro
+  segue funcionando sem a chave. Fora da fatia 1: voz, ações (criar tarefa/lembrete),
+  avisos espontâneos, memória.
+- **Passos dele (cerca de 15 min, até terça)**: conta no console da Anthropic (conta
+  de API é separada do plano do Claude), crédito pequeno (uns US$ 5 bastam para o
+  teto de R$ 20), limite mensal de gasto no console, chave "FARO", e colar na Vercel
+  como `ANTHROPIC_API_KEY` (sensível; o Claude nunca vê o valor).
+- **Medição**: a partir da fatia 1 ele usa normalmente por cerca de 1 mês. O painel
+  "Custos e planos" (seção acima) sai junto ou logo depois.
+
 ### Canal de feedback e novidades (pedido dele em 03/10, para o teste)
 
 *"um campinho de aviso: quem está testando diz 'tá falhando isso, precisa
