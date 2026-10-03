@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
 import { BellIcon, CheckIcon, MealIcon, MoodFaceIcon, MoonIcon, WarningIcon, WaterDropIcon } from "./icons";
@@ -8,6 +8,7 @@ import { TimePicker } from "./TimePicker";
 import { dateFromISO, todayISO } from "@/lib/date-utils";
 import { isFeatureEnabled } from "@/lib/types";
 import { MOOD_EMOTIONS, MOODS } from "@/lib/mood";
+import { fmtHorasMin, resumoDoSono } from "@/lib/board/sono";
 
 const WATER_STEPS = [200, 500];
 
@@ -38,6 +39,11 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
   const [dietInput, setDietInput] = useState<string | null>(null);
   const isToday = selectedDate === todayISO();
   const label = isToday ? "hoje" : selectedDate;
+
+  const sono = useMemo(
+    () => (sleepOn ? resumoDoSono(board.state.dailyLogs, board.state.tasks, todayISO(), 14) : null),
+    [sleepOn, board.state.dailyLogs, board.state.tasks]
+  );
 
   const missing: string[] = [];
   if (isToday) {
@@ -197,6 +203,13 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
                 />
               </label>
             </div>
+            {sono && (
+              <div className="dl-sleep-insight">
+                De acordo com os dados que você tem enviado, você tem dormido em média{" "}
+                <strong>{fmtHorasMin(sono.mediaMin)}</strong> por noite (últimos 14 dias, {sono.noites} noites).
+                <span className="dl-sleep-tip">{sono.dica}</span>
+              </div>
+            )}
           </div>
         )}
 

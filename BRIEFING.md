@@ -2096,6 +2096,13 @@ selo de plano de estudo), só o ícone na linha da tarefa.
   foram tratadas à parte; se alguém ligar "segue" numa delas, o comportamento é o
   mesmo da regra acima.
 
+## Insight de sono, sem API (03/10)
+
+- No Registro do dia, abaixo de "Sono", aparece: "De acordo com os dados que você tem enviado, você tem dormido em média X por noite" (últimos 14 dias, mínimo 3 noites com dormir e acordar preenchidos). No Dashboard há um card "Sono" (14 dias; 30 no filtro mês) com média, horário médio de deitar e a mesma dica.
+- Tudo calculado no navegador a partir dos registros do dia (`src/lib/board/sono.ts`). Não usa IA nem gasta crédito. Horário de dormir depois da meia-noite é tratado (00:30 → 07:00 = 6h30); duração fora de 2h–14h é ignorada como erro de digitação.
+- Dicas por regra, em ordem: (1) cruzamento com produtividade: se há ao menos 3 noites curtas (<7h) e 3 de 7h ou mais e os dias de sono bom concluíram bem mais tarefas, sugere dormir mais cedo; (2) média abaixo de 7h; (3) horário de dormir muito irregular; (4) "boa média".
+- Fica para depois: cruzar com humor, treino e água; dica em linguagem natural pela IA (sono é dado de saúde, então fica FORA do contexto da IA, conforme a decisão de excluir saúde e medicamentos).
+
 ## Voz de uma frase no "adicionar tarefa" e domínio do FARO (03/10)
 
 **Voz**: ele testou o microfone no celular: o ditado não percebia que ele parou de

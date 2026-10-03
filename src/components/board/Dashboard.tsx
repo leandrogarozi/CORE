@@ -21,6 +21,7 @@ import { countOpenChecklistItems } from "@/lib/rich-text";
 import { useWhatsAppCost } from "@/lib/board/use-whatsapp-cost";
 import { fmtBRL } from "@/lib/money";
 import { taskMinutesInRange } from "@/lib/board/task-time";
+import { fmtHorasMin, resumoDoSono } from "@/lib/board/sono";
 import { MoodFaceIcon } from "./icons";
 import { TaskListModal } from "./TaskListModal";
 
@@ -274,6 +275,12 @@ export function Dashboard() {
   const doneTotal = stats.doneCount + stats.pendingCount;
 
   const moodOn = isFeatureEnabled(board.state.settings.featureFlags, "mood");
+  const sleepOn = isFeatureEnabled(board.state.settings.featureFlags, "sleep");
+  const diasDeSono = period === "month" ? 30 : 14;
+  const sono = useMemo(
+    () => (sleepOn ? resumoDoSono(board.state.dailyLogs, board.state.tasks, today, diasDeSono) : null),
+    [sleepOn, board.state.dailyLogs, board.state.tasks, today, diasDeSono]
+  );
 
   function shiftPeriod(dir: 1 | -1) {
     if (period === "day") {
@@ -452,6 +459,25 @@ export function Dashboard() {
                   </div>
                 </>
               )}
+              <div className="dsh-sep" />
+            </>
+          )}
+
+          {sono && (
+            <>
+              <div className="dsh-card-title">
+                Sono <span className="dsh-card-tag">últimos {diasDeSono} dias</span>
+              </div>
+              <div className="dsh-sleep">
+                <span className="dsh-sleep-n">{fmtHorasMin(sono.mediaMin)}</span>
+                <span className="dsh-sleep-l">
+                  por noite em média
+                  <em>
+                    {sono.noites} noites registradas · deita por volta de {sono.deitarMedio}
+                  </em>
+                </span>
+              </div>
+              <div className="dl-sleep-tip dsh-sleep-tip">{sono.dica}</div>
               <div className="dsh-sep" />
             </>
           )}
