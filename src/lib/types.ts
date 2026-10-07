@@ -508,6 +508,22 @@ export interface DietMeal {
   weekDays: number[] | null; // 0=dom..6=sáb; null/vazio = todo dia, senão só nesses dias da semana
 }
 
+// "Conhecendo você": o que a pessoa trouxe da IA dela (ou escreveu) sobre si e sobre o
+// que já produziu. Entra para revisão e só conta depois de aprovado.
+export interface KnowledgeItem {
+  id: string;
+  tipo: string; // ver TIPOS_DE_CONHECIMENTO em lib/conhecimento.ts
+  titulo: string;
+  conteudo: string; // Markdown
+  dataRef: string | null;
+  origem: string | null;
+  tags: string[];
+  status: "pendente" | "aprovado" | "descartado";
+  fonte: "importacao" | "manual" | "conector";
+  lote: string | null;
+  createdAt: string;
+}
+
 export interface BoardState {
   tasks: Task[];
   taskTimeEntries: TaskTimeEntry[]; // tempo por dia das tarefas
@@ -528,6 +544,7 @@ export interface BoardState {
   synapses: Synapse[];
   shoppingItems: ShoppingItem[];
   shoppingLists: ShoppingList[];
+  knowledgeItems: KnowledgeItem[];
   reminders: Reminder[];
   trashedReminders: Reminder[]; // lembretes excluídos (soft delete) — Lixeira
   medications: Medication[];

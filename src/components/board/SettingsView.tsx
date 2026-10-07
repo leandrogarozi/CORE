@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { useBoardCtx } from "./board-context";
+import { conhecimentoParaExportar } from "@/lib/conhecimento";
 import { useWhatsAppCost } from "@/lib/board/use-whatsapp-cost";
 import {
   GRAUS_NA_TELA,
@@ -726,6 +727,7 @@ function BackupDeAprendizadoBox() {
     livros: board.state.books,
     sinapses: board.state.synapses.filter((s) => s.kind !== "ideia"),
     ideias: board.state.synapses.filter((s) => s.kind === "ideia"),
+    conhecendo: board.state.knowledgeItems.filter((k) => k.status === "aprovado").map(conhecimentoParaExportar),
   };
 
   // Quantos TÊM anotação, por área — o número que importa, porque é o que vai
@@ -733,9 +735,15 @@ function BackupDeAprendizadoBox() {
   const comAnotacao = {
     sinapses: dados.sinapses.filter((x) => temConteudo(x.learning) || temConteudo(x.questions)).length,
     ideias: dados.ideias.filter((x) => temConteudo(x.learning)).length,
+    conhecendo: dados.conhecendo.length,
     livros: dados.livros.filter((x) => temConteudo(x.insights)).length,
   };
-  const totalNaArea = { sinapses: dados.sinapses.length, livros: dados.livros.length, ideias: dados.ideias.length };
+  const totalNaArea = {
+    sinapses: dados.sinapses.length,
+    livros: dados.livros.length,
+    ideias: dados.ideias.length,
+    conhecendo: board.state.knowledgeItems.filter((k) => k.status !== "descartado").length,
+  };
   // Menos o índice, que não é aprendizado — o número é a promessa do botão.
   const quantos = Math.max(0, quantosArquivos(dados, areas) - 1);
 

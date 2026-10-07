@@ -10,6 +10,7 @@ import {
   BookOpenIcon,
   ChevronIcon,
   CommentIcon,
+  DownloadIcon,
   DragGripIcon,
   FlagIcon,
   SearchIcon,
@@ -22,6 +23,8 @@ import { fmtShortDate } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 import { stripHtml } from "@/lib/rich-text";
 import { listaReordenada } from "@/lib/board/reordenar";
+import { arquivoDoLivro } from "@/lib/learning-export";
+import { baixarTexto, soONome } from "@/lib/baixar";
 import {
   BOOK_GROUP_LABEL,
   BOOK_STATUS_COLOR,
@@ -369,6 +372,19 @@ function BookRow({
       <BookPriorityFlag book={book} />
       <BookInsightsButton book={book} />
       <AttachmentsButton entityType="book" entityId={book.id} ariaLabel="Anexos do livro" />
+      {(() => {
+        const arquivo = arquivoDoLivro(book);
+        return arquivo ? (
+          <button
+            className="icon-btn"
+            type="button"
+            title="Baixar o resumo como arquivo (.md)"
+            onClick={() => baixarTexto(soONome(arquivo.nome), arquivo.conteudo)}
+          >
+            <DownloadIcon />
+          </button>
+        ) : null;
+      })()}
       <button
         className="icon-btn danger-hover"
         type="button"

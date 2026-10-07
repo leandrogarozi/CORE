@@ -873,6 +873,20 @@ export function FolderIcon({ filled }: { filled?: boolean } = {}) {
 
 // Backup — vem do pack (File/Archive.svg), mesmo padrão dos demais: contorno,
 // cor herdada de fora.
+export function DownloadIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
+      <path
+        d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19h14"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function ArchiveIcon() {
   return (
     <svg viewBox="0 0 24 24" width="15" height="15" fill="none">

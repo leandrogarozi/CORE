@@ -25,6 +25,7 @@ import {
   rowToSynapse,
   rowToShoppingItem,
   rowToShoppingList,
+  rowToKnowledgeItem,
   shoppingToInsertRow,
   shoppingToUpdateRow,
   synapseToInsertRow,
@@ -102,6 +103,7 @@ import type {
   Synapse,
   ShoppingItem,
   ShoppingList,
+  KnowledgeItem,
   Task,
   TaskSeries,
   TaskStatus,
@@ -129,6 +131,7 @@ const EMPTY_STATE: BoardState = {
   synapses: [],
   shoppingItems: [],
   shoppingLists: [],
+  knowledgeItems: [],
   reminders: [],
   trashedReminders: [],
   medications: [],
@@ -240,6 +243,7 @@ export function useBoard(userId: string | null) {
       synapsesRes,
       shoppingRes,
       shoppingListsRes,
+      knowledgeRes,
       remindersRes,
       trashedRemindersRes,
       medicationsRes,
@@ -272,6 +276,7 @@ export function useBoard(userId: string | null) {
       supabase.from("synapses").select("*").is("deleted_at", null).order("created_at", { ascending: false }),
       supabase.from("shopping_items").select("*").is("deleted_at", null).order("sort_order"),
       supabase.from("shopping_lists").select("*").is("deleted_at", null).order("sort_order"),
+      supabase.from("knowledge_items").select("*").is("deleted_at", null).order("created_at"),
       supabase.from("reminders").select("*").is("deleted_at", null).order("created_at"),
       supabase.from("reminders").select("*").not("deleted_at", "is", null),
       supabase.from("medications").select("*").order("created_at"),
@@ -311,6 +316,7 @@ export function useBoard(userId: string | null) {
       synapses: (synapsesRes.data ?? []).map(rowToSynapse),
       shoppingItems: (shoppingRes.data ?? []).map(rowToShoppingItem),
       shoppingLists: (shoppingListsRes.data ?? []).map(rowToShoppingList),
+      knowledgeItems: (knowledgeRes.data ?? []).map(rowToKnowledgeItem),
       reminders: (remindersRes.data ?? []).map(rowToReminder),
       trashedReminders: (trashedRemindersRes.data ?? []).map(rowToReminder),
       medications: (medicationsRes.data ?? []).map(rowToMedication),
@@ -2276,6 +2282,116 @@ export function useBoard(userId: string | null) {
     [updateShoppingItem]
   );
 
+  // ---------- conhecendo você ----------
+  /**
+   * Grava de uma vez o que veio colado da IA. Repetidos (mesmo tipo e título de
+   * um item que já existe e não foi descartado) ficam de fora: colar a mesma
+   * parte duas vezes não duplica nada. Devolve quantos entraram e quantos não.
+   */
+  const importKnowledge = useCallback(
+    async (
+      itens: { tipo: string; titulo: string; conteudo: string; data: string | null; origem: string | null; tags: string[] }[],
+      fonte: KnowledgeItem["fonte"] = "importacao",
+      status: KnowledgeItem["status"] = "pendente"
+    ): Promise<{ novos: number; repetidos: number }> => {
+      if (!userId || !itens.length) return { novos: 0, repetidos: 0 };
+      const norm = (t: string, tit: string) =>
+        `${t}|${tit.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim()}`;
+      const ja = new Set(
+        stateRef.current.knowledgeItems.filter((k) => k.status !== "descartado").map((k) => norm(k.tipo, k.titulo))
+      );
+      const lote = new Date().toISOString();
+      const novos: KnowledgeItem[] = [];
+      for (const i of itens) {
+        const chave = norm(i.tipo, i.titulo);
+        if (ja.has(chave)) continue;
+        ja.add(chave);
+        novos.push({
+          id: uid(),
+          tipo: i.tipo,
+          titulo: i.titulo.slice(0, 300),
+          conteudo: i.conteudo,
+          dataRef: i.data,
+          origem: i.origem,
+          tags: i.tags,
+          status,
+          fonte,
+          lote,
+          createdAt: lote,
+        });
+      }
+      if (!novos.length) return { novos: 0, repetidos: itens.length };
+      apply((st) => ({ ...st, knowledgeItems: [...st.knowledgeItems, ...novos] }));
+      const { error } = await supabase.from("knowledge_items").insert(
+        novos.map((k) => ({
+          id: k.id,
+          user_id: userId,
+          tipo: k.tipo,
+          titulo: k.titulo,
+          conteudo: k.conteudo,
+          data_ref: k.dataRef,
+          origem: k.origem,
+          tags: k.tags,
+          status: k.status,
+          fonte: k.fonte,
+          lote: k.lote,
+        }))
+      );
+      if (error) {
+        reportSaveError("importar conhecimento", error);
+        const ids = new Set(novos.map((k) => k.id));
+        apply((st) => ({ ...st, knowledgeItems: st.knowledgeItems.filter((k) => !ids.has(k.id)) }));
+        return { novos: 0, repetidos: itens.length - novos.length };
+      }
+      return { novos: novos.length, repetidos: itens.length - novos.length };
+    },
+    [apply, supabase, userId]
+  );
+
+  const updateKnowledge = useCallback(
+    (id: string, patch: Partial<Pick<KnowledgeItem, "tipo" | "titulo" | "conteudo" | "status" | "tags" | "dataRef">>) => {
+      apply((st) => ({ ...st, knowledgeItems: st.knowledgeItems.map((k) => (k.id === id ? { ...k, ...patch } : k)) }));
+      const row: TablesUpdate<"knowledge_items"> = { updated_at: new Date().toISOString() };
+      if (patch.tipo !== undefined) row.tipo = patch.tipo;
+      if (patch.titulo !== undefined) row.titulo = patch.titulo;
+      if (patch.conteudo !== undefined) row.conteudo = patch.conteudo;
+      if (patch.status !== undefined) row.status = patch.status;
+      if (patch.tags !== undefined) row.tags = patch.tags;
+      if (patch.dataRef !== undefined) row.data_ref = patch.dataRef;
+      supabase.from("knowledge_items").update(row).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("updateKnowledge", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  /** Muda o status de vários de uma vez (ex.: aprovar todos os que estão em revisão). */
+  const setKnowledgeStatus = useCallback(
+    (ids: string[], status: KnowledgeItem["status"]) => {
+      if (!ids.length) return;
+      const alvo = new Set(ids);
+      apply((st) => ({ ...st, knowledgeItems: st.knowledgeItems.map((k) => (alvo.has(k.id) ? { ...k, status } : k)) }));
+      supabase
+        .from("knowledge_items")
+        .update({ status, updated_at: new Date().toISOString() })
+        .in("id", ids)
+        .then(({ error }) => {
+          if (error) reportSaveError("setKnowledgeStatus", error);
+        });
+    },
+    [apply, supabase]
+  );
+
+  const deleteKnowledge = useCallback(
+    (id: string) => {
+      apply((st) => ({ ...st, knowledgeItems: st.knowledgeItems.filter((k) => k.id !== id) }));
+      supabase.from("knowledge_items").update({ deleted_at: new Date().toISOString() }).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("deleteKnowledge", error);
+      });
+    },
+    [apply, supabase]
+  );
+
   const addShoppingList = useCallback(
     async (kind: ShoppingList["kind"], name: string): Promise<string | null> => {
       if (!userId || !name.trim()) return null;
@@ -3636,6 +3752,10 @@ export function useBoard(userId: string | null) {
     updateTaskStatus,
     deleteTaskStatus,
     reorderTaskStatuses,
+    importKnowledge,
+    updateKnowledge,
+    setKnowledgeStatus,
+    deleteKnowledge,
     addShoppingItem,
     addShoppingList,
     renameShoppingList,

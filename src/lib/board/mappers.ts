@@ -31,6 +31,7 @@ import type {
   ShoppingItem,
   ShoppingLink,
   ShoppingList,
+  KnowledgeItem,
   Task,
   TaskSeries,
   TaskStatus,
@@ -572,6 +573,22 @@ export function rowToShoppingItem(row: Tables<"shopping_items">): ShoppingItem {
     whatsapp: row.whatsapp,
     inApp: row.in_app,
     order: row.sort_order,
+    createdAt: row.created_at,
+  };
+}
+
+export function rowToKnowledgeItem(row: Tables<"knowledge_items">): KnowledgeItem {
+  return {
+    id: row.id,
+    tipo: row.tipo,
+    titulo: row.titulo,
+    conteudo: row.conteudo,
+    dataRef: row.data_ref,
+    origem: row.origem,
+    tags: row.tags ?? [],
+    status: row.status === "aprovado" ? "aprovado" : row.status === "descartado" ? "descartado" : "pendente",
+    fonte: row.fonte === "manual" ? "manual" : row.fonte === "conector" ? "conector" : "importacao",
+    lote: row.lote,
     createdAt: row.created_at,
   };
 }

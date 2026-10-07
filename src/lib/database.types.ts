@@ -1125,6 +1125,57 @@ export type Database = {
         }
         Relationships: []
       }
+      knowledge_items: {
+        Row: {
+          conteudo: string
+          created_at: string
+          data_ref: string | null
+          deleted_at: string | null
+          fonte: string
+          id: string
+          lote: string | null
+          origem: string | null
+          status: string
+          tags: string[]
+          tipo: string
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conteudo?: string
+          created_at?: string
+          data_ref?: string | null
+          deleted_at?: string | null
+          fonte?: string
+          id: string
+          lote?: string | null
+          origem?: string | null
+          status?: string
+          tags?: string[]
+          tipo?: string
+          titulo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conteudo?: string
+          created_at?: string
+          data_ref?: string | null
+          deleted_at?: string | null
+          fonte?: string
+          id?: string
+          lote?: string | null
+          origem?: string | null
+          status?: string
+          tags?: string[]
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       shopping_lists: {
         Row: {
           created_at: string

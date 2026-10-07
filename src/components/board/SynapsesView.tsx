@@ -4,7 +4,9 @@ import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { NoteField } from "./NoteField";
 import { MicButton } from "./MicButton";
-import { BoltIcon, CheckIcon, ChevronIcon, TrashIcon } from "./icons";
+import { BoltIcon, CheckIcon, ChevronIcon, DownloadIcon, TrashIcon } from "./icons";
+import { arquivoDaIdeia, arquivoDaSinapse } from "@/lib/learning-export";
+import { baixarTexto, soONome } from "@/lib/baixar";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { stripHtml } from "@/lib/rich-text";
 import type { Synapse } from "@/lib/types";
@@ -76,6 +78,19 @@ export function SynapseCard({ synapse, ideia = false }: { synapse: Synapse; idei
         </div>
         {dirty && <span className="synapse-dirty-dot" title="Tem alteração não salva" />}
         <span className="synapse-card-date mono">{fmtDate(synapse.createdAt)}</span>
+        {(() => {
+          const arquivo = ideia ? arquivoDaIdeia(synapse) : arquivoDaSinapse(synapse);
+          return arquivo ? (
+            <button
+              type="button"
+              className="icon-btn"
+              title="Baixar como arquivo (.md)"
+              onClick={() => baixarTexto(soONome(arquivo.nome), arquivo.conteudo)}
+            >
+              <DownloadIcon />
+            </button>
+          ) : null;
+        })()}
         <button
           type="button"
           className="icon-btn danger-hover"

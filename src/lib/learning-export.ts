@@ -28,6 +28,7 @@ export interface ArquivoDeAprendizado {
 }
 
 export interface LivroParaExportar {
+  id?: string;
   title: string;
   insights: string | null;
   /** O status cru do banco ("finalizado"). Quem traduz é o `rotuloDoStatus`. */
@@ -47,6 +48,7 @@ const rotuloDoStatus = (s: string | null | undefined) =>
   s?.trim() ? ROTULO_DO_STATUS[s.trim()] ?? s.trim() : null;
 
 export interface SinapseParaExportar {
+  id?: string;
   title: string;
   learning: string | null;
   questions: string | null;
@@ -66,10 +68,11 @@ export const AREAS_DE_BACKUP = [
   { id: "sinapses", rotulo: "Sinapses", pasta: "Sinapses" },
   { id: "livros", rotulo: "Resumos de livro", pasta: "Livros" },
   { id: "ideias", rotulo: "Ideias (insights)", pasta: "Ideias" },
+  { id: "conhecendo", rotulo: "Conhecendo você", pasta: "Conhecendo você" },
 ] as const;
 
 export type AreaDeBackup = (typeof AREAS_DE_BACKUP)[number]["id"];
-export const AREAS_PADRAO: AreaDeBackup[] = ["sinapses", "livros", "ideias"];
+export const AREAS_PADRAO: AreaDeBackup[] = ["sinapses", "livros", "ideias", "conhecendo"];
 
 export function ehAreaDeBackup(v: string): v is AreaDeBackup {
   return AREAS_DE_BACKUP.some((a) => a.id === v);
@@ -114,6 +117,22 @@ export function semNomesRepetidos(arquivos: ArquivoDeAprendizado[]): ArquivoDeAp
   });
 }
 
+/**
+ * Cabeçalho YAML no topo de cada arquivo, no formato que o Obsidian (e qualquer
+ * ferramenta de notas em Markdown) entende: tipo, data, tags, id e origem. É o
+ * que deixa a pasta funcionar como um cofre de notas fora do FARO, e o id liga o
+ * arquivo de volta ao item do FARO.
+ */
+export function cabecalho(campos: Record<string, string | string[] | null | undefined>): string {
+  const linhas = ["---"];
+  for (const [k, v] of Object.entries(campos)) {
+    if (v === null || v === undefined || (Array.isArray(v) && !v.length) || v === "") continue;
+    linhas.push(Array.isArray(v) ? `${k}: [${v.map((x) => JSON.stringify(x)).join(", ")}]` : `${k}: ${JSON.stringify(v)}`);
+  }
+  linhas.push("---", "");
+  return linhas.join("\n");
+}
+
 export function arquivoDoLivro(livro: LivroParaExportar): ArquivoDeAprendizado | null {
   // Regra dele, dita duas vezes: *"todo backup nessa situação só deve sair
   // daquilo que tem anotação. Não deve fazer backup de livro que não tem
@@ -121,7 +140,11 @@ export function arquivoDoLivro(livro: LivroParaExportar): ArquivoDeAprendizado |
   // salva `<p></p>` quando a pessoa abre e fecha sem escrever, e isso não é
   // anotação.
   if (!temConteudo(livro.insights)) return null;
-  const partes = [`# ${livro.title.trim()}`, ""];
+  const partes = [
+    cabecalho({ tipo: "livro", status: rotuloDoStatus(livro.status), id: livro.id, origem: "FARO" }),
+    `# ${livro.title.trim()}`,
+    "",
+  ];
   const status = rotuloDoStatus(livro.status);
   if (status) partes.push(`**Status:** ${status}`, "");
   partes.push("## O que ficou", "", htmlParaMarkdown(livro.insights), "");
@@ -132,7 +155,11 @@ export function arquivoDaSinapse(s: SinapseParaExportar): ArquivoDeAprendizado |
   // Sinapse vale se tem aprendizado OU pergunta. Título sozinho é lembrete de
   // escrever, não aprendizado guardado.
   if (!temConteudo(s.learning) && !temConteudo(s.questions)) return null;
-  const partes = [`# ${s.title.trim()}`, ""];
+  const partes = [
+    cabecalho({ tipo: "sinapse", data: s.createdAt?.slice(0, 10), fonte: s.source, id: s.id, origem: "FARO" }),
+    `# ${s.title.trim()}`,
+    "",
+  ];
   if (s.source?.trim()) partes.push(`**Fonte:** ${s.source.trim()}`, "");
   if (s.createdAt) partes.push(`**Anotado em:** ${s.createdAt.slice(0, 10)}`, "");
   if (temConteudo(s.learning)) partes.push("## Aprendizado", "", htmlParaMarkdown(s.learning), "");
@@ -144,16 +171,55 @@ export function arquivoDaSinapse(s: SinapseParaExportar): ArquivoDeAprendizado |
 /** Ideia (insight): o texto fica em `learning`; não tem "pergunta que gera". */
 export function arquivoDaIdeia(s: SinapseParaExportar): ArquivoDeAprendizado | null {
   if (!temConteudo(s.learning)) return null;
-  const partes = [`# ${s.title.trim()}`, ""];
+  const partes = [
+    cabecalho({ tipo: "ideia", data: s.createdAt?.slice(0, 10), id: s.id, origem: "FARO" }),
+    `# ${s.title.trim()}`,
+    "",
+  ];
   if (s.createdAt) partes.push(`**Anotada em:** ${s.createdAt.slice(0, 10)}`, "");
   partes.push("## A ideia", "", htmlParaMarkdown(s.learning), "");
   return { nome: `${pastaDaArea("ideias")}/${nomeDeArquivo(s.title)}`, conteudo: partes.join("\n") };
+}
+
+export interface ConhecimentoParaExportar {
+  id?: string;
+  tipo: string;
+  rotuloDoTipo: string;
+  titulo: string;
+  conteudo: string; // Markdown
+  dataRef: string | null;
+  origem: string | null;
+  tags: string[];
+  fonte: string;
+}
+
+/** Um item aprovado de "Conhecendo você" (o que veio da IA ou foi escrito à mão). */
+export function arquivoDoConhecimento(k: ConhecimentoParaExportar): ArquivoDeAprendizado {
+  const partes = [
+    cabecalho({
+      tipo: k.tipo,
+      data: k.dataRef,
+      tags: k.tags,
+      fonte: k.fonte === "importacao" ? "importado da IA" : k.fonte === "conector" ? "enviado pela IA" : "escrito no FARO",
+      origem_na_ia: k.origem,
+      id: k.id,
+      origem: "FARO",
+    }),
+    `# ${k.titulo.trim()}`,
+    "",
+    `**${k.rotuloDoTipo}**${k.dataRef ? ` · ${k.dataRef}` : ""}`,
+    "",
+    k.conteudo.trim(),
+    "",
+  ];
+  return { nome: `${pastaDaArea("conhecendo")}/${nomeDeArquivo(k.titulo)}`, conteudo: partes.join("\n") };
 }
 
 export interface DadosDoBackup {
   livros: LivroParaExportar[];
   sinapses: SinapseParaExportar[];
   ideias: SinapseParaExportar[];
+  conhecendo: ConhecimentoParaExportar[];
 }
 
 /**
@@ -182,6 +248,13 @@ export function indiceDoBackup(
     linhas.push(`## Ideias (${comTexto.length})`, "");
     if (!comTexto.length) linhas.push("_Nenhuma ideia com texto ainda._", "");
     for (const s of comTexto) linhas.push(`- ${s.title.trim()}`);
+    linhas.push("");
+  }
+
+  if (areas.includes("conhecendo")) {
+    linhas.push(`## Conhecendo você (${dados.conhecendo.length})`, "");
+    if (!dados.conhecendo.length) linhas.push("_Nada aprovado ainda._", "");
+    for (const k of dados.conhecendo) linhas.push(`- ${k.titulo.trim()} — ${k.rotuloDoTipo}`);
     linhas.push("");
   }
 
@@ -229,6 +302,9 @@ export function arquivosDoBackup(
       const a = arquivoDaIdeia(s);
       if (a) arquivos.push(a);
     }
+  }
+  if (areas.includes("conhecendo")) {
+    for (const k of dados.conhecendo) arquivos.push(arquivoDoConhecimento(k));
   }
   if (areas.includes("livros")) {
     for (const l of dados.livros) {
