@@ -79,6 +79,13 @@ export function Sidebar({
         <div className="sidebar-section">
           <button
             type="button"
+            className={"sidebar-item sidebar-item-destaque" + (viewMode === "conhecendo" ? " active" : "")}
+            onClick={() => onSelect("conhecendo")}
+          >
+            <UserIcon size={13} /> Conhecendo você
+          </button>
+          <button
+            type="button"
             className={"sidebar-item" + (viewMode === "books" ? " active" : "")}
             onClick={() => onSelect("books")}
           >
@@ -111,13 +118,6 @@ export function Sidebar({
             onClick={() => onSelect("compras")}
           >
             <CartIcon /> Compras
-          </button>
-          <button
-            type="button"
-            className={"sidebar-item" + (viewMode === "conhecendo" ? " active" : "")}
-            onClick={() => onSelect("conhecendo")}
-          >
-            <UserIcon /> Conhecendo você
           </button>
           <button
             type="button"

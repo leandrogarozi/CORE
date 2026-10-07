@@ -31,7 +31,9 @@ export function rotuloDoTipo(tipo: string): string {
 }
 
 /** O pedido que a pessoa cola na IA dela. */
-export const TEXTO_DE_IMPORTACAO = `Quero levar para o FARO, o app onde guardo meus aprendizados e a minha rotina, TUDO o que você sabe sobre mim e TUDO o que já produzimos juntos. Não resuma demais: aqui completude vale mais que brevidade. Se for muita coisa, pode passar de centenas de páginas, e tudo bem. Divida a resposta em partes ("PARTE 1 de N") e continue quando eu disser "continue".
+export const TEXTO_DE_IMPORTACAO = `Quero levar para o FARO, o app onde guardo meus aprendizados e a minha rotina, TUDO o que você sabe sobre mim e TUDO o que já produzimos juntos. Não resuma demais: aqui completude vale mais que brevidade. Se for muita coisa, pode passar de centenas de páginas, e tudo bem.
+
+COMO ENTREGAR: crie um ARQUIVO Markdown (.md) para eu baixar, chamado "FARO - importacao.md". Se ficar grande demais para um arquivo só, crie vários: "FARO - parte 1 de N.md", "FARO - parte 2 de N.md"... (eu vou dizer "continue" até terminar). Dentro dos arquivos, use exatamente o formato de itens descrito no final. Se você não conseguir criar arquivos, responda em texto, no mesmo formato, dividindo em partes ("PARTE 1 de N").
 
 O que trazer:
 1. SOBRE MIM: quem sou, minha história, valores, crenças, objetivos, rotina, preferências, meu jeito de escrever, de decidir e de trabalhar, pessoas e projetos importantes para mim.
@@ -119,13 +121,13 @@ function limpar(v: string): string {
  * negrito, marcadores e cercas de código no meio (cada IA enfeita do seu jeito).
  * Sem nenhum bloco, o texto inteiro vira um item só, para nada se perder.
  */
-export function lerImportacao(texto: string): ItemImportado[] {
+export function lerImportacao(texto: string, tituloPadrao?: string): ItemImportado[] {
   const semCercas = texto.replace(/^```[a-z]*\s*$/gim, "");
   const partes = semCercas.split(/^\s*[*_]*\s*=+\s*ITEM\s*=+\s*[*_]*\s*$/gim);
   if (partes.length <= 1) {
     const corpo = semCercas.trim();
     if (!corpo) return [];
-    const primeira = corpo.split("\n").find((l) => l.trim()) ?? "Importado da IA";
+    const primeira = tituloPadrao || (corpo.split("\n").find((l) => l.trim()) ?? "Importado da IA");
     return [
       {
         tipo: "outro",

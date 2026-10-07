@@ -115,6 +115,8 @@ export function ConhecendoView({ onBack }: { onBack: () => void }) {
   const [mostrarTexto, setMostrarTexto] = useState(false);
   const [copiado, setCopiado] = useState(false);
   const [colado, setColado] = useState("");
+  const [arquivos, setArquivos] = useState<File[]>([]);
+  const [lendo, setLendo] = useState(false);
   const [resultado, setResultado] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<string>("todos");
   const [novoTitulo, setNovoTitulo] = useState("");
@@ -134,19 +136,32 @@ export function ConhecendoView({ onBack }: { onBack: () => void }) {
   }
 
   async function importar() {
-    const lidos = lerImportacao(colado);
-    if (!lidos.length) {
-      setResultado("Não encontrei nada para importar nesse texto.");
-      return;
+    setLendo(true);
+    try {
+      // Cada arquivo é lido por si: um arquivo sem os blocos de item vira um item
+      // só, com o nome do arquivo como título.
+      const lidos = lerImportacao(colado);
+      for (const f of arquivos) {
+        lidos.push(...lerImportacao(await f.text(), f.name.replace(/\.(md|markdown|txt)$/i, "")));
+      }
+      if (!lidos.length) {
+        setResultado("Não encontrei nada para importar.");
+        return;
+      }
+      const { novos, repetidos } = await board.importKnowledge(lidos);
+      setResultado(
+        `${novos} ${novos === 1 ? "item novo" : "itens novos"} para revisar` +
+          (repetidos ? ` · ${repetidos} já existia${repetidos === 1 ? "" : "m"} e ficou de fora` : "") +
+          ". Se a IA mandou em partes, traga a próxima parte."
+      );
+      setColado("");
+      setArquivos([]);
+      setAba("pendente");
+    } catch (e) {
+      setResultado(`Não consegui ler: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setLendo(false);
     }
-    const { novos, repetidos } = await board.importKnowledge(lidos);
-    setResultado(
-      `${novos} ${novos === 1 ? "item novo" : "itens novos"} para revisar` +
-        (repetidos ? ` · ${repetidos} já existia${repetidos === 1 ? "" : "m"} e ficou de fora` : "") +
-        ". Se a IA mandou em partes, cole a próxima parte aqui."
-    );
-    setColado("");
-    setAba("pendente");
   }
 
   async function escrever() {
@@ -196,17 +211,56 @@ export function ConhecendoView({ onBack }: { onBack: () => void }) {
                 {mostrarTexto && <pre className="know-texto">{TEXTO_DE_IMPORTACAO}</pre>}
               </div>
               <div className="know-passo">
-                <strong>2.</strong> Cole aqui a resposta da IA. Se ela mandar em partes, cole uma parte de cada vez.
+                <strong>2.</strong> Anexe o(s) arquivo(s) .md que a IA criou. Se ela respondeu em texto, cole aqui
+                embaixo. Pode trazer uma parte de cada vez.
+                <div className="know-arquivos">
+                  <label className="btn btn-ghost" style={{ alignSelf: "flex-start", cursor: "pointer" }}>
+                    Anexar arquivos (.md ou .txt)
+                    <input
+                      type="file"
+                      multiple
+                      accept=".md,.markdown,.txt,text/markdown,text/plain"
+                      style={{ display: "none" }}
+                      onChange={(e) => {
+                        const novos = Array.from(e.target.files ?? []);
+                        setArquivos((a) => [...a, ...novos.filter((n) => !a.some((x) => x.name === n.name && x.size === n.size))]);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                  {arquivos.length > 0 && (
+                    <div className="know-arquivos-lista">
+                      {arquivos.map((f) => (
+                        <div key={f.name + f.size}>
+                          {f.name} ({Math.max(1, Math.round(f.size / 1024))} KB){" "}
+                          <button
+                            type="button"
+                            className="btn btn-ghost"
+                            style={{ padding: "0 6px", fontSize: 11 }}
+                            onClick={() => setArquivos((a) => a.filter((x) => x !== f))}
+                          >
+                            tirar
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <textarea
                   className="know-colar"
-                  rows={8}
-                  placeholder="Cole aqui a resposta da sua IA…"
+                  rows={6}
+                  placeholder="…ou cole aqui a resposta da sua IA"
                   value={colado}
                   onChange={(e) => setColado(e.target.value)}
                 />
                 <div className="know-passo-acoes">
-                  <button type="button" className="btn btn-accent" disabled={!colado.trim()} onClick={importar}>
-                    Importar
+                  <button
+                    type="button"
+                    className="btn btn-accent"
+                    disabled={lendo || (!colado.trim() && !arquivos.length)}
+                    onClick={importar}
+                  >
+                    {lendo ? "Importando…" : "Importar"}
                   </button>
                   <button type="button" className="btn btn-ghost" onClick={() => setImportando(false)}>
                     Fechar

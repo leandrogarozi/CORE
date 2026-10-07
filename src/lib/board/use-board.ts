@@ -2322,26 +2322,32 @@ export function useBoard(userId: string | null) {
       }
       if (!novos.length) return { novos: 0, repetidos: itens.length };
       apply((st) => ({ ...st, knowledgeItems: [...st.knowledgeItems, ...novos] }));
-      const { error } = await supabase.from("knowledge_items").insert(
-        novos.map((k) => ({
-          id: k.id,
-          user_id: userId,
-          tipo: k.tipo,
-          titulo: k.titulo,
-          conteudo: k.conteudo,
-          data_ref: k.dataRef,
-          origem: k.origem,
-          tags: k.tags,
-          status: k.status,
-          fonte: k.fonte,
-          lote: k.lote,
-        }))
-      );
-      if (error) {
-        reportSaveError("importar conhecimento", error);
-        const ids = new Set(novos.map((k) => k.id));
-        apply((st) => ({ ...st, knowledgeItems: st.knowledgeItems.filter((k) => !ids.has(k.id)) }));
-        return { novos: 0, repetidos: itens.length - novos.length };
+      // Em lotes de 50: a importação de uma IA pode ter centenas de itens longos, e
+      // um envio só ficaria grande demais. Lote que falha volta atrás sozinho.
+      const linhas = novos.map((k) => ({
+        id: k.id,
+        user_id: userId,
+        tipo: k.tipo,
+        titulo: k.titulo,
+        conteudo: k.conteudo,
+        data_ref: k.dataRef,
+        origem: k.origem,
+        tags: k.tags,
+        status: k.status,
+        fonte: k.fonte,
+        lote: k.lote,
+      }));
+      let salvos = 0;
+      for (let ini = 0; ini < linhas.length; ini += 50) {
+        const parte = linhas.slice(ini, ini + 50);
+        const { error } = await supabase.from("knowledge_items").insert(parte);
+        if (error) {
+          reportSaveError("importar conhecimento", error);
+          const ids = new Set(linhas.slice(ini).map((k) => k.id));
+          apply((st) => ({ ...st, knowledgeItems: st.knowledgeItems.filter((k) => !ids.has(k.id)) }));
+          return { novos: salvos, repetidos: itens.length - novos.length };
+        }
+        salvos += parte.length;
       }
       return { novos: novos.length, repetidos: itens.length - novos.length };
     },
