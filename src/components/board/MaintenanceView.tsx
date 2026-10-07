@@ -15,7 +15,7 @@ import {
 } from "@/lib/board/maintenance";
 import { fmtShortDate, isoAddDays, todayISO } from "@/lib/date-utils";
 import { fmtBRL, parseAmountToCents } from "@/lib/money";
-import type { MaintenanceAsset, MaintenanceItem } from "@/lib/types";
+import type { MaintenanceAsset, MaintenanceItem, MaintenanceService } from "@/lib/types";
 
 const KIND_LABEL: Record<MaintenanceAsset["kind"], string> = {
   veiculo: "Veículo",
@@ -31,6 +31,8 @@ function fmtKm(n: number): string {
 function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAsset }) {
   const { board, askConfirm } = useBoardCtx();
   const [registrando, setRegistrando] = useState(false);
+  // Qual serviço o formulário está editando. null = registrando um novo.
+  const [editandoId, setEditandoId] = useState<string | null>(null);
   const [aberto, setAberto] = useState(false);
   // Rascunho do nome: grava ao sair do campo, pra não mandar uma escrita por
   // tecla digitada.
@@ -42,16 +44,46 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
 
   const readings = board.state.odometerReadings.filter((r) => r.assetId === asset.id);
   const st = maintenanceStatus(item, asset, readings);
-  const historico = board.state.maintenanceServices.filter((s) => s.itemId === item.id);
+  const historico = board.state.maintenanceServices
+    .filter((s) => s.itemId === item.id)
+    .sort((a, b) => b.doneOn.localeCompare(a.doneOn));
+
+  // Abre o formulário já com o que foi registrado: clicar em "Feito" de novo é
+  // pra CORRIGIR, não pra criar outro registro. Sem serviço gravado mas com data
+  // de "feito" no item (item antigo), a data entra preenchida.
+  function abrirForm(servico: MaintenanceService | null, modo: "editar" | "novo" = "editar") {
+    if (servico && modo === "editar") {
+      setEditandoId(servico.id);
+      setDoneOn(servico.doneOn);
+      setOdometro(servico.odometer !== null ? String(servico.odometer) : "");
+      setValor(servico.costCents !== null ? (servico.costCents / 100).toFixed(2).replace(".", ",") : "");
+      setNota(servico.note);
+    } else {
+      setEditandoId(null);
+      const antigo = modo === "editar" && !servico && item.lastDoneOn;
+      setDoneOn(antigo ? (item.lastDoneOn as string) : todayISO());
+      setOdometro(antigo && item.lastDoneOdometer !== null ? String(item.lastDoneOdometer) : "");
+      setValor("");
+      setNota("");
+    }
+    setRegistrando(true);
+  }
 
   function registrar() {
     const km = odometro.trim() === "" ? null : Number(odometro.replace(/\D/g, ""));
     const custo = valor.trim() === "" ? null : parseAmountToCents(valor);
-    board.registerMaintenanceService(item.id, doneOn, km, custo, nota);
+    if (editandoId) {
+      board.updateMaintenanceService(editandoId, {
+        doneOn,
+        odometer: km !== null && Number.isFinite(km) ? Math.round(km) : null,
+        costCents: custo,
+        note: nota.trim(),
+      });
+    } else {
+      board.registerMaintenanceService(item.id, doneOn, km, custo, nota);
+    }
     setRegistrando(false);
-    setOdometro("");
-    setValor("");
-    setNota("");
+    setEditandoId(null);
   }
 
   // "a cada 12 meses ou 10.000 km" — o que o item usa pra calcular o próximo.
@@ -164,10 +196,10 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
           className={"btn btn-ghost maint-done-btn" + (item.lastDoneOn ? " concluido" : "")}
           title={
             item.lastDoneOn
-              ? `Último em ${fmtShortDate(item.lastDoneOn)}. Clique pra registrar um novo.`
+              ? `Último em ${fmtShortDate(item.lastDoneOn)}. Clique pra corrigir esse registro.`
               : "Registrar que essa manutenção foi feita"
           }
-          onClick={() => setRegistrando((v) => !v)}
+          onClick={() => (registrando ? setRegistrando(false) : abrirForm(historico[0] ?? null))}
         >
           <CheckIcon /> Feito
           {item.lastDoneOn && <span className="maint-done-data mono">{fmtShortDate(item.lastDoneOn)}</span>}
@@ -188,6 +220,16 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
 
       {registrando && (
         <div className="maint-register">
+          <div className="maint-explain" style={{ marginTop: 0 }}>
+            {editandoId ? (
+              <>
+                Corrigindo o serviço de <strong>{fmtShortDate(historico.find((h) => h.id === editandoId)?.doneOn ?? doneOn)}</strong>.
+                Salvar muda este registro, não cria outro.
+              </>
+            ) : (
+              <>Novo serviço.</>
+            )}
+          </div>
           <div className="maint-register-row">
             <label>
               <span className="prop-label">Quando</span>
@@ -234,8 +276,13 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
             <button type="button" className="btn btn-ghost" onClick={() => setRegistrando(false)}>
               Cancelar
             </button>
+            {editandoId && (
+              <button type="button" className="btn btn-ghost" onClick={() => abrirForm(null, "novo")}>
+                Registrar um novo serviço
+              </button>
+            )}
             <button type="button" className="btn btn-accent" onClick={registrar}>
-              Registrar serviço
+              {editandoId ? "Salvar" : "Registrar serviço"}
             </button>
           </div>
         </div>
@@ -280,20 +327,6 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
                 </div>
               </label>
             )}
-            <label className="prop-row">
-              <span className="prop-label">Avisar para fazer (dias antes)</span>
-              <div className="prop-value">
-                <input
-                  type="number"
-                  min={0}
-                  defaultValue={item.alertDaysBefore}
-                  onBlur={(e) => {
-                    const v = Number(e.target.value);
-                    if (Number.isFinite(v) && v >= 0) board.updateMaintenanceItem(item.id, { alertDaysBefore: v });
-                  }}
-                />
-              </div>
-            </label>
           </div>
 
           <div className="maint-momentos">
@@ -328,12 +361,18 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
               </label>
               <button
                 type="button"
-                className={"icon-btn zap-btn" + (item.whatsappBuy && item.buyDaysBefore ? " active" : "")}
-                disabled={!item.buyDaysBefore}
-                title={item.whatsappBuy ? "Aviso de compra também no WhatsApp. Clique pra desligar." : "Avisar a compra também no WhatsApp"}
+                className={"icon-btn zap-btn" + (item.whatsappBuy && item.buyDaysBefore && !item.boughtOn ? " active" : "")}
+                disabled={!item.buyDaysBefore || !!item.boughtOn}
+                title={
+                  item.boughtOn
+                    ? "Já comprado: não avisa mais. No próximo ciclo o aviso volta sozinho, se estiver ligado."
+                    : item.whatsappBuy
+                      ? "Aviso de compra também no WhatsApp. Clique pra desligar."
+                      : "Avisar a compra também no WhatsApp"
+                }
                 onClick={() => board.updateMaintenanceItem(item.id, { whatsappBuy: !item.whatsappBuy })}
               >
-                <WhatsAppIcon filled={!!(item.whatsappBuy && item.buyDaysBefore)} />
+                <WhatsAppIcon filled={!!(item.whatsappBuy && item.buyDaysBefore && !item.boughtOn)} />
               </button>
               {item.buyDaysBefore ? (
                 item.boughtOn ? (
@@ -360,12 +399,21 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
             <div className="maint-momento">
               <div className="maint-momento-texto">
                 <strong>Fazer</strong>
-                <span>
-                  {item.alertDaysBefore > 0
-                    ? `Avisa ${item.alertDaysBefore} dia(s) antes e no dia em que vence.`
-                    : "Avisa no dia em que vence."}
-                </span>
+                <span>Avisa no dia em que vence e, se quiser, também alguns dias antes (campo ao lado).</span>
               </div>
+              <label className="maint-momento-dias">
+                <input
+                  type="number"
+                  min={0}
+                  placeholder="dias"
+                  aria-label="Dias antes do vencimento para avisar"
+                  defaultValue={item.alertDaysBefore}
+                  onBlur={(e) => {
+                    const v = Number(e.target.value);
+                    if (Number.isFinite(v) && v >= 0) board.updateMaintenanceItem(item.id, { alertDaysBefore: Math.round(v) });
+                  }}
+                />
+              </label>
               <button
                 type="button"
                 className={"icon-btn zap-btn" + (item.whatsapp && st.dueDate ? " active" : "")}
@@ -417,7 +465,7 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
               empilhada: rótulo em cima, caixa inteira embaixo. */}
           <label className="prop-row prop-row-empilhada">
             <span className="prop-label">Mensagem no WhatsApp</span>
-            <div className="prop-value">
+            <div className="prop-value maint-msg">
               <CommentButton
                 variant="field"
                 alwaysExpanded
@@ -455,6 +503,30 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
                     <span className="mono maint-history-cost">{fmtBRL(s.costCents)}</span>
                   )}
                   {s.note && <span className="maint-history-note">{s.note}</span>}
+                  <span className="maint-history-actions">
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      title="Corrigir este serviço"
+                      aria-label={`Corrigir o serviço de ${fmtShortDate(s.doneOn)}`}
+                      onClick={() => abrirForm(s)}
+                    >
+                      <EditIcon />
+                    </button>
+                    <button
+                      type="button"
+                      className="icon-btn danger-hover"
+                      title="Apagar este serviço do histórico"
+                      aria-label={`Apagar o serviço de ${fmtShortDate(s.doneOn)}`}
+                      onClick={() =>
+                        askConfirm(`Apagar o serviço de ${fmtShortDate(s.doneOn)} do histórico?`, () =>
+                          board.deleteMaintenanceService(s.id)
+                        )
+                      }
+                    >
+                      <TrashIcon />
+                    </button>
+                  </span>
                 </div>
               ))}
             </div>

@@ -79,6 +79,7 @@ import type {
   TaskPostponement,
   MaintenanceAsset,
   MaintenanceItem,
+  MaintenanceService,
   OdometerReading,
   DailyLog,
   DayLog,
@@ -2030,6 +2031,78 @@ export function useBoard(userId: string | null) {
     [addOdometerReading, apply, sincronizarAvisosDaManutencao, supabase, userId]
   );
 
+  // O último serviço de um item é quem manda em "feito em" e no km: se ele foi
+  // editado ou apagado, o item se recalcula a partir do que sobrou, e a data de
+  // vencimento e os avisos acompanham.
+  const aplicarUltimoServico = useCallback(
+    (itemId: string) => {
+      const ultimo =
+        [...stateRef.current.maintenanceServices]
+          .filter((s) => s.itemId === itemId)
+          .sort((a, b) => b.doneOn.localeCompare(a.doneOn))[0] ?? null;
+      const doneOn = ultimo?.doneOn ?? null;
+      const odometer = ultimo?.odometer ?? null;
+      apply((st) => ({
+        ...st,
+        maintenanceItems: st.maintenanceItems.map((i) =>
+          i.id === itemId ? { ...i, lastDoneOn: doneOn, lastDoneOdometer: odometer } : i
+        ),
+      }));
+      supabase
+        .from("maintenance_items")
+        .update({ last_done_on: doneOn, last_done_odometer: odometer })
+        .eq("id", itemId)
+        .then(({ error }) => {
+          if (error) reportSaveError("atualizar item de manutenção", error);
+        });
+      sincronizarAvisosDaManutencao(itemId);
+    },
+    [apply, sincronizarAvisosDaManutencao, supabase]
+  );
+
+  /** Corrige um serviço já registrado (data, km, custo, observação) sem criar outro. */
+  const updateMaintenanceService = useCallback(
+    (
+      id: string,
+      patch: Partial<Pick<MaintenanceService, "doneOn" | "odometer" | "costCents" | "note">>
+    ) => {
+      const atual = stateRef.current.maintenanceServices.find((s) => s.id === id);
+      if (!atual) return;
+      const novo = { ...atual, ...patch };
+      apply((st) => ({
+        ...st,
+        maintenanceServices: st.maintenanceServices.map((s) => (s.id === id ? novo : s)),
+      }));
+      supabase
+        .from("maintenance_services")
+        .update({ done_on: novo.doneOn, odometer: novo.odometer, cost_cents: novo.costCents, note: novo.note })
+        .eq("id", id)
+        .then(({ error }) => {
+          if (error) reportSaveError("atualizar serviço de manutenção", error);
+        });
+      // Corrigir o km do serviço também corrige a leitura do odômetro daquele dia.
+      const item = stateRef.current.maintenanceItems.find((i) => i.id === atual.itemId);
+      if (item && novo.odometer !== null && (patch.odometer !== undefined || patch.doneOn !== undefined)) {
+        addOdometerReading(item.assetId, novo.odometer, novo.doneOn);
+      }
+      aplicarUltimoServico(atual.itemId);
+    },
+    [addOdometerReading, aplicarUltimoServico, apply, supabase]
+  );
+
+  const deleteMaintenanceService = useCallback(
+    (id: string) => {
+      const atual = stateRef.current.maintenanceServices.find((s) => s.id === id);
+      if (!atual) return;
+      apply((st) => ({ ...st, maintenanceServices: st.maintenanceServices.filter((s) => s.id !== id) }));
+      supabase.from("maintenance_services").delete().eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("apagar serviço de manutenção", error);
+      });
+      aplicarUltimoServico(atual.itemId);
+    },
+    [aplicarUltimoServico, apply, supabase]
+  );
+
   // ---------- tarefa desafiadora e adiamentos ----------
   // Marcar como evento leva a tarefa pro status "Agendado" — mas SÓ se ela
   // ainda estiver no primeiro status (ninguém começou). Tarefa que já está em
@@ -3295,6 +3368,8 @@ export function useBoard(userId: string | null) {
     updateMaintenanceItem,
     deleteMaintenanceItem,
     registerMaintenanceService,
+    updateMaintenanceService,
+    deleteMaintenanceService,
     setChallenging,
     setFollows,
     setIsEvent,

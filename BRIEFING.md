@@ -2098,6 +2098,16 @@ selo de plano de estudo), só o ícone na linha da tarefa.
   foram tratadas à parte; se alguém ligar "segue" numa delas, o comportamento é o
   mesmo da regra acima.
 
+## Manutenção: "Feito" passa a corrigir, não a duplicar (07/10)
+
+Queixa do Leandro: ao clicar em "Feito" de novo para ajustar uma data, o formulário abria **em branco** e cada "Registrar" criava **um serviço novo** no histórico (histórico bagunçado). Mudanças:
+- **Feito com serviço já registrado abre o último, preenchido** (data, km, custo, observação) e o botão vira **Salvar**, que corrige aquele registro (`updateMaintenanceService`). Para registrar outro de verdade há o botão **"Registrar um novo serviço"** dentro do mesmo formulário. Item antigo com data de "feito" mas sem serviço gravado abre com a data preenchida.
+- Corrigir ou apagar um serviço recalcula o item (último feito, km, vencimento) e os avisos (`aplicarUltimoServico`). Corrigir o km também corrige a leitura do odômetro daquele dia.
+- **Histórico**: cada linha ganhou **editar** e **apagar** (com confirmação), para limpar os repetidos que já existem.
+- **"Comprei"**: o ícone do WhatsApp da compra aparece **apagado e desativado** enquanto está comprado; o aviso de compra não sai mais. A preferência (zap ligado) fica guardada e volta no próximo ciclo, depois do "Feito". Se ele preferir que desligue de vez, trocar para `whatsappBuy:false` no clique.
+- **Layout**: "Avisar X dias antes" foi para dentro do bloco "Fazer" (o rótulo era cortado); a **mensagem do WhatsApp** aparece inteira, com quebra de linha (o `.prop-row-empilhada` não funcionava porque a linha é uma grade).
+- Conferência do backup (07/10): um arquivo por dia (04, 05 e 06/10), sem repetição de 15 em 15 minutos. A correção do servidor funcionou.
+
 ## Backup automático no computador do Leandro (03/10)
 
 **Por quê:** a conta do Supabase está no plano **Free, que não faz backup automático**. O que o BRIEFING dizia ("o Supabase tem backup próprio de infraestrutura") só vale para plano pago. Hoje a proteção era o zip baixado na mão.
