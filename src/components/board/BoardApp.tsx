@@ -176,7 +176,8 @@ function BoardShell() {
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, []);
 
-  const backlogTasks = board.state.tasks.filter((t) => !t.date);
+  // Concluída e sem data não precisa mais esperar uma data: sai da lista.
+  const backlogTasks = board.state.tasks.filter((t) => !t.date && !t.done);
   // Mesma regra do card "Atrasadas" do Dashboard, pra o número bater com ele.
   const overdueTaskCount = board.state.tasks.filter((t) => !t.done && t.date && t.date < todayISO()).length;
   const dayTasks = board.state.tasks.filter((t) => t.date === selectedDate);

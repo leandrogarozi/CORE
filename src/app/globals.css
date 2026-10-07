@@ -2732,3 +2732,13 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .maint-linha-dias input{ width:54px; background:var(--surface); border:1px solid var(--border-strong); border-radius:7px; padding:4px 6px; font-size:12.5px; color:var(--text); }
 .maint-momento-dica{ font-size:11.5px; color:var(--text-faint); }
 .bell-btn.active{ color:var(--accent); }
+
+/* Celular: na criação de lembrete, data e hora vão pra uma segunda linha em vez de sair da tela. */
+@media (max-width:640px){
+  .quickadd-row:has(.reminder-new-date){ flex-wrap:wrap; row-gap:8px; }
+  .quickadd-row:has(.reminder-new-date) .quickadd-input{ flex:1 1 55%; min-width:0; }
+  .quickadd-row:has(.reminder-new-date) .reminder-new-date{ order:5; flex:1 1 130px; width:auto; min-width:0; }
+  .quickadd-row:has(.reminder-new-date) .reminder-new-time{ order:5; flex:1 1 100px; min-width:0; }
+  .quickadd-row:has(.reminder-new-date) .mic-btn{ order:4; }
+  .quickadd-row:has(.reminder-new-date) .mic-live{ order:6; flex:1 1 100%; }
+}
