@@ -1,4 +1,5 @@
 import { isoAddDays } from "@/lib/date-utils";
+import { stripHtml } from "@/lib/rich-text";
 import type { ShoppingItem } from "@/lib/types";
 
 /**
@@ -48,8 +49,9 @@ export function textoDaLista(itens: ShoppingItem[], kind: "compra" | "desejo", h
   const linhas = ["⭐ *Lista de desejos*", ""];
   for (const i of doTipo) {
     linhas.push(`• ${i.name}`);
-    if (i.note.trim()) linhas.push(`   ${i.note.trim().replace(/\s*\n\s*/g, " ")}`);
-    for (const l of i.links) linhas.push(`   ${l}`);
+    const nota = stripHtml(i.note).replace(/\s+/g, " ").trim();
+    if (nota) linhas.push(`   ${nota}`);
+    for (const l of i.links) linhas.push(`   ${l.title.trim() ? `${l.title.trim()}: ` : ""}${l.url}`);
   }
   return linhas.join("\n");
 }

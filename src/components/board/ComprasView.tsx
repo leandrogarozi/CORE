@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { MicButton } from "./MicButton";
 import { TimePicker } from "./TimePicker";
+import { NoteField } from "./NoteField";
 import { BellIcon, CartIcon, ChevronIcon, SendIcon, TrashIcon, WhatsAppIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { compraPendente, textoDaLista } from "@/lib/board/compras";
@@ -25,6 +26,8 @@ function ItemCard({ item }: { item: ShoppingItem }) {
   const [aberto, setAberto] = useState(false);
   const [nome, setNome] = useState(item.name);
   const [novoLink, setNovoLink] = useState("");
+  const [novoTitulo, setNovoTitulo] = useState("");
+  const [nota, setNota] = useState(item.note);
   const hoje = todayISO();
   const pendente = item.kind === "desejo" || compraPendente(item, hoje);
   const temData = !!item.remindOn;
@@ -39,8 +42,9 @@ function ItemCard({ item }: { item: ShoppingItem }) {
     const l = novoLink.trim();
     if (!l) return;
     const url = /^https?:\/\//i.test(l) ? l : `https://${l}`;
-    board.updateShoppingItem(item.id, { links: [...item.links, url] });
+    board.updateShoppingItem(item.id, { links: [...item.links, { title: novoTitulo.trim(), url }] });
     setNovoLink("");
+    setNovoTitulo("");
   }
 
   const resumo = [
@@ -157,42 +161,73 @@ function ItemCard({ item }: { item: ShoppingItem }) {
             </div>
           )}
 
-          <label className="shop-campo">
+          <div className="shop-campo">
             <span className="shop-rotulo">Anotações</span>
-            <textarea
-              rows={3}
-              defaultValue={item.note}
+            <NoteField
+              value={nota}
               placeholder={item.kind === "desejo" ? "Por que quero, o que comparar, preço visto..." : "Marca, quantidade, onde comprar..."}
-              onBlur={(e) => e.target.value !== item.note && board.updateShoppingItem(item.id, { note: e.target.value })}
+              ariaLabel={`Anotações de ${item.name}`}
+              onChange={setNota}
+              onPersist={(html) => html !== item.note && board.updateShoppingItem(item.id, { note: html })}
             />
-          </label>
+          </div>
 
           <div className="shop-campo">
-            <span className="shop-rotulo">Links (loja, vídeo, avaliação)</span>
-            {item.links.map((l) => (
-              <div className="shop-link" key={l}>
-                <a href={l} target="_blank" rel="noopener noreferrer">
-                  {hostDe(l)}
+            <span className="shop-rotulo">Links, cada um com um título (Compra, Vídeo do produto, Avaliação...)</span>
+            {item.links.map((l, idx) => (
+              <div className="shop-link" key={`${l.url}-${idx}`}>
+                <input
+                  type="text"
+                  className="shop-link-titulo"
+                  defaultValue={l.title}
+                  placeholder="Título do link"
+                  aria-label="Título do link"
+                  onBlur={(e) => {
+                    const t = e.target.value.trim();
+                    if (t === l.title) return;
+                    board.updateShoppingItem(item.id, {
+                      links: item.links.map((x, k) => (k === idx ? { ...x, title: t } : x)),
+                    });
+                  }}
+                />
+                <a href={l.url} target="_blank" rel="noopener noreferrer">
+                  {hostDe(l.url)}
                 </a>
                 <button
                   type="button"
                   className="icon-btn danger-hover"
-                  aria-label={`Remover o link ${hostDe(l)}`}
-                  onClick={() => board.updateShoppingItem(item.id, { links: item.links.filter((x) => x !== l) })}
+                  aria-label={`Remover o link ${l.title || hostDe(l.url)}`}
+                  onClick={() => board.updateShoppingItem(item.id, { links: item.links.filter((_, k) => k !== idx) })}
                 >
                   ×
                 </button>
               </div>
             ))}
-            <input
-              type="text"
-              className="shop-novo-link"
-              placeholder="Colar um link e apertar Enter"
-              value={novoLink}
-              onChange={(e) => setNovoLink(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && addLink()}
-              onBlur={addLink}
-            />
+            <div className="shop-link-novo">
+              <div className="shop-link-sugestoes">
+                {["Compra", "Vídeo do produto", "Avaliação"].map((t) => (
+                  <button key={t} type="button" className="chip-btn" onClick={() => setNovoTitulo(t)}>
+                    {t}
+                  </button>
+                ))}
+              </div>
+              <input
+                type="text"
+                className="shop-novo-link"
+                placeholder="Título do novo link (ex.: Compra)"
+                value={novoTitulo}
+                onChange={(e) => setNovoTitulo(e.target.value)}
+              />
+              <input
+                type="text"
+                className="shop-novo-link"
+                placeholder="Colar o link e apertar Enter"
+                value={novoLink}
+                onChange={(e) => setNovoLink(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && addLink()}
+                onBlur={addLink}
+              />
+            </div>
           </div>
 
           {item.kind === "desejo" && (

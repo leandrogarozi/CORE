@@ -387,12 +387,17 @@ export interface Synapse {
 
 // Lista de compras (kind "compra") e lista de desejos (kind "desejo", as oportunidades
 // de compra: produto que quer comprar ou comparar um dia, com anotações e links).
+export interface ShoppingLink {
+  title: string; // ex.: "Compra", "Vídeo do produto", "Avaliação"
+  url: string;
+}
+
 export interface ShoppingItem {
   id: string;
   kind: "compra" | "desejo";
   name: string;
   note: string;
-  links: string[];
+  links: ShoppingLink[];
   done: boolean; // compra: já comprei
   doneOn: string | null;
   repeatDays: number | null; // relembrar de comprar X dias depois de comprar

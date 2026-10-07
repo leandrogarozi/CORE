@@ -1134,7 +1134,7 @@ export type Database = {
           id: string
           in_app: boolean
           kind: string
-          links: string[]
+          links: Json
           name: string
           note: string
           remind_on: string | null
@@ -1152,7 +1152,7 @@ export type Database = {
           id: string
           in_app?: boolean
           kind?: string
-          links?: string[]
+          links?: Json
           name: string
           note?: string
           remind_on?: string | null
@@ -1170,7 +1170,7 @@ export type Database = {
           id?: string
           in_app?: boolean
           kind?: string
-          links?: string[]
+          links?: Json
           name?: string
           note?: string
           remind_on?: string | null

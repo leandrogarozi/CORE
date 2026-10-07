@@ -29,6 +29,7 @@ import type {
   StudyPlan,
   Synapse,
   ShoppingItem,
+  ShoppingLink,
   Task,
   TaskSeries,
   TaskStatus,
@@ -541,13 +542,26 @@ export function synapseToInsertRow(sy: Synapse, userId: string): TablesInsert<"s
   };
 }
 
+/** Links gravados como texto puro (antes de terem título) viram link sem título. */
+function lerLinks(raw: unknown): ShoppingLink[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((x): ShoppingLink[] => {
+    if (typeof x === "string") return x ? [{ title: "", url: x }] : [];
+    if (x && typeof x === "object" && typeof (x as { url?: unknown }).url === "string") {
+      const o = x as { title?: unknown; url: string };
+      return [{ title: typeof o.title === "string" ? o.title : "", url: o.url }];
+    }
+    return [];
+  });
+}
+
 export function rowToShoppingItem(row: Tables<"shopping_items">): ShoppingItem {
   return {
     id: row.id,
     kind: row.kind === "desejo" ? "desejo" : "compra",
     name: row.name,
     note: row.note,
-    links: row.links ?? [],
+    links: lerLinks(row.links),
     done: row.done,
     doneOn: row.done_on,
     repeatDays: row.repeat_days,
@@ -567,7 +581,7 @@ export function shoppingToInsertRow(i: ShoppingItem, userId: string): TablesInse
     kind: i.kind,
     name: i.name,
     note: i.note,
-    links: i.links,
+    links: i.links as unknown as Json,
     done: i.done,
     done_on: i.doneOn,
     repeat_days: i.repeatDays,
@@ -583,7 +597,7 @@ export function shoppingToUpdateRow(i: Partial<ShoppingItem>): TablesUpdate<"sho
   const row: TablesUpdate<"shopping_items"> = {};
   if (i.name !== undefined) row.name = i.name;
   if (i.note !== undefined) row.note = i.note;
-  if (i.links !== undefined) row.links = i.links;
+  if (i.links !== undefined) row.links = i.links as unknown as Json;
   if (i.done !== undefined) row.done = i.done;
   if (i.doneOn !== undefined) row.done_on = i.doneOn;
   if (i.repeatDays !== undefined) row.repeat_days = i.repeatDays;
