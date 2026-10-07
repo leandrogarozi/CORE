@@ -97,7 +97,7 @@ export function TimerNudges() {
   const reminderBanners =
     nowMs !== null
       ? board.state.reminders
-          .filter((r) => !dismissedReminders.has(r.id) && isReminderAlerting(r, nowMs))
+          .filter((r) => r.inApp !== false && !dismissedReminders.has(r.id) && isReminderAlerting(r, nowMs))
           .map((r) => (
             <div className="timer-nudge" key={`reminder-${r.id}`}>
               <span className="timer-nudge-text">

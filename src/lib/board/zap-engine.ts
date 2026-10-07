@@ -172,6 +172,8 @@ export interface LembreteDeEtapa {
   campos: CamposDoLembrete;
   /** O zap do momento a que a etapa pertence. O push chega sempre. */
   whatsapp: boolean;
+  /** O sininho do momento: mostra também dentro do app (banner e agenda). */
+  inApp: boolean;
 }
 
 type ItemParaLembretes = {
@@ -183,6 +185,9 @@ type ItemParaLembretes = {
   whatsapp: boolean;
   whatsappBuy: boolean;
   whatsappOverdue: boolean;
+  appBuy: boolean;
+  appDo: boolean;
+  appOverdue: boolean;
   overdueFrom: string | null;
 };
 
@@ -223,13 +228,13 @@ export function lembretesDaManutencao(
   const saida: LembreteDeEtapa[] = [];
   const texto = item.note?.trim() || item.name;
   const base = { time: "09:00", repeat: "none" as const, weekDays: null, alertMinutesBefore: ANTECEDENCIA_PADRAO_MIN };
-  const adicionar = (etapa: EtapaDaManutencao, date: string, title: string, whatsapp: boolean) => {
+  const adicionar = (etapa: EtapaDaManutencao, date: string, title: string, whatsapp: boolean, inApp: boolean) => {
     if (date < hojeISO) return;
-    saida.push({ etapa, campos: { ...base, date, title }, whatsapp });
+    saida.push({ etapa, campos: { ...base, date, title }, whatsapp, inApp });
   };
 
   if (item.buyDaysBefore && item.buyDaysBefore > 0 && !item.boughtOn) {
-    adicionar("comprar", isoAddDays(dueDate, -item.buyDaysBefore), `Comprar para a manutenção: ${item.name}`, item.whatsappBuy);
+    adicionar("comprar", isoAddDays(dueDate, -item.buyDaysBefore), `Comprar para a manutenção: ${item.name}`, item.whatsappBuy, item.appBuy);
   }
 
   const antes = Math.max(0, item.alertDaysBefore);
@@ -238,10 +243,11 @@ export function lembretesDaManutencao(
       "antes",
       isoAddDays(dueDate, -antes),
       antes === 1 ? `Amanhã vence: ${texto}` : `Em ${antes} dias vence: ${texto}`,
-      item.whatsapp
+      item.whatsapp,
+      item.appDo
     );
   }
-  adicionar("hoje", dueDate, `Hoje vence: ${texto}`, item.whatsapp);
+  adicionar("hoje", dueDate, `Hoje vence: ${texto}`, item.whatsapp, item.appDo);
 
   const inicio = item.overdueFrom && item.overdueFrom > dueDate ? item.overdueFrom : dueDate;
   INSISTENCIA_DIAS_APOS_VENCER.forEach((dias, i) => {
@@ -251,7 +257,8 @@ export function lembretesDaManutencao(
       `vencido${i + 1}` as EtapaDaManutencao,
       date,
       `Venceu há ${atraso} ${plural(atraso, "dia", "dias")} e ainda não foi feito: ${texto}`,
-      item.whatsappOverdue
+      item.whatsappOverdue,
+      item.appOverdue
     );
   });
   return saida;

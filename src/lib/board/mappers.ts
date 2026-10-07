@@ -215,6 +215,9 @@ export function rowToMaintenanceItem(row: MaintenanceItemRow): MaintenanceItem {
     boughtOn: row.bought_on,
     whatsappBuy: row.whatsapp_buy ?? false,
     whatsappOverdue: row.whatsapp_overdue ?? false,
+    appBuy: row.app_buy ?? true,
+    appDo: row.app_do ?? true,
+    appOverdue: row.app_overdue ?? true,
     overdueFrom: row.overdue_from,
   };
 }
@@ -235,6 +238,9 @@ export function maintenanceItemToUpdateRow(i: Partial<MaintenanceItem>): TablesU
   if (i.boughtOn !== undefined) row.bought_on = i.boughtOn;
   if (i.whatsappBuy !== undefined) row.whatsapp_buy = i.whatsappBuy;
   if (i.whatsappOverdue !== undefined) row.whatsapp_overdue = i.whatsappOverdue;
+  if (i.appBuy !== undefined) row.app_buy = i.appBuy;
+  if (i.appDo !== undefined) row.app_do = i.appDo;
+  if (i.appOverdue !== undefined) row.app_overdue = i.appOverdue;
   if (i.overdueFrom !== undefined) row.overdue_from = i.overdueFrom;
   return row;
 }
@@ -583,6 +589,7 @@ export function rowToReminder(row: ReminderRow): Reminder {
     sourceKind: (row.source_kind as Reminder["sourceKind"]) ?? null,
     sourceId: row.source_id,
     sourceStage: row.source_stage,
+    inApp: row.in_app ?? true,
     whatsapp: row.whatsapp ?? true,
   };
 }
@@ -605,6 +612,7 @@ export function reminderToInsertRow(r: Reminder, userId: string): TablesInsert<"
     source_kind: r.sourceKind,
     source_id: r.sourceId,
     source_stage: r.sourceStage,
+    in_app: r.inApp ?? true,
     whatsapp: r.whatsapp,
   };
 }
@@ -625,6 +633,7 @@ export function reminderToUpdateRow(r: Partial<Reminder>): TablesUpdate<"reminde
   if (r.sourceKind !== undefined) row.source_kind = r.sourceKind;
   if (r.sourceId !== undefined) row.source_id = r.sourceId;
   if (r.sourceStage !== undefined) row.source_stage = r.sourceStage;
+  if (r.inApp !== undefined) row.in_app = r.inApp;
   if (r.whatsapp !== undefined) row.whatsapp = r.whatsapp;
   return row;
 }

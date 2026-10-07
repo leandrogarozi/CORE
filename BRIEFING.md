@@ -2106,6 +2106,7 @@ Queixa do Leandro: ao clicar em "Feito" de novo para ajustar uma data, o formul�
 - **Histórico**: cada linha ganhou **editar** e **apagar** (com confirmação), para limpar os repetidos que já existem.
 - **"Comprei"**: o ícone do WhatsApp da compra aparece **apagado e desativado** enquanto está comprado; o aviso de compra não sai mais. A preferência (zap ligado) fica guardada e volta no próximo ciclo, depois do "Feito". Se ele preferir que desligue de vez, trocar para `whatsappBuy:false` no clique.
 - **Layout**: "Avisar X dias antes" foi para dentro do bloco "Fazer" (o rótulo era cortado); a **mensagem do WhatsApp** aparece inteira, com quebra de linha (o `.prop-row-empilhada` não funcionava porque a linha é uma grade).
+- **Sininho e ícones no fim (07/10):** em cada momento (Comprar, Fazer, Venceu) os ícones ficam sempre no **fim da linha**: sininho (**aviso dentro do app**: banner e Agenda) e WhatsApp. O push no celular continua chegando sempre. O sininho é `app_buy`/`app_do`/`app_overdue` no item (padrão ligado) e `reminders.in_app`; desligado, o lembrete segue existindo para o celular mas some do banner e da Agenda (`TimerNudges`, `DayAgendaPanel`); a tela Lembretes continua mostrando tudo. O campo de dias ganhou frase: "Comprar [X] dias antes do vencimento:" e "Avisar [N] dias antes do vencimento:" (+ "e também no dia em que vence").
 - Conferência do backup (07/10): um arquivo por dia (04, 05 e 06/10), sem repetição de 15 em 15 minutos. A correção do servidor funcionou.
 
 ## Backup automático no computador do Leandro (03/10)

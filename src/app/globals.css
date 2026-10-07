@@ -2724,3 +2724,11 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .maint-history-actions{ margin-left:auto; display:inline-flex; gap:2px; flex:none; }
 .maint-history-actions .icon-btn{ width:24px; height:24px; }
 .maint-history-note{ white-space:normal; overflow:visible; text-overflow:clip; }
+
+/* Manutenção: ícones (sininho e WhatsApp) sempre no fim da linha de cada momento */
+.maint-momento-icones{ margin-left:auto; display:inline-flex; align-items:center; gap:4px; flex:none; }
+.maint-momento-texto{ flex:1 1 220px; }
+.maint-linha-dias{ display:flex; align-items:center; flex-wrap:wrap; gap:6px; color:var(--text); }
+.maint-linha-dias input{ width:54px; background:var(--surface); border:1px solid var(--border-strong); border-radius:7px; padding:4px 6px; font-size:12.5px; color:var(--text); }
+.maint-momento-dica{ font-size:11.5px; color:var(--text-faint); }
+.bell-btn.active{ color:var(--accent); }

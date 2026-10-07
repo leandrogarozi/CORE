@@ -138,6 +138,10 @@ export interface MaintenanceItem {
   whatsappBuy: boolean;
   // Momento "vencido": se passar do dia sem marcar "Feito", insiste 3 vezes.
   whatsappOverdue: boolean;
+  // Sininho de cada momento: mostrar o aviso também dentro do app (banner e agenda).
+  appBuy: boolean;
+  appDo: boolean;
+  appOverdue: boolean;
   overdueFrom: string | null; // "Lembrar de novo": a insistência recomeça a contar desta data
   lastDoneOn: string | null;
   lastDoneOdometer: number | null;
@@ -399,6 +403,8 @@ export interface Reminder {
   // Qual aviso do item de origem este lembrete é (manutenção: comprar, antes,
   // hoje, vencido1..3). Permite ao app atualizar cada um sem duplicar.
   sourceStage?: string | null;
+  // false = o aviso só vai pro celular (push/WhatsApp) e não aparece em banner nem na agenda do app.
+  inApp?: boolean;
   // Ícone do zap do lembrete. Nasce LIGADO: antes dele, todo lembrete com aviso
   // já ia pro WhatsApp, e desligar por padrão silenciaria tudo sem ninguém pedir.
   whatsapp: boolean;

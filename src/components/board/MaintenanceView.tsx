@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
 import { MicButton } from "./MicButton";
-import { CarIcon, CheckIcon, ChevronIcon, EditIcon, HomeIcon, TrashIcon, WarningIcon, WhatsAppIcon } from "./icons";
+import { BellIcon, CarIcon, CheckIcon, ChevronIcon, EditIcon, HomeIcon, TrashIcon, WarningIcon, WhatsAppIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import {
   MAINTENANCE_SUGGESTIONS,
@@ -332,48 +332,36 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
           <div className="maint-momentos">
             <div className="maint-momentos-titulo">Quando o FARO avisa</div>
             <div className="maint-explain">
-              O aviso no celular (push) chega sempre. O ícone do WhatsApp liga o aviso também por lá, momento a momento.
+              O aviso no celular (push) chega sempre. Em cada momento, o sininho liga o aviso também dentro do app e o
+              WhatsApp liga por lá.
             </div>
 
             <div className="maint-momento">
               <div className="maint-momento-texto">
                 <strong>Comprar</strong>
-                <span>
+                <span className="maint-linha-dias">
+                  Comprar
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="—"
+                    aria-label="Dias antes do vencimento para avisar da compra"
+                    defaultValue={item.buyDaysBefore ?? ""}
+                    onBlur={(e) => {
+                      const v = Number(e.target.value);
+                      board.updateMaintenanceItem(item.id, { buyDaysBefore: Number.isFinite(v) && v > 0 ? Math.round(v) : null });
+                    }}
+                  />
+                  dias antes do vencimento:
+                </span>
+                <span className="maint-momento-dica">
                   {item.buyDaysBefore
                     ? st.dueDate
-                      ? `Avisa em ${fmtShortDate(isoAddDays(st.dueDate, -item.buyDaysBefore))}, ${item.buyDaysBefore} dia(s) antes de vencer.`
-                      : `Avisa ${item.buyDaysBefore} dia(s) antes de vencer.`
-                    : "Só pra item que precisa de peça ou compra (filtro, por exemplo). Preencha os dias pra ativar."}
+                      ? `avisa em ${fmtShortDate(isoAddDays(st.dueDate, -item.buyDaysBefore))}.`
+                      : "avisa quando houver uma data de vencimento."
+                    : "Só pra item que precisa de peça ou compra (filtro, por exemplo). Vazio = sem aviso de compra."}
                 </span>
               </div>
-              <label className="maint-momento-dias">
-                <input
-                  type="number"
-                  min={0}
-                  placeholder="dias"
-                  aria-label="Dias antes para avisar da compra"
-                  defaultValue={item.buyDaysBefore ?? ""}
-                  onBlur={(e) => {
-                    const v = Number(e.target.value);
-                    board.updateMaintenanceItem(item.id, { buyDaysBefore: Number.isFinite(v) && v > 0 ? v : null });
-                  }}
-                />
-              </label>
-              <button
-                type="button"
-                className={"icon-btn zap-btn" + (item.whatsappBuy && item.buyDaysBefore && !item.boughtOn ? " active" : "")}
-                disabled={!item.buyDaysBefore || !!item.boughtOn}
-                title={
-                  item.boughtOn
-                    ? "Já comprado: não avisa mais. No próximo ciclo o aviso volta sozinho, se estiver ligado."
-                    : item.whatsappBuy
-                      ? "Aviso de compra também no WhatsApp. Clique pra desligar."
-                      : "Avisar a compra também no WhatsApp"
-                }
-                onClick={() => board.updateMaintenanceItem(item.id, { whatsappBuy: !item.whatsappBuy })}
-              >
-                <WhatsAppIcon filled={!!(item.whatsappBuy && item.buyDaysBefore && !item.boughtOn)} />
-              </button>
               {item.buyDaysBefore ? (
                 item.boughtOn ? (
                   <button
@@ -394,54 +382,85 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
                   </button>
                 )
               ) : null}
+              <span className="maint-momento-icones">
+                <button
+                  type="button"
+                  className={"icon-btn bell-btn" + (item.appBuy && item.buyDaysBefore && !item.boughtOn ? " active" : "")}
+                  disabled={!item.buyDaysBefore || !!item.boughtOn}
+                  title={item.appBuy ? "Aviso de compra também dentro do app. Clique pra desligar." : "Avisar a compra também dentro do app"}
+                  aria-label="Sininho: aviso de compra dentro do app"
+                  onClick={() => board.updateMaintenanceItem(item.id, { appBuy: !item.appBuy })}
+                >
+                  <BellIcon filled={!!(item.appBuy && item.buyDaysBefore && !item.boughtOn)} />
+                </button>
+                <button
+                  type="button"
+                  className={"icon-btn zap-btn" + (item.whatsappBuy && item.buyDaysBefore && !item.boughtOn ? " active" : "")}
+                  disabled={!item.buyDaysBefore || !!item.boughtOn}
+                  title={
+                    item.boughtOn
+                      ? "Já comprado: não avisa mais. No próximo ciclo o aviso volta sozinho, se estiver ligado."
+                      : item.whatsappBuy
+                        ? "Aviso de compra também no WhatsApp. Clique pra desligar."
+                        : "Avisar a compra também no WhatsApp"
+                  }
+                  onClick={() => board.updateMaintenanceItem(item.id, { whatsappBuy: !item.whatsappBuy })}
+                >
+                  <WhatsAppIcon filled={!!(item.whatsappBuy && item.buyDaysBefore && !item.boughtOn)} />
+                </button>
+              </span>
             </div>
 
             <div className="maint-momento">
               <div className="maint-momento-texto">
                 <strong>Fazer</strong>
-                <span>Avisa no dia em que vence e, se quiser, também alguns dias antes (campo ao lado).</span>
+                <span className="maint-linha-dias">
+                  Avisar
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="—"
+                    aria-label="Dias antes do vencimento para avisar"
+                    defaultValue={item.alertDaysBefore}
+                    onBlur={(e) => {
+                      const v = Number(e.target.value);
+                      if (Number.isFinite(v) && v >= 0) board.updateMaintenanceItem(item.id, { alertDaysBefore: Math.round(v) });
+                    }}
+                  />
+                  dias antes do vencimento:
+                </span>
+                <span className="maint-momento-dica">e também no dia em que vence.</span>
               </div>
-              <label className="maint-momento-dias">
-                <input
-                  type="number"
-                  min={0}
-                  placeholder="dias"
-                  aria-label="Dias antes do vencimento para avisar"
-                  defaultValue={item.alertDaysBefore}
-                  onBlur={(e) => {
-                    const v = Number(e.target.value);
-                    if (Number.isFinite(v) && v >= 0) board.updateMaintenanceItem(item.id, { alertDaysBefore: Math.round(v) });
-                  }}
-                />
-              </label>
-              <button
-                type="button"
-                className={"icon-btn zap-btn" + (item.whatsapp && st.dueDate ? " active" : "")}
-                disabled={!st.dueDate}
-                title={item.whatsapp ? "Aviso de fazer também no WhatsApp. Clique pra desligar." : "Avisar também no WhatsApp"}
-                onClick={() => board.setMaintenanceWhatsapp(item.id, !item.whatsapp)}
-              >
-                <WhatsAppIcon filled={!!(item.whatsapp && st.dueDate)} />
-              </button>
+              <span className="maint-momento-icones">
+                <button
+                  type="button"
+                  className={"icon-btn bell-btn" + (item.appDo ? " active" : "")}
+                  title={item.appDo ? "Aviso de fazer também dentro do app. Clique pra desligar." : "Avisar também dentro do app"}
+                  aria-label="Sininho: aviso de fazer dentro do app"
+                  onClick={() => board.updateMaintenanceItem(item.id, { appDo: !item.appDo })}
+                >
+                  <BellIcon filled={item.appDo} />
+                </button>
+                <button
+                  type="button"
+                  className={"icon-btn zap-btn" + (item.whatsapp && st.dueDate ? " active" : "")}
+                  disabled={!st.dueDate}
+                  title={item.whatsapp ? "Aviso de fazer também no WhatsApp. Clique pra desligar." : "Avisar também no WhatsApp"}
+                  onClick={() => board.setMaintenanceWhatsapp(item.id, !item.whatsapp)}
+                >
+                  <WhatsAppIcon filled={!!(item.whatsapp && st.dueDate)} />
+                </button>
+              </span>
             </div>
 
             <div className="maint-momento">
               <div className="maint-momento-texto">
                 <strong>Venceu e não fiz</strong>
-                <span>
+                <span className="maint-momento-dica">
                   Insiste 3 vezes: no dia seguinte, 2 dias depois e mais 4 dias depois. Para quando você marca
                   &quot;Feito&quot;.
                 </span>
               </div>
-              <button
-                type="button"
-                className={"icon-btn zap-btn" + (item.whatsappOverdue && st.dueDate ? " active" : "")}
-                disabled={!st.dueDate}
-                title={item.whatsappOverdue ? "A insistência também vai pro WhatsApp. Clique pra desligar." : "Insistir também no WhatsApp"}
-                onClick={() => board.updateMaintenanceItem(item.id, { whatsappOverdue: !item.whatsappOverdue })}
-              >
-                <WhatsAppIcon filled={!!(item.whatsappOverdue && st.dueDate)} />
-              </button>
               {st.state === "vencido" && (
                 <button
                   type="button"
@@ -452,6 +471,26 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
                   Lembrar de novo
                 </button>
               )}
+              <span className="maint-momento-icones">
+                <button
+                  type="button"
+                  className={"icon-btn bell-btn" + (item.appOverdue ? " active" : "")}
+                  title={item.appOverdue ? "A insistência também aparece dentro do app. Clique pra desligar." : "Insistir também dentro do app"}
+                  aria-label="Sininho: insistência dentro do app"
+                  onClick={() => board.updateMaintenanceItem(item.id, { appOverdue: !item.appOverdue })}
+                >
+                  <BellIcon filled={item.appOverdue} />
+                </button>
+                <button
+                  type="button"
+                  className={"icon-btn zap-btn" + (item.whatsappOverdue && st.dueDate ? " active" : "")}
+                  disabled={!st.dueDate}
+                  title={item.whatsappOverdue ? "A insistência também vai pro WhatsApp. Clique pra desligar." : "Insistir também no WhatsApp"}
+                  onClick={() => board.updateMaintenanceItem(item.id, { whatsappOverdue: !item.whatsappOverdue })}
+                >
+                  <WhatsAppIcon filled={!!(item.whatsappOverdue && st.dueDate)} />
+                </button>
+              </span>
             </div>
           </div>
 

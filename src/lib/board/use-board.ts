@@ -1765,6 +1765,9 @@ export function useBoard(userId: string | null) {
         boughtOn: null,
         whatsappBuy: false,
         whatsappOverdue: false,
+        appBuy: true,
+        appDo: true,
+        appOverdue: true,
         overdueFrom: null,
         order: stateRef.current.maintenanceItems.filter((i) => i.assetId === assetId).length,
       };
@@ -1849,17 +1852,24 @@ export function useBoard(userId: string | null) {
             sourceId: itemId,
             sourceStage: d.etapa,
             whatsapp: d.whatsapp,
+            inApp: d.inApp,
           });
           continue;
         }
         const novaData = ja.date !== d.campos.date || ja.time !== d.campos.time;
-        if (novaData || ja.title !== d.campos.title || ja.whatsapp !== d.whatsapp) {
+        if (
+          novaData ||
+          ja.title !== d.campos.title ||
+          ja.whatsapp !== d.whatsapp ||
+          (ja.inApp ?? true) !== d.inApp
+        ) {
           mudancas.set(ja.id, {
             title: d.campos.title,
             date: d.campos.date,
             time: d.campos.time,
             alertMinutesBefore: d.campos.alertMinutesBefore,
             whatsapp: d.whatsapp,
+            inApp: d.inApp,
             // Outra data é outra ocorrência: tem que poder avisar de novo.
             ...(novaData ? { done: false, status: "pending" as const } : {}),
           });

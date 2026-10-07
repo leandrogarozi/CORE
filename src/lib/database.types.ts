@@ -466,6 +466,9 @@ export type Database = {
           bought_on: string | null
           whatsapp_buy: boolean
           whatsapp_overdue: boolean
+          app_buy: boolean
+          app_do: boolean
+          app_overdue: boolean
           overdue_from: string | null
           sort_order: number
           user_id: string
@@ -489,6 +492,9 @@ export type Database = {
           bought_on?: string | null
           whatsapp_buy?: boolean
           whatsapp_overdue?: boolean
+          app_buy?: boolean
+          app_do?: boolean
+          app_overdue?: boolean
           overdue_from?: string | null
           sort_order?: number
           user_id: string
@@ -512,6 +518,9 @@ export type Database = {
           bought_on?: string | null
           whatsapp_buy?: boolean
           whatsapp_overdue?: boolean
+          app_buy?: boolean
+          app_do?: boolean
+          app_overdue?: boolean
           overdue_from?: string | null
           sort_order?: number
           user_id?: string
@@ -658,6 +667,7 @@ export type Database = {
           source_id: string | null
           source_kind: string | null
           source_stage: string | null
+          in_app: boolean
           task_id: string | null
           title: string
           user_id: string
@@ -680,6 +690,7 @@ export type Database = {
           source_id?: string | null
           source_kind?: string | null
           source_stage?: string | null
+          in_app?: boolean
           task_id?: string | null
           title: string
           user_id: string
@@ -702,6 +713,7 @@ export type Database = {
           source_id?: string | null
           source_kind?: string | null
           source_stage?: string | null
+          in_app?: boolean
           task_id?: string | null
           title?: string
           user_id?: string

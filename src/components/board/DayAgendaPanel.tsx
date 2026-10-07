@@ -61,7 +61,9 @@ export function DayAgendaPanel({
 
   // "Venceu e não fiz" é contingência (só acontece se o item passar do dia sem
   // "Feito"): fica fora da agenda pra não aparecer em dias que talvez nem cheguem.
-  const naAgenda = board.state.reminders.filter((r) => !r.sourceStage?.startsWith("vencido"));
+  const naAgenda = board.state.reminders.filter(
+    (r) => !r.sourceStage?.startsWith("vencido") && r.inApp !== false
+  );
   const lembretesComHora: Item[] = naAgenda
     .filter((r) => !r.deletedAt && !r.done && r.date && r.time)
     .map((r) => ({
