@@ -5,7 +5,7 @@ import { useBoardCtx } from "./board-context";
 import { MicButton } from "./MicButton";
 import { TimePicker } from "./TimePicker";
 import { NoteField } from "./NoteField";
-import { BellIcon, CartIcon, ChevronIcon, SendIcon, TrashIcon, WhatsAppIcon } from "./icons";
+import { BellIcon, CartIcon, ChevronIcon, HeartIcon, SendIcon, TrashIcon, WhatsAppIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { compraPendente, textoDaLista } from "@/lib/board/compras";
 import { fmtShortDate, todayISO } from "@/lib/date-utils";
@@ -72,8 +72,8 @@ function ItemCard({ item }: { item: ShoppingItem }) {
             onChange={(e) => board.toggleShoppingBought(item.id, e.target.checked)}
           />
         ) : (
-          <span className="shop-star" aria-hidden="true">
-            ★
+          <span className="shop-star ico-desejo" aria-hidden="true">
+            <HeartIcon filled />
           </span>
         )}
         <input
@@ -337,6 +337,9 @@ function Listas({ aba, onAbrir }: { aba: Aba; onAbrir: (id: string) => void }) {
           const pend = itens.filter((i) => aba === "desejo" || compraPendente(i, hoje)).length;
           return (
             <button key={l.id} type="button" className="shop-lista-card" onClick={() => onAbrir(l.id)}>
+              <span className={"shop-lista-ico " + (aba === "compra" ? "ico-compra" : "ico-desejo")} aria-hidden="true">
+                {aba === "compra" ? <CartIcon /> : <HeartIcon filled />}
+              </span>
               <span className="shop-lista-nome">{l.name}</span>
               <span className="shop-resumo">
                 {pend} {aba === "compra" ? (pend === 1 ? "item pra comprar" : "itens pra comprar") : pend === 1 ? "produto" : "produtos"}
@@ -396,6 +399,9 @@ function ListaAberta({ listaId, onVoltar }: { listaId: string; onVoltar: () => v
         <button type="button" className="btn btn-ghost" onClick={onVoltar}>
           ‹ Listas
         </button>
+        <span className={"shop-lista-ico " + (aba === "compra" ? "ico-compra" : "ico-desejo")} aria-hidden="true">
+          {aba === "compra" ? <CartIcon /> : <HeartIcon filled />}
+        </span>
         <input
           type="text"
           className="shop-lista-titulo"
@@ -500,9 +506,15 @@ export function ComprasView({ onBack }: { onBack: () => void }) {
         {!aberta && (
           <div className="view-toggle">
             <button type="button" className={"view-toggle-btn" + (aba === "compra" ? " active" : "")} onClick={() => setAba("compra")}>
+              <span className="ico-compra">
+                <CartIcon />
+              </span>{" "}
               Listas de compras ({totalCompra})
             </button>
             <button type="button" className={"view-toggle-btn" + (aba === "desejo" ? " active" : "")} onClick={() => setAba("desejo")}>
+              <span className="ico-desejo">
+                <HeartIcon filled />
+              </span>{" "}
               Listas de desejos ({totalDesejo})
             </button>
           </div>

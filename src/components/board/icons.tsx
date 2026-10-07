@@ -252,6 +252,20 @@ export function WarningIcon() {
   );
 }
 
+export function HeartIcon({ filled }: { filled?: boolean } = {}) {
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" fill={filled ? "currentColor" : "none"}>
+      <path
+        d="M12 20.5C12 20.5 3.5 15.4 3.5 9.2C3.5 6.5 5.6 4.5 8.1 4.5C9.7 4.5 11.1 5.3 12 6.7C12.9 5.3 14.3 4.5 15.9 4.5C18.4 4.5 20.5 6.5 20.5 9.2C20.5 15.4 12 20.5 12 20.5Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function CartIcon() {
   return (
     <svg viewBox="0 0 24 24" width="13" height="13" fill="none">

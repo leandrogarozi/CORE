@@ -2786,3 +2786,9 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .shop-lista-titulo{ flex:1; min-width:0; background:transparent; border:1px solid transparent; border-radius:8px; padding:5px 8px; font-size:16px; font-weight:700; color:var(--text); }
 .shop-lista-titulo:hover{ background:var(--surface-2); border-color:var(--border); }
 .shop-lista-titulo:focus{ outline:none; background:var(--surface-2); border-color:var(--accent); }
+
+/* Compras: carrinho verde e coração vermelho para diferenciar os dois tipos de lista */
+.ico-compra{ color:var(--success, #2F9E44); display:inline-flex; vertical-align:middle; }
+.ico-desejo{ color:#E5484D; display:inline-flex; vertical-align:middle; }
+.shop-lista-ico{ flex:none; display:inline-flex; }
+.shop-lista-ico svg, .view-toggle-btn .ico-compra svg, .view-toggle-btn .ico-desejo svg{ width:15px; height:15px; }
