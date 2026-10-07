@@ -2777,3 +2777,12 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .shop-link-sugestoes{ display:flex; gap:6px; flex-wrap:wrap; }
 .chip-btn{ border:1px solid var(--border-strong); background:var(--surface); color:var(--text-muted); border-radius:var(--r-full, 999px); padding:3px 10px; font-size:11.5px; cursor:pointer; }
 .chip-btn:hover{ border-color:var(--accent); color:var(--accent); }
+
+.shop-lista-card{ display:flex; align-items:center; gap:10px; width:100%; text-align:left; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 14px; cursor:pointer; }
+.shop-lista-card:hover{ border-color:var(--accent); }
+.shop-lista-nome{ font-size:14px; font-weight:700; color:var(--text); flex:1; min-width:0; }
+.shop-lista-seta{ color:var(--text-faint); font-size:18px; }
+.shop-lista-topo{ display:flex; align-items:center; gap:8px; }
+.shop-lista-titulo{ flex:1; min-width:0; background:transparent; border:1px solid transparent; border-radius:8px; padding:5px 8px; font-size:16px; font-weight:700; color:var(--text); }
+.shop-lista-titulo:hover{ background:var(--surface-2); border-color:var(--border); }
+.shop-lista-titulo:focus{ outline:none; background:var(--surface-2); border-color:var(--accent); }

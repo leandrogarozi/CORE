@@ -24,6 +24,7 @@ import {
   rowToBook,
   rowToSynapse,
   rowToShoppingItem,
+  rowToShoppingList,
   shoppingToInsertRow,
   shoppingToUpdateRow,
   synapseToInsertRow,
@@ -100,6 +101,7 @@ import type {
   Settings,
   Synapse,
   ShoppingItem,
+  ShoppingList,
   Task,
   TaskSeries,
   TaskStatus,
@@ -126,6 +128,7 @@ const EMPTY_STATE: BoardState = {
   books: [],
   synapses: [],
   shoppingItems: [],
+  shoppingLists: [],
   reminders: [],
   trashedReminders: [],
   medications: [],
@@ -236,6 +239,7 @@ export function useBoard(userId: string | null) {
       booksRes,
       synapsesRes,
       shoppingRes,
+      shoppingListsRes,
       remindersRes,
       trashedRemindersRes,
       medicationsRes,
@@ -267,6 +271,7 @@ export function useBoard(userId: string | null) {
       supabase.from("books").select("*").order("created_at"),
       supabase.from("synapses").select("*").is("deleted_at", null).order("created_at", { ascending: false }),
       supabase.from("shopping_items").select("*").is("deleted_at", null).order("sort_order"),
+      supabase.from("shopping_lists").select("*").is("deleted_at", null).order("sort_order"),
       supabase.from("reminders").select("*").is("deleted_at", null).order("created_at"),
       supabase.from("reminders").select("*").not("deleted_at", "is", null),
       supabase.from("medications").select("*").order("created_at"),
@@ -305,6 +310,7 @@ export function useBoard(userId: string | null) {
       books: (booksRes.data ?? []).map(rowToBook),
       synapses: (synapsesRes.data ?? []).map(rowToSynapse),
       shoppingItems: (shoppingRes.data ?? []).map(rowToShoppingItem),
+      shoppingLists: (shoppingListsRes.data ?? []).map(rowToShoppingList),
       reminders: (remindersRes.data ?? []).map(rowToReminder),
       trashedReminders: (trashedRemindersRes.data ?? []).map(rowToReminder),
       medications: (medicationsRes.data ?? []).map(rowToMedication),
@@ -2215,10 +2221,11 @@ export function useBoard(userId: string | null) {
   );
 
   const addShoppingItem = useCallback(
-    async (kind: ShoppingItem["kind"], name: string): Promise<string | null> => {
+    async (kind: ShoppingItem["kind"], name: string, listId: string | null): Promise<string | null> => {
       if (!userId || !name.trim()) return null;
       const item: ShoppingItem = {
         id: uid(),
+        listId,
         kind,
         name: name.trim(),
         note: "",
@@ -2267,6 +2274,63 @@ export function useBoard(userId: string | null) {
       updateShoppingItem(id, aoMarcarComprado(item, todayISO(), comprou));
     },
     [updateShoppingItem]
+  );
+
+  const addShoppingList = useCallback(
+    async (kind: ShoppingList["kind"], name: string): Promise<string | null> => {
+      if (!userId || !name.trim()) return null;
+      const lista: ShoppingList = {
+        id: uid(),
+        kind,
+        name: name.trim(),
+        order: stateRef.current.shoppingLists.length,
+      };
+      apply((st) => ({ ...st, shoppingLists: [...st.shoppingLists, lista] }));
+      const { error } = await supabase
+        .from("shopping_lists")
+        .insert({ id: lista.id, user_id: userId, kind, name: lista.name, sort_order: lista.order });
+      if (error) {
+        reportSaveError("addShoppingList", error);
+        apply((st) => ({ ...st, shoppingLists: st.shoppingLists.filter((l) => l.id !== lista.id) }));
+        return null;
+      }
+      return lista.id;
+    },
+    [apply, supabase, userId]
+  );
+
+  const renameShoppingList = useCallback(
+    (id: string, name: string) => {
+      const n = name.trim();
+      if (!n) return;
+      apply((st) => ({ ...st, shoppingLists: st.shoppingLists.map((l) => (l.id === id ? { ...l, name: n } : l)) }));
+      supabase.from("shopping_lists").update({ name: n }).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("renameShoppingList", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  /** Apaga a lista e os itens dela (apagar suave, como no resto do app). */
+  const deleteShoppingList = useCallback(
+    (id: string) => {
+      const itens = stateRef.current.shoppingItems.filter((i) => i.listId === id);
+      const agora = new Date().toISOString();
+      apply((st) => ({
+        ...st,
+        shoppingLists: st.shoppingLists.filter((l) => l.id !== id),
+        shoppingItems: st.shoppingItems.filter((i) => i.listId !== id),
+      }));
+      supabase.from("shopping_lists").update({ deleted_at: agora }).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("deleteShoppingList", error);
+      });
+      supabase.from("shopping_items").update({ deleted_at: agora }).eq("list_id", id).then(({ error }) => {
+        if (error) reportSaveError("deleteShoppingList: itens", error);
+      });
+      // Os lembretes dos itens apagados saem junto.
+      for (const i of itens) sincronizarLembreteDaCompra(i.id);
+    },
+    [apply, sincronizarLembreteDaCompra, supabase]
   );
 
   const deleteShoppingItem = useCallback(
@@ -3573,6 +3637,9 @@ export function useBoard(userId: string | null) {
     deleteTaskStatus,
     reorderTaskStatuses,
     addShoppingItem,
+    addShoppingList,
+    renameShoppingList,
+    deleteShoppingList,
     updateShoppingItem,
     toggleShoppingBought,
     deleteShoppingItem,

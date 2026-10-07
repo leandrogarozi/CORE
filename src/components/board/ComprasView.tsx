@@ -27,6 +27,8 @@ function ItemCard({ item }: { item: ShoppingItem }) {
   const [nome, setNome] = useState(item.name);
   const [novoLink, setNovoLink] = useState("");
   const [novoTitulo, setNovoTitulo] = useState("");
+  const [tituloPronto, setTituloPronto] = useState(false);
+  const [sugestoes, setSugestoes] = useState(false);
   const [nota, setNota] = useState(item.note);
   const hoje = todayISO();
   const pendente = item.kind === "desejo" || compraPendente(item, hoje);
@@ -45,6 +47,8 @@ function ItemCard({ item }: { item: ShoppingItem }) {
     board.updateShoppingItem(item.id, { links: [...item.links, { title: novoTitulo.trim(), url }] });
     setNovoLink("");
     setNovoTitulo("");
+    setTituloPronto(false);
+    setSugestoes(false);
   }
 
   const resumo = [
@@ -204,29 +208,58 @@ function ItemCard({ item }: { item: ShoppingItem }) {
               </div>
             ))}
             <div className="shop-link-novo">
-              <div className="shop-link-sugestoes">
-                {["Compra", "Vídeo do produto", "Avaliação"].map((t) => (
-                  <button key={t} type="button" className="chip-btn" onClick={() => setNovoTitulo(t)}>
-                    {t}
-                  </button>
-                ))}
-              </div>
+              <span className="shop-rotulo">Nome do link:</span>
               <input
                 type="text"
                 className="shop-novo-link"
-                placeholder="Título do novo link (ex.: Compra)"
+                placeholder="Toque e escolha (vídeo, link de compra...) ou escreva"
                 value={novoTitulo}
-                onChange={(e) => setNovoTitulo(e.target.value)}
+                onFocus={() => setSugestoes(true)}
+                onChange={(e) => {
+                  setNovoTitulo(e.target.value);
+                  setTituloPronto(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && novoTitulo.trim()) {
+                    setTituloPronto(true);
+                    setSugestoes(false);
+                  }
+                }}
+                onBlur={() => {
+                  if (novoTitulo.trim()) setTituloPronto(true);
+                }}
               />
-              <input
-                type="text"
-                className="shop-novo-link"
-                placeholder="Colar o link e apertar Enter"
-                value={novoLink}
-                onChange={(e) => setNovoLink(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && addLink()}
-                onBlur={addLink}
-              />
+              {sugestoes && !tituloPronto && (
+                <div className="shop-link-sugestoes">
+                  {["Vídeo do produto", "Link de compra", "Avaliação", "Site do fabricante"].map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      className="chip-btn"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        setNovoTitulo(t);
+                        setTituloPronto(true);
+                        setSugestoes(false);
+                      }}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {tituloPronto && novoTitulo.trim() && (
+                <input
+                  type="text"
+                  className="shop-novo-link"
+                  autoFocus
+                  placeholder={`Colar o link de “${novoTitulo.trim()}” e apertar Enter`}
+                  value={novoLink}
+                  onChange={(e) => setNovoLink(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addLink()}
+                  onBlur={addLink}
+                />
+              )}
             </div>
           </div>
 
@@ -235,7 +268,12 @@ function ItemCard({ item }: { item: ShoppingItem }) {
               <button
                 type="button"
                 className="btn btn-ghost"
-                onClick={() => board.updateShoppingItem(item.id, { kind: "compra", done: false, doneOn: null })}
+                onClick={async () => {
+                  const lista =
+                    board.state.shoppingLists.find((l) => l.kind === "compra")?.id ??
+                    (await board.addShoppingList("compra", "Lista de compras"));
+                  board.updateShoppingItem(item.id, { kind: "compra", listId: lista, done: false, doneOn: null });
+                }}
               >
                 <CartIcon /> Passar pra lista de compras
               </button>
@@ -247,32 +285,206 @@ function ItemCard({ item }: { item: ShoppingItem }) {
   );
 }
 
-export function ComprasView({ onBack }: { onBack: () => void }) {
+function Listas({ aba, onAbrir }: { aba: Aba; onAbrir: (id: string) => void }) {
   const { board } = useBoardCtx();
-  const { wide } = useWideLayout("faro-wide-layout");
-  const [aba, setAba] = useState<Aba>("compra");
+  const [novaLista, setNovaLista] = useState("");
+  const hoje = todayISO();
+  const listas = board.state.shoppingLists.filter((l) => l.kind === aba);
+
+  async function criar() {
+    const n = novaLista.trim();
+    if (!n) return;
+    setNovaLista("");
+    const id = await board.addShoppingList(aba, n);
+    if (id) onAbrir(id);
+    else setNovaLista(n);
+  }
+
+  return (
+    <>
+      <div className="synapse-intro" style={{ marginTop: 12 }}>
+        <p>
+          {aba === "compra"
+            ? "Crie uma lista (Supermercado, Casa, Farmácia...), abra e cadastre os produtos pra montar a lista."
+            : "Crie listas de desejo (Tecnologia, Casa, Presentes...) e, dentro de cada uma, os produtos que quer comprar ou comparar um dia, com anotações e links."}
+        </p>
+      </div>
+      <div className="list-card">
+        <div className="quickadd-row">
+          <span className="quickadd-plus" aria-hidden="true">
+            +
+          </span>
+          <input
+            type="text"
+            className="quickadd-input"
+            placeholder="+ Nome da nova lista e pressionar Enter"
+            value={novaLista}
+            onChange={(e) => setNovaLista(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && criar()}
+            onBlur={criar}
+          />
+          <MicButton onText={(t) => setNovaLista((v) => (v ? `${v} ${t}` : t))} ariaLabel="Ditar o nome da lista" />
+        </div>
+      </div>
+      {!listas.length && (
+        <div className="list-card">
+          <div className="hp-empty">Nenhuma lista ainda. Comece dando um nome pra primeira.</div>
+        </div>
+      )}
+      <div className="shop-list">
+        {listas.map((l) => {
+          const itens = board.state.shoppingItems.filter((i) => i.listId === l.id);
+          const pend = itens.filter((i) => aba === "desejo" || compraPendente(i, hoje)).length;
+          return (
+            <button key={l.id} type="button" className="shop-lista-card" onClick={() => onAbrir(l.id)}>
+              <span className="shop-lista-nome">{l.name}</span>
+              <span className="shop-resumo">
+                {pend} {aba === "compra" ? (pend === 1 ? "item pra comprar" : "itens pra comprar") : pend === 1 ? "produto" : "produtos"}
+              </span>
+              <span className="shop-lista-seta" aria-hidden="true">
+                ›
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+function ListaAberta({ listaId, onVoltar }: { listaId: string; onVoltar: () => void }) {
+  const { board, askConfirm } = useBoardCtx();
+  const lista = board.state.shoppingLists.find((l) => l.id === listaId);
   const [novo, setNovo] = useState("");
+  const [nome, setNome] = useState(lista?.name ?? "");
   const [verComprados, setVerComprados] = useState(false);
   const hoje = todayISO();
-
-  const todos = board.state.shoppingItems;
-  const daAba = todos.filter((i) => i.kind === aba);
-  const pendentes = daAba.filter((i) => aba === "desejo" || compraPendente(i, hoje));
-  const comprados = daAba.filter((i) => aba === "compra" && !compraPendente(i, hoje));
-  const totalCompra = todos.filter((i) => i.kind === "compra" && compraPendente(i, hoje)).length;
-  const totalDesejo = todos.filter((i) => i.kind === "desejo").length;
+  if (!lista) {
+    return (
+      <div className="list-card">
+        <div className="hp-empty">Essa lista não existe mais.</div>
+        <button type="button" className="btn btn-ghost" onClick={onVoltar}>
+          Voltar às listas
+        </button>
+      </div>
+    );
+  }
+  const aba = lista.kind;
+  const itens = board.state.shoppingItems.filter((i) => i.listId === lista.id);
+  const pendentes = itens.filter((i) => aba === "desejo" || compraPendente(i, hoje));
+  const comprados = itens.filter((i) => aba === "compra" && !compraPendente(i, hoje));
 
   async function adicionar() {
     const n = novo.trim();
     if (!n) return;
     setNovo("");
-    const id = await board.addShoppingItem(aba, n);
+    const id = await board.addShoppingItem(aba, n, lista!.id);
     if (!id) setNovo(n);
   }
 
   function enviarWhatsApp() {
-    window.open(`https://wa.me/?text=${encodeURIComponent(textoDaLista(todos, aba, hoje))}`, "_blank", "noopener,noreferrer");
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(textoDaLista(itens, aba, hoje, lista!.name))}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
   }
+
+  return (
+    <>
+      <div className="shop-lista-topo">
+        <button type="button" className="btn btn-ghost" onClick={onVoltar}>
+          ‹ Listas
+        </button>
+        <input
+          type="text"
+          className="shop-lista-titulo"
+          value={nome}
+          aria-label="Nome da lista"
+          onChange={(e) => setNome(e.target.value)}
+          onBlur={() => (nome.trim() ? board.renameShoppingList(lista.id, nome) : setNome(lista.name))}
+          onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+        />
+        <button
+          type="button"
+          className="icon-btn danger-hover"
+          title="Excluir a lista"
+          onClick={() =>
+            askConfirm(`Excluir a lista "${lista.name}" e os ${itens.length} item(ns) dela?`, () => {
+              board.deleteShoppingList(lista.id);
+              onVoltar();
+            })
+          }
+        >
+          <TrashIcon />
+        </button>
+      </div>
+
+      <div className="list-card" style={{ marginTop: 10 }}>
+        <div className="quickadd-row">
+          <span className="quickadd-plus" aria-hidden="true">
+            +
+          </span>
+          <input
+            type="text"
+            className="quickadd-input"
+            placeholder={aba === "compra" ? "+ Adicionar produto e pressionar Enter" : "+ Adicionar produto desejado e pressionar Enter"}
+            value={novo}
+            onChange={(e) => setNovo(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && adicionar()}
+            onBlur={adicionar}
+          />
+          <MicButton onText={(t) => setNovo((v) => (v ? `${v} ${t}` : t))} ariaLabel="Ditar o produto" />
+        </div>
+      </div>
+
+      {!pendentes.length && (
+        <div className="list-card">
+          <div className="hp-empty">{aba === "compra" ? "Nada pra comprar nesta lista." : "Nenhum produto nesta lista ainda."}</div>
+        </div>
+      )}
+
+      <div className="shop-list">
+        {pendentes.map((i) => (
+          <ItemCard key={i.id} item={i} />
+        ))}
+      </div>
+
+      {pendentes.length > 0 && (
+        <div className="edit-actions" style={{ justifyContent: "flex-start", marginTop: 10 }}>
+          <button type="button" className="btn btn-ghost" onClick={enviarWhatsApp}>
+            <SendIcon /> Enviar a lista pro WhatsApp
+          </button>
+        </div>
+      )}
+
+      {aba === "compra" && comprados.length > 0 && (
+        <div style={{ marginTop: 14 }}>
+          <button type="button" className="btn btn-ghost" onClick={() => setVerComprados((v) => !v)}>
+            {verComprados ? "Esconder" : "Ver"} comprados ({comprados.length})
+          </button>
+          {verComprados && (
+            <div className="shop-list" style={{ marginTop: 8 }}>
+              {comprados.map((i) => (
+                <ItemCard key={i.id} item={i} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
+export function ComprasView({ onBack }: { onBack: () => void }) {
+  const { board } = useBoardCtx();
+  const { wide } = useWideLayout("faro-wide-layout");
+  const [aba, setAba] = useState<Aba>("compra");
+  const [aberta, setAberta] = useState<string | null>(null);
+  const hoje = todayISO();
+
+  const totalCompra = board.state.shoppingItems.filter((i) => i.kind === "compra" && compraPendente(i, hoje)).length;
+  const totalDesejo = board.state.shoppingItems.filter((i) => i.kind === "desejo").length;
 
   return (
     <div className="section">
@@ -285,75 +497,17 @@ export function ComprasView({ onBack }: { onBack: () => void }) {
       </div>
 
       <div className={"narrow-list" + (wide ? " list-xl" : "")}>
-        <div className="view-toggle">
-          <button type="button" className={"view-toggle-btn" + (aba === "compra" ? " active" : "")} onClick={() => setAba("compra")}>
-            Lista de compras ({totalCompra})
-          </button>
-          <button type="button" className={"view-toggle-btn" + (aba === "desejo" ? " active" : "")} onClick={() => setAba("desejo")}>
-            Lista de desejos ({totalDesejo})
-          </button>
-        </div>
-
-        <div className="synapse-intro" style={{ marginTop: 12 }}>
-          <p>
-            {aba === "compra"
-              ? "O que precisa comprar. Ao marcar “comprei”, o item sai da lista; se você escolher “relembrar em X dias”, ele volta sozinho na data certa."
-              : "Produtos que você quer comprar ou comparar um dia: anotações e links de loja ou vídeo. Quando decidir, passe pra lista de compras."}
-          </p>
-        </div>
-
-        <div className="list-card">
-          <div className="quickadd-row">
-            <span className="quickadd-plus" aria-hidden="true">
-              +
-            </span>
-            <input
-              type="text"
-              className="quickadd-input"
-              placeholder={aba === "compra" ? "+ Adicionar à lista de compras e pressionar Enter" : "+ Adicionar à lista de desejos e pressionar Enter"}
-              value={novo}
-              onChange={(e) => setNovo(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && adicionar()}
-              onBlur={adicionar}
-            />
-            <MicButton onText={(t) => setNovo((v) => (v ? `${v} ${t}` : t))} ariaLabel="Ditar o item" />
-          </div>
-        </div>
-
-        {!pendentes.length && (
-          <div className="list-card">
-            <div className="hp-empty">{aba === "compra" ? "Nada pra comprar agora." : "Nenhum desejo anotado ainda."}</div>
-          </div>
-        )}
-
-        <div className="shop-list">
-          {pendentes.map((i) => (
-            <ItemCard key={i.id} item={i} />
-          ))}
-        </div>
-
-        {pendentes.length > 0 && (
-          <div className="edit-actions" style={{ justifyContent: "flex-start", marginTop: 10 }}>
-            <button type="button" className="btn btn-ghost" onClick={enviarWhatsApp}>
-              <SendIcon /> Enviar a lista pro WhatsApp
+        {!aberta && (
+          <div className="view-toggle">
+            <button type="button" className={"view-toggle-btn" + (aba === "compra" ? " active" : "")} onClick={() => setAba("compra")}>
+              Listas de compras ({totalCompra})
+            </button>
+            <button type="button" className={"view-toggle-btn" + (aba === "desejo" ? " active" : "")} onClick={() => setAba("desejo")}>
+              Listas de desejos ({totalDesejo})
             </button>
           </div>
         )}
-
-        {aba === "compra" && comprados.length > 0 && (
-          <div style={{ marginTop: 14 }}>
-            <button type="button" className="btn btn-ghost" onClick={() => setVerComprados((v) => !v)}>
-              {verComprados ? "Esconder" : "Ver"} comprados ({comprados.length})
-            </button>
-            {verComprados && (
-              <div className="shop-list" style={{ marginTop: 8 }}>
-                {comprados.map((i) => (
-                  <ItemCard key={i.id} item={i} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        {aberta ? <ListaAberta listaId={aberta} onVoltar={() => setAberta(null)} /> : <Listas aba={aba} onAbrir={setAberta} />}
       </div>
     </div>
   );

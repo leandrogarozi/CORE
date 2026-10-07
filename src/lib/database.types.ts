@@ -1125,6 +1125,36 @@ export type Database = {
         }
         Relationships: []
       }
+      shopping_lists: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          id: string
+          kind: string
+          name: string
+          sort_order: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          id: string
+          kind?: string
+          name: string
+          sort_order?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          kind?: string
+          name?: string
+          sort_order?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       shopping_items: {
         Row: {
           created_at: string
@@ -1135,6 +1165,7 @@ export type Database = {
           in_app: boolean
           kind: string
           links: Json
+          list_id: string | null
           name: string
           note: string
           remind_on: string | null
@@ -1153,6 +1184,7 @@ export type Database = {
           in_app?: boolean
           kind?: string
           links?: Json
+          list_id?: string | null
           name: string
           note?: string
           remind_on?: string | null
@@ -1171,6 +1203,7 @@ export type Database = {
           in_app?: boolean
           kind?: string
           links?: Json
+          list_id?: string | null
           name?: string
           note?: string
           remind_on?: string | null

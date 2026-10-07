@@ -392,8 +392,16 @@ export interface ShoppingLink {
   url: string;
 }
 
+export interface ShoppingList {
+  id: string;
+  kind: "compra" | "desejo";
+  name: string; // ex.: "Supermercado", "Casa", "Tecnologia"
+  order: number;
+}
+
 export interface ShoppingItem {
   id: string;
+  listId: string | null;
   kind: "compra" | "desejo";
   name: string;
   note: string;
@@ -519,6 +527,7 @@ export interface BoardState {
   books: Book[];
   synapses: Synapse[];
   shoppingItems: ShoppingItem[];
+  shoppingLists: ShoppingList[];
   reminders: Reminder[];
   trashedReminders: Reminder[]; // lembretes excluídos (soft delete) — Lixeira
   medications: Medication[];

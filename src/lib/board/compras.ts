@@ -39,14 +39,14 @@ export function lembreteDaCompra(
   return { title: titulo, date: i.remindOn, time: i.remindTime || "09:00" };
 }
 
-/** A lista em tópicos, pro WhatsApp (o link wa.me aceita quebra de linha). */
-export function textoDaLista(itens: ShoppingItem[], kind: "compra" | "desejo", hojeISO: string): string {
+/** Uma lista em tópicos, pro WhatsApp (o link wa.me aceita quebra de linha). */
+export function textoDaLista(itens: ShoppingItem[], kind: "compra" | "desejo", hojeISO: string, nomeDaLista: string): string {
   const doTipo = itens.filter((i) => i.kind === kind);
   if (kind === "compra") {
     const pend = doTipo.filter((i) => compraPendente(i, hojeISO));
-    return ["🛒 *Lista de compras*", "", ...pend.map((i) => `• ${i.name}`)].join("\n");
+    return [`🛒 *${nomeDaLista}*`, "", ...pend.map((i) => `• ${i.name}`)].join("\n");
   }
-  const linhas = ["⭐ *Lista de desejos*", ""];
+  const linhas = [`⭐ *${nomeDaLista}*`, ""];
   for (const i of doTipo) {
     linhas.push(`• ${i.name}`);
     const nota = stripHtml(i.note).replace(/\s+/g, " ").trim();

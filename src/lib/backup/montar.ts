@@ -26,6 +26,7 @@ export const TABELAS = [
   "books",
   "synapses",
   "shopping_items",
+  "shopping_lists",
   "checklists",
   "attachments",
   "medications",

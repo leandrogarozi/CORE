@@ -30,6 +30,7 @@ import type {
   Synapse,
   ShoppingItem,
   ShoppingLink,
+  ShoppingList,
   Task,
   TaskSeries,
   TaskStatus,
@@ -558,6 +559,7 @@ function lerLinks(raw: unknown): ShoppingLink[] {
 export function rowToShoppingItem(row: Tables<"shopping_items">): ShoppingItem {
   return {
     id: row.id,
+    listId: row.list_id,
     kind: row.kind === "desejo" ? "desejo" : "compra",
     name: row.name,
     note: row.note,
@@ -574,10 +576,20 @@ export function rowToShoppingItem(row: Tables<"shopping_items">): ShoppingItem {
   };
 }
 
+export function rowToShoppingList(row: Tables<"shopping_lists">): ShoppingList {
+  return {
+    id: row.id,
+    kind: row.kind === "desejo" ? "desejo" : "compra",
+    name: row.name,
+    order: row.sort_order,
+  };
+}
+
 export function shoppingToInsertRow(i: ShoppingItem, userId: string): TablesInsert<"shopping_items"> {
   return {
     id: i.id,
     user_id: userId,
+    list_id: i.listId,
     kind: i.kind,
     name: i.name,
     note: i.note,
@@ -596,6 +608,8 @@ export function shoppingToInsertRow(i: ShoppingItem, userId: string): TablesInse
 export function shoppingToUpdateRow(i: Partial<ShoppingItem>): TablesUpdate<"shopping_items"> {
   const row: TablesUpdate<"shopping_items"> = {};
   if (i.name !== undefined) row.name = i.name;
+  if (i.listId !== undefined) row.list_id = i.listId;
+  if (i.kind !== undefined) row.kind = i.kind;
   if (i.note !== undefined) row.note = i.note;
   if (i.links !== undefined) row.links = i.links as unknown as Json;
   if (i.done !== undefined) row.done = i.done;
