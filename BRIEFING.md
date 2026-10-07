@@ -5129,6 +5129,33 @@ de feature flags que já existe pra água/dieta/sono/humor
 
 **Limites honestos:** o FARO não lê a memória da IA sozinho (nem Claude nem ChatGPT liberam isso); quem traz é a IA, quando o cliente pede. A IA entrega o que lembra/encontra, não cada conversa na íntegra. A IA consulta o FARO quando é usada, não fica rodando sozinha.
 
+## Conector FARO (MCP), passo 2: feito em 07/10, só leitura e só para o Leandro
+
+- **Endereço:** `https://core-app-seven-gamma.vercel.app/api/mcp/faro_mcp_…` (a chave vai no próprio endereço, porque o "conector personalizado" do Claude aceita endereço sem login). Gera em **Configurações → Particular do Leandro → Conector FARO**; "Gerar endereço novo" derruba o anterior na hora. A tela mostra a última consulta da IA e quantas foram.
+- **Ferramentas:** `faro_sobre_mim` (perfil, valores, objetivos, preferências e decisões aprovados, inteiros, mais o resumo do resto), `faro_buscar` (palavras, sem acento, em Conhecendo você + Sinapses + Ideias + livros com anotação), `faro_ler` (texto inteiro em Markdown, o mesmo do arquivo do Drive), `faro_listar` (por tipo), `faro_novidades` (desde uma data, padrão 7 dias), `faro_onde_estao_os_arquivos` (pasta do Drive e ID `168OAoMfP0aB_urOvWEMO8N2ZVYbAJBj3`).
+- **Fica de fora:** saúde, medicamentos, tarefas, finanças. Só entra em "Conhecendo você" o que está **aprovado**; pendente e descartado não vão para a IA.
+- **Técnico:** `src/lib/conector/faro-mcp.ts` (puro, testável), rota `src/app/api/mcp/[token]/route.ts` (JSON-RPC por POST, notificação → 202, GET → 405), chave em `backup_status.conector_token` (+ `conector_usado_em`, `conector_chamadas`), rota da tela `/api/conector/chave`.
+- **Para ligar (ele faz uma vez):** copiar o endereço → claude.ai → Configurações → Conectores → Adicionar conector personalizado → nome FARO, colar a URL → Adicionar. Testar: "O que o FARO sabe sobre mim?".
+- **Instrução fixa para colar nas preferências do Claude** (substitui todo "aponte a pasta X" das skills): *"Antes de escrever, planejar, estudar ou criar algo para mim, consulte o conector FARO (faro_sobre_mim e faro_buscar). O que está no FARO é a minha palavra e vale mais do que suposições."*
+
+## Revisão do backup depois do conector (07/10): o que melhorou e o que ficou obsoleto
+
+**O que melhorou (funcionando):**
+- Backup completo diário nos dois Macs, 7 últimos guardados, **um por dia** confirmado em 04, 05 e 06/10; push às 18h se o dia passar sem backup.
+- Textos de aprendizado em `.md` na pasta "Aprendizado (cópia automática)", agora com **Ideias** e **Conhecendo você** e com cabeçalho do Obsidian; botão **Baixar** em cada sinapse, ideia, livro e item aprovado.
+- Com o conector, a IA **não precisa mais ler pasta nenhuma**: consulta o FARO direto, sempre atualizado (a pasta do Drive atualiza uma vez por dia).
+
+**O que ficou obsoleto (proposta, decisão dele):**
+1. **Regra 19 da skill `organizar-drive-leandro`** (ler e escrever Google Docs nas pastas `Sinapses` e `Livros`): substituída pelo conector + cópia automática. Proposta: tirar a Regra 19 da skill e trocar por "consulte o conector FARO". O Claude não edita skill da conta; ele cola o texto.
+2. **Pastas antigas `Sinapses` e `Livros` em Google Docs no Drive:** viram arquivo morto. Proposta: renomear para "(arquivo antigo, não usar)" e **não apagar**; nada novo entra nelas.
+3. **Instruções de skill do tipo "leia a pasta X"** em outras skills: trocar todas pela instrução fixa acima.
+4. **Botão "Enviar aprendizados para o Drive agora":** perdeu importância (vai sozinho todo dia e o conector lê ao vivo). Fica, para quando ele quiser a pasta atualizada na hora.
+
+**O que continua, de propósito:**
+- **Backup (.json)** e **Backup de aprendizado (.zip)** manuais: servem a qualquer cliente e a emergências.
+- O cofre `.json` diário nos Macs continua sendo a única restauração completa do app (o conector só lê; não é backup).
+- Script do Windows segue sem teste (não afeta o Leandro, que usa dois Macs).
+
 ## Pedidos para implementar (anotados em 07/10)
 
 Ditados pelo Leandro em 07/10. Marcação: [x] feito, [ ] a fazer. O texto dele, resumido sem perder o sentido:

@@ -33,6 +33,7 @@ import {
   ClockIcon,
   FlagIcon,
   HomeIcon,
+  LinkIcon,
   TagIcon,
   TrashIcon,
   WarningIcon,
@@ -568,7 +569,7 @@ function BackupAutomaticoBox() {
         <div className="backup-saida">
           <strong>2. Aprendizados (.md)</strong>
           <span>
-            Sinapses e resumos de livro em texto, <strong>é esta pasta que a minha IA lê</strong>. Pasta{" "}
+            Sinapses, livros, ideias e Conhecendo você em texto, <strong>é esta pasta que a minha IA lê</strong>. Pasta{" "}
             <code>{PASTA_DO_APRENDIZADO}</code>.
           </span>
         </div>
@@ -687,6 +688,124 @@ function BackupAutomaticoBox() {
             Gerar nova chave
           </button>
         </div>
+      )}
+
+      {erro && (
+        <div className="wa-cost-warn">
+          <WarningIcon /> {erro}
+        </div>
+      )}
+    </CollapsibleBox>
+  );
+}
+
+// Conector FARO: o endereço que a IA do Leandro (Claude) usa para LER o cérebro
+// do FARO. A chave vai no próprio endereço; gerar outra derruba a anterior.
+function ConectorFaroBox() {
+  const [estado, setEstado] = useState<{ token: string | null; usadoEm: string | null; chamadas: number } | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
+  const [copiado, setCopiado] = useState(false);
+  const [mostrar, setMostrar] = useState(false);
+
+  useEffect(() => {
+    let vivo = true;
+    fetch("/api/conector/chave")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`O servidor respondeu ${r.status}`))))
+      .then((d) => vivo && setEstado(d))
+      .catch((e) => vivo && setErro(e instanceof Error ? e.message : "Falha ao ler o conector"));
+    return () => {
+      vivo = false;
+    };
+  }, []);
+
+  async function gerar() {
+    if (estado?.token && !window.confirm("Gerar um endereço novo desliga o atual. Você vai precisar trocar o endereço no Claude. Continuar?")) return;
+    setErro(null);
+    try {
+      const r = await fetch("/api/conector/chave", { method: "POST" });
+      if (!r.ok) throw new Error(`O servidor respondeu ${r.status}`);
+      const { token } = (await r.json()) as { token: string };
+      setEstado({ token, usadoEm: null, chamadas: 0 });
+      setMostrar(true);
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Falha ao gerar o endereço");
+    }
+  }
+
+  const endereco = estado?.token && typeof window !== "undefined" ? `${window.location.origin}/api/mcp/${estado.token}` : "";
+
+  async function copiar() {
+    try {
+      await navigator.clipboard.writeText(endereco);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2500);
+    } catch {
+      setErro("Não consegui copiar sozinho. Selecione o endereço e copie na mão.");
+    }
+  }
+
+  return (
+    <CollapsibleBox title="Conector FARO (minha IA lê o FARO)" icon={<LinkIcon />}>
+      <div className="hint-text" style={{ marginTop: 0, marginBottom: 8 }}>
+        Liga o Claude ao FARO: ele passa a buscar e ler o que você aprovou em Conhecendo você, as sinapses, as ideias
+        e as anotações dos livros, sem você precisar apontar pasta nenhuma. Só leitura: ele não muda nada no FARO.
+        Saúde e medicamentos ficam de fora.
+      </div>
+
+      {estado?.token ? (
+        <div className="hint-text" style={{ marginTop: 0 }}>
+          {estado.usadoEm
+            ? `Ligado. Última consulta da IA: ${new Date(estado.usadoEm).toLocaleDateString("pt-BR")} às ${new Date(estado.usadoEm).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })} (${estado.chamadas} consultas).`
+            : "Endereço criado. A IA ainda não consultou."}
+        </div>
+      ) : (
+        <div className="hint-text" style={{ marginTop: 0 }}>
+          Ainda não ligado.
+        </div>
+      )}
+
+      <div className="edit-actions" style={{ justifyContent: "flex-start", gap: 8, marginTop: 8 }}>
+        {estado?.token ? (
+          <>
+            <button type="button" className="btn btn-ghost" onClick={() => setMostrar((v) => !v)}>
+              {mostrar ? "Esconder o endereço" : "Mostrar o endereço e os passos"}
+            </button>
+            <button type="button" className="btn btn-ghost" onClick={gerar}>
+              Gerar endereço novo
+            </button>
+          </>
+        ) : (
+          <button type="button" className="btn btn-accent" onClick={gerar}>
+            Criar o endereço do conector
+          </button>
+        )}
+      </div>
+
+      {mostrar && endereco && (
+        <PushPassos
+          titulo="Ligar no Claude"
+          porque="Faça uma vez, no computador (vale para o Claude do celular também). O endereço é a chave: não mande para ninguém."
+          passos={[
+            <span key="copiar">
+              Copie o endereço:{" "}
+              <button type="button" className="btn btn-ghost" onClick={copiar}>
+                {copiado ? "Copiado" : "Copiar endereço"}
+              </button>
+              <code style={{ display: "block", wordBreak: "break-all", marginTop: 6 }}>{endereco}</code>
+            </span>,
+            <span key="abrir">
+              No claude.ai, abra <strong>Configurações → Conectores</strong> e clique em{" "}
+              <strong>Adicionar conector personalizado</strong>.
+            </span>,
+            <span key="colar">
+              Nome: <strong>FARO</strong>. Em URL, cole o endereço. Não precisa preencher mais nada. Clique em{" "}
+              <strong>Adicionar</strong>.
+            </span>,
+            <span key="testar">
+              Numa conversa nova, ligue o FARO no menu de ferramentas e pergunte: <em>&quot;O que o FARO sabe sobre mim?&quot;</em>
+            </span>,
+          ]}
+        />
       )}
 
       {erro && (
@@ -1384,6 +1503,7 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
             Segurança minha. Não vai para os clientes.
           </div>
           <BackupAutomaticoBox />
+          <ConectorFaroBox />
         </div>
 
         <div className="settings-particular-titulo settings-particular-titulo-geral">

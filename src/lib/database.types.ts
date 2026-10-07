@@ -1670,6 +1670,9 @@ export type Database = {
           aprendizado_arquivos: number | null
           aprendizado_enviado_em: string | null
           aprendizado_pedido_em: string | null
+          conector_chamadas: number
+          conector_token: string | null
+          conector_usado_em: string | null
           created_at: string
           token: string | null
           ultimas_linhas: number | null
@@ -1683,6 +1686,9 @@ export type Database = {
           aprendizado_arquivos?: number | null
           aprendizado_enviado_em?: string | null
           aprendizado_pedido_em?: string | null
+          conector_chamadas?: number
+          conector_token?: string | null
+          conector_usado_em?: string | null
           created_at?: string
           token?: string | null
           ultimas_linhas?: number | null
@@ -1696,6 +1702,9 @@ export type Database = {
           aprendizado_arquivos?: number | null
           aprendizado_enviado_em?: string | null
           aprendizado_pedido_em?: string | null
+          conector_chamadas?: number
+          conector_token?: string | null
+          conector_usado_em?: string | null
           created_at?: string
           token?: string | null
           ultimas_linhas?: number | null
