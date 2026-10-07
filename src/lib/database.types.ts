@@ -1130,10 +1130,12 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           id: string
+          kind: string
           learning: string
           questions: string
           source: string | null
           title: string
+          title_auto: boolean
           updated_at: string
           user_id: string
         }
@@ -1141,10 +1143,12 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           id: string
+          kind?: string
           learning?: string
           questions?: string
           source?: string | null
           title: string
+          title_auto?: boolean
           updated_at?: string
           user_id: string
         }
@@ -1152,10 +1156,12 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           id?: string
+          kind?: string
           learning?: string
           questions?: string
           source?: string | null
           title?: string
+          title_auto?: boolean
           updated_at?: string
           user_id?: string
         }

@@ -65,10 +65,11 @@ export interface SinapseParaExportar {
 export const AREAS_DE_BACKUP = [
   { id: "sinapses", rotulo: "Sinapses", pasta: "Sinapses" },
   { id: "livros", rotulo: "Resumos de livro", pasta: "Livros" },
+  { id: "ideias", rotulo: "Ideias (insights)", pasta: "Ideias" },
 ] as const;
 
 export type AreaDeBackup = (typeof AREAS_DE_BACKUP)[number]["id"];
-export const AREAS_PADRAO: AreaDeBackup[] = ["sinapses", "livros"];
+export const AREAS_PADRAO: AreaDeBackup[] = ["sinapses", "livros", "ideias"];
 
 export function ehAreaDeBackup(v: string): v is AreaDeBackup {
   return AREAS_DE_BACKUP.some((a) => a.id === v);
@@ -140,9 +141,19 @@ export function arquivoDaSinapse(s: SinapseParaExportar): ArquivoDeAprendizado |
   return { nome: `${pastaDaArea("sinapses")}/${nomeDeArquivo(s.title)}`, conteudo: partes.join("\n") };
 }
 
+/** Ideia (insight): o texto fica em `learning`; não tem "pergunta que gera". */
+export function arquivoDaIdeia(s: SinapseParaExportar): ArquivoDeAprendizado | null {
+  if (!temConteudo(s.learning)) return null;
+  const partes = [`# ${s.title.trim()}`, ""];
+  if (s.createdAt) partes.push(`**Anotada em:** ${s.createdAt.slice(0, 10)}`, "");
+  partes.push("## A ideia", "", htmlParaMarkdown(s.learning), "");
+  return { nome: `${pastaDaArea("ideias")}/${nomeDeArquivo(s.title)}`, conteudo: partes.join("\n") };
+}
+
 export interface DadosDoBackup {
   livros: LivroParaExportar[];
   sinapses: SinapseParaExportar[];
+  ideias: SinapseParaExportar[];
 }
 
 /**
@@ -162,6 +173,14 @@ export function indiceDoBackup(
     const comTexto = dados.sinapses.filter((s) => temConteudo(s.learning) || temConteudo(s.questions));
     linhas.push(`## Sinapses (${comTexto.length})`, "");
     if (!comTexto.length) linhas.push("_Nenhuma sinapse com texto ainda._", "");
+    for (const s of comTexto) linhas.push(`- ${s.title.trim()}`);
+    linhas.push("");
+  }
+
+  if (areas.includes("ideias")) {
+    const comTexto = dados.ideias.filter((s) => temConteudo(s.learning));
+    linhas.push(`## Ideias (${comTexto.length})`, "");
+    if (!comTexto.length) linhas.push("_Nenhuma ideia com texto ainda._", "");
     for (const s of comTexto) linhas.push(`- ${s.title.trim()}`);
     linhas.push("");
   }
@@ -202,6 +221,12 @@ export function arquivosDoBackup(
   if (areas.includes("sinapses")) {
     for (const s of dados.sinapses) {
       const a = arquivoDaSinapse(s);
+      if (a) arquivos.push(a);
+    }
+  }
+  if (areas.includes("ideias")) {
+    for (const s of dados.ideias) {
+      const a = arquivoDaIdeia(s);
       if (a) arquivos.push(a);
     }
   }

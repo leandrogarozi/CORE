@@ -379,6 +379,10 @@ export interface Synapse {
   questions: string; // HTML — a(s) pergunta(s) que o aprendizado gera
   source: string | null; // de onde veio (conversa, livro, filme...)
   createdAt: string;
+  // "ideia" = insight rápido (voz ou manual): mesma tabela, outra tela. title_auto marca
+  // o título que o FARO deu sozinho, para a IA refinar depois.
+  kind: "sinapse" | "ideia";
+  titleAuto: boolean;
 }
 
 export type ReminderStatus = "pending" | "waiting" | "done";

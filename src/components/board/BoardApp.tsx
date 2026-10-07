@@ -25,6 +25,7 @@ import { SettingsView } from "./SettingsView";
 import { BooksView } from "./BooksView";
 import { RemindersView, RemindersButton } from "./RemindersView";
 import { SynapsesView } from "./SynapsesView";
+import { IdeasView } from "./IdeasView";
 import { StudyPlansView } from "./StudyPlansView";
 import { MaintenanceView } from "./MaintenanceView";
 import { MedicationsView } from "./MedicationsView";
@@ -256,6 +257,8 @@ function BoardShell() {
         <BooksView onBack={() => setViewMode("day")} />
       ) : viewMode === "synapses" ? (
         <SynapsesView onBack={() => setViewMode("day")} />
+      ) : viewMode === "ideias" ? (
+        <IdeasView onBack={() => setViewMode("day")} />
       ) : viewMode === "estudo" ? (
         <StudyPlansView onBack={() => setViewMode("day")} />
       ) : viewMode === "manutencao" ? (

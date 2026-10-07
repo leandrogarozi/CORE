@@ -1018,15 +1018,20 @@ export function useBoard(userId: string | null) {
   // ---------- books ----------
   // ---------- novas sinapses ----------
   const addSynapse = useCallback(
-    async (title: string): Promise<string | null> => {
+    async (
+      title: string,
+      extra: { kind?: Synapse["kind"]; learning?: string; source?: string | null; titleAuto?: boolean } = {}
+    ): Promise<string | null> => {
       if (!userId || !title.trim()) return null;
       const sy: Synapse = {
         id: uid(),
         title: title.trim(),
-        learning: "",
+        learning: extra.learning ?? "",
         questions: "",
-        source: null,
+        source: extra.source ?? null,
         createdAt: new Date().toISOString(),
+        kind: extra.kind ?? "sinapse",
+        titleAuto: extra.titleAuto ?? false,
       };
       apply((s) => ({ ...s, synapses: [sy, ...s.synapses] }));
       const { error } = await supabase.from("synapses").insert(synapseToInsertRow(sy, userId));
@@ -1042,10 +1047,16 @@ export function useBoard(userId: string | null) {
 
   const updateSynapse = useCallback(
     (id: string, patch: Partial<Pick<Synapse, "title" | "learning" | "questions" | "source">>) => {
-      apply((s) => ({ ...s, synapses: s.synapses.map((x) => (x.id === id ? { ...x, ...patch } : x)) }));
+      // Quem edita o título à mão assume o título: deixa de ser "dado pelo FARO".
+      const comMarca = patch.title !== undefined ? { ...patch, titleAuto: false } : patch;
+      apply((s) => ({ ...s, synapses: s.synapses.map((x) => (x.id === id ? { ...x, ...comMarca } : x)) }));
       supabase
         .from("synapses")
-        .update({ ...patch, updated_at: new Date().toISOString() })
+        .update({
+          ...patch,
+          ...(patch.title !== undefined ? { title_auto: false } : {}),
+          updated_at: new Date().toISOString(),
+        })
         .eq("id", id)
         .then(({ error }) => {
           if (error) reportSaveError("updateSynapse", error);

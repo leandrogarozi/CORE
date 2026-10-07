@@ -2742,3 +2742,9 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
   .quickadd-row:has(.reminder-new-date) .mic-btn{ order:4; }
   .quickadd-row:has(.reminder-new-date) .mic-live{ order:6; flex:1 1 100%; }
 }
+
+/* Ideias: botão de falar e retorno ao vivo */
+.idea-voice{ display:flex; flex-direction:column; gap:8px; margin-top:10px; align-items:flex-start; }
+.idea-voice .btn{ display:inline-flex; align-items:center; gap:6px; }
+.idea-live{ display:flex; gap:8px; align-items:flex-start; font-size:13px; line-height:1.5; color:var(--text-muted); }
+.idea-saved{ font-size:12px; color:var(--accent); }

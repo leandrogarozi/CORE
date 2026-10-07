@@ -16,9 +16,10 @@ function fmtDate(iso: string) {
 // Cada sinapse é um card que abre: o aprendizado em cima, a pergunta embaixo.
 // A pergunta tem destaque próprio de propósito — é ela que faz o aprendizado
 // voltar à cabeça depois, e é o que a IA vai usar pra perguntar na hora certa.
-function SynapseCard({ synapse }: { synapse: Synapse }) {
+export function SynapseCard({ synapse, ideia = false }: { synapse: Synapse; ideia?: boolean }) {
   const { board, askConfirm } = useBoardCtx();
   const [open, setOpen] = useState(false);
+  const rotulo = ideia ? "ideia" : "sinapse";
 
   // Rascunhos locais: o que está na tela. O botão Salvar compara com o que está
   // gravado (o próprio `synapse`) — então "Salvo" só aparece quando os dois são
@@ -78,9 +79,9 @@ function SynapseCard({ synapse }: { synapse: Synapse }) {
         <button
           type="button"
           className="icon-btn danger-hover"
-          title="Excluir sinapse"
+          title={`Excluir ${rotulo}`}
           onClick={() =>
-            askConfirm(`Excluir a sinapse "${synapse.title}"?`, () => board.deleteSynapse(synapse.id))
+            askConfirm(`Excluir ${ideia ? "a ideia" : "a sinapse"} "${synapse.title}"?`, () => board.deleteSynapse(synapse.id))
           }
         >
           <TrashIcon />
@@ -89,17 +90,21 @@ function SynapseCard({ synapse }: { synapse: Synapse }) {
 
       {open && (
         <div className="synapse-card-body">
+          {synapse.titleAuto && (
+            <div className="synapse-save-hint">Título provisório dado pelo FARO. Edite se quiser.</div>
+          )}
           <label className="synapse-field">
-            <span className="synapse-field-label">Qual a nova sinapse — o aprendizado?</span>
+            <span className="synapse-field-label">{ideia ? "A ideia" : "Qual a nova sinapse — o aprendizado?"}</span>
             <NoteField
               value={learning}
-              placeholder="O que aconteceu e o que isso te ensinou..."
-              ariaLabel="Aprendizado da sinapse"
+              placeholder={ideia ? "A ideia, do jeito que veio..." : "O que aconteceu e o que isso te ensinou..."}
+              ariaLabel={ideia ? "Texto da ideia" : "Aprendizado da sinapse"}
               onChange={setLearning}
               onPersist={(html) => board.updateSynapse(synapse.id, { learning: html })}
             />
           </label>
 
+          {!ideia && (
           <label className="synapse-field synapse-field-question">
             <span className="synapse-field-label">Qual a pergunta que esse aprendizado gera?</span>
             <NoteField
@@ -110,6 +115,7 @@ function SynapseCard({ synapse }: { synapse: Synapse }) {
               onPersist={(html) => board.updateSynapse(synapse.id, { questions: html })}
             />
           </label>
+          )}
 
           <label className="synapse-field">
             <span className="synapse-field-label">De onde veio (opcional)</span>
@@ -160,7 +166,7 @@ export function SynapsesView({ onBack }: { onBack: () => void }) {
     if (!id) setNewTitle(title);
   }
 
-  const synapses = board.state.synapses;
+  const synapses = board.state.synapses.filter((s) => s.kind !== "ideia");
 
   return (
     <div className="section">

@@ -724,16 +724,18 @@ function BackupDeAprendizadoBox() {
 
   const dados: DadosDoBackup = {
     livros: board.state.books,
-    sinapses: board.state.synapses,
+    sinapses: board.state.synapses.filter((s) => s.kind !== "ideia"),
+    ideias: board.state.synapses.filter((s) => s.kind === "ideia"),
   };
 
   // Quantos TÊM anotação, por área — o número que importa, porque é o que vai
   // sair. Mostrar "47 livros" prometeria 47 arquivos e sairiam 4.
   const comAnotacao = {
     sinapses: dados.sinapses.filter((x) => temConteudo(x.learning) || temConteudo(x.questions)).length,
+    ideias: dados.ideias.filter((x) => temConteudo(x.learning)).length,
     livros: dados.livros.filter((x) => temConteudo(x.insights)).length,
   };
-  const totalNaArea = { sinapses: dados.sinapses.length, livros: dados.livros.length };
+  const totalNaArea = { sinapses: dados.sinapses.length, livros: dados.livros.length, ideias: dados.ideias.length };
   // Menos o índice, que não é aprendizado — o número é a promessa do botão.
   const quantos = Math.max(0, quantosArquivos(dados, areas) - 1);
 

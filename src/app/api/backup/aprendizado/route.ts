@@ -31,8 +31,13 @@ export async function GET(req: NextRequest) {
   if (erro) return NextResponse.json({ error: erro.message }, { status: 500 });
 
   const areas = (config.data?.backup_areas ?? AREAS_PADRAO).filter(ehAreaDeBackup);
+  const todas = (sinapses.data ?? []).map(rowToSynapse);
   const arquivos = arquivosDoBackup(
-    { livros: (livros.data ?? []).map(rowToBook), sinapses: (sinapses.data ?? []).map(rowToSynapse) },
+    {
+      livros: (livros.data ?? []).map(rowToBook),
+      sinapses: todas.filter((s) => s.kind !== "ideia"),
+      ideias: todas.filter((s) => s.kind === "ideia"),
+    },
     areas,
     config.data?.backup_name ?? "",
     new Date().toISOString()

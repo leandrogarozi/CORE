@@ -14,6 +14,7 @@ export type ViewMode =
   | "calendar"
   | "reminders"
   | "synapses"
+  | "ideias"
   | "estudo"
   | "manutencao"
   | "medications"
@@ -94,6 +95,13 @@ export function Sidebar({
             onClick={() => onSelect("synapses")}
           >
             <BoltIcon /> Novas Sinapses
+          </button>
+          <button
+            type="button"
+            className={"sidebar-item" + (viewMode === "ideias" ? " active" : "")}
+            onClick={() => onSelect("ideias")}
+          >
+            <BoltIcon /> Ideias
           </button>
           <button
             type="button"
