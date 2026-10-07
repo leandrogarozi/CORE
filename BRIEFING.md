@@ -5098,6 +5098,37 @@ de feature flags que já existe pra água/dieta/sono/humor
     (`right: janela.innerWidth - âncora.right`) e já tinha
     `max-height`/scroll próprio, então não sofria do mesmo bug.
 
+## Cérebro do FARO: conector, importação da IA e cofre de arquivos (plano aprovado em 07/10)
+
+**Visão do Leandro:** o FARO é o *cérebro* e o *mapa* do cliente: um lugar só onde ele põe tudo que aprende e vive no dia a dia, com backup, que se conecta fácil à IA dele. Deve ser **mais completo que o Obsidian** e passar segurança: nada fica "invisível dentro do FARO".
+
+**Ordem aprovada:**
+1. Aba **"Conhecendo você"** + **importação por copiar e colar** (funciona com qualquer IA, sem conector).
+2. **Conector FARO (MCP), só leitura e só para o Leandro**: a IA consulta o FARO; acaba o "apontar pasta por skill" (uma instrução fixa na IA substitui tudo).
+3. Conector **com escrita**: importação direta e a IA **propondo** aprendizados novos, com aprovação no FARO.
+4. Para clientes: login padrão (OAuth) em vez de chave + passo a passo "Conecte sua IA".
+
+**Cofre de arquivos visível (requisito dele, vale para todas as fases):**
+- Todo documento do FARO (sinapse, ideia, resumo de livro, estudo, desejo, "conhecendo você"...) também existe como **arquivo próprio**, numa pasta-raiz que o cliente vê e acessa ("FARO — Cérebro"), uma subpasta por área, com índice.
+- Formato **compatível com Obsidian**: Markdown com cabeçalho (tipo, data, tags, origem, id) e links entre notas, para abrir no Obsidian se quiser. FARO soma o que o Obsidian não tem: captura por voz/WhatsApp, rotina, lembretes, IA conectada e backup.
+- **Baixar** cada documento avulso (botão por item) e a pasta inteira (zip).
+- Para o Leandro a pasta já existe (cópia automática no Drive pelos Macs). **Para clientes**: o FARO grava a pasta no Drive deles com a autorização do Google de menor alcance (`drive.file`, o app só mexe na pasta que ele mesmo criou), sem script no computador.
+- O conector informa à IA **onde estão os arquivos**; cada item tem o mesmo título e id no FARO e no arquivo.
+
+**Texto de importação (botão "Trazer o que minha IA já sabe")**, a melhorar no uso real:
+
+> Quero levar para o FARO, o app onde guardo meus aprendizados, **tudo** o que você sabe sobre mim e **tudo o que já produzimos juntos**. Não resuma demais: completude vale mais que brevidade. Se for muita coisa, pode passar de centenas de páginas; divida em partes ("PARTE 1 de N") e continue quando eu disser "continue".
+> 1. **Sobre mim:** quem sou, história, valores, crenças, objetivos, rotina, preferências, jeito de escrever e de decidir, pessoas e projetos importantes.
+> 2. **O que produzimos juntos:** textos, roteiros, posts, estudos, resumos de livros e cursos, planos, projetos, métodos e frameworks, decisões e o porquê delas, ideias, perguntas e aprendizados. Traga o **conteúdo completo**, não só o título.
+> 3. Se você tiver acesso a conversas anteriores, projetos ou memória, **procure lá** antes de responder.
+> Regras: não invente; marque o que for incerto com "(incerto)"; use minhas palavras quando possível; inclua a data (ou "data aproximada"). Não inclua senhas, dados bancários, nem dados de saúde e medicamentos.
+> Formato de cada item:
+> `=== ITEM ===` / `tipo:` perfil | valor | objetivo | aprendizado | ideia | estudo | livro | projeto | conteúdo | preferência | decisão / `título:` / `data:` / `origem:` (conversa ou projeto) / `tags:` / `conteúdo:` (Markdown completo) / `=== FIM ===`
+
+**Instrução para o conector (fase 3, "mandar para o FARO")**: mesmo escopo acima (a pessoa **e** os conteúdos, estudos, roteiros e materiais já gerados), enviado em lotes pela ferramenta de importação; tudo entra em "Conhecendo você" para o cliente **revisar e aprovar**. Instrução fixa depois de conectado: "antes de escrever, planejar ou criar, consulte o FARO; quando surgir um aprendizado novo, proponha registrá-lo no FARO".
+
+**Limites honestos:** o FARO não lê a memória da IA sozinho (nem Claude nem ChatGPT liberam isso); quem traz é a IA, quando o cliente pede. A IA entrega o que lembra/encontra, não cada conversa na íntegra. A IA consulta o FARO quando é usada, não fica rodando sozinha.
+
 ## Pedidos para implementar (anotados em 07/10)
 
 Ditados pelo Leandro em 07/10. Marcação: [x] feito, [ ] a fazer. O texto dele, resumido sem perder o sentido:
