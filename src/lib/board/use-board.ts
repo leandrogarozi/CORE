@@ -23,6 +23,9 @@ import {
   rowToActiveTimer,
   rowToBook,
   rowToSynapse,
+  rowToShoppingItem,
+  shoppingToInsertRow,
+  shoppingToUpdateRow,
   synapseToInsertRow,
   rowToChecklist,
   rowToTaskTimeEntry,
@@ -56,6 +59,7 @@ import {
 import { isoAddDays, occurrenceDates, todayISO } from "@/lib/date-utils";
 import { studyDatesInRange } from "@/lib/board/study-plan";
 import { lembreteDaMedicacao, lembreteDaRefeicao, lembretesDaManutencao } from "@/lib/board/zap-engine";
+import { aoMarcarComprado, lembreteDaCompra } from "@/lib/board/compras";
 import { maintenanceStatus } from "@/lib/board/maintenance";
 import {
   isRecurringReminder,
@@ -95,6 +99,7 @@ import type {
   ScopeChoice,
   Settings,
   Synapse,
+  ShoppingItem,
   Task,
   TaskSeries,
   TaskStatus,
@@ -120,6 +125,7 @@ const EMPTY_STATE: BoardState = {
   taskStatuses: [],
   books: [],
   synapses: [],
+  shoppingItems: [],
   reminders: [],
   trashedReminders: [],
   medications: [],
@@ -229,6 +235,7 @@ export function useBoard(userId: string | null) {
       taskStatusesRes,
       booksRes,
       synapsesRes,
+      shoppingRes,
       remindersRes,
       trashedRemindersRes,
       medicationsRes,
@@ -259,6 +266,7 @@ export function useBoard(userId: string | null) {
       supabase.from("task_statuses").select("*").order("sort_order"),
       supabase.from("books").select("*").order("created_at"),
       supabase.from("synapses").select("*").is("deleted_at", null).order("created_at", { ascending: false }),
+      supabase.from("shopping_items").select("*").is("deleted_at", null).order("sort_order"),
       supabase.from("reminders").select("*").is("deleted_at", null).order("created_at"),
       supabase.from("reminders").select("*").not("deleted_at", "is", null),
       supabase.from("medications").select("*").order("created_at"),
@@ -296,6 +304,7 @@ export function useBoard(userId: string | null) {
       taskStatuses: (taskStatusesRes.data ?? []).map(rowToTaskStatus),
       books: (booksRes.data ?? []).map(rowToBook),
       synapses: (synapsesRes.data ?? []).map(rowToSynapse),
+      shoppingItems: (shoppingRes.data ?? []).map(rowToShoppingItem),
       reminders: (remindersRes.data ?? []).map(rowToReminder),
       trashedReminders: (trashedRemindersRes.data ?? []).map(rowToReminder),
       medications: (medicationsRes.data ?? []).map(rowToMedication),
@@ -2124,6 +2133,153 @@ export function useBoard(userId: string | null) {
     [aplicarUltimoServico, apply, supabase]
   );
 
+  // ---------- lista de compras e lista de desejos ----------
+  // O lembrete do item (data própria, ou o "comprar de novo") é um lembrete comum:
+  // push sempre, sininho = dentro do app, zap = WhatsApp. Um por item.
+  const sincronizarLembreteDaCompra = useCallback(
+    (itemId: string) => {
+      if (!userId) return;
+      const atual = stateRef.current;
+      const item = atual.shoppingItems.find((i) => i.id === itemId) ?? null;
+      const existentes = atual.reminders.filter(
+        (r) => r.sourceKind === "shopping" && r.sourceId === itemId && !r.deletedAt
+      );
+      const campos = item ? lembreteDaCompra(item, todayISO()) : null;
+      const [ja, ...sobras] = existentes;
+
+      if (!campos) {
+        const apagar = existentes.map((r) => r.id);
+        if (!apagar.length) return;
+        apply((st) => ({ ...st, reminders: st.reminders.filter((r) => !apagar.includes(r.id)) }));
+        supabase.from("reminders").delete().in("id", apagar).then(({ error }) => {
+          if (error) reportSaveError("lembrete da compra: apagar", error);
+        });
+        return;
+      }
+      if (sobras.length) {
+        const ids = sobras.map((r) => r.id);
+        apply((st) => ({ ...st, reminders: st.reminders.filter((r) => !ids.includes(r.id)) }));
+        supabase.from("reminders").delete().in("id", ids).then(() => {});
+      }
+      const comum = {
+        title: campos.title,
+        date: campos.date,
+        time: campos.time,
+        whatsapp: item!.whatsapp,
+        inApp: item!.inApp,
+      };
+      if (ja) {
+        const mudouQuando = ja.date !== comum.date || ja.time !== comum.time;
+        const mudou =
+          mudouQuando || ja.title !== comum.title || ja.whatsapp !== comum.whatsapp || (ja.inApp ?? true) !== comum.inApp;
+        if (!mudou) return;
+        apply((st) => ({
+          ...st,
+          reminders: st.reminders.map((r) =>
+            r.id === ja.id ? { ...r, ...comum, ...(mudouQuando ? { done: false, status: "pending" as const } : {}) } : r
+          ),
+        }));
+        supabase
+          .from("reminders")
+          .update({
+            ...reminderToUpdateRow({ ...comum }),
+            ...(mudouQuando ? { done: false, status: "pending", whatsapp_notified_at: null, push_sent_for: null } : {}),
+          })
+          .eq("id", ja.id)
+          .then(({ error }) => {
+            if (error) reportSaveError("lembrete da compra: atualizar", error);
+          });
+        return;
+      }
+      const r: Reminder = {
+        id: uid(),
+        ...comum,
+        repeat: "none",
+        weekDays: null,
+        alertMinutesBefore: 10,
+        note: null,
+        done: false,
+        status: "pending",
+        deletedAt: null,
+        taskId: null,
+        sourceKind: "shopping",
+        sourceId: itemId,
+        sourceStage: "item",
+      };
+      apply((st) => ({ ...st, reminders: [...st.reminders, r] }));
+      supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
+        if (error) reportSaveError("lembrete da compra: criar", error);
+      });
+    },
+    [apply, supabase, userId]
+  );
+
+  const addShoppingItem = useCallback(
+    async (kind: ShoppingItem["kind"], name: string): Promise<string | null> => {
+      if (!userId || !name.trim()) return null;
+      const item: ShoppingItem = {
+        id: uid(),
+        kind,
+        name: name.trim(),
+        note: "",
+        links: [],
+        done: false,
+        doneOn: null,
+        repeatDays: null,
+        remindOn: null,
+        remindTime: "09:00",
+        whatsapp: false,
+        inApp: true,
+        order: stateRef.current.shoppingItems.length,
+        createdAt: new Date().toISOString(),
+      };
+      apply((st) => ({ ...st, shoppingItems: [...st.shoppingItems, item] }));
+      const { error } = await supabase.from("shopping_items").insert(shoppingToInsertRow(item, userId));
+      if (error) {
+        reportSaveError("addShoppingItem", error);
+        apply((st) => ({ ...st, shoppingItems: st.shoppingItems.filter((i) => i.id !== item.id) }));
+        return null;
+      }
+      return item.id;
+    },
+    [apply, supabase, userId]
+  );
+
+  const updateShoppingItem = useCallback(
+    (id: string, patch: Partial<ShoppingItem>) => {
+      apply((st) => ({
+        ...st,
+        shoppingItems: st.shoppingItems.map((i) => (i.id === id ? { ...i, ...patch } : i)),
+      }));
+      supabase.from("shopping_items").update(shoppingToUpdateRow(patch)).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("updateShoppingItem", error);
+      });
+      sincronizarLembreteDaCompra(id);
+    },
+    [apply, sincronizarLembreteDaCompra, supabase]
+  );
+
+  /** "Comprei" (ou desfazer). Com "relembrar em X dias", a próxima data nasce de hoje. */
+  const toggleShoppingBought = useCallback(
+    (id: string, comprou: boolean) => {
+      const item = stateRef.current.shoppingItems.find((i) => i.id === id);
+      if (!item) return;
+      updateShoppingItem(id, aoMarcarComprado(item, todayISO(), comprou));
+    },
+    [updateShoppingItem]
+  );
+
+  const deleteShoppingItem = useCallback(
+    (id: string) => {
+      apply((st) => ({ ...st, shoppingItems: st.shoppingItems.filter((i) => i.id !== id) }));
+      supabase.from("shopping_items").update({ deleted_at: new Date().toISOString() }).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("deleteShoppingItem", error);
+      });
+      sincronizarLembreteDaCompra(id);
+    },
+    [apply, sincronizarLembreteDaCompra, supabase]
+  );
+
   // ---------- tarefa desafiadora e adiamentos ----------
   // Marcar como evento leva a tarefa pro status "Agendado" — mas SÓ se ela
   // ainda estiver no primeiro status (ninguém começou). Tarefa que já está em
@@ -3416,6 +3572,10 @@ export function useBoard(userId: string | null) {
     updateTaskStatus,
     deleteTaskStatus,
     reorderTaskStatuses,
+    addShoppingItem,
+    updateShoppingItem,
+    toggleShoppingBought,
+    deleteShoppingItem,
     addSynapse,
     updateSynapse,
     deleteSynapse,

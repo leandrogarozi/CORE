@@ -385,6 +385,25 @@ export interface Synapse {
   titleAuto: boolean;
 }
 
+// Lista de compras (kind "compra") e lista de desejos (kind "desejo", as oportunidades
+// de compra: produto que quer comprar ou comparar um dia, com anotações e links).
+export interface ShoppingItem {
+  id: string;
+  kind: "compra" | "desejo";
+  name: string;
+  note: string;
+  links: string[];
+  done: boolean; // compra: já comprei
+  doneOn: string | null;
+  repeatDays: number | null; // relembrar de comprar X dias depois de comprar
+  remindOn: string | null; // quando lembrar (individual, ou o "de novo" depois de comprar)
+  remindTime: string; // "HH:MM"
+  whatsapp: boolean;
+  inApp: boolean;
+  order: number;
+  createdAt: string;
+}
+
 export type ReminderStatus = "pending" | "waiting" | "done";
 
 export interface Reminder {
@@ -402,7 +421,7 @@ export interface Reminder {
   taskId: string | null; // quando o lembrete foi criado a partir de uma tarefa (campo "Lembrete" na edição)
   // De onde o lembrete veio quando o ícone do zap foi aceso. Null = criado à mão
   // pelo Leandro, e nesse caso nada automático mexe nele.
-  sourceKind: "medication" | "maintenance" | "diet_meal" | "event" | null;
+  sourceKind: "medication" | "maintenance" | "diet_meal" | "event" | "shopping" | null;
   sourceId: string | null;
   // Qual aviso do item de origem este lembrete é (manutenção: comprar, antes,
   // hoje, vencido1..3). Permite ao app atualizar cada um sem duplicar.
@@ -494,6 +513,7 @@ export interface BoardState {
   taskStatuses: TaskStatus[];
   books: Book[];
   synapses: Synapse[];
+  shoppingItems: ShoppingItem[];
   reminders: Reminder[];
   trashedReminders: Reminder[]; // lembretes excluídos (soft delete) — Lixeira
   medications: Medication[];

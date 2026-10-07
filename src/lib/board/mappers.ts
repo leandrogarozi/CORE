@@ -28,6 +28,7 @@ import type {
   Settings,
   StudyPlan,
   Synapse,
+  ShoppingItem,
   Task,
   TaskSeries,
   TaskStatus,
@@ -538,6 +539,60 @@ export function synapseToInsertRow(sy: Synapse, userId: string): TablesInsert<"s
     kind: sy.kind,
     title_auto: sy.titleAuto,
   };
+}
+
+export function rowToShoppingItem(row: Tables<"shopping_items">): ShoppingItem {
+  return {
+    id: row.id,
+    kind: row.kind === "desejo" ? "desejo" : "compra",
+    name: row.name,
+    note: row.note,
+    links: row.links ?? [],
+    done: row.done,
+    doneOn: row.done_on,
+    repeatDays: row.repeat_days,
+    remindOn: row.remind_on,
+    remindTime: row.remind_time,
+    whatsapp: row.whatsapp,
+    inApp: row.in_app,
+    order: row.sort_order,
+    createdAt: row.created_at,
+  };
+}
+
+export function shoppingToInsertRow(i: ShoppingItem, userId: string): TablesInsert<"shopping_items"> {
+  return {
+    id: i.id,
+    user_id: userId,
+    kind: i.kind,
+    name: i.name,
+    note: i.note,
+    links: i.links,
+    done: i.done,
+    done_on: i.doneOn,
+    repeat_days: i.repeatDays,
+    remind_on: i.remindOn,
+    remind_time: i.remindTime,
+    whatsapp: i.whatsapp,
+    in_app: i.inApp,
+    sort_order: i.order,
+  };
+}
+
+export function shoppingToUpdateRow(i: Partial<ShoppingItem>): TablesUpdate<"shopping_items"> {
+  const row: TablesUpdate<"shopping_items"> = {};
+  if (i.name !== undefined) row.name = i.name;
+  if (i.note !== undefined) row.note = i.note;
+  if (i.links !== undefined) row.links = i.links;
+  if (i.done !== undefined) row.done = i.done;
+  if (i.doneOn !== undefined) row.done_on = i.doneOn;
+  if (i.repeatDays !== undefined) row.repeat_days = i.repeatDays;
+  if (i.remindOn !== undefined) row.remind_on = i.remindOn;
+  if (i.remindTime !== undefined) row.remind_time = i.remindTime;
+  if (i.whatsapp !== undefined) row.whatsapp = i.whatsapp;
+  if (i.inApp !== undefined) row.in_app = i.inApp;
+  if (i.order !== undefined) row.sort_order = i.order;
+  return row;
 }
 
 export function rowToBook(row: BookRow): Book {

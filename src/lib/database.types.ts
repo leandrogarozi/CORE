@@ -1125,6 +1125,63 @@ export type Database = {
         }
         Relationships: []
       }
+      shopping_items: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          done: boolean
+          done_on: string | null
+          id: string
+          in_app: boolean
+          kind: string
+          links: string[]
+          name: string
+          note: string
+          remind_on: string | null
+          remind_time: string
+          repeat_days: number | null
+          sort_order: number
+          user_id: string
+          whatsapp: boolean
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          done?: boolean
+          done_on?: string | null
+          id: string
+          in_app?: boolean
+          kind?: string
+          links?: string[]
+          name: string
+          note?: string
+          remind_on?: string | null
+          remind_time?: string
+          repeat_days?: number | null
+          sort_order?: number
+          user_id: string
+          whatsapp?: boolean
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          done?: boolean
+          done_on?: string | null
+          id?: string
+          in_app?: boolean
+          kind?: string
+          links?: string[]
+          name?: string
+          note?: string
+          remind_on?: string | null
+          remind_time?: string
+          repeat_days?: number | null
+          sort_order?: number
+          user_id?: string
+          whatsapp?: boolean
+        }
+        Relationships: []
+      }
       synapses: {
         Row: {
           created_at: string

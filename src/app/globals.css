@@ -2748,3 +2748,25 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .idea-voice .btn{ display:inline-flex; align-items:center; gap:6px; }
 .idea-live{ display:flex; gap:8px; align-items:flex-start; font-size:13px; line-height:1.5; color:var(--text-muted); }
 .idea-saved{ font-size:12px; color:var(--accent); }
+
+/* Compras: lista de compras e lista de desejos */
+.shop-list{ display:flex; flex-direction:column; gap:6px; }
+.shop-item{ background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:8px 10px; }
+.shop-item.done .shop-name{ text-decoration:line-through; color:var(--text-faint); }
+.shop-item-head{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.shop-check{ width:17px; height:17px; flex:none; accent-color:var(--accent); }
+.shop-star{ color:var(--accent); flex:none; font-size:14px; }
+.shop-name{ flex:1 1 140px; min-width:0; background:transparent; border:1px solid transparent; border-radius:6px; padding:3px 6px; font-size:13.5px; font-weight:600; color:var(--text); }
+.shop-name:hover{ background:var(--surface-2); border-color:var(--border); }
+.shop-name:focus{ outline:none; background:var(--surface-2); border-color:var(--accent); }
+.shop-resumo{ font-size:11px; color:var(--text-faint); }
+.shop-icones{ margin-left:auto; display:inline-flex; align-items:center; gap:4px; flex:none; }
+.shop-item-body{ margin-top:8px; padding-top:8px; border-top:1px dashed var(--border); display:flex; flex-direction:column; gap:10px; }
+.shop-linha{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.shop-rotulo{ font-size:12px; color:var(--text-muted); }
+.shop-data{ width:140px; font-size:12px; padding:5px 6px; }
+.shop-dias{ width:60px; background:var(--surface); border:1px solid var(--border-strong); border-radius:7px; padding:5px 7px; font-size:12.5px; color:var(--text); }
+.shop-campo{ display:flex; flex-direction:column; gap:5px; }
+.shop-campo textarea, .shop-novo-link{ width:100%; background:var(--surface); border:1px solid var(--border-strong); border-radius:7px; padding:7px 9px; font-size:12.5px; color:var(--text); font-family:inherit; }
+.shop-link{ display:flex; align-items:center; gap:6px; font-size:12.5px; }
+.shop-link a{ color:var(--accent); word-break:break-all; }
