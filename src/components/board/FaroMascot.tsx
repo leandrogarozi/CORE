@@ -17,6 +17,9 @@ function greetingMessage(mood: number | null | undefined): string {
 
 type Fala = { role: "user" | "assistant"; content: string };
 
+// Atalhos de um toque: o que ele mais vai querer pedir, sem digitar.
+const ATALHOS = ["O que estou esquecendo?", "Como foi minha semana?", "Por onde começo?"];
+
 // O que mostrar quando a rota devolve erro. O texto é para ele, não para o log.
 function textoDoErro(status: number, erro: string | undefined, gasto?: number, teto?: number): string {
   if (erro === "sem_chave") return "A IA ainda não está ligada neste app (falta a chave na Vercel).";
@@ -56,8 +59,8 @@ export function FaroMascot() {
     fim.current?.scrollIntoView({ block: "end" });
   }, [falas, open]);
 
-  async function enviar() {
-    const pergunta = texto.trim();
+  async function enviar(textoPronto?: string) {
+    const pergunta = (textoPronto ?? texto).trim();
     if (!pergunta || pensando) return;
     const historico: Fala[] = [...falas, { role: "user", content: pergunta }];
     setFalas([...historico, { role: "assistant", content: "" }]);
@@ -100,7 +103,18 @@ export function FaroMascot() {
           <button className="faro-bubble-close" type="button" aria-label="Fechar" onClick={() => setOpen(false)}>
             ×
           </button>
-          <div className="faro-bubble-text">{greetingMessage(mood)}</div>
+          <div className="faro-bubble-text">
+            {greetingMessage(mood)} {falas.length === 0 && "O que você precisa?"}
+          </div>
+          {falas.length === 0 && (
+            <div className="faro-chips">
+              {ATALHOS.map((a) => (
+                <button key={a} type="button" className="faro-chip" disabled={pensando} onClick={() => void enviar(a)}>
+                  {a}
+                </button>
+              ))}
+            </div>
+          )}
           {falas.length > 0 && (
             <div className="faro-chat-lista">
               {falas.map((f, i) => (
@@ -131,7 +145,7 @@ export function FaroMascot() {
               <SendIcon />
             </button>
           </form>
-          <div className="faro-bubble-hint">Eu enxergo suas tarefas, lembretes e hábitos. Saúde e remédios ficam de fora.</div>
+          <div className="faro-bubble-hint">Eu enxergo suas tarefas, lembretes, hábitos e os números do registro do dia. Remédios ficam de fora.</div>
         </div>
       )}
       <button
