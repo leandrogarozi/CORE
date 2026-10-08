@@ -162,17 +162,37 @@ aprendizado() {
   # No Mac o "ditto" é quem abre zip com acento no nome do jeito certo (é o que o Finder usa).
   if command -v ditto >/dev/null 2>&1; then ditto -x -k "$zip" "$dir" 2>>"$LOG"; else unzip -oq "$zip" -d "$dir" 2>>"$LOG"; fi
   if [ $? -ne 0 ]; then avisar "Não consegui abrir o zip do aprendizado."; rm -rf "$dir"; rm -f "$zip" "$cab"; return 1; fi
-  n=0; novos=0
+  n=0; novos=0; falhas=0
+  chmod -R u+rwX "$dir" 2>/dev/null
   # Copia só o que mudou, para o Drive não criar uma versão nova de tudo todo dia.
   # Nunca apaga nada: arquivo de item removido no FARO continua na pasta.
+  # Arquivo que já existe é regravado à força (libera a escrita antes) e qualquer
+  # falha vai para o registro: antes ela passava calada e o índice ficava velho.
   while IFS= read -r -d '' f; do
     rel=$(printf '%s' "$f" | sed "s|^$dir/||")
     alvo="$DESTINO_APR/$rel"
     n=$((n+1))
-    mkdir -p "$(dirname "$alvo")"
-    if [ ! -f "$alvo" ] || ! cmp -s "$f" "$alvo"; then cp "$f" "$alvo"; novos=$((novos+1)); fi
+    mkdir -p "$(dirname "$alvo")" 2>>"$LOG"
+    if [ ! -f "$alvo" ] || ! cmp -s "$f" "$alvo"; then
+      [ -f "$alvo" ] && chmod u+w "$alvo" 2>/dev/null
+      if cp -f "$f" "$alvo" 2>>"$LOG" && cmp -s "$f" "$alvo"; then
+        novos=$((novos+1))
+      else
+        falhas=$((falhas+1)); registrar "Não consegui gravar: $rel"
+      fi
+    fi
   done < <(find "$dir" -type f -print0)
   rm -rf "$dir"; rm -f "$zip" "$cab"
+  if [ $falhas -gt 0 ]; then
+    # Tenta de novo na próxima rodada, mas só incomoda com a notificação uma vez por dia.
+    if [ "$(cat "$PASTA/aprendizado-aviso" 2>/dev/null)" = "$hoje" ]; then
+      registrar "Aprendizado: $falhas arquivo(s) não foram gravados."
+    else
+      avisar "Aprendizado: $falhas arquivo(s) não foram gravados. Veja o registro em Library/Logs/faro-backup.log."
+      echo "$hoje" > "$PASTA/aprendizado-aviso"
+    fi
+    return 1
+  fi
   echo "$hoje" > "$PASTA/aprendizado-ultimo"
   curl -sS --max-time 60 -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
     -d "{\"arquivos\":$n}" "$BASE/api/backup/aprendizado" >/dev/null 2>>"$LOG" \

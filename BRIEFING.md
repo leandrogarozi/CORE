@@ -5151,6 +5151,13 @@ Como o conector FARO e o backup do Drive **não descobrem tabela nova sozinhos**
 
 Caso mais simples, já automático: **tipo novo dentro de "Conhecendo você"** (basta somar em `TIPOS_DE_CONHECIMENTO`, em `src/lib/conhecimento.ts`).
 
+## Incidente 08/10: índice do Drive ficou em 03/10 (arquivos novos entravam, os que já existiam não eram regravados)
+
+- **Sintoma:** a cópia dos aprendizados no Drive tinha `00 — Índice.md` com "Gerado em 2026-10-03" (2.582 bytes) mesmo com o servidor registrando envios diários. Depois do clique em "Enviar aprendizados para o Drive agora" (08/10), a pasta **Conhecendo você** apareceu com os arquivos novos, mas o índice continuou o antigo.
+- **Causa provável (não confirmada, sem acesso ao log do Mac):** a cópia por cima de arquivo que já existe (`cp` simples) falhava calada. O script não registrava falha.
+- **Correção (08/10):** `src/lib/backup/instaladores.ts`: libera escrita (`chmod u+w`), regrava com `cp -f`, confere com `cmp`, registra cada falha no log (`~/Library/Logs/faro-backup.log`), avisa por notificação (no máximo 1 por dia) e **não marca o dia como feito** se algo falhou (tenta de novo na próxima rodada). **Cada Mac precisa rodar o comando de instalar de novo** (não duplica nem apaga nada) para pegar o script novo.
+- **Pasta Ideias** só nasce quando houver a primeira ideia cadastrada (hoje 0).
+
 ## Revisão do backup depois do conector (07/10): o que melhorou e o que ficou obsoleto
 
 **O que melhorou (funcionando):**
