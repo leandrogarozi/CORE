@@ -24,6 +24,8 @@ function textoDoErro(status: number, erro: string | undefined, gasto?: number, t
     const reais = (v?: number) => (v ?? 0).toFixed(2).replace(".", ",");
     return `Chegamos no teto de gasto do mês (R$ ${reais(gasto)} de R$ ${reais(teto)}). Dá para aumentar em Configurações → Custo da IA.`;
   }
+  if (erro === "chave_admin") return "A chave guardada na Vercel é de administração. Crie uma chave de API comum no console da Anthropic (API Keys) e cole no lugar.";
+  if (erro === "chave_malformada") return "A chave guardada na Vercel não parece uma chave da Anthropic (ela começa com sk-ant-). Cole de novo, só a chave, sem aspas nem espaços.";
   if (erro === "chave_invalida") return "A chave da IA não foi aceita pela Anthropic. Confira a chave na Vercel.";
   if (erro === "limite_da_api") return "A IA está com muito uso agora. Tente de novo em instantes.";
   if (status === 401) return "Sua sessão expirou. Entre de novo no FARO.";

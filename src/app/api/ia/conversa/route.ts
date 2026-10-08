@@ -27,8 +27,16 @@ export async function POST(req: NextRequest) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ erro: "sem_login" }, { status: 401 });
 
-  const chave = process.env.ANTHROPIC_API_KEY;
+  // Limpa o que costuma vir junto na hora de colar na Vercel: espaço, quebra de
+  // linha e aspas nas pontas.
+  const chave = (process.env.ANTHROPIC_API_KEY ?? "").trim().replace(/^["']+|["']+$/g, "").trim();
   if (!chave) return NextResponse.json({ erro: "sem_chave" }, { status: 503 });
+  // Conferências de formato que explicam o erro sem mostrar a chave.
+  if (chave.startsWith("sk-ant-admin")) return NextResponse.json({ erro: "chave_admin" }, { status: 502 });
+  if (!chave.startsWith("sk-ant-")) {
+    console.error("IA: a ANTHROPIC_API_KEY não começa com sk-ant- (tamanho %d)", chave.length);
+    return NextResponse.json({ erro: "chave_malformada" }, { status: 502 });
+  }
 
   const corpo = (await req.json().catch(() => null)) as { mensagens?: unknown; resumo?: unknown } | null;
   const mensagens = prepararMensagens(corpo?.mensagens);

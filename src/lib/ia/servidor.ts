@@ -35,6 +35,10 @@ export type ResultadoDaConversa =
   | { ok: false; status: number; erro: ErroDaIA };
 
 function classificarErro(e: unknown): { status: number; erro: ErroDaIA } {
+  // Vai para o registro da Vercel (nunca para a tela): é por ele que se descobre
+  // o motivo de verdade. A mensagem da Anthropic não traz a chave.
+  if (e instanceof Anthropic.APIError) console.error("IA: erro da API da Anthropic", e.status, e.message);
+  else console.error("IA: erro inesperado", e instanceof Error ? e.message : e);
   if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) {
     return { status: 502, erro: "chave_invalida" };
   }
