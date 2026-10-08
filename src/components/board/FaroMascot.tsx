@@ -218,6 +218,9 @@ export function FaroMascot() {
         updateChecklist: board.updateChecklist,
         updateDailyLog: board.updateDailyLog,
         logDeHoje: board.state.dailyLogs[today],
+        studyPlans: board.state.studyPlans,
+        updateStudyPlan: board.updateStudyPlan,
+        generateStudySessions: board.generateStudySessions,
       },
       today
     );

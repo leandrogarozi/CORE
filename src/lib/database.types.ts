@@ -1442,6 +1442,7 @@ export type Database = {
           deleted_at: string | null
           description: string
           id: string
+          modules: Json
           name: string
           session_minutes: number
           start_date: string | null
@@ -1459,6 +1460,7 @@ export type Database = {
           deleted_at?: string | null
           description?: string
           id?: string
+          modules?: Json
           name: string
           session_minutes?: number
           start_date?: string | null
@@ -1476,6 +1478,7 @@ export type Database = {
           deleted_at?: string | null
           description?: string
           id?: string
+          modules?: Json
           name?: string
           session_minutes?: number
           start_date?: string | null

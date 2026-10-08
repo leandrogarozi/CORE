@@ -26,6 +26,7 @@ import type {
   Reminder,
   ReminderStatus,
   Settings,
+  StudyModule,
   StudyPlan,
   Synapse,
   ShoppingItem,
@@ -274,6 +275,7 @@ export function rowToStudyPlan(row: StudyPlanRow): StudyPlan {
     category: row.category as Category,
     category2: row.category2 as Category | null,
     createdAt: row.created_at.slice(0, 10),
+    modules: ((row.modules as unknown as StudyModule[] | null) ?? []),
   };
 }
 
@@ -291,6 +293,7 @@ export function studyPlanToInsertRow(p: StudyPlan, userId: string): TablesInsert
     status: p.status,
     category: p.category,
     category2: p.category2,
+    modules: p.modules as unknown as Json,
   };
 }
 
@@ -306,6 +309,7 @@ export function studyPlanToUpdateRow(p: Partial<StudyPlan>): TablesUpdate<"study
   if (p.status !== undefined) row.status = p.status;
   if (p.category !== undefined) row.category = p.category;
   if (p.category2 !== undefined) row.category2 = p.category2;
+  if (p.modules !== undefined) row.modules = p.modules as unknown as Json;
   row.updated_at = new Date().toISOString();
   return row;
 }

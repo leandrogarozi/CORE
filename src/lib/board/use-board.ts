@@ -2578,6 +2578,7 @@ export function useBoard(userId: string | null) {
         // desenvolvimento pessoal e conta nos dois relatórios.
         category2: "pessoal",
         createdAt: todayISO(),
+        modules: [],
       };
       apply((st) => ({ ...st, studyPlans: [...st.studyPlans, plan] }));
       const { error } = await supabase.from("study_plans").insert(studyPlanToInsertRow(plan, userId));

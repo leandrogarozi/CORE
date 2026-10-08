@@ -132,3 +132,32 @@ export function constanciaDoEstudo(sessoes: SessaoDoPlano[], todayISO: string): 
     pctComparecimento: cobradas > 0 ? Math.round(((cobradas - puladas) / cobradas) * 100) : null,
   };
 }
+
+export interface TempoDoModulo {
+  id: string;
+  name: string;
+  /** Estimativa em minutos; null = sem estimativa. */
+  estimadoMin: number | null;
+  feitoSeg: number;
+}
+
+/**
+ * Quanto tempo já foi em cada módulo. Sai do tempo por dia das sessões ligadas
+ * ao módulo: o mesmo número do Painel de Horas. `semModuloSeg` é o tempo das
+ * sessões que ainda não foram ligadas a nenhum módulo.
+ */
+export function tempoPorModulo(
+  plan: Pick<StudyPlan, "modules">,
+  sessoes: { id: string }[],
+  entradas: { taskId: string; seconds: number }[]
+): { modulos: TempoDoModulo[]; semModuloSeg: number } {
+  const segundosDe = (ids: Set<string>) => entradas.filter((e) => ids.has(e.taskId)).reduce((s, e) => s + e.seconds, 0);
+  const ligadas = new Set<string>();
+  const modulos = plan.modules.map((m) => {
+    const ids = new Set(m.sessionIds);
+    m.sessionIds.forEach((id) => ligadas.add(id));
+    return { id: m.id, name: m.name, estimadoMin: m.minutes, feitoSeg: segundosDe(ids) };
+  });
+  const soltas = new Set(sessoes.map((s) => s.id).filter((id) => !ligadas.has(id)));
+  return { modulos, semModuloSeg: segundosDe(soltas) };
+}

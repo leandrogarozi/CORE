@@ -1,5 +1,6 @@
 import { dateFromISO, isoAddDays } from "@/lib/date-utils";
 import { duracaoDoSonoMin, fmtHorasMin } from "@/lib/board/sono";
+import { studyPlanMath, tempoPorModulo } from "@/lib/board/study-plan";
 import type { BoardState } from "@/lib/types";
 
 /**
@@ -20,7 +21,7 @@ const LIMITE_ATRASADAS = 12;
 const LIMITE_LINHAS = 25;
 
 
-type Estado = Pick<BoardState, "tasks" | "reminders" | "habits" | "fixedBlocks" | "checklists" | "dailyLogs" | "taskTimeEntries">;
+type Estado = Pick<BoardState, "tasks" | "reminders" | "habits" | "fixedBlocks" | "checklists" | "dailyLogs" | "taskTimeEntries" | "studyPlans">;
 
 const dataBr = (iso: string) => iso.split("-").reverse().slice(0, 2).join("/");
 
@@ -108,6 +109,29 @@ export function resumoDoDia(estado: Estado, hoje: string): string {
     linhas.push(
       `\nCHECKLISTS: ${estado.checklists.map((c) => c.title).join("; ")}. Com aba de Gastos ligada: ${comGastos.join("; ") || "nenhum"}.`
     );
+  }
+
+  const estudos = estado.studyPlans.filter((p) => p.status !== "concluido");
+  if (estudos.length) {
+    linhas.push("\nESTUDOS (planos; nomes exatos para a ferramenta de ajuste):");
+    for (const p of estudos) {
+      const sessoes = estado.tasks.filter((t) => !t.deletedAt && t.studyPlanId === p.id);
+      const feitoSeg = estado.taskTimeEntries.filter((e) => sessoes.some((t) => t.id === e.taskId)).reduce((x, e) => x + e.seconds, 0);
+      const m = studyPlanMath(p, Math.round(feitoSeg / 60), hoje);
+      const partes = [
+        `${p.status === "pausado" ? "PAUSADO, " : ""}total ${p.totalMinutes ? fmtHorasMin(p.totalMinutes) : "não definido"}`,
+        `feito ${fmtHorasMin(Math.round(feitoSeg / 60))}`,
+        `${p.sessionMinutes} min por sessão`,
+        `dias ${p.weekDays.map((d) => DIAS[d].slice(0, 3)).join("/") || "nenhum"}`,
+        p.deadline ? `prazo ${dataBr(p.deadline)}/${p.deadline.slice(0, 4)}${m.naoCabeNoPrazo ? " (NÃO FECHA NO PRAZO neste ritmo)" : ""}` : "sem prazo",
+        m.terminaEm ? `no ritmo atual termina em ${dataBr(m.terminaEm)}/${m.terminaEm.slice(0, 4)}` : null,
+      ].filter(Boolean);
+      linhas.push(`- "${p.name}": ${partes.join("; ")}`);
+      const { modulos } = tempoPorModulo(p, sessoes, estado.taskTimeEntries);
+      for (const mod of modulos) {
+        linhas.push(`  · módulo "${mod.name}": ${fmtHorasMin(Math.round(mod.feitoSeg / 60))} feitos${mod.estimadoMin ? ` de ${fmtHorasMin(mod.estimadoMin)} estimados` : ""}`);
+      }
+    }
   }
 
   linhas.push(panoramaDosDias(estado, hoje, 14));

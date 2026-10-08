@@ -25,7 +25,16 @@ export type AcaoProposta =
   | { tipo: "registrar_humor"; nivel: 1 | 2 | 3 | 4 | 5; emocao: string | null }
   | { tipo: "registrar_sono"; dormiu: string | null; acordou: string | null }
   | { tipo: "registrar_agua"; ml: number }
-  | { tipo: "registrar_dieta"; percentual: number };
+  | { tipo: "registrar_dieta"; percentual: number }
+  | {
+      tipo: "ajustar_plano_de_estudo";
+      plano: string;
+      horasTotais: number | null;
+      minutosPorSessao: number | null;
+      prazo: string | null;
+      diasDaSemana: number[] | null;
+      redistribuir: boolean;
+    };
 
 export const FERRAMENTAS_DO_FARO: Anthropic.Tool[] = [
   {
@@ -115,6 +124,27 @@ export const FERRAMENTAS_DO_FARO: Anthropic.Tool[] = [
       required: ["percentual"],
     },
   },
+  {
+    name: "ajustar_plano_de_estudo",
+    description:
+      "Reajusta um plano de estudo (total de horas, minutos por sessão, prazo, dias da semana) e, se pedido, refaz as sessões FUTURAS na agenda. As sessões já feitas e o tempo registrado NUNCA são apagados. Use quando ele pedir para reorganizar o plano ou quando o plano não fecha no prazo; baseie-se no tempo real gasto (ESTUDOS e módulos). Passe só o que muda.",
+    input_schema: {
+      type: "object",
+      properties: {
+        plano: { type: "string", description: "Nome do plano, exatamente como aparece em ESTUDOS." },
+        horas_totais: { type: "number", description: "Novo total de horas do estudo inteiro." },
+        minutos_por_sessao: { type: "integer", minimum: 5, maximum: 480 },
+        prazo: { type: "string", description: "Novo prazo AAAA-MM-DD." },
+        dias_da_semana: {
+          type: "array",
+          items: { type: "integer", minimum: 0, maximum: 6 },
+          description: "Dias de estudo: 0 domingo ... 6 sábado.",
+        },
+        redistribuir: { type: "boolean", description: "Refazer as sessões futuras na agenda com os novos números. Padrão: true." },
+      },
+      required: ["plano"],
+    },
+  },
 ];
 
 const texto = (v: unknown, max: number): string | null => {
@@ -202,6 +232,29 @@ export function validarAcao(nome: string, entrada: unknown): ResultadoDaValidaca
       if (p < 0 || p > 100) return { ok: false, motivo: "percentual da dieta deve ser de 0 a 100" };
       return { ok: true, acao: { tipo: "registrar_dieta", percentual: p } };
     }
+    case "ajustar_plano_de_estudo": {
+      const plano = texto(e.plano, 160);
+      if (!plano) return { ok: false, motivo: "faltou o nome do plano" };
+      const h = typeof e.horas_totais === "number" && e.horas_totais > 0 && e.horas_totais <= 5000 ? e.horas_totais : null;
+      const min = typeof e.minutos_por_sessao === "number" && e.minutos_por_sessao >= 5 && e.minutos_por_sessao <= 480 ? Math.round(e.minutos_por_sessao) : null;
+      const prazo = dataValida(e.prazo);
+      const dias = Array.isArray(e.dias_da_semana)
+        ? [...new Set(e.dias_da_semana.filter((d): d is number => Number.isInteger(d) && d >= 0 && d <= 6))].sort()
+        : [];
+      if (h === null && min === null && !prazo && !dias.length) return { ok: false, motivo: "nada para ajustar no plano" };
+      return {
+        ok: true,
+        acao: {
+          tipo: "ajustar_plano_de_estudo",
+          plano,
+          horasTotais: h,
+          minutosPorSessao: min,
+          prazo,
+          diasDaSemana: dias.length ? dias : null,
+          redistribuir: e.redistribuir !== false,
+        },
+      };
+    }
     default:
       return { ok: false, motivo: `ferramenta desconhecida: ${nome}` };
   }
@@ -210,6 +263,7 @@ export function validarAcao(nome: string, entrada: unknown): ResultadoDaValidaca
 const dataBr = (iso: string) => iso.split("-").reverse().join("/");
 const reais = (c: number) => (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const NIVEIS = ["", "péssimo", "ruim", "neutro", "bom", "ótimo"];
+const NOMES_DIAS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 
 /** A frase do cartão de confirmação: o que VAI acontecer se ele aceitar. */
 export function descreverAcao(a: AcaoProposta): string {
@@ -228,5 +282,14 @@ export function descreverAcao(a: AcaoProposta): string {
       return `Somar ${a.ml} ml de água ao total de hoje`;
     case "registrar_dieta":
       return `Registrar a dieta de hoje: ${a.percentual}%`;
+    case "ajustar_plano_de_estudo": {
+      const mudancas = [
+        a.horasTotais !== null ? `total ${a.horasTotais} h` : null,
+        a.minutosPorSessao !== null ? `${a.minutosPorSessao} min por sessão` : null,
+        a.prazo ? `prazo ${dataBr(a.prazo)}` : null,
+        a.diasDaSemana ? `dias ${a.diasDaSemana.map((d) => NOMES_DIAS[d]).join("/")}` : null,
+      ].filter(Boolean);
+      return `Ajustar o plano "${a.plano}": ${mudancas.join(", ")}.${a.redistribuir ? " As sessões futuras são refeitas; as feitas e o tempo registrado ficam." : ""}`;
+    }
   }
 }

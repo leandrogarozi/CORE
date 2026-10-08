@@ -1,4 +1,4 @@
-import type { Checklist, ChecklistExpense, DailyLog, Priority } from "@/lib/types";
+import type { Checklist, ChecklistExpense, DailyLog, Priority, StudyPlan } from "@/lib/types";
 import { descreverAcao, validarAcao, type AcaoProposta } from "./ferramentas";
 
 /**
@@ -18,6 +18,9 @@ export interface QuadroParaAcoes {
   ) => Promise<boolean>;
   updateChecklist: (id: string, patch: { expenses: ChecklistExpense[] }) => void;
   updateDailyLog: (data: string, patch: Partial<DailyLog>) => void;
+  studyPlans: StudyPlan[];
+  updateStudyPlan: (id: string, patch: Partial<StudyPlan>) => void;
+  generateStudySessions: (planId: string) => Promise<number>;
   /** O registro de hoje, para somar água em cima do que já tem. */
   logDeHoje: DailyLog | undefined;
 }
@@ -96,6 +99,23 @@ export async function executarAcao(acaoBruta: AcaoProposta, quadro: QuadroParaAc
       quadro.updateDailyLog(hoje, { dietPct: acao.percentual });
       return { ok: true, mensagem: "Dieta de hoje registrada." };
     }
+    case "ajustar_plano_de_estudo": {
+      const alvo = semAcento(acao.plano);
+      const plano =
+        quadro.studyPlans.find((p) => semAcento(p.name) === alvo) ??
+        quadro.studyPlans.find((p) => semAcento(p.name).includes(alvo) || alvo.includes(semAcento(p.name)));
+      if (!plano) return { ok: false, mensagem: `Não achei o plano de estudo "${acao.plano}".` };
+      const patch: Partial<StudyPlan> = {};
+      if (acao.horasTotais !== null) patch.totalMinutes = Math.round(acao.horasTotais * 60);
+      if (acao.minutosPorSessao !== null) patch.sessionMinutes = acao.minutosPorSessao;
+      if (acao.prazo) patch.deadline = acao.prazo;
+      if (acao.diasDaSemana) patch.weekDays = acao.diasDaSemana;
+      quadro.updateStudyPlan(plano.id, patch);
+      if (!acao.redistribuir) return { ok: true, mensagem: `Plano "${plano.name}" ajustado.` };
+      // As sessões feitas e o tempo registrado ficam: só o que ainda não foi feito é refeito.
+      const n = await quadro.generateStudySessions(plano.id);
+      return { ok: true, mensagem: `Plano "${plano.name}" ajustado${n > 0 ? `; ${n} sessões futuras refeitas na agenda` : ""}.` };
+    }
   }
 }
 
@@ -116,6 +136,15 @@ function converterParaEntrada(a: AcaoProposta): Record<string, unknown> {
       return { ml: a.ml };
     case "registrar_dieta":
       return { percentual: a.percentual };
+    case "ajustar_plano_de_estudo":
+      return {
+        plano: a.plano,
+        horas_totais: a.horasTotais ?? undefined,
+        minutos_por_sessao: a.minutosPorSessao ?? undefined,
+        prazo: a.prazo ?? undefined,
+        dias_da_semana: a.diasDaSemana ?? undefined,
+        redistribuir: a.redistribuir,
+      };
   }
 }
 

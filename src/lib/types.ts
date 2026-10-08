@@ -167,6 +167,15 @@ export type StudyPlanStatus = "ativo" | "pausado" | "concluido";
 // Plano de estudo: um compromisso grande (matéria da pós, mentoria) que o app
 // quebra em sessões diárias. O que resolve a ansiedade não é cadastrar — é a
 // conta: quanto por dia pra caber no prazo, e quando termina no ritmo atual.
+// Uma parte do estudo (ex.: "Módulo 3 da pós"). O tempo gasto sai das sessões
+// ligadas a ela (sessionIds): mesmo número do Painel de Horas, sem contabilidade paralela.
+export interface StudyModule {
+  id: string;
+  name: string;
+  minutes: number | null; // estimativa de duração, em minutos
+  sessionIds: string[]; // sessões (tarefas do plano) que contam para este módulo
+}
+
 export interface StudyPlan {
   id: string;
   name: string;
@@ -180,6 +189,7 @@ export interface StudyPlan {
   category: Category;
   category2: Category | null;
   createdAt: string;
+  modules: StudyModule[];
 }
 
 export type ProjectStatus = "active" | "done" | "cancelled";

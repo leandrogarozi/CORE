@@ -6,9 +6,9 @@ import { NoteField } from "./NoteField";
 import { MicButton } from "./MicButton";
 import { BookIcon, CheckIcon, ChevronIcon, TrashIcon, WarningIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
-import { constanciaDoEstudo, studyPlanMath } from "@/lib/board/study-plan";
+import { constanciaDoEstudo, studyPlanMath, tempoPorModulo } from "@/lib/board/study-plan";
 import { fmtHM, fmtShortDate, fmtTempoCurto, todayISO } from "@/lib/date-utils";
-import type { StudyPlan } from "@/lib/types";
+import type { StudyModule, StudyPlan } from "@/lib/types";
 
 const DIAS = [
   { v: 0, l: "D" },
@@ -24,6 +24,8 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
   const { board, askConfirm, openTaskInDay } = useBoardCtx();
   const [open, setOpen] = useState(false);
   const [gerou, setGerou] = useState<string | null>(null);
+  const [novoModulo, setNovoModulo] = useState("");
+  const [novoModuloHoras, setNovoModuloHoras] = useState("");
 
   const sessoes = board.state.tasks.filter((t) => t.studyPlanId === plan.id);
   const feitas = sessoes.filter((t) => t.done);
@@ -40,6 +42,43 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
   const proxima = sessoes
     .filter((t) => !t.done && t.date)
     .sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""))[0];
+
+  const { modulos: tempos, semModuloSeg } = tempoPorModulo(plan, sessoes, board.state.taskTimeEntries);
+
+  function salvarModulos(lista: StudyModule[]) {
+    board.updateStudyPlan(plan.id, { modules: lista });
+  }
+
+  function adicionarModulo() {
+    const nome = novoModulo.trim();
+    if (!nome) return;
+    const horas = Number(novoModuloHoras.replace(",", "."));
+    salvarModulos([
+      ...plan.modules,
+      { id: crypto.randomUUID(), name: nome, minutes: Number.isFinite(horas) && horas > 0 ? Math.round(horas * 60) : null, sessionIds: [] },
+    ]);
+    setNovoModulo("");
+    setNovoModuloHoras("");
+  }
+
+  // Uma sessão conta para um módulo só: ligar a um tira dos outros.
+  function ligarSessao(sessaoId: string, moduloId: string) {
+    salvarModulos(
+      plan.modules.map((m) => {
+        const sem = m.sessionIds.filter((id) => id !== sessaoId);
+        return m.id === moduloId ? { ...m, sessionIds: [...sem, sessaoId] } : { ...m, sessionIds: sem };
+      })
+    );
+  }
+
+  const moduloDaSessao = (sessaoId: string) => plan.modules.find((m) => m.sessionIds.includes(sessaoId))?.id ?? "";
+  const segDaSessao = (sessaoId: string) =>
+    board.state.taskTimeEntries.filter((e) => e.taskId === sessaoId).reduce((soma, e) => soma + e.seconds, 0);
+  // As sessões para ligar: as que já têm tempo ou foram feitas (as mais recentes primeiro) e as 3 próximas.
+  const sessoesParaLigar = [
+    ...sessoes.filter((t) => t.done || segDaSessao(t.id) > 0).sort((a, b) => (b.date ?? "").localeCompare(a.date ?? "")).slice(0, 8),
+    ...sessoes.filter((t) => !t.done && segDaSessao(t.id) === 0 && t.date).sort((a, b) => (a.date ?? "").localeCompare(b.date ?? "")).slice(0, 3),
+  ];
 
   function toggleDia(d: number) {
     const atual = plan.weekDays;
@@ -222,6 +261,110 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className="study-modulos">
+            <span className="prop-label">Módulos (tempo gasto em cada parte)</span>
+            {tempos.map((t) => {
+              const pct = t.estimadoMin ? Math.min(100, Math.round((t.feitoSeg / 60 / t.estimadoMin) * 100)) : 0;
+              return (
+                <div key={t.id} className="study-modulo">
+                  <input
+                    type="text"
+                    className="study-modulo-nome"
+                    defaultValue={t.name}
+                    aria-label="Nome do módulo"
+                    onBlur={(e) => {
+                      const nome = e.target.value.trim();
+                      if (nome && nome !== t.name) salvarModulos(plan.modules.map((m) => (m.id === t.id ? { ...m, name: nome } : m)));
+                    }}
+                  />
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.5"
+                    className="study-modulo-horas"
+                    placeholder="h"
+                    defaultValue={t.estimadoMin ? t.estimadoMin / 60 : ""}
+                    aria-label="Horas estimadas do módulo"
+                    onBlur={(e) => {
+                      const h = Number(e.target.value.replace(",", "."));
+                      const min = Number.isFinite(h) && h > 0 ? Math.round(h * 60) : null;
+                      if (min !== t.estimadoMin) salvarModulos(plan.modules.map((m) => (m.id === t.id ? { ...m, minutes: min } : m)));
+                    }}
+                  />
+                  <span className="study-modulo-tempo mono">
+                    {fmtTempoCurto(t.feitoSeg)}
+                    {t.estimadoMin ? ` de ${fmtHM(t.estimadoMin)} (${pct}%)` : ""}
+                  </span>
+                  <button
+                    type="button"
+                    className="icon-btn danger-hover"
+                    title="Excluir módulo (as sessões e o tempo registrado ficam)"
+                    onClick={() => salvarModulos(plan.modules.filter((m) => m.id !== t.id))}
+                  >
+                    <TrashIcon />
+                  </button>
+                </div>
+              );
+            })}
+            {plan.modules.length === 0 && (
+              <div className="hint-text" style={{ marginTop: 0 }}>
+                Divida o estudo em partes (ex.: Módulo 1, Módulo 2…) para ver quanto tempo cada uma leva de verdade.
+              </div>
+            )}
+            <div className="study-modulo study-modulo-novo">
+              <input
+                type="text"
+                className="study-modulo-nome"
+                placeholder="+ Novo módulo"
+                value={novoModulo}
+                onChange={(e) => setNovoModulo(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && adicionarModulo()}
+              />
+              <input
+                type="number"
+                min={0}
+                step="0.5"
+                className="study-modulo-horas"
+                placeholder="h"
+                value={novoModuloHoras}
+                onChange={(e) => setNovoModuloHoras(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && adicionarModulo()}
+              />
+              <button type="button" className="btn btn-ghost" onClick={adicionarModulo} disabled={!novoModulo.trim()}>
+                Adicionar
+              </button>
+            </div>
+            {plan.modules.length > 0 && sessoesParaLigar.length > 0 && (
+              <div className="study-ligar">
+                <span className="prop-label">Qual módulo você estudou em cada sessão?</span>
+                {sessoesParaLigar.map((t) => (
+                  <div key={t.id} className="study-ligar-linha">
+                    <span className="study-ligar-data mono">{t.date ? fmtShortDate(t.date) : "—"}</span>
+                    <span className="study-ligar-tempo mono">{segDaSessao(t.id) > 0 ? fmtTempoCurto(segDaSessao(t.id)) : t.done ? "feita" : "a fazer"}</span>
+                    <select
+                      className="know-tipo"
+                      value={moduloDaSessao(t.id)}
+                      aria-label="Módulo desta sessão"
+                      onChange={(e) => e.target.value && ligarSessao(t.id, e.target.value)}
+                    >
+                      <option value="">escolher módulo…</option>
+                      {plan.modules.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
+                {semModuloSeg > 0 && (
+                  <div className="hint-text" style={{ marginTop: 4 }}>
+                    {fmtTempoCurto(semModuloSeg)} em sessões ainda sem módulo.
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <label className="study-field">
