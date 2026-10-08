@@ -790,9 +790,9 @@ export function ShieldWarningIcon({ filled }: { filled?: boolean } = {}) {
 
 // Microfone do ditado por voz. Custom: o pacote de ícones não tem microfone
 // (mesma exceção do PillIcon e do HashIcon).
-export function MicIcon() {
+export function MicIcon({ size = 14 }: { size?: number } = {}) {
   return (
-    <svg viewBox="0 0 24 24" width="14" height="14" fill="none">
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none">
       <rect x="9" y="2.5" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="2" />
       <path
         d="M5.5 11a6.5 6.5 0 0013 0M12 17.5V21M9 21h6"

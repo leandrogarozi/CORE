@@ -5174,6 +5174,12 @@ Pedido dele (08/10, por voz): *"não quero que o Faro fique conversando demais, 
 - **Limite honesto:** é um balão com o app aberto, não notificação no celular. Aviso com o app fechado (push/WhatsApp) seria outra fatia.
 - **Próximo:** relatório semanal pronto (um botão), memória "O que o FARO sabe sobre mim" (fatia 4).
 
+## Microfone do FARO: envia sozinho e ficou grande (08/10)
+
+- **Bug:** falava e a frase não era enviada. O ditado (`src/lib/board/use-dictation.ts`) só entregava o texto que o navegador marcava como "fechado", e muitas vezes ele encerra sem marcar; o trecho "em andamento" se perdia.
+- **Correção:** ao terminar, entrega também o trecho em andamento. Nova opção `silenceMs`: o FARO usa **3 s**: depois que você para de falar, envia sozinho; **tocar de novo no microfone envia na hora**; se ninguém falar, desiste em 8 s sem enviar. Testado em navegador real (Chromium) com reconhecimento de voz simulado: fala só "em andamento", fala em dois trechos, toque para enviar na hora, silêncio total.
+- **Destaque:** botão grande (56 px, largura toda do balão) "Toque e fale" dentro da conversa, que vira vermelho e pulsa ao ouvir, com a frase aparecendo ao vivo; e um microfone de 52 px **ao lado do mascote, sempre visível**: um toque abre o balão e já começa a ouvir.
+
 ## Incidente 08/10: índice do Drive ficou em 03/10 (arquivos novos entravam, os que já existiam não eram regravados)
 
 - **Sintoma:** a cópia dos aprendizados no Drive tinha `00 — Índice.md` com "Gerado em 2026-10-03" (2.582 bytes) mesmo com o servidor registrando envios diários. Depois do clique em "Enviar aprendizados para o Drive agora" (08/10), a pasta **Conhecendo você** apareceu com os arquivos novos, mas o índice continuou o antigo.

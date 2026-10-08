@@ -52,6 +52,7 @@ export function useDictation({
   onText,
   lang = "pt-BR",
   oneShot = false,
+  silenceMs,
   onDone,
 }: {
   // Recebe cada trecho JÁ FECHADO da fala. Chamado várias vezes enquanto se
@@ -64,6 +65,11 @@ export function useDictation({
   // tocar de novo pra parar nem confirmar. No ditado de textos longos o modo
   // contínuo continua valendo (uma pausa pra pensar não pode encerrar tudo).
   oneShot?: boolean;
+  // Só vale com `oneShot`: envia sozinho depois de tantos milissegundos sem fala
+  // (é o "fala e, três segundos depois de parar, já vai"). Com isto o navegador
+  // fica no modo contínuo e quem decide o fim da fala é este relógio, não a
+  // engine, que costuma encerrar cedo demais ou nem marcar a fala como fechada.
+  silenceMs?: number;
   onDone?: (text: string) => void;
 }) {
   // Inicializador preguiçoso em vez de efeito: o navegador ou tem
@@ -73,6 +79,10 @@ export function useDictation({
   const [supported] = useState(() => (typeof window === "undefined" ? false : getRecognitionCtor() !== null));
   const [listening, setListening] = useState(false);
   const [partial, setPartial] = useState("");
+  // Tudo o que já foi ouvido nesta fala (trechos fechados + o que ainda está em andamento).
+  const [heard, setHeard] = useState("");
+  const parcialRef = useRef("");
+  const silencioRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const recRef = useRef<Recognition | null>(null);
   const onTextRef = useRef(onText);
@@ -93,6 +103,7 @@ export function useDictation({
     queroOuvirRef.current = false;
     setListening(false);
     setPartial("");
+    if (silencioRef.current) clearTimeout(silencioRef.current);
     recRef.current?.stop();
   }, []);
 
@@ -103,9 +114,18 @@ export function useDictation({
 
     const rec = new Ctor();
     rec.lang = lang;
-    rec.continuous = !oneShot;
+    rec.continuous = !oneShot || !!silenceMs;
     rec.interimResults = true;
     bufferRef.current = "";
+    parcialRef.current = "";
+    setHeard("");
+    // Relógio do silêncio: cada pedaço ouvido reinicia a contagem; quando ela
+    // estoura, encerra e o onend entrega a frase. Sem ninguém falar, desiste em 8 s.
+    const armarSilencio = (ms: number) => {
+      if (!oneShot || !silenceMs) return;
+      if (silencioRef.current) clearTimeout(silencioRef.current);
+      silencioRef.current = setTimeout(() => rec.stop(), ms);
+    };
 
     rec.onresult = (e) => {
       let fechado = "";
@@ -116,9 +136,14 @@ export function useDictation({
         else emAndamento += r[0].transcript;
       }
       setPartial(emAndamento);
+      parcialRef.current = emAndamento.trim();
       if (fechado.trim()) {
         if (oneShot) bufferRef.current = `${bufferRef.current} ${fechado.trim()}`.trim();
         else onTextRef.current(fechado.trim());
+      }
+      if (oneShot) {
+        setHeard(`${bufferRef.current} ${parcialRef.current}`.trim());
+        armarSilencio(silenceMs ?? 0);
       }
     };
 
@@ -138,12 +163,17 @@ export function useDictation({
       if (oneShot) {
         // Acabou a fala (silêncio ou toque no microfone): entrega a frase
         // inteira UMA vez. Nunca religa, senão a próxima conversa na sala
-        // viraria tarefa.
+        // viraria tarefa. Conta também o trecho que o navegador ainda não
+        // tinha marcado como fechado: era ele que se perdia e fazia a fala
+        // "sumir" sem enviar.
         queroOuvirRef.current = false;
         setListening(false);
         if (limiteRef.current) clearTimeout(limiteRef.current);
-        const texto = bufferRef.current.trim();
+        if (silencioRef.current) clearTimeout(silencioRef.current);
+        const texto = `${bufferRef.current} ${parcialRef.current}`.trim();
         bufferRef.current = "";
+        parcialRef.current = "";
+        setHeard("");
         if (texto) onDoneRef.current?.(texto);
         return;
       }
@@ -169,13 +199,14 @@ export function useDictation({
       // o fim da fala (ruído de fundo), encerra em 20 s em vez de ficar ouvindo.
       if (oneShot) {
         if (limiteRef.current) clearTimeout(limiteRef.current);
-        limiteRef.current = setTimeout(() => rec.stop(), 20000);
+        limiteRef.current = setTimeout(() => rec.stop(), silenceMs ? 60000 : 20000);
+        armarSilencio(8000);
       }
     } catch {
       // start() em cima de uma sessão que ainda não morreu: ignora, o onend
       // religa.
     }
-  }, [lang, oneShot]);
+  }, [lang, oneShot, silenceMs]);
 
   const toggle = useCallback(() => {
     if (listening) stop();
@@ -186,10 +217,11 @@ export function useDictation({
   useEffect(
     () => () => {
       queroOuvirRef.current = false;
+      if (silencioRef.current) clearTimeout(silencioRef.current);
       recRef.current?.abort();
     },
     []
   );
 
-  return { supported, listening, partial, error, start, stop, toggle };
+  return { supported, listening, partial, heard, error, start, stop, toggle };
 }

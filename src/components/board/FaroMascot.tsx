@@ -73,7 +73,8 @@ export function FaroMascot() {
   const mood = board.state.dailyLogs[today]?.mood;
 
   // Toca, fala uma frase e ela já vai: a confirmação da AÇÃO é o cartão, não o envio.
-  const ditado = useDictation({ oneShot: true, onText: () => {}, onDone: (t) => void enviar(t) });
+  // Fala e, 3 segundos depois de parar, já vai (ou toque de novo no microfone para enviar na hora).
+  const ditado = useDictation({ oneShot: true, silenceMs: 3000, onText: () => {}, onDone: (t) => void enviar(t) });
 
   useEffect(() => {
     if (board.loading) return;
@@ -301,6 +302,23 @@ export function FaroMascot() {
               <div ref={fim} />
             </div>
           )}
+          {ditado.supported && (
+            <div className="faro-mic-zona">
+              <button
+                type="button"
+                className={"faro-mic-grande" + (ditado.listening ? " ouvindo" : "")}
+                aria-label={ditado.listening ? "Enviar agora" : "Falar com o FARO"}
+                disabled={pensando}
+                onClick={() => ditado.toggle()}
+              >
+                <MicIcon />
+                <span>{ditado.listening ? "Ouvindo… toque para enviar" : pensando ? "Pensando…" : "Toque e fale"}</span>
+              </button>
+              {ditado.listening && (
+                <div className="faro-ouvindo">{ditado.heard || "Pode falar. Envio automático 3 s depois que você parar."}</div>
+              )}
+            </div>
+          )}
           <form
             className="faro-chat-form"
             onSubmit={(e) => {
@@ -308,22 +326,10 @@ export function FaroMascot() {
               void enviar();
             }}
           >
-            {ditado.supported && (
-              <button
-                type="button"
-                className={"faro-chat-mic" + (ditado.listening ? " ouvindo" : "")}
-                aria-label={ditado.listening ? "Parar de ouvir" : "Falar com o FARO"}
-                title={ditado.listening ? "Ouvindo… toque para parar" : "Toque e fale"}
-                disabled={pensando}
-                onClick={() => ditado.toggle()}
-              >
-                <MicIcon />
-              </button>
-            )}
             <input
               type="text"
               className="faro-chat-input"
-              placeholder={ditado.listening ? ditado.partial || "Ouvindo…" : "Fale ou escreva…"}
+              placeholder="…ou escreva aqui"
               aria-label="Pergunte ao FARO"
               value={texto}
               maxLength={2000}
@@ -337,15 +343,32 @@ export function FaroMascot() {
           <div className="faro-bubble-hint">Eu anoto lembretes, tarefas, gastos e humor, sempre pedindo seu OK antes de gravar.</div>
         </div>
       )}
-      <button
-        type="button"
-        className="faro-avatar"
-        aria-label="FARO"
-        title="FARO"
-        onClick={() => setOpen((v) => !v)}
-      >
-        <Image src="/faro-mascote.svg" alt="" width={74} height={68} priority className="faro-avatar-img" />
-      </button>
+      <div className="faro-avatar-linha">
+        {ditado.supported && (
+          <button
+            type="button"
+            className={"faro-mic-flutuante" + (ditado.listening ? " ouvindo" : "")}
+            aria-label="Falar com o FARO"
+            title="Toque e fale"
+            onClick={() => {
+              setAviso(null);
+              setOpen(true);
+              ditado.toggle();
+            }}
+          >
+            <MicIcon />
+          </button>
+        )}
+        <button
+          type="button"
+          className="faro-avatar"
+          aria-label="FARO"
+          title="FARO"
+          onClick={() => setOpen((v) => !v)}
+        >
+          <Image src="/faro-mascote.svg" alt="" width={74} height={68} priority className="faro-avatar-img" />
+        </button>
+      </div>
     </div>
   );
 }
