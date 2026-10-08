@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { MAX_TOKENS_DA_RESPOSTA, type MensagemDaConversa } from "./conversa";
 import { MODELO_DA_IA, custoEmUsd, type UsoDeTokens } from "./custo";
+import { FERRAMENTAS_DO_FARO, validarAcao, type AcaoProposta } from "./ferramentas";
 
 /**
  * O miolo da conversa no servidor, separado da rota para poder testar com um
@@ -16,6 +17,13 @@ import { MODELO_DA_IA, custoEmUsd, type UsoDeTokens } from "./custo";
  */
 
 export type ErroDaIA = "chave_invalida" | "limite_da_api" | "indisponivel";
+
+/**
+ * O fluxo que a tela recebe: uma linha JSON por evento (NDJSON).
+ *   {"t":"texto","d":"…"}              pedaço da resposta, para ir escrevendo
+ *   {"t":"acao","id":"…","acao":{…}}   algo que a IA quer FAZER; só grava depois do OK dele
+ */
+export type EventoDaConversa = { t: "texto"; d: string } | { t: "acao"; id: string; acao: AcaoProposta };
 
 export interface Gasto {
   modelo: string;
@@ -66,6 +74,7 @@ export async function iniciarConversa(p: PedidoDeConversa): Promise<ResultadoDaC
     max_tokens: MAX_TOKENS_DA_RESPOSTA,
     system: p.sistema,
     messages: p.mensagens,
+    tools: FERRAMENTAS_DO_FARO,
     // Conversa de rotina não precisa de raciocínio longo: esforço baixo é mais
     // rápido e barato. Sem "thinking": o modelo decide sozinho (adaptativo).
     output_config: { effort: "low" },
@@ -84,10 +93,10 @@ export async function iniciarConversa(p: PedidoDeConversa): Promise<ResultadoDaC
     async start(controle) {
       let aberto = true;
       let enviouTexto = false;
-      const enviar = (texto: string) => {
+      const enviar = (evento: EventoDaConversa) => {
         if (!aberto) return;
         try {
-          controle.enqueue(codificador.encode(texto));
+          controle.enqueue(codificador.encode(JSON.stringify(evento) + "\n"));
         } catch {
           aberto = false; // a pessoa fechou a tela: seguimos até o fim só para contar o gasto
         }
@@ -95,7 +104,7 @@ export async function iniciarConversa(p: PedidoDeConversa): Promise<ResultadoDaC
       const tratar = (ev: Anthropic.MessageStreamEvent) => {
         if (ev.type === "content_block_delta" && ev.delta.type === "text_delta") {
           enviouTexto = true;
-          enviar(ev.delta.text);
+          enviar({ t: "texto", d: ev.delta.text });
         }
       };
       try {
@@ -105,10 +114,22 @@ export async function iniciarConversa(p: PedidoDeConversa): Promise<ResultadoDaC
           atual = await iterador.next();
         }
         const final = await stream.finalMessage();
+        // Ações propostas: validadas aqui; o que não passa vira um aviso em texto.
+        for (const bloco of final.content) {
+          if (bloco.type !== "tool_use") continue;
+          const v = validarAcao(bloco.name, bloco.input);
+          if (v.ok) {
+            enviouTexto = true;
+            enviar({ t: "acao", id: bloco.id, acao: v.acao });
+          } else {
+            enviouTexto = true;
+            enviar({ t: "texto", d: `\n(Não consegui montar a ação: ${v.motivo}.)` });
+          }
+        }
         if (final.stop_reason === "refusal" && !enviouTexto) {
-          enviar("Não consegui responder a essa. Pode perguntar de outro jeito?");
+          enviar({ t: "texto", d: "Não consegui responder a essa. Pode perguntar de outro jeito?" });
         } else if (final.stop_reason === "max_tokens") {
-          enviar("…");
+          enviar({ t: "texto", d: "…" });
         }
         const uso = usoDaMensagem(final.usage);
         await p.registrarGasto({ modelo: MODELO_DA_IA, uso, custoUsd: custoEmUsd(MODELO_DA_IA, uso) });

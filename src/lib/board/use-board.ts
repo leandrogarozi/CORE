@@ -432,7 +432,13 @@ export function useBoard(userId: string | null) {
   // (em vez do item sumir silenciosamente no próximo refresh, como aconteceu
   // em 03/09 por causa de uma constraint desatualizada no banco).
   const addTask = useCallback(
-    async (bucketKey: string, title: string): Promise<boolean> => {
+    async (
+      bucketKey: string,
+      title: string,
+      // Campos que já nascem preenchidos quando a tarefa vem de um pedido por
+      // voz ou texto ("amanhã às 10, prioridade alta"). Sem eles, o padrão de sempre.
+      extras?: { time?: string; priority?: Priority; note?: string }
+    ): Promise<boolean> => {
       if (!userId || !title.trim()) return false;
       const t: Task = {
         id: uid(),
@@ -440,14 +446,14 @@ export function useBoard(userId: string | null) {
         title: title.trim(),
         category: "sem_categoria",
         category2: null,
-        priority: "media",
+        priority: extras?.priority ?? "media",
         date: bucketKey || null,
-        time: "",
+        time: extras?.time ?? "",
         endDate: null,
         endTime: null,
         durationMin: null,
         expectedDurationMin: null,
-        note: "",
+        note: extras?.note ?? "",
         done: false,
         order: nextOrder(bucketKey),
         seriesId: null,

@@ -2470,6 +2470,21 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
   flex:1 1 auto; min-width:0; background:var(--surface); border:1px solid var(--border-strong);
   border-radius:8px; padding:6px 9px; font-size:16px; color:var(--text); font-family:inherit;
 }
+.faro-chat-mic{
+  flex:none; width:34px; border-radius:8px; border:1px solid var(--border-strong); color:var(--accent);
+  display:flex; align-items:center; justify-content:center; background:var(--surface);
+}
+.faro-chat-mic.ouvindo{ background:var(--accent); color:#fff; animation:faro-pulso 1.2s ease-in-out infinite; }
+.faro-chat-mic:disabled{ opacity:.45; cursor:default; }
+@keyframes faro-pulso{ 50%{ box-shadow:0 0 0 5px var(--accent-soft); } }
+.faro-cartao{ margin-top:8px; padding:8px; border-radius:8px; border:1px dashed var(--accent); background:var(--surface); }
+.faro-cartao-feito{ border-style:solid; border-color:var(--success, #2E9E5B); }
+.faro-cartao-cancelado{ opacity:.6; }
+.faro-cartao-erro{ border-color:var(--danger); }
+.faro-cartao-texto{ font-size:12.5px; font-weight:600; }
+.faro-cartao-acoes{ display:flex; gap:6px; margin-top:8px; }
+.faro-cartao-acoes .btn{ font-size:12px; padding:4px 12px; }
+.faro-cartao-situacao{ font-size:11.5px; color:var(--text-muted); margin-top:4px; }
 .faro-chat-enviar{
   flex:none; width:34px; border-radius:8px; background:var(--accent); color:#fff;
   display:flex; align-items:center; justify-content:center;

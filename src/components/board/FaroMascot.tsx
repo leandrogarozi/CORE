@@ -3,9 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useBoardCtx } from "./board-context";
-import { SendIcon } from "./icons";
+import { MicIcon, SendIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
+import { useDictation } from "@/lib/board/use-dictation";
 import { resumoDoDia } from "@/lib/ia/resumo-do-dia";
+import { descreverAcao, type AcaoProposta } from "@/lib/ia/ferramentas";
+import { executarAcao } from "@/lib/ia/executar";
+import type { EventoDaConversa } from "@/lib/ia/servidor";
 
 function greetingMessage(mood: number | null | undefined): string {
   if (mood === 0) return "Melhoras, Leandro! Espero que fique bem logo.";
@@ -15,10 +19,27 @@ function greetingMessage(mood: number | null | undefined): string {
   return "Boa noite, Leandro!";
 }
 
-type Fala = { role: "user" | "assistant"; content: string };
+type Cartao = {
+  id: string;
+  acao: AcaoProposta;
+  estado: "pendente" | "feito" | "cancelado" | "erro";
+  msg?: string;
+};
+type Fala = { role: "user" | "assistant"; content: string; cartoes?: Cartao[] };
 
 // Atalhos de um toque: o que ele mais vai querer pedir, sem digitar.
 const ATALHOS = ["O que estou esquecendo?", "Como foi minha semana?", "Por onde começo?"];
+
+// O que a IA vê da conversa: o texto mais o desfecho de cada ação, para ela saber
+// o que de fato foi gravado e o que ele recusou.
+function paraHistorico(f: Fala): { role: "user" | "assistant"; content: string } {
+  const desfechos = (f.cartoes ?? []).map((c) => {
+    const quando =
+      c.estado === "feito" ? "FEITO" : c.estado === "cancelado" ? "CANCELADO pelo Leandro" : c.estado === "erro" ? `NÃO GRAVOU (${c.msg ?? "erro"})` : "aguardando confirmação";
+    return `[Ação proposta: ${descreverAcao(c.acao)} → ${quando}]`;
+  });
+  return { role: f.role, content: [f.content, ...desfechos].filter(Boolean).join("\n") };
+}
 
 // O que mostrar quando a rota devolve erro. O texto é para ele, não para o log.
 function textoDoErro(status: number, erro: string | undefined, gasto?: number, teto?: number): string {
@@ -45,6 +66,9 @@ export function FaroMascot() {
   const today = todayISO();
   const mood = board.state.dailyLogs[today]?.mood;
 
+  // Toca, fala uma frase e ela já vai: a confirmação da AÇÃO é o cartão, não o envio.
+  const ditado = useDictation({ oneShot: true, onText: () => {}, onDone: (t) => void enviar(t) });
+
   useEffect(() => {
     if (board.loading) return;
     const key = `faro-greeted-${today}`;
@@ -62,12 +86,12 @@ export function FaroMascot() {
   async function enviar(textoPronto?: string) {
     const pergunta = (textoPronto ?? texto).trim();
     if (!pergunta || pensando) return;
-    const historico: Fala[] = [...falas, { role: "user", content: pergunta }];
-    setFalas([...historico, { role: "assistant", content: "" }]);
+    const historico = [...falas.map(paraHistorico), { role: "user" as const, content: pergunta }];
+    setFalas([...falas, { role: "user", content: pergunta }, { role: "assistant", content: "" }]);
     setTexto("");
     setPensando(true);
-    const responder = (conteudo: string) =>
-      setFalas((f) => [...f.slice(0, -1), { role: "assistant", content: conteudo }]);
+    const atualizarUltima = (mudar: (f: Fala) => Fala) =>
+      setFalas((f) => [...f.slice(0, -1), mudar(f[f.length - 1])]);
     try {
       const r = await fetch("/api/ia/conversa", {
         method: "POST",
@@ -76,24 +100,65 @@ export function FaroMascot() {
       });
       if (!r.ok || !r.body) {
         const d = (await r.json().catch(() => ({}))) as { erro?: string; gasto?: number; teto?: number };
-        responder(textoDoErro(r.status, d.erro, d.gasto, d.teto));
+        atualizarUltima((f) => ({ ...f, content: textoDoErro(r.status, d.erro, d.gasto, d.teto) }));
         return;
       }
       const leitor = r.body.getReader();
       const decodificador = new TextDecoder();
-      let acumulado = "";
+      let resto = "";
+      let veioAlgo = false;
+      const tratarLinha = (linha: string) => {
+        if (!linha.trim()) return;
+        let ev: EventoDaConversa;
+        try {
+          ev = JSON.parse(linha) as EventoDaConversa;
+        } catch {
+          return;
+        }
+        veioAlgo = true;
+        if (ev.t === "texto") atualizarUltima((f) => ({ ...f, content: f.content + ev.d }));
+        else if (ev.t === "acao")
+          atualizarUltima((f) => ({ ...f, cartoes: [...(f.cartoes ?? []), { id: ev.id, acao: ev.acao, estado: "pendente" }] }));
+      };
       for (;;) {
         const { done, value } = await leitor.read();
         if (done) break;
-        acumulado += decodificador.decode(value, { stream: true });
-        responder(acumulado);
+        resto += decodificador.decode(value, { stream: true });
+        const linhas = resto.split("\n");
+        resto = linhas.pop() ?? "";
+        linhas.forEach(tratarLinha);
       }
-      if (!acumulado.trim()) responder("Não veio resposta. Tente de novo.");
+      tratarLinha(resto);
+      if (!veioAlgo) atualizarUltima((f) => ({ ...f, content: "Não veio resposta. Tente de novo." }));
     } catch {
-      responder("A conversa foi interrompida. Tente de novo.");
+      atualizarUltima((f) => ({ ...f, content: f.content || "A conversa foi interrompida. Tente de novo." }));
     } finally {
       setPensando(false);
     }
+  }
+
+  function mudarCartao(indiceFala: number, id: string, mudar: Partial<Cartao>) {
+    setFalas((fs) =>
+      fs.map((f, i) =>
+        i === indiceFala ? { ...f, cartoes: f.cartoes?.map((c) => (c.id === id ? { ...c, ...mudar } : c)) } : f
+      )
+    );
+  }
+
+  async function confirmar(indiceFala: number, cartao: Cartao) {
+    mudarCartao(indiceFala, cartao.id, { estado: "feito", msg: "Gravando…" });
+    const r = await executarAcao(
+      cartao.acao,
+      {
+        checklists: board.state.checklists,
+        addReminder: board.addReminder,
+        addTask: board.addTask,
+        updateChecklist: board.updateChecklist,
+        updateDailyLog: board.updateDailyLog,
+      },
+      today
+    );
+    mudarCartao(indiceFala, cartao.id, { estado: r.ok ? "feito" : "erro", msg: r.mensagem });
   }
 
   return (
@@ -119,7 +184,27 @@ export function FaroMascot() {
             <div className="faro-chat-lista">
               {falas.map((f, i) => (
                 <div key={i} className={"faro-fala " + (f.role === "user" ? "faro-fala-eu" : "faro-fala-faro")}>
-                  {f.content || (pensando && i === falas.length - 1 ? "…" : "")}
+                  {f.content || (!f.cartoes?.length && pensando && i === falas.length - 1 ? "…" : "")}
+                  {f.cartoes?.map((c) => (
+                    <div key={c.id} className={"faro-cartao faro-cartao-" + c.estado}>
+                      <div className="faro-cartao-texto">{descreverAcao(c.acao)}</div>
+                      {c.estado === "pendente" ? (
+                        <div className="faro-cartao-acoes">
+                          <button type="button" className="btn btn-accent" onClick={() => void confirmar(i, c)}>
+                            Confirmar
+                          </button>
+                          <button type="button" className="btn btn-ghost" onClick={() => mudarCartao(i, c.id, { estado: "cancelado" })}>
+                            Cancelar
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="faro-cartao-situacao">
+                          {c.estado === "feito" && "✓ "}
+                          {c.estado === "cancelado" ? "Cancelado" : c.msg}
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               ))}
               <div ref={fim} />
@@ -132,10 +217,22 @@ export function FaroMascot() {
               void enviar();
             }}
           >
+            {ditado.supported && (
+              <button
+                type="button"
+                className={"faro-chat-mic" + (ditado.listening ? " ouvindo" : "")}
+                aria-label={ditado.listening ? "Parar de ouvir" : "Falar com o FARO"}
+                title={ditado.listening ? "Ouvindo… toque para parar" : "Toque e fale"}
+                disabled={pensando}
+                onClick={() => ditado.toggle()}
+              >
+                <MicIcon />
+              </button>
+            )}
             <input
               type="text"
               className="faro-chat-input"
-              placeholder="Pergunte algo sobre o seu dia…"
+              placeholder={ditado.listening ? ditado.partial || "Ouvindo…" : "Fale ou escreva…"}
               aria-label="Pergunte ao FARO"
               value={texto}
               maxLength={2000}
@@ -145,7 +242,8 @@ export function FaroMascot() {
               <SendIcon />
             </button>
           </form>
-          <div className="faro-bubble-hint">Eu enxergo suas tarefas, lembretes, hábitos e os números do registro do dia. Remédios ficam de fora.</div>
+          {ditado.error && <div className="faro-bubble-hint">{ditado.error}</div>}
+          <div className="faro-bubble-hint">Eu anoto lembretes, tarefas, gastos e humor, sempre pedindo seu OK antes de gravar.</div>
         </div>
       )}
       <button
