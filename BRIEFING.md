@@ -5138,6 +5138,17 @@ de feature flags que já existe pra água/dieta/sono/humor
 - **Para ligar (ele faz uma vez):** copiar o endereço → claude.ai → Configurações → Conectores → Adicionar conector personalizado → nome FARO, colar a URL → Adicionar. Testar: "O que o FARO sabe sobre mim?".
 - **Instrução fixa para colar nas preferências do Claude** (substitui todo "aponte a pasta X" das skills): *"Antes de escrever, planejar, estudar ou criar algo para mim, consulte o conector FARO (faro_sobre_mim e faro_buscar). O que está no FARO é a minha palavra e vale mais do que suposições."*
 
+## Regra de ouro: tela nova com conteúdo de aprendizado só está pronta quando entra no cérebro (08/10)
+
+O conector FARO e o backup do Drive **não descobrem tabela nova sozinhos**; cada área é ligada à mão. Skill nenhuma precisa mudar (a IA descobre ferramentas e tipos pelo próprio conector), mas **o FARO precisa**. Ao criar qualquer tela que guarda conteúdo de aprendizado (estudo, frase, referência, resumo...), conferir os 4 pontos antes de dar como concluída:
+
+1. **Conector** (`src/lib/conector/faro-mcp.ts`): carregar a tabela em `carregarAcervo` (`src/app/api/mcp/[token]/route.ts`), incluir em `AcervoDoFaro` e em `itensDoAcervo` (tipo, título, texto, data, texto completo), e somar o tipo em `TIPOS_LISTAVEIS` e no texto de `INSTRUCOES`.
+2. **Backup do Drive** (`src/lib/learning-export.ts`): nova área em `AREAS_DE_BACKUP`/`AREAS_PADRAO`, função do arquivo com cabeçalho do Obsidian, índice, e carregar em `/api/backup/aprendizado` e no `BackupDeAprendizadoBox`.
+3. **Permissão no banco:** `grant select` da tabela ao `service_role` (o conector e o backup leem com ele).
+4. **Exclusões:** o que for saúde, medicamento, senha ou dado bancário **nunca** entra no conector nem no backup de leitura.
+
+Caso mais simples, já automático: **tipo novo dentro de "Conhecendo você"** (basta somar em `TIPOS_DE_CONHECIMENTO`, em `src/lib/conhecimento.ts`).
+
 ## Revisão do backup depois do conector (07/10): o que melhorou e o que ficou obsoleto
 
 **O que melhorou (funcionando):**
