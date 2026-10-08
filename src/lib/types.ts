@@ -497,6 +497,7 @@ export interface Checklist {
   expenses: ChecklistExpense[];
   budgetCents: number | null; // quanto planejou gastar — opcional, só pra comparar
   order: number; // ordem manual na tela — ele arrasta o próximo pro topo
+  notes: string; // anotações livres do checklist, em HTML (editor rico), "" = nada
 }
 
 export interface DietMeal {

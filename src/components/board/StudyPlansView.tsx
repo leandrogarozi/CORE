@@ -7,7 +7,7 @@ import { MicButton } from "./MicButton";
 import { BookIcon, CheckIcon, ChevronIcon, TrashIcon, WarningIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { constanciaDoEstudo, studyPlanMath } from "@/lib/board/study-plan";
-import { fmtHM, fmtShortDate, todayISO } from "@/lib/date-utils";
+import { fmtHM, fmtShortDate, fmtTempoCurto, todayISO } from "@/lib/date-utils";
 import type { StudyPlan } from "@/lib/types";
 
 const DIAS = [
@@ -29,11 +29,10 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
   const feitas = sessoes.filter((t) => t.done);
   // O tempo feito vem do tempo por dia das sessões — é o mesmo número que o
   // Painel de Horas conta, não uma contabilidade paralela.
-  const feitoMin = Math.round(
-    board.state.taskTimeEntries
-      .filter((e) => sessoes.some((t) => t.id === e.taskId))
-      .reduce((soma, e) => soma + e.seconds, 0) / 60
-  );
+  const feitoSeg = board.state.taskTimeEntries
+    .filter((e) => sessoes.some((t) => t.id === e.taskId))
+    .reduce((soma, e) => soma + e.seconds, 0);
+  const feitoMin = Math.round(feitoSeg / 60);
   const m = studyPlanMath(plan, feitoMin, todayISO());
   // Quantas ele deixou passar. Não depende de marcar nada: sessão com data
   // vencida e não concluída já é um pulo.
@@ -72,6 +71,7 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
         )}
         <span className="study-progress mono">
           {feitas.length}/{sessoes.length || "—"} sessões
+          {feitoSeg > 0 && <> · {fmtTempoCurto(feitoSeg)} estudados</>}
         </span>
         <button
           type="button"
@@ -121,7 +121,7 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
         <div className="study-bar-fill" style={{ width: `${m.pctFeito}%` }} />
       </div>
       <div className="study-bar-legend">
-        {fmtHM(feitoMin)} feitos{m.totalMin > 0 ? ` de ${fmtHM(m.totalMin)} (${m.pctFeito}%)` : ""}
+        {fmtTempoCurto(feitoSeg)} feitos{m.totalMin > 0 ? ` de ${fmtHM(m.totalMin)} (${m.pctFeito}%)` : ""}
         {proxima && (
           <button type="button" className="study-next" onClick={() => openTaskInDay(proxima)}>
             próxima: {fmtShortDate(proxima.date!)}

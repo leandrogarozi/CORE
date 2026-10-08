@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { PauseIcon, PlayIcon } from "./icons";
-import { fmtClock } from "@/lib/date-utils";
+import { fmtClock, fmtTempoCurto } from "@/lib/date-utils";
 import { taskSecondsOnDay } from "@/lib/board/task-time";
 import type { ActiveTimer, BoardState, RecurringItem, Task, TimerKind } from "@/lib/types";
 
@@ -58,6 +58,13 @@ export function TimerButton({ kind, id, logDate }: { kind: TimerKind; id: string
         {running ? <PauseIcon /> : <PlayIcon />}
       </button>
       {running && <span className="timer-live mono">{fmtClock(totalElapsed)}</span>}
+      {/* Parou? Mostra quanto já tem no dia. Sem isso, a linha ficava muda e
+          parecia que o tempo da sessão não tinha entrado. */}
+      {!running && totalElapsed > 0 && (
+        <span className="timer-parado mono" title="Tempo de hoje nesta linha">
+          {fmtTempoCurto(totalElapsed)}
+        </span>
+      )}
     </span>
   );
 }

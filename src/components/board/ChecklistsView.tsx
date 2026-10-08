@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { ToggleSwitch } from "./ToggleSwitch";
+import { NoteField } from "./NoteField";
 import {
   CartIcon,
   ChecklistIcon,
@@ -10,6 +11,7 @@ import {
   CheckIcon,
   DragGripIcon,
   DuplicateIcon,
+  EditIcon,
   MoneyIcon,
   SendIcon,
   TrashIcon,
@@ -115,7 +117,7 @@ function ExpenseRow({
   );
 }
 
-type ChecklistTab = "itens" | "gastos";
+type ChecklistTab = "itens" | "gastos" | "notas";
 
 function ChecklistRow({
   checklist,
@@ -143,6 +145,7 @@ function ChecklistRow({
   const [newExpenseAmount, setNewExpenseAmount] = useState("");
   const [newExpenseDate, setNewExpenseDate] = useState(() => todayISO());
   const [budgetDraft, setBudgetDraft] = useState<string | null>(null);
+  const [notaDraft, setNotaDraft] = useState(checklist.notes);
 
   const total = checklist.items.length;
   const done = checklist.items.filter((i) => i.checked).length;
@@ -356,9 +359,27 @@ function ChecklistRow({
                 <span className="checklist-tab-count mono">{fmtBRL(spentCents)}</span>
               )}
             </button>
+            <button
+              type="button"
+              className={"checklist-tab" + (tab === "notas" ? " active" : "")}
+              onClick={() => setTab("notas")}
+            >
+              <EditIcon /> Anotações
+              {checklist.notes.replace(/<[^>]*>/g, "").trim() && <span className="checklist-tab-count mono">•</span>}
+            </button>
           </div>
 
-          {tab === "gastos" ? (
+          {tab === "notas" ? (
+            <div className="checklist-notas">
+              <NoteField
+                value={notaDraft}
+                placeholder="Reservas, endereços, o que lembrar, links..."
+                ariaLabel={`Anotações de ${checklist.title}`}
+                onChange={setNotaDraft}
+                onPersist={(html) => html !== checklist.notes && board.updateChecklist(checklist.id, { notes: html })}
+              />
+            </div>
+          ) : tab === "gastos" ? (
             <div className="checklist-expenses">
               <label className="checklist-expenses-switch">
                 <ToggleSwitch

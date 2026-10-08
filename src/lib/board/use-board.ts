@@ -2749,6 +2749,7 @@ export function useBoard(userId: string | null) {
         createdAt: todayISO(),
         expensesEnabled: false,
         expenses: [],
+        notes: "",
         budgetCents: null,
         // Nasce no fim da lista. Ele arrasta pro topo o que vem primeiro — quem
         // decide a ordem é ele, não a hora em que criou.
@@ -2765,7 +2766,7 @@ export function useBoard(userId: string | null) {
   const updateChecklist = useCallback(
     (
       id: string,
-      patch: Partial<Pick<Checklist, "title" | "type" | "items" | "expensesEnabled" | "expenses" | "budgetCents">>
+      patch: Partial<Pick<Checklist, "title" | "type" | "items" | "expensesEnabled" | "expenses" | "budgetCents" | "notes">>
     ) => {
       apply((s) => ({ ...s, checklists: s.checklists.map((c) => (c.id === id ? { ...c, ...patch } : c)) }));
       supabase.from("checklists").update(checklistToUpdateRow(patch)).eq("id", id).then(({ error }) => {
@@ -2826,6 +2827,7 @@ export function useBoard(userId: string | null) {
         // ligada e o quanto planejou gastar, mas começa sem gasto nenhum.
         expensesEnabled: src.expensesEnabled,
         expenses: [],
+        notes: src.notes,
         budgetCents: src.budgetCents,
         order: stateRef.current.checklists.length,
       };

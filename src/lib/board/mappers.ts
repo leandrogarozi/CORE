@@ -841,6 +841,7 @@ export function rowToChecklist(row: ChecklistRow): Checklist {
     // Linha salva antes da ordem manual existir vem com null; ela vai pro fim da
     // lista em vez de brigar pela primeira posição com as que têm ordem 0.
     order: row.sort_order ?? Number.MAX_SAFE_INTEGER,
+    notes: row.notes ?? "",
   };
 }
 
@@ -855,6 +856,7 @@ export function checklistToInsertRow(c: Checklist, userId: string): TablesInsert
     expenses: c.expenses as unknown as Json,
     expenses_budget_cents: c.budgetCents,
     sort_order: c.order,
+    notes: c.notes || null,
   };
 }
 
@@ -866,6 +868,7 @@ export function checklistToUpdateRow(c: Partial<Checklist>): TablesUpdate<"check
   if (c.expensesEnabled !== undefined) row.expenses_enabled = c.expensesEnabled;
   if (c.expenses !== undefined) row.expenses = c.expenses as unknown as Json;
   if (c.budgetCents !== undefined) row.expenses_budget_cents = c.budgetCents;
+  if (c.notes !== undefined) row.notes = c.notes || null;
   return row;
 }
 

@@ -39,7 +39,7 @@ import {
   WeekIcon,
   WhatsAppIcon,
 } from "./icons";
-import { fmtDayMonth, fmtHM, todayISO } from "@/lib/date-utils";
+import { fmtDayMonth, fmtTempoCurto, todayISO } from "@/lib/date-utils";
 import { taskEntriesOf } from "@/lib/board/task-time";
 import { PostponeModal } from "./PostponeModal";
 import { ToggleSwitch } from "./ToggleSwitch";
@@ -705,7 +705,7 @@ function TaskTimeDayRow({
         onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
       />
       <span className="task-time-unit">min</span>
-      <span className="task-time-hm mono">{fmtHM(minutes)}</span>
+      <span className="task-time-hm mono">{fmtTempoCurto(seconds)}</span>
       <button
         type="button"
         className="icon-btn danger-hover"
@@ -732,7 +732,7 @@ function TaskTimeButton({ taskId }: { taskId: string }) {
   const open = anchorRect !== null;
 
   const entries = taskEntriesOf(board.state, taskId);
-  const totalMin = Math.round(entries.reduce((sum, e) => sum + e.seconds, 0) / 60);
+  const totalSeg = entries.reduce((sum, e) => sum + e.seconds, 0);
 
   useEffect(() => {
     if (!open) return;
@@ -754,7 +754,7 @@ function TaskTimeButton({ taskId }: { taskId: string }) {
     setNewMinutes("");
   }
 
-  const label = totalMin > 0 ? `${fmtHM(totalMin)} em ${entries.length} dia${entries.length > 1 ? "s" : ""}` : null;
+  const label = totalSeg > 0 ? `${fmtTempoCurto(totalSeg)} em ${entries.length} dia${entries.length > 1 ? "s" : ""}` : null;
 
   return (
     <>
@@ -804,10 +804,10 @@ function TaskTimeButton({ taskId }: { taskId: string }) {
                 Lançar
               </button>
             </div>
-            {totalMin > 0 && (
+            {totalSeg > 0 && (
               <div className="task-time-total">
                 <span>Total</span>
-                <strong className="mono">{fmtHM(totalMin)}</strong>
+                <strong className="mono">{fmtTempoCurto(totalSeg)}</strong>
               </div>
             )}
             <div className="edit-actions">

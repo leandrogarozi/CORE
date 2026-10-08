@@ -144,6 +144,17 @@ export function fmtHM(min: number): string {
   return `${m}min`;
 }
 
+/**
+ * Tempo curto a partir de SEGUNDOS: "12 s", "5 min", "1h 20min".
+ * Existe porque a tela arredondava para minutos e uma sessão de 12 segundos
+ * aparecia como "Nenhum tempo lançado", parecendo que o cronômetro não somou.
+ */
+export function fmtTempoCurto(seconds: number): string {
+  const s = Math.max(0, Math.round(seconds));
+  if (s < 60) return `${s} s`;
+  return fmtHM(Math.round(s / 60));
+}
+
 export function fmtClock(totalSeconds: number): string {
   totalSeconds = Math.max(0, Math.floor(totalSeconds));
   const h = Math.floor(totalSeconds / 3600);

@@ -85,6 +85,7 @@ export type Database = {
           expenses_enabled: boolean
           id: string
           items: Json
+          notes: string | null
           sort_order: number | null
           title: string
           type: string
@@ -97,6 +98,7 @@ export type Database = {
           expenses_enabled?: boolean
           id?: string
           items?: Json
+          notes?: string | null
           sort_order: number | null
           title: string
           type?: string
@@ -109,6 +111,7 @@ export type Database = {
           expenses_enabled?: boolean
           id?: string
           items?: Json
+          notes?: string | null
           sort_order?: number | null
           title?: string
           type?: string

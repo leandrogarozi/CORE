@@ -2519,6 +2519,7 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 /* timer */
 .timer-wrap{ display:flex; align-items:center; gap:4px; }
 .timer-live{ font-size:10.5px; color:var(--accent); min-width:36px; text-align:right; }
+.timer-parado{ font-size:10.5px; color:var(--text-faint); margin-left:4px; }
 .timer-btn:hover{ color:var(--accent); }
 .timer-btn.running{ color:var(--accent); }
 
