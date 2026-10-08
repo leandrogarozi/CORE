@@ -22,7 +22,10 @@ export type AcaoProposta =
       observacao: string | null;
     }
   | { tipo: "anotar_gasto"; checklist: string; descricao: string; valorCentavos: number; data: string | null }
-  | { tipo: "registrar_humor"; nivel: 1 | 2 | 3 | 4 | 5; emocao: string | null };
+  | { tipo: "registrar_humor"; nivel: 1 | 2 | 3 | 4 | 5; emocao: string | null }
+  | { tipo: "registrar_sono"; dormiu: string | null; acordou: string | null }
+  | { tipo: "registrar_agua"; ml: number }
+  | { tipo: "registrar_dieta"; percentual: number };
 
 export const FERRAMENTAS_DO_FARO: Anthropic.Tool[] = [
   {
@@ -81,6 +84,35 @@ export const FERRAMENTAS_DO_FARO: Anthropic.Tool[] = [
         emocao: { type: "string", enum: MOOD_EMOTIONS.map((m) => m.v), description: "Emoção do dia, se ele disser." },
       },
       required: ["nivel"],
+    },
+  },
+  {
+    name: "registrar_sono",
+    description: "Registra no dia de HOJE a hora em que ele acordou e/ou a hora em que foi dormir. Passe só o que ele disse.",
+    input_schema: {
+      type: "object",
+      properties: {
+        acordou: { type: "string", description: "HH:MM (24h) em que acordou hoje." },
+        dormiu: { type: "string", description: "HH:MM (24h) em que foi dormir." },
+      },
+    },
+  },
+  {
+    name: "registrar_agua",
+    description: "SOMA água ao total de hoje (ex.: bebeu 500 ml).",
+    input_schema: {
+      type: "object",
+      properties: { ml: { type: "integer", minimum: 50, maximum: 5000, description: "Mililitros bebidos agora." } },
+      required: ["ml"],
+    },
+  },
+  {
+    name: "registrar_dieta",
+    description: "Registra a fidelidade à dieta de HOJE, de 0 a 100 por cento.",
+    input_schema: {
+      type: "object",
+      properties: { percentual: { type: "integer", minimum: 0, maximum: 100 } },
+      required: ["percentual"],
     },
   },
 ];
@@ -154,6 +186,22 @@ export function validarAcao(nome: string, entrada: unknown): ResultadoDaValidaca
       const emocao = MOOD_EMOTIONS.some((m) => m.v === e.emocao) ? (e.emocao as string) : null;
       return { ok: true, acao: { tipo: "registrar_humor", nivel: nivel as 1 | 2 | 3 | 4 | 5, emocao } };
     }
+    case "registrar_sono": {
+      const dormiu = horaValida(e.dormiu);
+      const acordou = horaValida(e.acordou);
+      if (!dormiu && !acordou) return { ok: false, motivo: "faltou a hora de dormir ou de acordar" };
+      return { ok: true, acao: { tipo: "registrar_sono", dormiu, acordou } };
+    }
+    case "registrar_agua": {
+      const ml = typeof e.ml === "number" ? Math.round(e.ml) : 0;
+      if (ml < 50 || ml > 5000) return { ok: false, motivo: "quantidade de água inválida" };
+      return { ok: true, acao: { tipo: "registrar_agua", ml } };
+    }
+    case "registrar_dieta": {
+      const p = typeof e.percentual === "number" ? Math.round(e.percentual) : -1;
+      if (p < 0 || p > 100) return { ok: false, motivo: "percentual da dieta deve ser de 0 a 100" };
+      return { ok: true, acao: { tipo: "registrar_dieta", percentual: p } };
+    }
     default:
       return { ok: false, motivo: `ferramenta desconhecida: ${nome}` };
   }
@@ -174,5 +222,11 @@ export function descreverAcao(a: AcaoProposta): string {
       return `Anotar gasto em "${a.checklist}": ${a.descricao}, ${reais(a.valorCentavos)}${a.data ? ` (${dataBr(a.data)})` : ""}`;
     case "registrar_humor":
       return `Registrar o humor de hoje: ${NIVEIS[a.nivel]}${a.emocao ? ` (${a.emocao.replace("_", " ")})` : ""}`;
+    case "registrar_sono":
+      return `Registrar o sono de hoje:${a.acordou ? ` acordou ${a.acordou}` : ""}${a.dormiu ? ` dormiu ${a.dormiu}` : ""}`;
+    case "registrar_agua":
+      return `Somar ${a.ml} ml de água ao total de hoje`;
+    case "registrar_dieta":
+      return `Registrar a dieta de hoje: ${a.percentual}%`;
   }
 }

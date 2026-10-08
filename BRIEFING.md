@@ -5162,6 +5162,18 @@ Caso mais simples, já automático: **tipo novo dentro de "Conhecendo você"** (
 - **Limites conhecidos:** se a conexão cair no meio de uma resposta, o gasto parcial não é gravado (o painel pode subestimar um pouco). O gasto é gravado mesmo se ele fechar a tela depois de enviar.
 - **Próximas fatias** (cada uma só depois do teste da anterior): 2 = ações com OK (criar lembrete/tarefa); 3 = avisos espontâneos e frases; 4 = o FARO que o conhece (resumo mantido + "O que o FARO sabe sobre mim"). A IA da fatia 4 pode usar o "Conhecendo você" como base.
 
+## IA no FARO, fatias 2 e 3 (08/10): objetivo, anota por voz e puxa você no meio do dia
+
+Pedido dele (08/10, por voz): *"não quero que o Faro fique conversando demais, falando o que já está na tela. Só quero que ele pergunte o que eu preciso, traga cruzamento de dados, relatório, lembre o que está sendo esquecido; em algum momento do dia pergunte como estou me sentindo e se esqueci de anotar algo; e que eu aperte o botãozinho, fale, e ele lance o lembrete, anote um gasto no checklist, etc."*
+
+- **Tom:** instrução em `src/lib/ia/conversa.ts`: 1 a 3 frases, nunca recitar o que está na tela, sem elogio. Balão abre com "O que você precisa?" e 3 atalhos de um toque (O que estou esquecendo? / Como foi minha semana? / Por onde começo?).
+- **Cruzar dados:** o resumo (`src/lib/ia/resumo-do-dia.ts`) ganhou o PANORAMA dos 14 dias: tarefas concluídas, horas cronometradas, humor, sono, água e % da dieta, um dia por linha. **Só números**; anotações de texto livre (observação de dieta, comentário de humor) e medicamentos continuam de fora.
+- **Ações com OK (fatia 2):** a IA só PROPÕE; vira um cartão "Confirmar / Cancelar" e só grava depois do toque. Ferramentas (`src/lib/ia/ferramentas.ts`): criar lembrete (data e hora obrigatórias), criar tarefa, anotar gasto na aba Gastos de um checklist (por nome), registrar humor, sono, água (soma) e dieta de hoje. Validadas no servidor e de novo na tela (`src/lib/ia/executar.ts`). Fluxo da resposta passou a ser NDJSON (`texto` e `acao`). `addTask` ganhou extras opcionais (hora, prioridade, observação).
+- **Voz:** botão de microfone no balão (mesmo ditado do navegador usado nas Ideias): toca, fala uma frase, ela é enviada; o cartão de confirmação é a trava.
+- **Avisos sozinhos (fatia 3):** regras fixas, sem IA para decidir (`src/lib/ia/avisos.ts`): humor (a partir das 14h, se não anotou), registro do dia (a partir das 19h: faltou acordar/dormir/dieta/água), tarefas atrasadas (3 ou mais, a partir das 10h), lembretes vencidos (11h), hábitos que faltam (17h). **No máximo 2 por dia, intervalo de 2h, só entre 9h e 22h, só com o app aberto e sem conversa em andamento.** Humor responde ali mesmo, com as 5 carinhas.
+- **Limite honesto:** é um balão com o app aberto, não notificação no celular. Aviso com o app fechado (push/WhatsApp) seria outra fatia.
+- **Próximo:** relatório semanal pronto (um botão), memória "O que o FARO sabe sobre mim" (fatia 4).
+
 ## Incidente 08/10: índice do Drive ficou em 03/10 (arquivos novos entravam, os que já existiam não eram regravados)
 
 - **Sintoma:** a cópia dos aprendizados no Drive tinha `00 — Índice.md` com "Gerado em 2026-10-03" (2.582 bytes) mesmo com o servidor registrando envios diários. Depois do clique em "Enviar aprendizados para o Drive agora" (08/10), a pasta **Conhecendo você** apareceu com os arquivos novos, mas o índice continuou o antigo.

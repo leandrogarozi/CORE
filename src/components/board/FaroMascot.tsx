@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useBoardCtx } from "./board-context";
-import { MicIcon, SendIcon } from "./icons";
+import { MicIcon, MoodFaceIcon, SendIcon } from "./icons";
+import { MOODS } from "@/lib/mood";
+import { avisoDaVez, chaveDosAvisos, lerHistorico, type AcaoDoBotao, type AvisoDoFaro } from "@/lib/ia/avisos";
 import { todayISO } from "@/lib/date-utils";
 import { useDictation } from "@/lib/board/use-dictation";
 import { resumoDoDia } from "@/lib/ia/resumo-do-dia";
@@ -63,6 +65,10 @@ export function FaroMascot() {
   const [texto, setTexto] = useState("");
   const [pensando, setPensando] = useState(false);
   const fim = useRef<HTMLDivElement>(null);
+  const [aviso, setAviso] = useState<AvisoDoFaro | null>(null);
+  const [avisoFeito, setAvisoFeito] = useState<string | null>(null);
+  // O verificador de avisos roda num relógio e precisa enxergar o estado de agora, não o da hora em que nasceu.
+  const vistoRef = useRef({ state: board.state, conversando: false });
   const today = todayISO();
   const mood = board.state.dailyLogs[today]?.mood;
 
@@ -82,6 +88,61 @@ export function FaroMascot() {
   useEffect(() => {
     fim.current?.scrollIntoView({ block: "end" });
   }, [falas, open]);
+
+  useEffect(() => {
+    vistoRef.current = { state: board.state, conversando: falas.length > 0 || pensando };
+  }, [board.state, falas.length, pensando]);
+
+  // O FARO te puxa sozinho no meio do dia (regras fixas em lib/ia/avisos.ts). Só com a
+  // tela visível, sem conversa em andamento, e no máximo 2 por dia.
+  useEffect(() => {
+    if (board.loading) return;
+    function verificar() {
+      if (document.visibilityState !== "visible" || vistoRef.current.conversando) return;
+      const hoje = todayISO();
+      const chave = chaveDosAvisos(hoje);
+      let historico = lerHistorico(null);
+      try {
+        historico = lerHistorico(localStorage.getItem(chave));
+      } catch {
+        return; // sem armazenamento não dá para limitar a 2 por dia: melhor não puxar
+      }
+      const a = avisoDaVez(vistoRef.current.state, new Date(), hoje, historico);
+      if (!a) return;
+      try {
+        localStorage.setItem(chave, JSON.stringify({ ids: [...historico.ids, a.id], ultimoEm: Date.now() }));
+      } catch {
+        return;
+      }
+      setAvisoFeito(null);
+      setAviso(a);
+      setOpen(true);
+    }
+    const primeira = setTimeout(verificar, 30_000);
+    const relogio = setInterval(verificar, 60_000);
+    return () => {
+      clearTimeout(primeira);
+      clearInterval(relogio);
+    };
+  }, [board.loading]);
+
+  function tratarBotao(acao: AcaoDoBotao) {
+    if (acao.tipo === "humor") {
+      board.updateDailyLog(todayISO(), { mood: acao.nivel });
+      setAviso(null);
+      setAvisoFeito("Anotado, obrigado.");
+    } else if (acao.tipo === "perguntar") {
+      setAviso(null);
+      if (acao.texto) void enviar(acao.texto);
+      else if (ditado.supported) ditado.start();
+    } else if (acao.tipo === "ver_registro") {
+      setAviso(null);
+      setOpen(false);
+      document.querySelector(".daily-log-section")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    } else {
+      setAviso(null);
+    }
+  }
 
   async function enviar(textoPronto?: string) {
     const pergunta = (textoPronto ?? texto).trim();
@@ -155,6 +216,7 @@ export function FaroMascot() {
         addTask: board.addTask,
         updateChecklist: board.updateChecklist,
         updateDailyLog: board.updateDailyLog,
+        logDeHoje: board.state.dailyLogs[today],
       },
       today
     );
@@ -168,10 +230,39 @@ export function FaroMascot() {
           <button className="faro-bubble-close" type="button" aria-label="Fechar" onClick={() => setOpen(false)}>
             ×
           </button>
-          <div className="faro-bubble-text">
-            {greetingMessage(mood)} {falas.length === 0 && "O que você precisa?"}
-          </div>
-          {falas.length === 0 && (
+          {aviso ? (
+            <div className="faro-aviso">
+              <div className="faro-bubble-text">{aviso.texto}</div>
+              {aviso.escalaDeHumor && (
+                <div className="faro-humor">
+                  {MOODS.filter((m) => m.v >= 1).map((m) => (
+                    <button
+                      key={m.v}
+                      type="button"
+                      className="faro-humor-btn"
+                      title={m.label}
+                      aria-label={m.label}
+                      onClick={() => tratarBotao({ tipo: "humor", nivel: m.v as 1 | 2 | 3 | 4 | 5 })}
+                    >
+                      <MoodFaceIcon value={m.v} size={22} />
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="faro-chips">
+                {aviso.botoes.map((b) => (
+                  <button key={b.rotulo} type="button" className="faro-chip" onClick={() => tratarBotao(b.acao)}>
+                    {b.rotulo}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="faro-bubble-text">
+              {avisoFeito ?? `${greetingMessage(mood)} ${falas.length === 0 ? "O que você precisa?" : ""}`}
+            </div>
+          )}
+          {falas.length === 0 && !aviso && (
             <div className="faro-chips">
               {ATALHOS.map((a) => (
                 <button key={a} type="button" className="faro-chip" disabled={pensando} onClick={() => void enviar(a)}>

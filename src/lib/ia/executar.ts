@@ -18,6 +18,8 @@ export interface QuadroParaAcoes {
   ) => Promise<boolean>;
   updateChecklist: (id: string, patch: { expenses: ChecklistExpense[] }) => void;
   updateDailyLog: (data: string, patch: Partial<DailyLog>) => void;
+  /** O registro de hoje, para somar água em cima do que já tem. */
+  logDeHoje: DailyLog | undefined;
 }
 
 export interface ResultadoDaExecucao {
@@ -78,6 +80,22 @@ export async function executarAcao(acaoBruta: AcaoProposta, quadro: QuadroParaAc
       quadro.updateDailyLog(hoje, { mood: acao.nivel, ...(acao.emocao ? { moodEmotion: acao.emocao } : {}) });
       return { ok: true, mensagem: "Humor de hoje registrado." };
     }
+    case "registrar_sono": {
+      quadro.updateDailyLog(hoje, {
+        ...(acao.acordou ? { wokeAt: acao.acordou } : {}),
+        ...(acao.dormiu ? { sleptAt: acao.dormiu } : {}),
+      });
+      return { ok: true, mensagem: "Sono de hoje registrado." };
+    }
+    case "registrar_agua": {
+      const atual = quadro.logDeHoje?.waterMl ?? 0;
+      quadro.updateDailyLog(hoje, { waterMl: atual + acao.ml });
+      return { ok: true, mensagem: `Água somada: ${atual + acao.ml} ml hoje.` };
+    }
+    case "registrar_dieta": {
+      quadro.updateDailyLog(hoje, { dietPct: acao.percentual });
+      return { ok: true, mensagem: "Dieta de hoje registrada." };
+    }
   }
 }
 
@@ -92,6 +110,12 @@ function converterParaEntrada(a: AcaoProposta): Record<string, unknown> {
       return { checklist: a.checklist, descricao: a.descricao, valor_reais: a.valorCentavos / 100, data: a.data ?? undefined };
     case "registrar_humor":
       return { nivel: a.nivel, emocao: a.emocao ?? undefined };
+    case "registrar_sono":
+      return { dormiu: a.dormiu ?? undefined, acordou: a.acordou ?? undefined };
+    case "registrar_agua":
+      return { ml: a.ml };
+    case "registrar_dieta":
+      return { percentual: a.percentual };
   }
 }
 
