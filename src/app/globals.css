@@ -2450,6 +2450,24 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .faro-bubble-close:hover{ color:var(--text); }
 .faro-bubble-text{ font-size:12.5px; color:var(--text); padding-right:12px; }
 .faro-bubble-hint{ font-size:10.5px; color:var(--text-faint); margin-top:6px; }
+.faro-bubble-chat{ width:min(320px, calc(100vw - 36px)); max-width:none; }
+.faro-chat-lista{
+  display:flex; flex-direction:column; gap:6px; margin-top:8px;
+  max-height:min(46vh, 340px); overflow-y:auto; padding-right:2px;
+}
+.faro-fala{ font-size:12.5px; line-height:1.45; padding:6px 9px; border-radius:10px; white-space:pre-wrap; overflow-wrap:anywhere; max-width:92%; }
+.faro-fala-eu{ align-self:flex-end; background:var(--accent-soft); color:var(--text); }
+.faro-fala-faro{ align-self:flex-start; background:var(--surface-2, var(--surface)); border:1px solid var(--border); color:var(--text); }
+.faro-chat-form{ display:flex; gap:6px; margin-top:8px; }
+.faro-chat-input{
+  flex:1 1 auto; min-width:0; background:var(--surface); border:1px solid var(--border-strong);
+  border-radius:8px; padding:6px 9px; font-size:16px; color:var(--text); font-family:inherit;
+}
+.faro-chat-enviar{
+  flex:none; width:34px; border-radius:8px; background:var(--accent); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+}
+.faro-chat-enviar:disabled{ opacity:.45; cursor:default; }
 
 /* timer */
 .timer-wrap{ display:flex; align-items:center; gap:4px; }

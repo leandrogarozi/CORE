@@ -5151,6 +5151,17 @@ Como o conector FARO e o backup do Drive **não descobrem tabela nova sozinhos**
 
 Caso mais simples, já automático: **tipo novo dentro de "Conhecendo você"** (basta somar em `TIPOS_DE_CONHECIMENTO`, em `src/lib/conhecimento.ts`).
 
+## IA no FARO, fatia 1 (feita em 08/10): o mascote conversa e o custo é medido
+
+- **Chave:** `ANTHROPIC_API_KEY` na Vercel (Sensitive). Só o servidor a usa; o app inteiro segue funcionando sem ela (a conversa avisa). Modelo `claude-sonnet-5-5` numa constante (`src/lib/ia/custo.ts`, `MODELO_DA_IA`), para trocar e comparar custo e qualidade no painel.
+- **Conversa:** clicar no mascote abre a conversa por texto, com resposta em fluxo. Rota `POST /api/ia/conversa` (precisa estar logado). Esforço `low`, `max_tokens` 1024, até 12 mensagens de contexto.
+- **O que a IA enxerga** (`src/lib/ia/resumo-do-dia.ts`): tarefas de hoje, atrasadas, backlog (só a contagem), lembretes (sem remédio e sem refeição), hábitos e blocos fixos, amanhã. **Fica de fora:** saúde e medicamentos (tratamento, dieta, sono, água, humor). A IA não cria nem muda nada ainda.
+- **Custo e teto:** tabela `ia_uso` (só o servidor grava; o usuário só lê; uma linha por resposta, com tokens, dólar e real). Teto mensal `settings.ia_monthly_cap_brl` (padrão R$ 20, editável em Configurações → Custo da IA): o servidor soma o mês e **bloqueia ao chegar**. Dólar: usa o campo "Dólar" do Custo do WhatsApp. Painel em Configurações e cartão no Dashboard.
+- **Preço usado:** Sonnet 5.5, US$ 2 entrada / US$ 10 saída por milhão de tokens (tabela de 06/10/2026); cache leitura 0,20 e escrita 2,50.
+- **Decisão técnica:** sem "fallbacks" do servidor (reencaminhar recusa para outro modelo): o custo da recusa seria cobrado em outro modelo e o teto deixaria de ser exato. Recusa vira a mensagem "Não consegui responder a essa".
+- **Limites conhecidos:** se a conexão cair no meio de uma resposta, o gasto parcial não é gravado (o painel pode subestimar um pouco). O gasto é gravado mesmo se ele fechar a tela depois de enviar.
+- **Próximas fatias** (cada uma só depois do teste da anterior): 2 = ações com OK (criar lembrete/tarefa); 3 = avisos espontâneos e frases; 4 = o FARO que o conhece (resumo mantido + "O que o FARO sabe sobre mim"). A IA da fatia 4 pode usar o "Conhecendo você" como base.
+
 ## Incidente 08/10: índice do Drive ficou em 03/10 (arquivos novos entravam, os que já existiam não eram regravados)
 
 - **Sintoma:** a cópia dos aprendizados no Drive tinha `00 — Índice.md` com "Gerado em 2026-10-03" (2.582 bytes) mesmo com o servidor registrando envios diários. Depois do clique em "Enviar aprendizados para o Drive agora" (08/10), a pasta **Conhecendo você** apareceu com os arquivos novos, mas o índice continuou o antigo.

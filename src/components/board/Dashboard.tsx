@@ -18,6 +18,7 @@ import {
 import { CATEGORY_LABEL, DEFAULT_TAG_COLORS, isFeatureEnabled, type Category, type Priority, type Task } from "@/lib/types";
 import { moodByValue } from "@/lib/mood";
 import { countOpenChecklistItems } from "@/lib/rich-text";
+import { useIaCost } from "@/lib/board/use-ia-cost";
 import { useWhatsAppCost } from "@/lib/board/use-whatsapp-cost";
 import { fmtBRL } from "@/lib/money";
 import { taskMinutesInRange } from "@/lib/board/task-time";
@@ -266,7 +267,8 @@ export function Dashboard() {
   // das Configurações. Ele é explícito que o FARO só REGISTRA o valor — nada
   // aqui vira análise de despesa, que é assunto do outro app dele.
   const zap = useWhatsAppCost();
-  const { whatsappMsgCostUsd, whatsappUsdBrl, whatsappMonthlyCapBrl } = board.state.settings;
+  const ia = useIaCost();
+  const { whatsappMsgCostUsd, whatsappUsdBrl, whatsappMonthlyCapBrl, iaMonthlyCapBrl } = board.state.settings;
   const custoZapMesBrl = (zap?.noMes ?? 0) * whatsappMsgCostUsd * whatsappUsdBrl;
   const pctDoTetoZap = whatsappMonthlyCapBrl
     ? Math.min(100, (custoZapMesBrl / whatsappMonthlyCapBrl) * 100)
@@ -625,6 +627,33 @@ export function Dashboard() {
                 </div>
               </>
             )}
+          </div>
+        )}
+
+        {ia && ia.noMes.conversas > 0 && (
+          <div className="dsh-card dsh-card-largo">
+            <div className="dsh-card-title">Custo da IA</div>
+            <div className="dsh-wa-row">
+              <div className="dsh-wa-item">
+                <span className="dsh-wa-n">{ia.noMes.conversas}</span>
+                <span className="dsh-wa-l">Respostas no mês</span>
+              </div>
+              <div className="dsh-wa-item">
+                <span className="dsh-wa-n">{fmtBRL(Math.round(ia.noMes.custoBrl * 100))}</span>
+                <span className="dsh-wa-l">Gasto no mês</span>
+              </div>
+            </div>
+            <div className="dsh-bar">
+              <span
+                style={{
+                  width: `${iaMonthlyCapBrl > 0 ? Math.min(100, (ia.noMes.custoBrl / iaMonthlyCapBrl) * 100) : 100}%`,
+                  background: ia.noMes.custoBrl >= iaMonthlyCapBrl ? "var(--danger)" : "var(--accent)",
+                }}
+              />
+            </div>
+            <div className="dsh-hint">
+              {fmtBRL(Math.round(ia.noMes.custoBrl * 100))} de {fmtBRL(Math.round(iaMonthlyCapBrl * 100))} do teto
+            </div>
           </div>
         )}
 

@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useBoardCtx } from "./board-context";
+import { SendIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
+import { resumoDoDia } from "@/lib/ia/resumo-do-dia";
 
 function greetingMessage(mood: number | null | undefined): string {
   if (mood === 0) return "Melhoras, Leandro! Espero que fique bem logo.";
@@ -13,9 +15,28 @@ function greetingMessage(mood: number | null | undefined): string {
   return "Boa noite, Leandro!";
 }
 
+type Fala = { role: "user" | "assistant"; content: string };
+
+// O que mostrar quando a rota devolve erro. O texto é para ele, não para o log.
+function textoDoErro(status: number, erro: string | undefined, gasto?: number, teto?: number): string {
+  if (erro === "sem_chave") return "A IA ainda não está ligada neste app (falta a chave na Vercel).";
+  if (erro === "teto") {
+    const reais = (v?: number) => (v ?? 0).toFixed(2).replace(".", ",");
+    return `Chegamos no teto de gasto do mês (R$ ${reais(gasto)} de R$ ${reais(teto)}). Dá para aumentar em Configurações → Custo da IA.`;
+  }
+  if (erro === "chave_invalida") return "A chave da IA não foi aceita pela Anthropic. Confira a chave na Vercel.";
+  if (erro === "limite_da_api") return "A IA está com muito uso agora. Tente de novo em instantes.";
+  if (status === 401) return "Sua sessão expirou. Entre de novo no FARO.";
+  return "Não consegui falar com a IA agora. Tente de novo daqui a pouco.";
+}
+
 export function FaroMascot() {
   const { board } = useBoardCtx();
   const [open, setOpen] = useState(false);
+  const [falas, setFalas] = useState<Fala[]>([]);
+  const [texto, setTexto] = useState("");
+  const [pensando, setPensando] = useState(false);
+  const fim = useRef<HTMLDivElement>(null);
   const today = todayISO();
   const mood = board.state.dailyLogs[today]?.mood;
 
@@ -29,15 +50,86 @@ export function FaroMascot() {
     }
   }, [board.loading, today]);
 
+  useEffect(() => {
+    fim.current?.scrollIntoView({ block: "end" });
+  }, [falas, open]);
+
+  async function enviar() {
+    const pergunta = texto.trim();
+    if (!pergunta || pensando) return;
+    const historico: Fala[] = [...falas, { role: "user", content: pergunta }];
+    setFalas([...historico, { role: "assistant", content: "" }]);
+    setTexto("");
+    setPensando(true);
+    const responder = (conteudo: string) =>
+      setFalas((f) => [...f.slice(0, -1), { role: "assistant", content: conteudo }]);
+    try {
+      const r = await fetch("/api/ia/conversa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mensagens: historico, resumo: resumoDoDia(board.state, today) }),
+      });
+      if (!r.ok || !r.body) {
+        const d = (await r.json().catch(() => ({}))) as { erro?: string; gasto?: number; teto?: number };
+        responder(textoDoErro(r.status, d.erro, d.gasto, d.teto));
+        return;
+      }
+      const leitor = r.body.getReader();
+      const decodificador = new TextDecoder();
+      let acumulado = "";
+      for (;;) {
+        const { done, value } = await leitor.read();
+        if (done) break;
+        acumulado += decodificador.decode(value, { stream: true });
+        responder(acumulado);
+      }
+      if (!acumulado.trim()) responder("Não veio resposta. Tente de novo.");
+    } catch {
+      responder("A conversa foi interrompida. Tente de novo.");
+    } finally {
+      setPensando(false);
+    }
+  }
+
   return (
     <div className="faro-mascot">
       {open && (
-        <div className="faro-bubble">
+        <div className="faro-bubble faro-bubble-chat">
           <button className="faro-bubble-close" type="button" aria-label="Fechar" onClick={() => setOpen(false)}>
             ×
           </button>
           <div className="faro-bubble-text">{greetingMessage(mood)}</div>
-          <div className="faro-bubble-hint">Em breve você vai poder me perguntar qualquer coisa por aqui.</div>
+          {falas.length > 0 && (
+            <div className="faro-chat-lista">
+              {falas.map((f, i) => (
+                <div key={i} className={"faro-fala " + (f.role === "user" ? "faro-fala-eu" : "faro-fala-faro")}>
+                  {f.content || (pensando && i === falas.length - 1 ? "…" : "")}
+                </div>
+              ))}
+              <div ref={fim} />
+            </div>
+          )}
+          <form
+            className="faro-chat-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void enviar();
+            }}
+          >
+            <input
+              type="text"
+              className="faro-chat-input"
+              placeholder="Pergunte algo sobre o seu dia…"
+              aria-label="Pergunte ao FARO"
+              value={texto}
+              maxLength={2000}
+              onChange={(e) => setTexto(e.target.value)}
+            />
+            <button type="submit" className="faro-chat-enviar" aria-label="Enviar" disabled={pensando || !texto.trim()}>
+              <SendIcon />
+            </button>
+          </form>
+          <div className="faro-bubble-hint">Eu enxergo suas tarefas, lembretes e hábitos. Saúde e remédios ficam de fora.</div>
         </div>
       )}
       <button

@@ -1023,6 +1023,7 @@ export type Database = {
           updated_at: string
           user_id: string
           water_goal_ml: number
+          ia_monthly_cap_brl: number
           whatsapp_monthly_cap_brl: number | null
           whatsapp_msg_cost_usd: number
           whatsapp_usd_brl: number
@@ -1047,6 +1048,7 @@ export type Database = {
           user_id: string
           water_goal_ml?: number
           water_strategies?: string | null
+          ia_monthly_cap_brl?: number
           whatsapp_monthly_cap_brl?: number | null
           whatsapp_msg_cost_usd?: number
           whatsapp_usd_brl?: number
@@ -1071,6 +1073,7 @@ export type Database = {
           user_id?: string
           water_goal_ml?: number
           water_strategies?: string | null
+          ia_monthly_cap_brl?: number
           whatsapp_monthly_cap_brl?: number | null
           whatsapp_msg_cost_usd?: number
           whatsapp_usd_brl?: number
@@ -1661,6 +1664,48 @@ export type Database = {
           naming_template?: string | null
           name?: string
           status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ia_uso: {
+        Row: {
+          created_at: string
+          custo_brl: number
+          custo_usd: number
+          funcao: string
+          id: string
+          modelo: string
+          tokens_cache_escrita: number
+          tokens_cache_leitura: number
+          tokens_entrada: number
+          tokens_saida: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          custo_brl?: number
+          custo_usd?: number
+          funcao?: string
+          id?: string
+          modelo: string
+          tokens_cache_escrita?: number
+          tokens_cache_leitura?: number
+          tokens_entrada?: number
+          tokens_saida?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          custo_brl?: number
+          custo_usd?: number
+          funcao?: string
+          id?: string
+          modelo?: string
+          tokens_cache_escrita?: number
+          tokens_cache_leitura?: number
+          tokens_entrada?: number
+          tokens_saida?: number
           user_id?: string
         }
         Relationships: []

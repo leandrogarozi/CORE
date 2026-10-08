@@ -281,6 +281,7 @@ export interface Settings {
   // Custo do WhatsApp. Ficam em configuração (e não fixos no código) pra dar pra
   // calibrar contra a fatura real da Meta sem precisar de deploy.
   whatsappMsgCostUsd: number; // tarifa por mensagem enviada (utility no Brasil = US$ 0,0068 desde 01/07/2026)
+  iaMonthlyCapBrl: number; // teto de gasto da IA no mês, EM REAIS (o servidor bloqueia ao chegar)
   whatsappMonthlyCapBrl: number | null; // teto de gasto no mês, EM REAIS; null = sem trava
   whatsappUsdBrl: number; // câmbio que converte a tarifa em dólar pra real
   // Fundo da tela. Guarda a ESCOLHA, não o CSS: claro e escuro precisam de

@@ -139,6 +139,7 @@ const EMPTY_STATE: BoardState = {
   checklists: [],
   settings: {
     whatsappMsgCostUsd: 0.0068,
+    iaMonthlyCapBrl: 20,
     whatsappMonthlyCapBrl: 20,
     whatsappUsdBrl: 5.1,
     bgTone: null,
@@ -3402,6 +3403,7 @@ export function useBoard(userId: string | null) {
           diet_app_opt_in: merged.dietAppOptIn,
           diet_whatsapp_opt_in: merged.dietWhatsappOptIn,
           whatsapp_msg_cost_usd: merged.whatsappMsgCostUsd,
+          ia_monthly_cap_brl: merged.iaMonthlyCapBrl,
           whatsapp_monthly_cap_brl: merged.whatsappMonthlyCapBrl,
           whatsapp_usd_brl: merged.whatsappUsdBrl,
           bg_tone: merged.bgTone,

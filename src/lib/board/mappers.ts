@@ -445,6 +445,7 @@ export function rowToSettings(row: SettingsRow | null): Settings {
     dietAppOptIn: row?.diet_app_opt_in ?? true,
     dietWhatsappOptIn: row?.diet_whatsapp_opt_in ?? false,
     whatsappMsgCostUsd: Number(row?.whatsapp_msg_cost_usd ?? 0.0068),
+    iaMonthlyCapBrl: Number(row?.ia_monthly_cap_brl ?? 20),
     whatsappMonthlyCapBrl:
       row?.whatsapp_monthly_cap_brl === null || row?.whatsapp_monthly_cap_brl === undefined
         ? null

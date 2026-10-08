@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useBoardCtx } from "./board-context";
 import { conhecimentoParaExportar } from "@/lib/conhecimento";
 import { useWhatsAppCost } from "@/lib/board/use-whatsapp-cost";
+import { useIaCost } from "@/lib/board/use-ia-cost";
 import {
   GRAUS_NA_TELA,
   INTENSIDADE_PADRAO,
@@ -28,6 +29,7 @@ import { temConteudo } from "@/lib/html-para-markdown";
 import {
   ArchiveIcon,
   BellIcon,
+  BoltIcon,
   BookOpenIcon,
   ChevronIcon,
   ClockIcon,
@@ -989,6 +991,83 @@ function BackupDeAprendizadoBox() {
   );
 }
 
+function IaCostBox() {
+  const { board } = useBoardCtx();
+  const { iaMonthlyCapBrl } = board.state.settings;
+  const resumo = useIaCost();
+  const [capInput, setCapInput] = useState<string | null>(null);
+
+  const gasto = resumo?.noMes.custoBrl ?? 0;
+  const pct = iaMonthlyCapBrl > 0 ? Math.min(100, (gasto / iaMonthlyCapBrl) * 100) : 100;
+  const noTeto = gasto >= iaMonthlyCapBrl;
+  const anteriores = (resumo?.meses ?? []).filter((m) => !m.ehAtual && m.conversas > 0);
+
+  function commitCap() {
+    if (capInput === null) return;
+    const valor = Number(capInput.trim().replace(",", "."));
+    if (Number.isFinite(valor) && valor >= 0) board.updateSettings({ iaMonthlyCapBrl: valor });
+    setCapInput(null);
+  }
+
+  return (
+    <CollapsibleBox title="Custo da IA" icon={<BoltIcon />}>
+      <div className="hint-text" style={{ marginTop: 0, marginBottom: 8 }}>
+        Quanto a conversa do FARO (o mascote) gastou com a API da Anthropic. O servidor soma cada fala e{" "}
+        <strong>para de responder ao chegar no teto</strong>; o resto do app não depende disso.
+      </div>
+      {resumo === null ? (
+        <div className="hint-text">Carregando o uso...</div>
+      ) : (
+        <>
+          <div className="wa-cost-grid">
+            <div className="wa-cost-card">
+              <div className="wa-cost-value">{resumo.noMes.conversas}</div>
+              <div className="wa-cost-label">Respostas no mês</div>
+            </div>
+            <div className="wa-cost-card">
+              <div className="wa-cost-value">{fmtBRL(Math.round(gasto * 100))}</div>
+              <div className="wa-cost-label">Gasto no mês</div>
+            </div>
+            <div className="wa-cost-card">
+              <div className="wa-cost-value">{Math.round((resumo.noMes.tokensEntrada + resumo.noMes.tokensSaida) / 1000)} mil</div>
+              <div className="wa-cost-label">Tokens no mês</div>
+            </div>
+          </div>
+          <div className="wa-cap-bar">
+            <div className={"wa-cap-fill" + (noTeto ? " over" : "")} style={{ width: `${pct}%` }} />
+          </div>
+          <div className={"wa-cap-label" + (noTeto ? " over" : "")}>
+            {noTeto
+              ? "Teto do mês atingido: o mascote não responde até o mês virar ou o teto subir."
+              : `${fmtBRL(Math.round(gasto * 100))} de ${fmtBRL(Math.round(iaMonthlyCapBrl * 100))} do teto`}
+          </div>
+          {anteriores.length > 0 && (
+            <div className="hint-text">
+              {anteriores.map((m) => `${m.rotulo}: ${fmtBRL(Math.round(m.custoBrl * 100))} (${m.conversas} respostas)`).join(" · ")}
+            </div>
+          )}
+        </>
+      )}
+      <div className="settings-row-standalone">
+        <span className="settings-label">Teto de gasto no mês (R$)</span>
+        <input
+          type="text"
+          inputMode="decimal"
+          className="budget-input"
+          value={capInput ?? String(iaMonthlyCapBrl)}
+          onChange={(e) => setCapInput(e.target.value)}
+          onBlur={commitCap}
+          onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+        />
+      </div>
+      <div className="hint-text">
+        O valor usa os preços de tabela do modelo e o dólar ajustado em Custo do WhatsApp. A fatura de verdade está no
+        console da Anthropic.
+      </div>
+    </CollapsibleBox>
+  );
+}
+
 function WhatsAppCostBox() {
   const { board } = useBoardCtx();
   const { whatsappMsgCostUsd, whatsappMonthlyCapBrl, whatsappUsdBrl } = board.state.settings;
@@ -1491,6 +1570,8 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
         <PushNotificationsBox />
 
         <WhatsAppCostBox />
+
+        <IaCostBox />
 
         {/* Os dois backups ficam vizinhos, e nessa ordem: o de aprendizado é o
             que ele vai usar, o cofre JSON é o que ele raramente toca. */}
