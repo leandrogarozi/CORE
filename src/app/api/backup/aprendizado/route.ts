@@ -5,6 +5,7 @@ import { donoDaChave } from "@/lib/backup/dono-da-chave";
 import { rowToBook, rowToKnowledgeItem, rowToSynapse } from "@/lib/board/mappers";
 import { AREAS_PADRAO, arquivosDoBackup, ehAreaDeBackup } from "@/lib/learning-export";
 import { conhecimentoParaExportar } from "@/lib/conhecimento";
+import { arquivoDoResumo } from "@/lib/ia/resumo";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest) {
     // A tabela de livros não tem exclusão suave (deleted_at): apagar é apagar.
     supabase.from("books").select("*").eq("user_id", usuario),
     supabase.from("synapses").select("*").eq("user_id", usuario).is("deleted_at", null),
-    supabase.from("settings").select("backup_areas, backup_name").eq("user_id", usuario).maybeSingle(),
+    supabase.from("settings").select("backup_areas, backup_name, faro_resumo, faro_resumo_em").eq("user_id", usuario).maybeSingle(),
     supabase
       .from("knowledge_items")
       .select("*")
@@ -50,6 +51,10 @@ export async function GET(req: NextRequest) {
     config.data?.backup_name ?? "",
     new Date().toISOString()
   );
+
+  // O resumo "O que o FARO sabe sobre você" acompanha a área Conhecendo você.
+  const resumo = config.data?.faro_resumo?.trim();
+  if (resumo && areas.includes("conhecendo")) arquivos.push(arquivoDoResumo(resumo, config.data?.faro_resumo_em ?? null));
 
   const zip = new JSZip();
   for (const a of arquivos) zip.file(a.nome, a.conteudo);

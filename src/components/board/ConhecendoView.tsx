@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { CheckIcon, ChevronIcon, DownloadIcon, TrashIcon, UserIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
@@ -13,6 +13,74 @@ import {
 import { arquivoDoConhecimento } from "@/lib/learning-export";
 import { baixarTexto, soONome } from "@/lib/baixar";
 import type { KnowledgeItem } from "@/lib/types";
+
+type ResumoGuardado = { resumo: string | null; em: string | null };
+
+const ERROS_DO_RESUMO: Record<string, string> = {
+  sem_chave: "A IA ainda não está ligada (falta a chave na Vercel).",
+  teto: "O teto de gasto da IA deste mês foi atingido. Ajuste em Configurações.",
+  sem_itens: "Aprove pelo menos um item antes de gerar o resumo.",
+  chave_invalida: "A chave da IA não foi aceita pela Anthropic.",
+};
+
+/** "O que o FARO sabe sobre você": texto corrido escrito pela IA com o que você aprovou. */
+function ResumoDoFaro({ aprovados }: { aprovados: number }) {
+  const [dados, setDados] = useState<ResumoGuardado | null>(null);
+  const [gerando, setGerando] = useState(false);
+  const [erro, setErro] = useState("");
+
+  useEffect(() => {
+    let vivo = true;
+    fetch("/api/ia/resumo")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: ResumoGuardado | null) => vivo && setDados(d ?? { resumo: null, em: null }))
+      .catch(() => vivo && setDados({ resumo: null, em: null }));
+    return () => {
+      vivo = false;
+    };
+  }, []);
+
+  async function gerar() {
+    setGerando(true);
+    setErro("");
+    try {
+      const r = await fetch("/api/ia/resumo", { method: "POST" });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) setErro(ERROS_DO_RESUMO[d.erro] ?? "Não consegui gerar agora. Tente de novo em instantes.");
+      else setDados({ resumo: d.resumo, em: d.em });
+    } catch {
+      setErro("Sem conexão. Tente de novo.");
+    } finally {
+      setGerando(false);
+    }
+  }
+
+  const quando = dados?.em ? new Date(dados.em).toLocaleDateString("pt-BR") : "";
+  return (
+    <div className="synapse-intro know-resumo">
+      <div className="synapse-intro-title">
+        <UserIcon /> O que o FARO sabe sobre você
+      </div>
+      {dados?.resumo ? (
+        <>
+          <div className="know-resumo-texto">{dados.resumo}</div>
+          <p className="know-resumo-meta">Escrito pela IA em {quando}, com o que você aprovou. Entra no backup e é lido pelo conector.</p>
+        </>
+      ) : (
+        <p>
+          {aprovados
+            ? "A IA lê tudo o que você aprovou e escreve, em texto corrido, o que o FARO sabe sobre você. Você confere se está certo."
+            : "Aprove alguns itens abaixo e a IA escreve aqui, em texto corrido, o que o FARO sabe sobre você."}
+        </p>
+      )}
+      {erro && <p className="know-resumo-erro">{erro}</p>}
+      <button type="button" className="btn btn-accent" disabled={gerando || !aprovados} onClick={gerar}>
+        {gerando ? "Escrevendo…" : dados?.resumo ? "Atualizar resumo" : "Gerar resumo"}
+      </button>
+      <span className="know-resumo-custo"> Custa cerca de R$ 0,30 por vez (entra no painel de custo).</span>
+    </div>
+  );
+}
 
 type Aba = "pendente" | "aprovado" | "descartado";
 
@@ -183,6 +251,8 @@ export function ConhecendoView({ onBack }: { onBack: () => void }) {
       </div>
 
       <div className={"narrow-list" + (wide ? " list-xl" : "")}>
+        <ResumoDoFaro aprovados={conta("aprovado")} />
+
         <div className="synapse-intro">
           <div className="synapse-intro-title">
             <UserIcon /> O que a sua IA já sabe, agora no FARO

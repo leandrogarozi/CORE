@@ -40,12 +40,13 @@ async function carregarAcervo(usuario: string): Promise<AcervoDoFaro> {
       .eq("user_id", usuario)
       .eq("status", "aprovado")
       .is("deleted_at", null),
-    supabase.from("settings").select("backup_name").eq("user_id", usuario).maybeSingle(),
+    supabase.from("settings").select("backup_name, faro_resumo").eq("user_id", usuario).maybeSingle(),
   ]);
   const erro = livros.error ?? sinapses.error ?? conhecimento.error;
   if (erro) throw new Error(erro.message);
   return {
     nome: config.data?.backup_name?.trim() || "Leandro",
+    resumo: config.data?.faro_resumo?.trim() || "",
     livros: (livros.data ?? []).map((l) => ({
       id: l.id,
       title: l.title,

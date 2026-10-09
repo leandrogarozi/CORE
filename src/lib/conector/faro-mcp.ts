@@ -37,6 +37,7 @@ export interface LivroDoAcervo {
 
 export interface AcervoDoFaro {
   nome: string; // nome da pessoa (para a IA saber de quem é o acervo)
+  resumo?: string; // "O que o FARO sabe sobre mim": texto corrido escrito pela IA e guardado
   sinapses: Synapse[]; // sinapses e ideias (kind)
   livros: LivroDoAcervo[];
   conhecimento: KnowledgeItem[]; // só os aprovados
@@ -276,6 +277,7 @@ function cortar(texto: string): string {
 
 function sobreMim(a: AcervoDoFaro, itens: Item[]): string {
   const partes = [`# Sobre ${a.nome || "o Leandro"} (aprovado por ele no FARO)`, ""];
+  if (a.resumo) partes.push("## Resumo geral (escrito pela IA a partir do que ele aprovou)", "", a.resumo, "");
   const doPerfil = itens.filter((i) => TIPOS_DO_PERFIL.includes(i.tipo));
   if (!doPerfil.length) {
     partes.push(

@@ -1027,6 +1027,8 @@ export type Database = {
           user_id: string
           water_goal_ml: number
           ia_monthly_cap_brl: number
+          faro_resumo: string | null
+          faro_resumo_em: string | null
           whatsapp_monthly_cap_brl: number | null
           whatsapp_msg_cost_usd: number
           whatsapp_usd_brl: number
@@ -1052,6 +1054,8 @@ export type Database = {
           water_goal_ml?: number
           water_strategies?: string | null
           ia_monthly_cap_brl?: number
+          faro_resumo?: string | null
+          faro_resumo_em?: string | null
           whatsapp_monthly_cap_brl?: number | null
           whatsapp_msg_cost_usd?: number
           whatsapp_usd_brl?: number
@@ -1077,6 +1081,8 @@ export type Database = {
           water_goal_ml?: number
           water_strategies?: string | null
           ia_monthly_cap_brl?: number
+          faro_resumo?: string | null
+          faro_resumo_em?: string | null
           whatsapp_monthly_cap_brl?: number | null
           whatsapp_msg_cost_usd?: number
           whatsapp_usd_brl?: number

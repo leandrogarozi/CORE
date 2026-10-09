@@ -5189,6 +5189,14 @@ Pedido dele (08/10, por voz): *"não quero que o Faro fique conversando demais, 
 - **Correção 2 (09/10, com o OK do Leandro):** o script apaga o arquivo que mudou e o cria de novo (para o Drive vira arquivo novo; o antigo vai para a lixeira do Drive). Só apaga o que vai ser substituído; arquivo de item removido no FARO continua na pasta. Vale para Mac e Windows. **Pendente:** rodar o instalador de novo no MacBook e no Mac Mini (o Mac Mini só na terça, 14/10). Depois conferir se o `00 — Índice.md` do Drive (id `1WSTZIOk-JTydgqhQH4Vyd7JesRIaMaEx`) ganhou a data nova. **Confirmado em 09/10:** o índice foi recriado com o id novo `1pXhdGlxikqnD9NotoDFRTB2c1ggJb5PG` (Gerado em 2026-10-09, 10.028 bytes, com Conhecendo você). O id antigo não existe mais; a skill não deve guardar id de arquivo, só o da pasta (`168OAoMfP0aB_urOvWEMO8N2ZVYbAJBj3`).
 - **Pasta Ideias** só nasce quando houver a primeira ideia cadastrada (hoje 0).
 
+## O resumo "O que o FARO sabe sobre você" (09/10)
+
+- **Pedido do Leandro:** um texto, escrito pela IA, descrevendo em linguagem corrida o que o FARO sabe sobre ele, a partir do que ele aprovou em Conhecendo você.
+- **Como é:** caixa no topo de **Conhecendo você** com o texto e o botão "Gerar resumo / Atualizar resumo" (manual, nunca automático, para não gastar sem ele pedir; ~R$ 0,30 por vez, entra no painel de custo como função `resumo`). Rota `/api/ia/resumo` (GET lê, POST gera; mesmo teto mensal da conversa). Pedido montado em `src/lib/ia/resumo.ts` (só itens aprovados, perfil primeiro, máx. ~100 mil caracteres, terceira pessoa, sem inventar, termina com "O que ainda não sei").
+- **Regra fixa cumprida:** guardado em `settings.faro_resumo` / `faro_resumo_em` (entra no cofre `.json`); vira o arquivo `01 — O que o FARO sabe sobre você.md` na cópia do Drive (junto da área Conhecendo você); aparece no topo do `faro_sobre_mim` do conector. O .zip manual das Configurações (gerado no navegador) ainda NÃO inclui esse arquivo.
+- **Pastas antigas do Drive** (`Sinapses` e `Livros` dentro de "App faro", criadas em 30/09): renomeadas em 09/10 para "(arquivo antigo, não usar)". Conferido antes: as 7 sinapses e os 2 livros que estavam nelas existem no FARO e no backup. Nada apagado.
+- **Chaves da Vercel ainda legíveis (pendente do Leandro, ele faz no painel):** SUPABASE_SERVICE_ROLE_KEY, WHATSAPP_ACCESS_TOKEN, VAPID_PRIVATE_KEY, CRON_SECRET, WHATSAPP_WEBHOOK_VERIFY_TOKEN. As de IA e o segredo do app do WhatsApp já são Sensitive.
+
 ## Revisão do backup depois do conector (07/10): o que melhorou e o que ficou obsoleto
 
 **O que melhorou (funcionando):**
