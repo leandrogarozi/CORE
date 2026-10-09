@@ -165,7 +165,7 @@ aprendizado() {
   n=0; novos=0; falhas=0
   chmod -R u+rwX "$dir" 2>/dev/null
   # Copia só o que mudou, para o Drive não criar uma versão nova de tudo todo dia.
-  # Nunca apaga nada: arquivo de item removido no FARO continua na pasta.
+  # Só apaga o arquivo que vai ser substituído; arquivo de item removido no FARO continua na pasta.
   # Arquivo que já existe é regravado à força (libera a escrita antes) e qualquer
   # falha vai para o registro: antes ela passava calada e o índice ficava velho.
   while IFS= read -r -d '' f; do
@@ -174,7 +174,11 @@ aprendizado() {
     n=$((n+1))
     mkdir -p "$(dirname "$alvo")" 2>>"$LOG"
     if [ ! -f "$alvo" ] || ! cmp -s "$f" "$alvo"; then
-      [ -f "$alvo" ] && chmod u+w "$alvo" 2>/dev/null
+      # O Google Drive no Mac sobe arquivo novo, mas às vezes ignora a alteração de um
+      # arquivo que já existe (o índice ficou parado em 03/10). Por isso o arquivo que
+      # mudou é apagado e criado de novo: para o Drive vira um arquivo novo.
+      # O antigo vai para a lixeira do Drive, onde ainda dá para recuperar.
+      [ -f "$alvo" ] && { chmod u+w "$alvo" 2>/dev/null; rm -f "$alvo" 2>>"$LOG"; }
       if cp -f "$f" "$alvo" 2>>"$LOG" && cmp -s "$f" "$alvo"; then
         novos=$((novos+1))
       else
@@ -340,7 +344,7 @@ function Aprendizado {
     $alvo = Join-Path $c.destinoApr $rel
     New-Item -ItemType Directory -Force (Split-Path $alvo) | Out-Null
     $n++
-    if ((-not (Test-Path $alvo)) -or ((Get-FileHash $_.FullName).Hash -ne (Get-FileHash $alvo).Hash)) { Copy-Item $_.FullName $alvo -Force; $novos++ }
+    if ((-not (Test-Path $alvo)) -or ((Get-FileHash $_.FullName).Hash -ne (Get-FileHash $alvo).Hash)) { if (Test-Path $alvo) { Remove-Item $alvo -Force -ErrorAction SilentlyContinue }; Copy-Item $_.FullName $alvo -Force; $novos++ }
   }
   Remove-Item $tmpDir -Recurse -Force -ErrorAction SilentlyContinue; Remove-Item $zip -ErrorAction SilentlyContinue
   Set-Content $marca $hoje
