@@ -60,6 +60,7 @@ import {
 } from "@/lib/board/mappers";
 import { isoAddDays, occurrenceDates, todayISO } from "@/lib/date-utils";
 import { studyDatesInRange } from "@/lib/board/study-plan";
+import { rolarTarefasQueSeguem } from "@/lib/board/seguir";
 import { lembreteDaMedicacao, lembreteDaRefeicao, lembretesDaManutencao } from "@/lib/board/zap-engine";
 import { aoMarcarComprado, lembreteDaCompra } from "@/lib/board/compras";
 import { maintenanceStatus } from "@/lib/board/maintenance";
@@ -219,6 +220,25 @@ export function useBoard(userId: string | null) {
     return next;
   }, []);
 
+  // Dia em que as tarefas que rastreiam foram conferidas pela última vez.
+  const diaDasTarefas = useRef("");
+
+  const gravarRolagem = useCallback(
+    (movidas: Task[], today: string) => {
+      movidas.forEach((t) => {
+        const fimAntes = !!t.endDate && t.endDate < today;
+        supabase
+          .from("tasks")
+          .update(fimAntes ? { date: today, end_date: null } : { date: today })
+          .eq("id", t.id)
+          .then(({ error }) => {
+            if (error) reportSaveError("task follows rollover", error);
+          });
+      });
+    },
+    [supabase]
+  );
+
   const load = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
@@ -363,33 +383,42 @@ export function useBoard(userId: string | null) {
     // é o mesmo gesto na hora de abrir, pra tela já nascer certa em vez de
     // mostrar a data velha até a próxima rodada. Escreve direto, sem passar pelo
     // registro de adiamentos: seguir não é adiar.
-    const seguem = next.tasks.filter((t) => t.follows && !t.done && !t.deletedAt && t.date && t.date < today);
-    if (seguem.length > 0) {
-      const ids = new Set(seguem.map((t) => t.id));
-      next.tasks = next.tasks.map((t) =>
-        ids.has(t.id) ? { ...t, date: today, endDate: t.endDate && t.endDate < today ? null : t.endDate } : t
-      );
-      seguem.forEach((t) => {
-        const fimAntes = !!t.endDate && t.endDate < today;
-        supabase
-          .from("tasks")
-          .update(fimAntes ? { date: today, end_date: null } : { date: today })
-          .eq("id", t.id)
-          .then(({ error }) => {
-            if (error) reportSaveError("task follows rollover", error);
-          });
-      });
-    }
+    const rolagem = rolarTarefasQueSeguem(next.tasks, today);
+    next.tasks = rolagem.tasks;
+    gravarRolagem(rolagem.movidas, today);
+    diaDasTarefas.current = today;
 
     stateRef.current = next;
     setState(next);
     setLoading(false);
-  }, [supabase, userId]);
+  }, [supabase, userId, gravarRolagem]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- initial async data load, setState happens after awaits
     void load();
   }, [load]);
+
+  // App que passa a noite aberto: o dia virou, então as tarefas que rastreiam
+  // vão para o dia novo sem precisar recarregar (o banco já fez, a tela não sabia).
+  useEffect(() => {
+    function conferirOVirarDoDia() {
+      const hoje = todayISO();
+      if (!diaDasTarefas.current || diaDasTarefas.current === hoje) return;
+      diaDasTarefas.current = hoje;
+      const rolagem = rolarTarefasQueSeguem(stateRef.current.tasks, hoje);
+      if (!rolagem.movidas.length) return;
+      apply((st) => ({ ...st, tasks: rolarTarefasQueSeguem(st.tasks, hoje).tasks }));
+      gravarRolagem(rolagem.movidas, hoje);
+    }
+    const timer = window.setInterval(conferirOVirarDoDia, 60_000);
+    document.addEventListener("visibilitychange", conferirOVirarDoDia);
+    window.addEventListener("focus", conferirOVirarDoDia);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", conferirOVirarDoDia);
+      window.removeEventListener("focus", conferirOVirarDoDia);
+    };
+  }, [apply, gravarRolagem]);
 
   // ---------- tasks ----------
   const defaultStatusId = useCallback(() => {
@@ -2505,10 +2534,15 @@ export function useBoard(userId: string | null) {
     [apply, defaultStatusId, scheduledStatusId, supabase]
   );
 
+  // Desafiadora e rastreada não convivem: ao marcar o desafio, o rastreio desliga
+  // (o banco recusaria os dois juntos).
   const setChallenging = useCallback(
     (id: string, challenging: boolean) => {
-      apply((st) => ({ ...st, tasks: st.tasks.map((t) => (t.id === id ? { ...t, challenging } : t)) }));
-      supabase.from("tasks").update({ challenging }).eq("id", id).then(({ error }) => {
+      apply((st) => ({
+        ...st,
+        tasks: st.tasks.map((t) => (t.id === id ? { ...t, challenging, follows: challenging ? false : t.follows } : t)),
+      }));
+      supabase.from("tasks").update(challenging ? { challenging, follows: false } : { challenging }).eq("id", id).then(({ error }) => {
         if (error) reportSaveError("setChallenging", error);
       });
     },
@@ -2517,6 +2551,8 @@ export function useBoard(userId: string | null) {
 
   const setFollows = useCallback(
     (id: string, follows: boolean) => {
+      // Tarefa desafiadora não pode ser rastreada.
+      if (follows && stateRef.current.tasks.find((t) => t.id === id)?.challenging) return;
       apply((st) => ({ ...st, tasks: st.tasks.map((t) => (t.id === id ? { ...t, follows } : t)) }));
       supabase.from("tasks").update({ follows }).eq("id", id).then(({ error }) => {
         if (error) reportSaveError("setFollows", error);

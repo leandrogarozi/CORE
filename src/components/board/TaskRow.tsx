@@ -1020,11 +1020,16 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
             <label className="challenging-toggle">
               <ToggleSwitch
                 checked={t.follows}
+                disabled={t.challenging}
                 ariaLabel="Pedir pro FARO rastrear esta tarefa"
                 onChange={(v) => board.setFollows(t.id, v)}
               />
               <span className="challenging-hint">
-                {t.follows ? "O FARO rastreia: ela te segue até você concluir" : "Peça pro FARO rastrear"}
+                {t.challenging
+                  ? "Desafiadora não rastreia: a data só muda por você, com justificativa"
+                  : t.follows
+                    ? "O FARO rastreia: ela te segue até você concluir"
+                    : "Peça pro FARO rastrear"}
               </span>
             </label>
           </div>
