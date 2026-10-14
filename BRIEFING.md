@@ -5190,6 +5190,21 @@ Pedido dele (08/10, por voz): *"não quero que o Faro fique conversando demais, 
 - **Correção 2 (09/10, com o OK do Leandro):** o script apaga o arquivo que mudou e o cria de novo (para o Drive vira arquivo novo; o antigo vai para a lixeira do Drive). Só apaga o que vai ser substituído; arquivo de item removido no FARO continua na pasta. Vale para Mac e Windows. **Pendente:** rodar o instalador de novo no MacBook e no Mac Mini (o Mac Mini só na terça, 14/10). Depois conferir se o `00 — Índice.md` do Drive (id `1WSTZIOk-JTydgqhQH4Vyd7JesRIaMaEx`) ganhou a data nova. **Confirmado em 09/10:** o índice foi recriado com o id novo `1pXhdGlxikqnD9NotoDFRTB2c1ggJb5PG` (Gerado em 2026-10-09, 10.028 bytes, com Conhecendo você). O id antigo não existe mais; a skill não deve guardar id de arquivo, só o da pasta (`168OAoMfP0aB_urOvWEMO8N2ZVYbAJBj3`).
 - **Pasta Ideias** só nasce quando houver a primeira ideia cadastrada (hoje 0).
 
+## Aviso "Sua tela está desatualizada" e checklist com linhas alternadas (14/10)
+
+Pedido do Leandro: (1) ao sair de um computador e abrir o FARO em outro onde ele já estava aberto, aparecer um aviso de tela desatualizada, para não trabalhar numa tela parada e perder dados; (2) no checklist, linhas alternando cinza bem clarinho e branco (referência para saber qual carrinho e qual lixeira são de qual item) e um lápis para editar o nome sem excluir.
+
+**Tela desatualizada (como funciona):**
+- Cada abertura do app gera um id (`src/lib/supabase/device.ts`) que vai no cabeçalho `x-faro-device` de toda chamada ao Supabase (`src/lib/supabase/client.ts`).
+- No banco, a tabela `faro_atividade (user_id, device, last_write_at)` e o gatilho `faro_escrita` (função `faro_registrar_escrita`, por comando, depois de insert/update/delete) anotam "esse dispositivo escreveu agora". Está em 30 tabelas que ele edita (tarefas e tudo ligado a elas, lembretes, hábitos, blocos fixos, registro do dia, timer ativo, anexos, livros, checklists, dieta, conhecimento, manutenção, remédios, compras, estudo, sinapses, settings). **Fora de propósito:** whatsapp_sends, push, backup_status, ia_uso e as tabelas saude_*. Escrita sem o cabeçalho (servidor, rotinas do pg_cron, rota da IA) **não conta**, para o job de "Rastrear" e o cron não acenderem o aviso à toa.
+- A função `faro_outro_dispositivo_mexeu(p_device, p_desde)` responde `{agora, outro}`: `outro` é verdadeiro se OUTRA tela escreveu depois de `p_desde`. Só `authenticated` executa.
+- `src/components/board/StaleScreenNotice.tsx`: marca a hora do servidor ao carregar (menos 5 s de margem), e confere ao voltar para a aba, ao focar a janela e a cada 45 s com a aba à vista. Se outra tela escreveu, aparece a faixa amarela fixa no topo com **Atualizar agora** (recarrega os dados do banco e rearma). Não bloqueia a tela.
+- Testado no banco (transação revertida): a escrita do dispositivo A aparece para B (`outro: true`), não para o próprio A, e não aparece para um B que carregou depois. **Não testado ainda com dois computadores de verdade.**
+- Limpeza: pg_cron `faro-limpar-atividade` todo dia 06:17 UTC apaga registros de mais de 3 dias.
+- **Limites:** o aviso só aparece quando ele volta para a tela (ou em até 45 s). Quem já digitou numa tela parada e salvou antes do aviso ainda sobrescreve; o aviso evita o caso comum (voltar e continuar na tela velha). Gatilhos criados um a um porque criar vários de uma vez estourava o tempo da ferramenta (as tabelas tasks/reminders/settings são movimentadas).
+
+**Checklist:** linhas alternadas (branco e cinza bem clarinho, `.checklist-item-row.zebra`, reinicia em cada bloco "Comprar"/"Levar") e lápis em cada item: troca o nome ali mesmo (Enter ou sair do campo salva, Esc cancela, nome vazio é ignorado), sem excluir e recriar.
+
 ## Manutenção: tipo Saúde, trocar o tipo, Observação e "aguardando começar" (14/10)
 
 Pedido do Leandro: cadastrar na Manutenção um item de saúde (refazer exame de vitaminas) e poder (1) ter um ícone de coração, (2) editar o tipo/ícone do cadastro (só havia o botão de apagar), (3) ter um campo de **Observação** em cada item (o que o médico explicou), separado da mensagem do WhatsApp, (4) ciclos que só começam depois de algo acontecer: "refazer o exame 3 meses depois de começar a suplementação; aguardando as vitaminas chegarem; início __; próximo exame = início + 3 meses".

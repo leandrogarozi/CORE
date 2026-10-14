@@ -146,6 +146,9 @@ function ChecklistRow({
   const [newExpenseDate, setNewExpenseDate] = useState(() => todayISO());
   const [budgetDraft, setBudgetDraft] = useState<string | null>(null);
   const [notaDraft, setNotaDraft] = useState(checklist.notes);
+  // Editar o nome de um item sem excluir e recriar.
+  const [editItemId, setEditItemId] = useState<string | null>(null);
+  const [editItemText, setEditItemText] = useState("");
 
   const total = checklist.items.length;
   const done = checklist.items.filter((i) => i.checked).length;
@@ -160,6 +163,22 @@ function ChecklistRow({
 
   function toggleBuy(itemId: string) {
     setItems(checklist.items.map((i) => (i.id === itemId ? { ...i, toBuy: !i.toBuy } : i)));
+  }
+
+  function startEditItem(item: ChecklistItem) {
+    setEditItemId(item.id);
+    setEditItemText(item.text);
+  }
+
+  function commitEditItem() {
+    if (editItemId === null) return;
+    const text = editItemText.trim();
+    const atual = checklist.items.find((i) => i.id === editItemId);
+    // Nome vazio não vale: fica como estava.
+    if (text && atual && text !== atual.text) {
+      setItems(checklist.items.map((i) => (i.id === editItemId ? { ...i, text } : i)));
+    }
+    setEditItemId(null);
   }
 
   function deleteItem(itemId: string) {
@@ -241,9 +260,12 @@ function ChecklistRow({
     );
   }
 
-  function renderItem(item: ChecklistItem) {
+  // As linhas alternam entre branco e cinza bem clarinho: serve de referência pra
+  // saber qual carrinho e qual lixeira pertencem a qual item.
+  function renderItem(item: ChecklistItem, index: number) {
+    const editando = editItemId === item.id;
     return (
-      <div className="checklist-item-row" key={item.id}>
+      <div className={"checklist-item-row" + (index % 2 === 1 ? " zebra" : "")} key={item.id}>
         <button
           type="button"
           className={"checklist-item-check" + (item.checked ? " checked" : "")}
@@ -252,7 +274,35 @@ function ChecklistRow({
         >
           {item.checked && <CheckIcon />}
         </button>
-        <span className={"checklist-item-text" + (item.checked ? " checked" : "")}>{item.text}</span>
+        {editando ? (
+          <input
+            type="text"
+            className="checklist-item-edit"
+            value={editItemText}
+            autoFocus
+            aria-label="Nome do item"
+            onChange={(e) => setEditItemText(e.target.value)}
+            onBlur={commitEditItem}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.blur();
+              if (e.key === "Escape") setEditItemId(null);
+            }}
+          />
+        ) : (
+          <span className={"checklist-item-text" + (item.checked ? " checked" : "")}>{item.text}</span>
+        )}
+        <button
+          type="button"
+          className="icon-btn"
+          title="Editar o nome do item"
+          aria-label={`Editar ${item.text}`}
+          // mouseDown e não click: o campo perde o foco antes do click e salvaria
+          // e reabriria no mesmo gesto.
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => (editando ? commitEditItem() : startEditItem(item))}
+        >
+          <EditIcon />
+        </button>
         <button
           type="button"
           className={"checklist-buy-toggle" + (item.toBuy ? " active" : "")}
@@ -475,12 +525,12 @@ function ChecklistRow({
                   <div className="checklist-section-label">
                     <CartIcon /> Comprar
                   </div>
-                  {toBuyItems.map(renderItem)}
+                  {toBuyItems.map((i, n) => renderItem(i, n))}
                   <div className="checklist-section-label">Levar</div>
-                  {packItems.map(renderItem)}
+                  {packItems.map((i, n) => renderItem(i, n))}
                 </>
               ) : (
-                checklist.items.map(renderItem)
+                checklist.items.map((i, n) => renderItem(i, n))
               )}
               <div className="quickadd-row checklist-quickadd-row">
                 <span className="quickadd-plus" aria-hidden="true">

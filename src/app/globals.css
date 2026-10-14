@@ -2241,7 +2241,10 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
   margin:12px 0 4px;
 }
 .checklist-section-label:first-child{ margin-top:0; }
-.checklist-item-row{ display:flex; align-items:center; gap:8px; padding:4px 0; }
+.checklist-item-row{ display:flex; align-items:center; gap:8px; padding:4px 6px; border-radius:6px; }
+/* Linha sim, linha não: cinza bem clarinho (a outra é branca), para ligar cada item ao seu carrinho e à sua lixeira. */
+.checklist-item-row.zebra{ background:color-mix(in srgb, var(--surface-2) 65%, var(--surface)); }
+.checklist-item-edit{ flex:1; min-width:0; font-size:12px; padding:2px 6px; border:1px solid var(--accent); border-radius:5px; background:var(--surface); color:var(--text); }
 .checklist-item-check{
   width:16px; height:16px; border-radius:5px; flex:none; border:1.5px solid var(--border-strong);
   display:flex; align-items:center; justify-content:center; color:#fff;
@@ -2900,3 +2903,14 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .know-resumo-erro { color: var(--danger, #e5484d); margin: 0 0 10px; }
 .know-resumo-custo { font-size: 0.8rem; opacity: 0.65; }
 .toggle-switch:disabled{ opacity:.45; cursor:not-allowed; }
+
+/* Aviso de tela desatualizada (outro computador mexeu) */
+.stale-banner{
+  position:fixed; z-index:210; top:0; left:0; right:0;
+  display:flex; align-items:center; justify-content:center; gap:12px; flex-wrap:wrap;
+  padding:10px 16px; font-size:13px; color:var(--text);
+  background:color-mix(in srgb, var(--warning, #f5a524) 22%, var(--surface));
+  border-bottom:2px solid var(--warning, #f5a524); box-shadow:var(--sh-2);
+}
+.stale-banner svg{ flex:none; color:var(--warning, #f5a524); }
+.stale-banner span{ flex:1 1 280px; min-width:0; }

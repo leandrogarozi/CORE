@@ -1,5 +1,6 @@
 import { createBrowserClient } from "@supabase/ssr";
 import type { Database } from "@/lib/database.types";
+import { ID_DESTA_TELA } from "@/lib/supabase/device";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
@@ -12,5 +13,7 @@ if (url && anonKey && !/^[\x00-\xFF]*$/.test(anonKey)) {
 }
 
 export function createClient() {
-  return createBrowserClient<Database>(url!, anonKey!);
+  return createBrowserClient<Database>(url!, anonKey!, {
+    global: { headers: { "x-faro-device": ID_DESTA_TELA } },
+  });
 }

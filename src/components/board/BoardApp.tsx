@@ -45,6 +45,7 @@ import { MeetingButton } from "./MeetingButton";
 import { TimerNudges } from "./TimerNudges";
 import { Sidebar, type ViewMode } from "./Sidebar";
 import { SaveErrorToaster } from "./SaveErrorToaster";
+import { StaleScreenNotice } from "./StaleScreenNotice";
 import { BoltIcon, ChevronIcon, ExpandHorizontalIcon, MenuIcon, SettingsIcon, UserIcon, WarningIcon, WeekIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { dateFromISO, longLabel, mondayOf, todayISO } from "@/lib/date-utils";
@@ -188,6 +189,7 @@ function BoardShell() {
   return (
     <div className={"wrap" + (wide ? " wide" : "")}>
       <SaveErrorToaster />
+      <StaleScreenNotice />
       <Sidebar open={sidebarOpen} viewMode={viewMode} onSelect={selectView} onClose={() => setSidebarOpen(false)} />
 
       <div className="topbar">

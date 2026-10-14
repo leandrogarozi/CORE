@@ -1853,7 +1853,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      faro_outro_dispositivo_mexeu: {
+        Args: { p_device: string; p_desde: string | null }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
