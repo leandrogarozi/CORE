@@ -29,7 +29,7 @@ const KIND_LABEL: Record<MaintenanceAsset["kind"], string> = {
 // O ícone de cada tipo: o mesmo na lista e no cabeçalho.
 function KindIcon({ kind }: { kind: MaintenanceAsset["kind"] }) {
   if (kind === "casa") return <HomeIcon />;
-  if (kind === "saude") return <HeartIcon filled />;
+  if (kind === "saude") return <HeartIcon />;
   if (kind === "outro") return <SettingsIcon />;
   return <CarIcon />;
 }
