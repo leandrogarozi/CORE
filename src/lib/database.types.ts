@@ -464,6 +464,9 @@ export type Database = {
           last_done_on: string | null
           name: string
           note: string
+          observation: string
+          waiting: boolean
+          cycle_start_on: string | null
           whatsapp: boolean | null
           buy_days_before: number | null
           bought_on: string | null
@@ -490,6 +493,9 @@ export type Database = {
           last_done_on?: string | null
           name: string
           note?: string
+          observation?: string
+          waiting?: boolean
+          cycle_start_on?: string | null
           whatsapp?: boolean | null
           buy_days_before?: number | null
           bought_on?: string | null
@@ -516,6 +522,9 @@ export type Database = {
           last_done_on?: string | null
           name?: string
           note?: string
+          observation?: string
+          waiting?: boolean
+          cycle_start_on?: string | null
           whatsapp?: boolean | null
           buy_days_before?: number | null
           bought_on?: string | null

@@ -4,12 +4,14 @@ import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
 import { MicButton } from "./MicButton";
-import { BellIcon, CarIcon, CheckIcon, ChevronIcon, EditIcon, HomeIcon, TrashIcon, WarningIcon, WhatsAppIcon } from "./icons";
+import { ToggleSwitch } from "./ToggleSwitch";
+import { BellIcon, CarIcon, CheckIcon, ChevronIcon, EditIcon, HeartIcon, HomeIcon, SettingsIcon, TrashIcon, WarningIcon, WhatsAppIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import {
   MAINTENANCE_SUGGESTIONS,
   distancePerDay,
   lastReading,
+  isoAddMonths,
   maintenanceStatus,
   odometerCheckDue,
 } from "@/lib/board/maintenance";
@@ -20,8 +22,17 @@ import type { MaintenanceAsset, MaintenanceItem, MaintenanceService } from "@/li
 const KIND_LABEL: Record<MaintenanceAsset["kind"], string> = {
   veiculo: "Veículo",
   casa: "Casa",
+  saude: "Saúde",
   outro: "Outro",
 };
+
+// O ícone de cada tipo: o mesmo na lista e no cabeçalho.
+function KindIcon({ kind }: { kind: MaintenanceAsset["kind"] }) {
+  if (kind === "casa") return <HomeIcon />;
+  if (kind === "saude") return <HeartIcon filled />;
+  if (kind === "outro") return <SettingsIcon />;
+  return <CarIcon />;
+}
 
 function fmtKm(n: number): string {
   return n.toLocaleString("pt-BR");
@@ -41,6 +52,9 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
   const [odometro, setOdometro] = useState("");
   const [valor, setValor] = useState("");
   const [nota, setNota] = useState("");
+  // "Começar": a data em que o ciclo passa a contar (padrão hoje).
+  const [comecando, setComecando] = useState(false);
+  const [inicio, setInicio] = useState(() => todayISO());
 
   const readings = board.state.odometerReadings.filter((r) => r.assetId === asset.id);
   const st = maintenanceStatus(item, asset, readings);
@@ -99,6 +113,11 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
   })();
 
   const resumo = (() => {
+    if (item.waiting) {
+      return item.intervalMonths
+        ? `Aguardando começar: o prazo de ${item.intervalMonths} ${item.intervalMonths === 1 ? "mês" : "meses"} só conta a partir do início`
+        : "Aguardando começar: nada conta nem avisa até você iniciar";
+    }
     if (st.state === "sem_base") return "Nunca registrado — registre o último serviço pra começar a contar";
     const partes: string[] = [];
     if (st.dueDate) partes.push(`vence ${fmtShortDate(st.dueDate)}`);
@@ -139,6 +158,19 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
           }}
           onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
         />
+        {item.waiting && (
+          <>
+            <span className="maint-flag proximo">⏸ aguardando</span>
+            <button
+              type="button"
+              className="btn btn-ghost maint-done-btn"
+              title="Chegou? Comece a contar o prazo a partir de uma data"
+              onClick={() => setComecando((v) => !v)}
+            >
+              Começar
+            </button>
+          </>
+        )}
         {st.state === "vencido" && (
           <span className="maint-flag vencido">
             <WarningIcon /> vencido
@@ -217,6 +249,45 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
           <EditIcon />
         </button>
       </div>
+
+      {item.waiting && comecando && (
+        <div className="maint-register">
+          <div className="maint-explain" style={{ marginTop: 0 }}>
+            Quando você começou (ou vai começar)?
+            {item.intervalMonths
+              ? ` O próximo prazo fica ${item.intervalMonths} ${item.intervalMonths === 1 ? "mês" : "meses"} depois dessa data.`
+              : " Defina o intervalo em meses para o FARO calcular o próximo prazo."}
+          </div>
+          <div className="maint-register-row">
+            <label>
+              <span className="prop-label">Início</span>
+              <input type="date" value={inicio} onChange={(e) => setInicio(e.target.value)} />
+            </label>
+            {item.intervalMonths && inicio && (
+              <label>
+                <span className="prop-label">Próximo</span>
+                <span className="mono">{fmtShortDate(isoAddMonths(inicio, item.intervalMonths))}</span>
+              </label>
+            )}
+          </div>
+          <div className="edit-actions">
+            <button type="button" className="btn btn-ghost" onClick={() => setComecando(false)}>
+              Cancelar
+            </button>
+            <button
+              type="button"
+              className="btn btn-accent"
+              disabled={!inicio}
+              onClick={() => {
+                board.updateMaintenanceItem(item.id, { waiting: false, cycleStartOn: inicio });
+                setComecando(false);
+              }}
+            >
+              Começar a contar
+            </button>
+          </div>
+        </div>
+      )}
 
       {registrando && (
         <div className="maint-register">
@@ -328,6 +399,55 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
               </label>
             )}
           </div>
+
+          {/* Ciclo que só começa depois de algo acontecer (ex.: refazer o exame
+              3 meses depois de começar a suplementação, e a suplementação só
+              começa quando a compra chega). */}
+          <div className="prop-list">
+            <div className="prop-row">
+              <span className="prop-label">Aguardando começar</span>
+              <div className="prop-value">
+                <label className="challenging-toggle">
+                  <ToggleSwitch
+                    checked={item.waiting}
+                    ariaLabel="Aguardando começar"
+                    onChange={(v) =>
+                      board.updateMaintenanceItem(item.id, v ? { waiting: true } : { waiting: false, cycleStartOn: item.cycleStartOn ?? todayISO() })
+                    }
+                  />
+                  <span className="challenging-hint">
+                    {item.waiting ? "Não conta prazo nem avisa. Clique em Começar quando chegar." : "Ligue quando comprou e ainda não chegou"}
+                  </span>
+                </label>
+              </div>
+            </div>
+            {!item.waiting && (
+              <label className="prop-row">
+                <span className="prop-label">Início do ciclo</span>
+                <div className="prop-value">
+                  <input
+                    type="date"
+                    defaultValue={item.cycleStartOn ?? ""}
+                    onBlur={(e) => board.updateMaintenanceItem(item.id, { cycleStartOn: e.target.value || null })}
+                  />
+                </div>
+              </label>
+            )}
+          </div>
+
+          <label className="prop-row prop-row-empilhada">
+            <span className="prop-label">Observação</span>
+            <div className="prop-value maint-msg">
+              <CommentButton
+                variant="field"
+                alwaysExpanded
+                value={item.observation}
+                placeholder="O que é isso, o que o médico explicou…"
+                ariaLabel={`Observação de ${item.name}`}
+                onSave={(text) => board.updateMaintenanceItem(item.id, { observation: text })}
+              />
+            </div>
+          </label>
 
           <div className="maint-momentos">
             <div className="maint-momentos-titulo">Quando o FARO avisa</div>
@@ -643,7 +763,7 @@ function AssetCard({ asset }: { asset: MaintenanceAsset }) {
           aria-label={aberto ? "Recolher" : "Abrir"}
           onClick={() => setAberto((v) => !v)}
         >
-          {asset.kind === "casa" ? <HomeIcon /> : <CarIcon />}
+          <KindIcon kind={asset.kind} />
         </button>
         {/* Recolhido o nome é botão (clicar abre); aberto vira campo, pra
             continuar dando pra renomear. */}
@@ -681,6 +801,25 @@ function AssetCard({ asset }: { asset: MaintenanceAsset }) {
             {fmtKm(atual.reading)} {asset.odometerUnit}
             {ritmo ? ` · ~${Math.round(ritmo)} ${asset.odometerUnit}/dia` : ""}
           </span>
+        )}
+        {aberto && (
+          <select
+            className="budget-input maint-kind-select"
+            value={asset.kind}
+            aria-label="Tipo (muda o ícone)"
+            title="Tipo (muda o ícone)"
+            onChange={(e) => {
+              const kind = e.target.value as MaintenanceAsset["kind"];
+              // Só veículo tem odômetro: ao sair de veículo ele desliga, ao voltar liga.
+              board.updateMaintenanceAsset(asset.id, { kind, tracksOdometer: kind === "veiculo" });
+            }}
+          >
+            {(Object.keys(KIND_LABEL) as MaintenanceAsset["kind"][]).map((k) => (
+              <option key={k} value={k}>
+                {KIND_LABEL[k]}
+              </option>
+            ))}
+          </select>
         )}
         {aberto && (
           <button

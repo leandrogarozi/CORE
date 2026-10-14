@@ -213,6 +213,9 @@ export function rowToMaintenanceItem(row: MaintenanceItemRow): MaintenanceItem {
     lastDoneOn: row.last_done_on,
     lastDoneOdometer: row.last_done_odometer,
     note: row.note,
+    observation: row.observation ?? "",
+    waiting: row.waiting ?? false,
+    cycleStartOn: row.cycle_start_on ?? null,
     active: row.active,
     order: row.sort_order,
     whatsapp: row.whatsapp ?? false,
@@ -237,6 +240,9 @@ export function maintenanceItemToUpdateRow(i: Partial<MaintenanceItem>): TablesU
   if (i.lastDoneOn !== undefined) row.last_done_on = i.lastDoneOn;
   if (i.lastDoneOdometer !== undefined) row.last_done_odometer = i.lastDoneOdometer;
   if (i.note !== undefined) row.note = i.note;
+  if (i.observation !== undefined) row.observation = i.observation;
+  if (i.waiting !== undefined) row.waiting = i.waiting;
+  if (i.cycleStartOn !== undefined) row.cycle_start_on = i.cycleStartOn;
   if (i.active !== undefined) row.active = i.active;
   if (i.whatsapp !== undefined) row.whatsapp = i.whatsapp;
   if (i.buyDaysBefore !== undefined) row.buy_days_before = i.buyDaysBefore;

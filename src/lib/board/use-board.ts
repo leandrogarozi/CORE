@@ -1756,6 +1756,7 @@ export function useBoard(userId: string | null) {
       }));
       const row: TablesUpdate<"maintenance_assets"> = {};
       if (patch.name !== undefined) row.name = patch.name;
+      if (patch.kind !== undefined) row.kind = patch.kind;
       if (patch.tracksOdometer !== undefined) row.tracks_odometer = patch.tracksOdometer;
       if (patch.odometerReminderDays !== undefined) row.odometer_reminder_days = patch.odometerReminderDays;
       supabase.from("maintenance_assets").update(row).eq("id", id).then(({ error }) => {
@@ -1827,6 +1828,9 @@ export function useBoard(userId: string | null) {
         lastDoneOn: null,
         lastDoneOdometer: null,
         note: "",
+        observation: "",
+        waiting: false,
+        cycleStartOn: null,
         active: true,
         whatsapp: false,
         buyDaysBefore: null,

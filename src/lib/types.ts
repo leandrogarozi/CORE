@@ -106,7 +106,7 @@ export interface TaskPostponement {
 export interface MaintenanceAsset {
   id: string;
   name: string;
-  kind: "veiculo" | "casa" | "outro";
+  kind: "veiculo" | "casa" | "saude" | "outro";
   tracksOdometer: boolean;
   odometerUnit: string;
   // De quantos em quantos dias lembrar de conferir o odômetro. Sem leitura nova
@@ -145,7 +145,12 @@ export interface MaintenanceItem {
   overdueFrom: string | null; // "Lembrar de novo": a insistência recomeça a contar desta data
   lastDoneOn: string | null;
   lastDoneOdometer: number | null;
-  note: string;
+  note: string; // mensagem do WhatsApp
+  observation: string; // observação pra pessoa (ex.: o que o médico explicou)
+  // "Aguardando começar": comprei mas ainda não chegou. Enquanto estiver ligado o
+  // item não conta prazo nem avisa; ao começar, o prazo conta a partir de cycleStartOn.
+  waiting: boolean;
+  cycleStartOn: string | null;
   active: boolean;
   order: number;
 }

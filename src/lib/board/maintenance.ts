@@ -28,6 +28,12 @@ export const MAINTENANCE_SUGGESTIONS: Record<string, { name: string; months?: nu
     { name: "Recarga do extintor", months: 12 },
     { name: "Revisão do gás", months: 12 },
   ],
+  saude: [
+    { name: "Exames de sangue (check-up)", months: 12 },
+    { name: "Vitaminas (D, B12)", months: 12 },
+    { name: "Dentista", months: 6 },
+    { name: "Oftalmologista", months: 12 },
+  ],
   outro: [],
 };
 
@@ -95,16 +101,25 @@ export function maintenanceStatus(
   item: Pick<
     MaintenanceItem,
     "intervalMonths" | "intervalDistance" | "lastDoneOn" | "lastDoneOdometer" | "alertDaysBefore" | "alertDistanceBefore"
-  >,
+  > &
+    Partial<Pick<MaintenanceItem, "waiting" | "cycleStartOn">>,
   asset: Pick<MaintenanceAsset, "tracksOdometer">,
   readings: OdometerReading[],
   today: string = todayISO()
 ): MaintenanceStatus {
-  const dueDateByTime =
-    item.intervalMonths && item.lastDoneOn ? isoAddMonths(item.lastDoneOn, item.intervalMonths) : null;
+  // Aguardando começar (a compra ainda não chegou): nada conta nem avisa.
+  const esperando = !!item.waiting;
+  // O prazo conta do que for mais recente: o início do ciclo ou o último serviço feito.
+  const base =
+    item.lastDoneOn && item.cycleStartOn
+      ? item.lastDoneOn > item.cycleStartOn
+        ? item.lastDoneOn
+        : item.cycleStartOn
+      : (item.lastDoneOn ?? item.cycleStartOn ?? null);
+  const dueDateByTime = !esperando && item.intervalMonths && base ? isoAddMonths(base, item.intervalMonths) : null;
 
   const dueOdometer =
-    asset.tracksOdometer && item.intervalDistance && item.lastDoneOdometer !== null
+    !esperando && asset.tracksOdometer && item.intervalDistance && item.lastDoneOdometer !== null
       ? item.lastDoneOdometer + item.intervalDistance
       : null;
 

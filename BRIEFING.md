@@ -5190,6 +5190,16 @@ Pedido dele (08/10, por voz): *"não quero que o Faro fique conversando demais, 
 - **Correção 2 (09/10, com o OK do Leandro):** o script apaga o arquivo que mudou e o cria de novo (para o Drive vira arquivo novo; o antigo vai para a lixeira do Drive). Só apaga o que vai ser substituído; arquivo de item removido no FARO continua na pasta. Vale para Mac e Windows. **Pendente:** rodar o instalador de novo no MacBook e no Mac Mini (o Mac Mini só na terça, 14/10). Depois conferir se o `00 — Índice.md` do Drive (id `1WSTZIOk-JTydgqhQH4Vyd7JesRIaMaEx`) ganhou a data nova. **Confirmado em 09/10:** o índice foi recriado com o id novo `1pXhdGlxikqnD9NotoDFRTB2c1ggJb5PG` (Gerado em 2026-10-09, 10.028 bytes, com Conhecendo você). O id antigo não existe mais; a skill não deve guardar id de arquivo, só o da pasta (`168OAoMfP0aB_urOvWEMO8N2ZVYbAJBj3`).
 - **Pasta Ideias** só nasce quando houver a primeira ideia cadastrada (hoje 0).
 
+## Manutenção: tipo Saúde, trocar o tipo, Observação e "aguardando começar" (14/10)
+
+Pedido do Leandro: cadastrar na Manutenção um item de saúde (refazer exame de vitaminas) e poder (1) ter um ícone de coração, (2) editar o tipo/ícone do cadastro (só havia o botão de apagar), (3) ter um campo de **Observação** em cada item (o que o médico explicou), separado da mensagem do WhatsApp, (4) ciclos que só começam depois de algo acontecer: "refazer o exame 3 meses depois de começar a suplementação; aguardando as vitaminas chegarem; início __; próximo exame = início + 3 meses".
+
+- **Tipo Saúde** (`maintenance_assets.kind = 'saude'`, sem mudança de banco; não há check no `kind`): ícone de coração; Outro ganhou a engrenagem (antes aparecia o carro); sugestões rápidas de saúde (exames de sangue, vitaminas, dentista, oftalmologista), todas editáveis.
+- **Trocar o tipo:** com o cadastro aberto, o seletor ao lado da lixeira muda tipo e ícone. Só Veículo tem odômetro: sair de veículo desliga o odômetro, voltar liga. Os dois cadastros "Saúde" que ele criou antes (um como "Outro", um como "Veículo") ficam como estão: ele ajusta o tipo na tela e apaga o repetido.
+- **Observação** por item (`maintenance_items.observation`), acima de "Mensagem no WhatsApp". A mensagem continua a única coisa que vai pro celular.
+- **Aguardando começar** (`maintenance_items.waiting` + `cycle_start_on`): ligado, o item não conta prazo nem avisa (nem compra, nem fazer, nem vencido). Aparece "⏸ aguardando" e o botão **Começar**, que pede a data de início e mostra o próximo prazo (início + intervalo); ao confirmar, o ciclo passa a contar. O prazo conta do mais recente entre o início do ciclo e o último "Feito", então refazer o exame reinicia o ciclo. Dentro do item aberto há o interruptor "Aguardando começar" (para pôr um item em espera quando compra e não chegou) e o campo "Início do ciclo". Lógica em `maintenanceStatus` (`src/lib/board/maintenance.ts`), testada: aguardando = sem prazo; início 14/10 + 3 meses = 14/01; refeito em 20/01 = próximo 20/04.
+- **A observar:** o botão "Feito" continua registrando um serviço no histórico (é o exame feito); o início do ciclo NÃO entra no histórico.
+
 ## O resumo "O que o FARO sabe sobre você" (09/10)
 
 - **Pedido do Leandro:** um texto, escrito pela IA, descrevendo em linguagem corrida o que o FARO sabe sobre ele, a partir do que ele aprovou em Conhecendo você.
