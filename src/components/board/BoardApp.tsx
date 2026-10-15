@@ -47,10 +47,11 @@ import { TimerNudges } from "./TimerNudges";
 import { Sidebar, type ViewMode } from "./Sidebar";
 import { SaveErrorToaster } from "./SaveErrorToaster";
 import { StaleScreenNotice } from "./StaleScreenNotice";
-import { BoltIcon, ChevronIcon, ExpandHorizontalIcon, MenuIcon, SettingsIcon, UserIcon, WarningIcon, WeekIcon } from "./icons";
+import { BoltIcon, ChevronIcon, ExpandHorizontalIcon, MenuIcon, SettingsIcon, UserIcon, UsersGroupIcon, WarningIcon, WeekIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { dateFromISO, longLabel, mondayOf, todayISO } from "@/lib/date-utils";
-import type { Task } from "@/lib/types";
+import { countOpenChecklistItems } from "@/lib/rich-text";
+import { isMeetingTask, type Task } from "@/lib/types";
 
 function BoardShell() {
   const { board, sortByQuick, setSortByQuick, setOpenProjectHandler, setOpenTaskInDayHandler, requestFocus } =
@@ -186,6 +187,8 @@ function BoardShell() {
   // Mesma regra do card "Atrasadas" do Dashboard, pra o número bater com ele.
   const overdueTaskCount = board.state.tasks.filter((t) => !t.done && t.date && t.date < todayISO()).length;
   const dayTasks = board.state.tasks.filter((t) => t.date === selectedDate);
+  // Reuniões com pauta em aberto: o número do botão "Reuniões" da home.
+  const reunioesComPauta = board.state.tasks.filter((t) => isMeetingTask(t) && countOpenChecklistItems(t.note) > 0).length;
 
   return (
     <div className={"wrap" + (wide ? " wide" : "")}>
@@ -349,7 +352,23 @@ function BoardShell() {
                 )}
               </button>
             </div>
-            <RemindersButton onOpenFull={() => setViewMode("reminders")} />
+            <div className="home-atalhos">
+              <button
+                type="button"
+                className="reminders-btn"
+                title={reunioesComPauta > 0 ? `${reunioesComPauta} reunião(ões) com pauta em aberto` : "Minhas reuniões"}
+                onClick={() => setViewMode("meetings")}
+              >
+                <span className="reminders-btn-bell">
+                  <UsersGroupIcon />
+                  {reunioesComPauta > 0 && (
+                    <span className="reminders-btn-count">{reunioesComPauta > 9 ? "9+" : reunioesComPauta}</span>
+                  )}
+                </span>
+                Reuniões
+              </button>
+              <RemindersButton onOpenFull={() => setViewMode("reminders")} />
+            </div>
           </div>
 
           {viewMode === "dashboard" ? (

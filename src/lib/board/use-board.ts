@@ -3489,6 +3489,51 @@ export function useBoard(userId: string | null) {
     [apply, defaultStatusId, newTaskCode, nextOrder, supabase, userId]
   );
 
+  // Cria uma reunião sem iniciar o cronômetro: pra marcar uma que já passou ou
+  // vai acontecer. Ela é uma tarefa comum (categoria "reunião") no dia escolhido,
+  // então aparece na lista de tarefas daquele dia; com hora marcada vira evento.
+  const addMeeting = useCallback(
+    (campos: { title: string; client: string | null; date: string; time: string | null }): string | null => {
+      if (!userId || !campos.title.trim() || !campos.date) return null;
+      const comHora = !!campos.time;
+      const agendado = scheduledStatusId();
+      const t: Task = {
+        id: uid(),
+        code: newTaskCode(),
+        title: campos.title.trim(),
+        category: "sem_categoria",
+        category2: "reuniao",
+        priority: "media",
+        date: campos.date,
+        time: campos.time || "",
+        endDate: null,
+        endTime: null,
+        durationMin: null,
+        expectedDurationMin: null,
+        note: "",
+        done: false,
+        order: nextOrder(campos.date),
+        seriesId: null,
+        studyPlanId: null,
+        challenging: false,
+        follows: false,
+        isEvent: comHora,
+        trackedSeconds: 0,
+        quick: 0,
+        statusId: comHora && agendado ? agendado : defaultStatusId(),
+        deletedAt: null,
+        projectId: null,
+        client: campos.client?.trim() || null,
+      };
+      apply((s) => ({ ...s, tasks: [...s.tasks, t] }));
+      supabase.from("tasks").insert(taskToInsertRow(t, userId)).then(({ error }) => {
+        if (error) reportSaveError("addMeeting", error);
+      });
+      return t.id;
+    },
+    [apply, defaultStatusId, newTaskCode, nextOrder, scheduledStatusId, supabase, userId]
+  );
+
   const bumpExpectedDuration = useCallback(
     (taskId: string, addMin: number) => {
       const task = stateRef.current.tasks.find((t) => t.id === taskId);
@@ -4006,6 +4051,7 @@ export function useBoard(userId: string | null) {
     deleteBlockLogEntry,
     toggleTimer,
     startMeeting,
+    addMeeting,
     bumpExpectedDuration,
     concludeMeeting,
     updateSettings,

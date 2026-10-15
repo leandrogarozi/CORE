@@ -2941,3 +2941,22 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .bday-dia-mes{ display:flex; gap:6px; flex-wrap:wrap; }
 .bday-dia-mes input[type=number]:first-child{ width:62px; }
 .bday-msg{ width:100%; resize:vertical; font:inherit; font-size:12.5px; padding:6px 8px; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--text); }
+
+/* Home: Reuniões ao lado de Lembretes */
+.home-atalhos{ display:flex; align-items:center; gap:8px; flex:none; }
+.reminders-btn.ativo{ color:var(--accent); border-color:var(--accent); background:var(--accent-soft); }
+
+/* Reuniões: nova reunião, ordem da lista e data na frente do nome */
+.meeting-new{ display:flex; flex-direction:column; gap:8px; padding:12px 14px; }
+.meeting-new-title{ display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:var(--fw-forte); color:var(--text-muted); }
+.meeting-new-row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.meeting-new-row input[type=text]{ min-width:130px; flex:1 1 140px; }
+.meeting-new-row .meeting-new-nome{ flex:2 1 240px; }
+.meeting-new-ok{ font-size:12px; color:var(--success); }
+.meeting-modo{ display:inline-flex; border:1px solid var(--linha); border-radius:var(--r-2); overflow:hidden; flex:none; }
+.meeting-modo-btn{ padding:4px 11px; font-size:11.5px; color:var(--text-muted); background:var(--surface); }
+.meeting-modo-btn.ativo{ color:var(--accent); background:var(--accent-soft); font-weight:var(--fw-forte); }
+.meeting-line{ display:flex; align-items:flex-start; }
+.meeting-date{ flex:none; width:48px; padding:11px 0 0 12px; font-size:11.5px; color:var(--text-muted); }
+.meeting-date.hoje{ color:var(--accent); font-weight:700; }
+.meeting-line-row{ flex:1; min-width:0; }
