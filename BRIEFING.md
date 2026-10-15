@@ -5190,6 +5190,43 @@ Pedido dele (08/10, por voz): *"não quero que o Faro fique conversando demais, 
 - **Correção 2 (09/10, com o OK do Leandro):** o script apaga o arquivo que mudou e o cria de novo (para o Drive vira arquivo novo; o antigo vai para a lixeira do Drive). Só apaga o que vai ser substituído; arquivo de item removido no FARO continua na pasta. Vale para Mac e Windows. **Pendente:** rodar o instalador de novo no MacBook e no Mac Mini (o Mac Mini só na terça, 14/10). Depois conferir se o `00 — Índice.md` do Drive (id `1WSTZIOk-JTydgqhQH4Vyd7JesRIaMaEx`) ganhou a data nova. **Confirmado em 09/10:** o índice foi recriado com o id novo `1pXhdGlxikqnD9NotoDFRTB2c1ggJb5PG` (Gerado em 2026-10-09, 10.028 bytes, com Conhecendo você). O id antigo não existe mais; a skill não deve guardar id de arquivo, só o da pasta (`168OAoMfP0aB_urOvWEMO8N2ZVYbAJBj3`).
 - **Pasta Ideias** só nasce quando houver a primeira ideia cadastrada (hoje 0).
 
+## Funil de cadastro de clientes: LP padrão com o nome do cliente + CRM (alinhado em 15/10, a executar)
+
+**Objetivo (Leandro):** quando alguém começa a trabalhar com ele (fechou algo, vai receber o relatório de perfil comportamental), ele **gera um link dentro do FARO e manda** para a pessoa. O link abre uma **LP padrão com a cara dele** (foto, cores, texto), só com o **nome do cliente personalizado**. O cliente preenche um cadastro curto e a resposta **cai direto no FARO**, que completa o cadastro sozinho e cobra o que falta. Começa como lista de aniversários de clientes e vira o **CRM de clientes** ("funil top").
+
+**Decisões já tomadas pelo Leandro:**
+- Fazer a versão **B** (página pública dentro do FARO), sem passar por Google Forms.
+- **Um link por cliente**, gerado no FARO (nome do cliente na saudação). Depois, se quiser, um link geral (QR no PDF do relatório), com proteção extra.
+- Endereço desejado: **leandrogarozi.com.br/cadastro** (ver pergunta aberta sobre o domínio).
+- **Só clientes por enquanto**; amigos e familiares ficam de fora (o mesmo modelo serve depois, com texto mais leve).
+- Campos: **nome, dia e mês do aniversário (ano opcional), WhatsApp**, e a caixinha de aceite: *"Aceito receber uma mensagem de parabéns no meu aniversário e novidades sobre conteúdos de Leandro Garozi"*.
+- **Tela de agradecimento** depois de enviar ("Recebi! Em breve você vai ouvir de mim"), com **as redes dele** (Instagram, LinkedIn…).
+- **O visual vem da LP de apresentação comercial** que ele está fazendo em outra conversa; quando ficar pronta ele traz aqui e a página de cadastro é feita **em cima dela** (mesma foto, cores, fonte, tom). **Não desenhar a página antes disso.** O visual será aprovado por ele ANTES de ligar o resto.
+
+**Fluxo:**
+1. Na tela **Aniversários** (que ganha a visão de clientes): **Novo cliente → Copiar link**. Cria o cliente como "convite enviado" e entrega o link único + a frase pronta para o WhatsApp ("Bem-vindo! Só preciso de uma coisinha pra cuidar bem de você: [link]").
+2. O cliente abre `/cadastro/<código>`, vê a saudação com o nome, preenche e envia. Só grava; **nunca lê** nada de ninguém.
+3. O FARO completa: status **"respondeu"**, data e telefone no cadastro, categoria cliente, lembrete anual das 9h criado (sininho ligado), **"mensagem automática" ligada se aceitou**, e **push no celular** ("Maria respondeu o formulário").
+4. **Pendências que o FARO cobra:** "configurar a mensagem da Maria" (aceitou e ainda não há mensagem escrita) e "convite sem resposta há X dias" (com botão de reenviar o link).
+
+**Dados (estender `birthdays`, sem tabela nova de CRM):** `invite_token` (aleatório, 24+ caracteres, único), `invite_status` (`convite` | `respondeu`), `invite_expires_at`, `responded_at`, `consent_at`, `consent_text` (o texto exato aceito), `origin` (`convite` | `manual`). Quando virar o **Cadastro de cliente de verdade** (item do backlog: projetos, horas, contrato), esta tabela é a base e o campo texto `client` das tarefas passa a apontar para ela. Entra no backup completo (já está).
+
+**Página pública e segurança:**
+- Página `/cadastro/[token]` e rota `POST /api/cadastro/[token]`, no servidor, com a chave de serviço **só ali**, validando: código existe, não venceu (ex.: 30 dias), ainda não respondido (permite corrigir por poucos dias). A resposta **não devolve nada** além do primeiro nome.
+- Proteção contra spam: campo-armadilha (honeypot), limite de tentativas por IP e por código, validação do formato (dia/mês válidos, telefone com 10 ou 11 dígitos).
+- **LGPD:** guardar **quando e com qual texto** o aceite foi dado; mostrar na página uma linha de privacidade e a forma de sair ("para parar de receber, responda PARAR"); tratar o PARAR (desligar `auto_message`) quando houver a entrada de mensagens. O link da política de privacidade precisa existir (**a criar**).
+
+**Ordem de entrega (cerca de um dia, depois de ter a LP):**
+1. Banco (colunas do convite) + página pública + rota de gravação, testadas com um link de teste.
+2. Botão **Novo cliente → Copiar link** + status "convite/respondeu" na lista + a frase pronta para o WhatsApp.
+3. Aviso no celular quando alguém responde + as duas pendências + BRIEFING e teste ponta a ponta com um cliente de verdade.
+
+**Para o Leandro trazer (junto da LP):** foto dele, cores e fonte, texto de boas-vindas (2 ou 3 frases, ou eu escrevo a proposta), as redes para a tela de agradecimento, e o link/arquivo da LP comercial.
+
+**Pergunta aberta (a resolver antes de ligar o endereço):** **onde está hospedado hoje o `leandrogarozi.com.br`?** O caminho `/cadastro` no domínio principal só funciona direto se o site inteiro estiver na Vercel; se estiver em outro lugar (WordPress, Wix, Framer, Hostinger…), há duas saídas: (a) **subdomínio** `cadastro.leandrogarozi.com.br` apontado para o FARO (simples, não mexe no site atual) com um redirecionamento de `/cadastro` do site para ele; ou (b) um proxy/redirecionamento reverso no host atual (depende da plataforma). A recomendação é **(a)**. Para qualquer das duas é preciso acesso ao DNS do domínio (registro.br ou onde estiver).
+
+**Continua separado (não faz parte desta entrega):** o **envio automático** da mensagem (modelo aprovado pela Meta, custo por mensagem, escolher quem recebe automática), o link geral para o QR Code e a importação de contatos. Ver "Aniversários" acima.
+
 ## Aniversários: lista de amigos, familiares e clientes (pedido em 15/10)
 
 **Pedido do Leandro (texto dele, resumido):** um campo/lista de aniversários dividido em **amigos, familiares e clientes**. A ideia é ir construindo isso e deixar **mensagem programada** para enviar nesses dias. Cadastro com **data, categoria (cliente, amigo, familiar)**, uma opção de **mandar mensagem automática** e uma opção de **lembrar de mandar uma mensagem mais pessoal**. Depois ver como pegar esses dados; a ideia maior é um **sistema em que as próprias pessoas se cadastrem pela internet ou por um formulário**, para o cadastro ficar automático. "O que der para fazer de imediato pode fazer; o resto terminamos depois."
@@ -5204,7 +5241,7 @@ Pedido dele (08/10, por voz): *"não quero que o Faro fique conversando demais, 
 
 **Fica para depois (ordem sugerida):**
 1. **Envio automático de verdade.** Mensagem enviada fora da janela de 24 h do WhatsApp Business exige **modelo de mensagem aprovado pela Meta** (e é cobrada por mensagem, como o custo do WhatsApp que já medimos). Precisa: criar e aprovar o modelo, rotina diária (pg_cron + rota do servidor) que lê `birthdays` com `auto_message = true` e telefone, envia no dia, registra em `whatsapp_sends` e respeita o teto de gasto. **Decidir antes:** quais categorias recebem automática (cliente sim, amigo/familiar talvez só o lembrete), horário de envio, e se a mensagem do cliente leva o nome da empresa dele.
-2. **Cadastro pelas próprias pessoas (formulário/link).** Página pública com um link por pessoa ou por lote (ex.: um link para clientes), que grava em `birthdays` sem login. Cuidados: rota pública com proteção contra spam (limite por IP e verificação), a pessoa só grava, nunca lê a lista, e **consentimento** explícito para receber mensagem (LGPD). Pode nascer junto do **Cadastro de cliente de verdade** (item do backlog): o aniversário vira um campo do cliente.
+2. **Cadastro pelas próprias pessoas (formulário/link)** (plano fechado na seção "Funil de cadastro de clientes" acima). Página pública com um link por pessoa ou por lote (ex.: um link para clientes), que grava em `birthdays` sem login. Cuidados: rota pública com proteção contra spam (limite por IP e verificação), a pessoa só grava, nunca lê a lista, e **consentimento** explícito para receber mensagem (LGPD). Pode nascer junto do **Cadastro de cliente de verdade** (item do backlog): o aniversário vira um campo do cliente.
 3. **Importar** de uma planilha ou dos contatos (Google Contatos tem aniversário).
 4. **Mostrar no dia a dia:** card "aniversários de hoje/da semana" no Dashboard e na Agenda, e a IA do FARO citar no resumo do dia ("hoje é aniversário de…"). Hoje só o lembrete das 9h avisa.
 5. **Lembrete antecipado** (ex.: 3 dias antes, para quem exige presente) e **WhatsApp também no lembrete** (hoje só push e aviso no app).
