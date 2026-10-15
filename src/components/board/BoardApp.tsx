@@ -27,6 +27,7 @@ import { RemindersView, RemindersButton } from "./RemindersView";
 import { SynapsesView } from "./SynapsesView";
 import { IdeasView } from "./IdeasView";
 import { ComprasView } from "./ComprasView";
+import { BirthdaysView } from "./BirthdaysView";
 import { ConhecendoView } from "./ConhecendoView";
 import { StudyPlansView } from "./StudyPlansView";
 import { MaintenanceView } from "./MaintenanceView";
@@ -267,6 +268,8 @@ function BoardShell() {
         <ConhecendoView onBack={() => setViewMode("day")} />
       ) : viewMode === "compras" ? (
         <ComprasView onBack={() => setViewMode("day")} />
+      ) : viewMode === "aniversarios" ? (
+        <BirthdaysView onBack={() => setViewMode("day")} />
       ) : viewMode === "estudo" ? (
         <StudyPlansView onBack={() => setViewMode("day")} />
       ) : viewMode === "manutencao" ? (

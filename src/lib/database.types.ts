@@ -1197,6 +1197,60 @@ export type Database = {
         }
         Relationships: []
       }
+      birthdays: {
+        Row: {
+          auto_message: boolean
+          category: string
+          created_at: string
+          day: number
+          deleted_at: string | null
+          id: string
+          message: string
+          month: number
+          name: string
+          note: string
+          phone: string
+          remind: boolean
+          sort_order: number
+          user_id: string
+          year: number | null
+        }
+        Insert: {
+          auto_message?: boolean
+          category?: string
+          created_at?: string
+          day: number
+          deleted_at?: string | null
+          id: string
+          message?: string
+          month: number
+          name: string
+          note?: string
+          phone?: string
+          remind?: boolean
+          sort_order?: number
+          user_id: string
+          year?: number | null
+        }
+        Update: {
+          auto_message?: boolean
+          category?: string
+          created_at?: string
+          day?: number
+          deleted_at?: string | null
+          id?: string
+          message?: string
+          month?: number
+          name?: string
+          note?: string
+          phone?: string
+          remind?: boolean
+          sort_order?: number
+          user_id?: string
+          year?: number | null
+        }
+        Relationships: []
+      }
       shopping_lists: {
         Row: {
           created_at: string

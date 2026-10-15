@@ -408,6 +408,22 @@ export interface ShoppingLink {
   url: string;
 }
 
+// Lista de aniversários: amigos, familiares e clientes. O ano é opcional.
+export interface Birthday {
+  id: string;
+  name: string;
+  month: number; // 1 a 12
+  day: number; // 1 a 31
+  year: number | null; // ano de nascimento, quando se sabe
+  category: "cliente" | "amigo" | "familiar";
+  phone: string; // pra mandar a mensagem pelo WhatsApp (e, no futuro, o envio automático)
+  message: string; // modelo; {nome} vira o primeiro nome. Vazio usa a mensagem padrão.
+  autoMessage: boolean; // "mandar mensagem automática" (o envio sozinho ainda não está ligado)
+  remind: boolean; // lembrar de mandar uma mensagem mais pessoal (vira lembrete anual)
+  note: string;
+  order: number;
+}
+
 export interface ShoppingList {
   id: string;
   kind: "compra" | "desejo";
@@ -450,7 +466,7 @@ export interface Reminder {
   taskId: string | null; // quando o lembrete foi criado a partir de uma tarefa (campo "Lembrete" na edição)
   // De onde o lembrete veio quando o ícone do zap foi aceso. Null = criado à mão
   // pelo Leandro, e nesse caso nada automático mexe nele.
-  sourceKind: "medication" | "maintenance" | "diet_meal" | "event" | "shopping" | null;
+  sourceKind: "medication" | "maintenance" | "diet_meal" | "event" | "shopping" | "birthday" | null;
   sourceId: string | null;
   // Qual aviso do item de origem este lembrete é (manutenção: comprar, antes,
   // hoje, vencido1..3). Permite ao app atualizar cada um sem duplicar.
@@ -561,6 +577,7 @@ export interface BoardState {
   synapses: Synapse[];
   shoppingItems: ShoppingItem[];
   shoppingLists: ShoppingList[];
+  birthdays: Birthday[];
   knowledgeItems: KnowledgeItem[];
   reminders: Reminder[];
   trashedReminders: Reminder[]; // lembretes excluídos (soft delete) — Lixeira

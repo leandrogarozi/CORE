@@ -5190,6 +5190,26 @@ Pedido dele (08/10, por voz): *"não quero que o Faro fique conversando demais, 
 - **Correção 2 (09/10, com o OK do Leandro):** o script apaga o arquivo que mudou e o cria de novo (para o Drive vira arquivo novo; o antigo vai para a lixeira do Drive). Só apaga o que vai ser substituído; arquivo de item removido no FARO continua na pasta. Vale para Mac e Windows. **Pendente:** rodar o instalador de novo no MacBook e no Mac Mini (o Mac Mini só na terça, 14/10). Depois conferir se o `00 — Índice.md` do Drive (id `1WSTZIOk-JTydgqhQH4Vyd7JesRIaMaEx`) ganhou a data nova. **Confirmado em 09/10:** o índice foi recriado com o id novo `1pXhdGlxikqnD9NotoDFRTB2c1ggJb5PG` (Gerado em 2026-10-09, 10.028 bytes, com Conhecendo você). O id antigo não existe mais; a skill não deve guardar id de arquivo, só o da pasta (`168OAoMfP0aB_urOvWEMO8N2ZVYbAJBj3`).
 - **Pasta Ideias** só nasce quando houver a primeira ideia cadastrada (hoje 0).
 
+## Aniversários: lista de amigos, familiares e clientes (pedido em 15/10)
+
+**Pedido do Leandro (texto dele, resumido):** um campo/lista de aniversários dividido em **amigos, familiares e clientes**. A ideia é ir construindo isso e deixar **mensagem programada** para enviar nesses dias. Cadastro com **data, categoria (cliente, amigo, familiar)**, uma opção de **mandar mensagem automática** e uma opção de **lembrar de mandar uma mensagem mais pessoal**. Depois ver como pegar esses dados; a ideia maior é um **sistema em que as próprias pessoas se cadastrem pela internet ou por um formulário**, para o cadastro ficar automático. "O que der para fazer de imediato pode fazer; o resto terminamos depois."
+
+**Feito em 15/10 (já no ar):**
+- Menu **Aniversários** (ícone de bolo) e tela `BirthdaysView`. Cadastro rápido: nome, dia, mês, **ano opcional**, categoria. Lista ordenada por **quem faz aniversário primeiro**, com "hoje 🎉 / amanhã / em N dias" e a idade que a pessoa fará (quando há ano). Filtros Todos / Clientes / Amigos / Familiares, com contagem.
+- Cada pessoa abre para editar: nome, dia e mês, ano, categoria, **telefone**, **mensagem** (modelo com `{nome}` = primeiro nome; vazio usa "Parabéns, {nome}! 🎉 Que seu dia seja incrível. Um abraço!"), anotação, e excluir (com confirmação).
+- **Sininho = lembrar de mandar a mensagem pessoal:** cria um lembrete **anual às 9h** no dia ("🎂 Aniversário de X: mandar a mensagem", push sempre e aviso dentro do app), que aparece em Lembretes como automático (`sourceKind = "birthday"`). Ao criar/editar nome, dia, mês ou o sininho o lembrete é refeito; ao excluir a pessoa, some. Não é refeito ao abrir o app, para não desfazer um "feito".
+- **Botão WhatsApp** na linha: abre a conversa (`wa.me`) com a mensagem pronta, quando há telefone (10 ou 11 dígitos sem DDI ganham o 55).
+- **Caixa "Mensagem automática"** já existe no cadastro e guarda a escolha, mas **o envio sozinho ainda não existe** (a tela diz isso). Assim ninguém precisa remarcar depois.
+- Banco: tabela `birthdays` (RLS própria, `select` liberado para o `service_role`, gatilho de "tela desatualizada"), entra no **backup completo** (`montar.ts`). 29/02 em ano não bissexto cai em 28/02. Lógica pura e testada em `src/lib/board/aniversarios.ts`.
+
+**Fica para depois (ordem sugerida):**
+1. **Envio automático de verdade.** Mensagem enviada fora da janela de 24 h do WhatsApp Business exige **modelo de mensagem aprovado pela Meta** (e é cobrada por mensagem, como o custo do WhatsApp que já medimos). Precisa: criar e aprovar o modelo, rotina diária (pg_cron + rota do servidor) que lê `birthdays` com `auto_message = true` e telefone, envia no dia, registra em `whatsapp_sends` e respeita o teto de gasto. **Decidir antes:** quais categorias recebem automática (cliente sim, amigo/familiar talvez só o lembrete), horário de envio, e se a mensagem do cliente leva o nome da empresa dele.
+2. **Cadastro pelas próprias pessoas (formulário/link).** Página pública com um link por pessoa ou por lote (ex.: um link para clientes), que grava em `birthdays` sem login. Cuidados: rota pública com proteção contra spam (limite por IP e verificação), a pessoa só grava, nunca lê a lista, e **consentimento** explícito para receber mensagem (LGPD). Pode nascer junto do **Cadastro de cliente de verdade** (item do backlog): o aniversário vira um campo do cliente.
+3. **Importar** de uma planilha ou dos contatos (Google Contatos tem aniversário).
+4. **Mostrar no dia a dia:** card "aniversários de hoje/da semana" no Dashboard e na Agenda, e a IA do FARO citar no resumo do dia ("hoje é aniversário de…"). Hoje só o lembrete das 9h avisa.
+5. **Lembrete antecipado** (ex.: 3 dias antes, para quem exige presente) e **WhatsApp também no lembrete** (hoje só push e aviso no app).
+6. **Telefone e mensagem em lote** para clientes (mesma mensagem para todos os clientes da categoria).
+
 ## Aviso "Sua tela está desatualizada" e checklist com linhas alternadas (14/10)
 
 Pedido do Leandro: (1) ao sair de um computador e abrir o FARO em outro onde ele já estava aberto, aparecer um aviso de tela desatualizada, para não trabalhar numa tela parada e perder dados; (2) no checklist, linhas alternando cinza bem clarinho e branco (referência para saber qual carrinho e qual lixeira são de qual item) e um lápis para editar o nome sem excluir.

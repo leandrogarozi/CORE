@@ -25,6 +25,9 @@ import {
   rowToSynapse,
   rowToShoppingItem,
   rowToShoppingList,
+  rowToBirthday,
+  birthdayToInsertRow,
+  birthdayToUpdateRow,
   rowToKnowledgeItem,
   shoppingToInsertRow,
   shoppingToUpdateRow,
@@ -61,6 +64,7 @@ import {
 import { isoAddDays, occurrenceDates, todayISO } from "@/lib/date-utils";
 import { studyDatesInRange } from "@/lib/board/study-plan";
 import { rolarTarefasQueSeguem } from "@/lib/board/seguir";
+import { lembreteDoAniversario } from "@/lib/board/aniversarios";
 import { lembreteDaMedicacao, lembreteDaRefeicao, lembretesDaManutencao } from "@/lib/board/zap-engine";
 import { aoMarcarComprado, lembreteDaCompra } from "@/lib/board/compras";
 import { maintenanceStatus } from "@/lib/board/maintenance";
@@ -104,6 +108,7 @@ import type {
   Synapse,
   ShoppingItem,
   ShoppingList,
+  Birthday,
   KnowledgeItem,
   Task,
   TaskSeries,
@@ -132,6 +137,7 @@ const EMPTY_STATE: BoardState = {
   synapses: [],
   shoppingItems: [],
   shoppingLists: [],
+  birthdays: [],
   knowledgeItems: [],
   reminders: [],
   trashedReminders: [],
@@ -264,6 +270,7 @@ export function useBoard(userId: string | null) {
       synapsesRes,
       shoppingRes,
       shoppingListsRes,
+      birthdaysRes,
       knowledgeRes,
       remindersRes,
       trashedRemindersRes,
@@ -297,6 +304,7 @@ export function useBoard(userId: string | null) {
       supabase.from("synapses").select("*").is("deleted_at", null).order("created_at", { ascending: false }),
       supabase.from("shopping_items").select("*").is("deleted_at", null).order("sort_order"),
       supabase.from("shopping_lists").select("*").is("deleted_at", null).order("sort_order"),
+      supabase.from("birthdays").select("*").is("deleted_at", null).order("sort_order"),
       supabase.from("knowledge_items").select("*").is("deleted_at", null).order("created_at"),
       supabase.from("reminders").select("*").is("deleted_at", null).order("created_at"),
       supabase.from("reminders").select("*").not("deleted_at", "is", null),
@@ -337,6 +345,7 @@ export function useBoard(userId: string | null) {
       synapses: (synapsesRes.data ?? []).map(rowToSynapse),
       shoppingItems: (shoppingRes.data ?? []).map(rowToShoppingItem),
       shoppingLists: (shoppingListsRes.data ?? []).map(rowToShoppingList),
+      birthdays: (birthdaysRes.data ?? []).map(rowToBirthday),
       knowledgeItems: (knowledgeRes.data ?? []).map(rowToKnowledgeItem),
       reminders: (remindersRes.data ?? []).map(rowToReminder),
       trashedReminders: (trashedRemindersRes.data ?? []).map(rowToReminder),
@@ -2438,6 +2447,137 @@ export function useBoard(userId: string | null) {
     [apply, supabase]
   );
 
+  // ---------- aniversários ----------
+  // O lembrete "mande a mensagem pessoal" é um lembrete comum, anual, às 9h do
+  // dia: push sempre, sininho dentro do app. Um por pessoa. Só é refeito quando
+  // a pessoa é criada ou editada (não ao abrir o app), para não desfazer um "feito".
+  const sincronizarLembreteDoAniversario = useCallback(
+    (birthdayId: string) => {
+      if (!userId) return;
+      const atual = stateRef.current;
+      const pessoa = atual.birthdays.find((b) => b.id === birthdayId) ?? null;
+      const existentes = atual.reminders.filter(
+        (r) => r.sourceKind === "birthday" && r.sourceId === birthdayId && !r.deletedAt
+      );
+      const campos = pessoa ? lembreteDoAniversario(pessoa, todayISO()) : null;
+      const [ja, ...sobras] = existentes;
+
+      const apagar = (campos ? sobras : existentes).map((r) => r.id);
+      if (apagar.length) {
+        apply((st) => ({ ...st, reminders: st.reminders.filter((r) => !apagar.includes(r.id)) }));
+        supabase.from("reminders").delete().in("id", apagar).then(({ error }) => {
+          if (error) reportSaveError("lembrete do aniversário: apagar", error);
+        });
+      }
+      if (!campos) return;
+
+      if (ja) {
+        const mudou = ja.title !== campos.title || ja.date !== campos.date;
+        if (!mudou) return;
+        apply((st) => ({
+          ...st,
+          reminders: st.reminders.map((r) =>
+            r.id === ja.id ? { ...r, title: campos.title, date: campos.date, done: false, status: "pending" as const } : r
+          ),
+        }));
+        supabase
+          .from("reminders")
+          .update({
+            ...reminderToUpdateRow({ title: campos.title, date: campos.date }),
+            done: false,
+            status: "pending",
+            whatsapp_notified_at: null,
+            push_sent_for: null,
+          })
+          .eq("id", ja.id)
+          .then(({ error }) => {
+            if (error) reportSaveError("lembrete do aniversário: atualizar", error);
+          });
+        return;
+      }
+      const r: Reminder = {
+        id: uid(),
+        title: campos.title,
+        date: campos.date,
+        time: campos.time,
+        repeat: "yearly",
+        weekDays: null,
+        alertMinutesBefore: null,
+        note: null,
+        done: false,
+        status: "pending",
+        deletedAt: null,
+        taskId: null,
+        sourceKind: "birthday",
+        sourceId: birthdayId,
+        sourceStage: "item",
+        inApp: true,
+        whatsapp: false,
+      };
+      apply((st) => ({ ...st, reminders: [...st.reminders, r] }));
+      supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
+        if (error) reportSaveError("lembrete do aniversário: criar", error);
+      });
+    },
+    [apply, supabase, userId]
+  );
+
+  const addBirthday = useCallback(
+    async (campos: Pick<Birthday, "name" | "month" | "day" | "year" | "category">): Promise<string | null> => {
+      if (!userId || !campos.name.trim()) return null;
+      const pessoa: Birthday = {
+        id: uid(),
+        name: campos.name.trim(),
+        month: campos.month,
+        day: campos.day,
+        year: campos.year,
+        category: campos.category,
+        phone: "",
+        message: "",
+        autoMessage: false,
+        remind: true,
+        note: "",
+        order: stateRef.current.birthdays.length,
+      };
+      apply((st) => ({ ...st, birthdays: [...st.birthdays, pessoa] }));
+      const { error } = await supabase.from("birthdays").insert(birthdayToInsertRow(pessoa, userId));
+      if (error) {
+        reportSaveError("addBirthday", error);
+        apply((st) => ({ ...st, birthdays: st.birthdays.filter((b) => b.id !== pessoa.id) }));
+        return null;
+      }
+      sincronizarLembreteDoAniversario(pessoa.id);
+      return pessoa.id;
+    },
+    [apply, supabase, userId, sincronizarLembreteDoAniversario]
+  );
+
+  const updateBirthday = useCallback(
+    (id: string, patch: Partial<Birthday>) => {
+      apply((st) => ({ ...st, birthdays: st.birthdays.map((b) => (b.id === id ? { ...b, ...patch } : b)) }));
+      supabase.from("birthdays").update(birthdayToUpdateRow(patch)).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("updateBirthday", error);
+      });
+      // Só mexe no lembrete quando algo que ele usa mudou.
+      if (patch.name !== undefined || patch.month !== undefined || patch.day !== undefined || patch.remind !== undefined) {
+        sincronizarLembreteDoAniversario(id);
+      }
+    },
+    [apply, supabase, sincronizarLembreteDoAniversario]
+  );
+
+  const deleteBirthday = useCallback(
+    (id: string) => {
+      const agora = new Date().toISOString();
+      apply((st) => ({ ...st, birthdays: st.birthdays.filter((b) => b.id !== id) }));
+      supabase.from("birthdays").update({ deleted_at: agora }).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("deleteBirthday", error);
+      });
+      sincronizarLembreteDoAniversario(id);
+    },
+    [apply, supabase, sincronizarLembreteDoAniversario]
+  );
+
   const addShoppingList = useCallback(
     async (kind: ShoppingList["kind"], name: string): Promise<string | null> => {
       if (!userId || !name.trim()) return null;
@@ -3814,6 +3954,9 @@ export function useBoard(userId: string | null) {
     setKnowledgeStatus,
     deleteKnowledge,
     addShoppingItem,
+    addBirthday,
+    updateBirthday,
+    deleteBirthday,
     addShoppingList,
     renameShoppingList,
     deleteShoppingList,

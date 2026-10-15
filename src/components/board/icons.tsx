@@ -996,3 +996,17 @@ export function FollowIcon() {
     </svg>
   );
 }
+
+export function CakeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none">
+      <path
+        d="M4 21h16M5 21v-7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v7M5 17c1.5 1.2 2.5 1.2 3.5 0s2-1.2 3.5 0 2.5 1.2 3.5 0 2-1.2 3.5 0M12 12V9M12 9c-.9 0-1.5-.7-1.5-1.5S12 5 12 5s1.5 1.5 1.5 2.5S12.9 9 12 9Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}

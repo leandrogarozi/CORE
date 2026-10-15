@@ -32,6 +32,7 @@ import type {
   ShoppingItem,
   ShoppingLink,
   ShoppingList,
+  Birthday,
   KnowledgeItem,
   Task,
   TaskSeries,
@@ -947,4 +948,54 @@ export function attachmentToInsertRow(
     mime_type: a.mimeType,
     size_bytes: a.sizeBytes,
   };
+}
+
+export function rowToBirthday(row: Tables<"birthdays">): Birthday {
+  return {
+    id: row.id,
+    name: row.name,
+    month: row.month,
+    day: row.day,
+    year: row.year,
+    category: row.category === "cliente" || row.category === "familiar" ? row.category : "amigo",
+    phone: row.phone,
+    message: row.message,
+    autoMessage: row.auto_message,
+    remind: row.remind,
+    note: row.note,
+    order: row.sort_order,
+  };
+}
+
+export function birthdayToInsertRow(b: Birthday, userId: string): TablesInsert<"birthdays"> {
+  return {
+    id: b.id,
+    user_id: userId,
+    name: b.name,
+    month: b.month,
+    day: b.day,
+    year: b.year,
+    category: b.category,
+    phone: b.phone,
+    message: b.message,
+    auto_message: b.autoMessage,
+    remind: b.remind,
+    note: b.note,
+    sort_order: b.order,
+  };
+}
+
+export function birthdayToUpdateRow(b: Partial<Birthday>): TablesUpdate<"birthdays"> {
+  const row: TablesUpdate<"birthdays"> = {};
+  if (b.name !== undefined) row.name = b.name;
+  if (b.month !== undefined) row.month = b.month;
+  if (b.day !== undefined) row.day = b.day;
+  if (b.year !== undefined) row.year = b.year;
+  if (b.category !== undefined) row.category = b.category;
+  if (b.phone !== undefined) row.phone = b.phone;
+  if (b.message !== undefined) row.message = b.message;
+  if (b.autoMessage !== undefined) row.auto_message = b.autoMessage;
+  if (b.remind !== undefined) row.remind = b.remind;
+  if (b.note !== undefined) row.note = b.note;
+  return row;
 }
