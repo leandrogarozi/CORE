@@ -5190,6 +5190,15 @@ Pedido dele (08/10, por voz): *"não quero que o Faro fique conversando demais, 
 - **Correção 2 (09/10, com o OK do Leandro):** o script apaga o arquivo que mudou e o cria de novo (para o Drive vira arquivo novo; o antigo vai para a lixeira do Drive). Só apaga o que vai ser substituído; arquivo de item removido no FARO continua na pasta. Vale para Mac e Windows. **Pendente:** rodar o instalador de novo no MacBook e no Mac Mini (o Mac Mini só na terça, 14/10). Depois conferir se o `00 — Índice.md` do Drive (id `1WSTZIOk-JTydgqhQH4Vyd7JesRIaMaEx`) ganhou a data nova. **Confirmado em 09/10:** o índice foi recriado com o id novo `1pXhdGlxikqnD9NotoDFRTB2c1ggJb5PG` (Gerado em 2026-10-09, 10.028 bytes, com Conhecendo você). O id antigo não existe mais; a skill não deve guardar id de arquivo, só o da pasta (`168OAoMfP0aB_urOvWEMO8N2ZVYbAJBj3`).
 - **Pasta Ideias** só nasce quando houver a primeira ideia cadastrada (hoje 0).
 
+## Barra do editor de texto que acompanha a rolagem (15/10)
+
+Pedido do Leandro: em qualquer bloco de anotações que fica longo, a barra de formatação (negrito, marca-texto, listas…) deve **acompanhar a tela**, para ele não ter de subir ao topo do bloco só para destacar um trecho e depois descer de novo.
+
+- Vale para **todos** os campos de texto rico do FARO (`RichTextEditor`: anotações de tarefa e de reunião, lembretes, sinapses, livros, checklists…). Quando a barra sai por cima da tela e ainda sobra editor à vista, ela passa a ficar presa no topo (com sombra e borda), do tamanho do editor, e volta ao lugar sozinha ao rolar de volta ou ao passar do fim do texto. Textos curtos, em que a barra já está à vista, não mudam.
+- **Por que não é `position: sticky`:** o editor mora dentro de tabelas com rolagem horizontal (`.task-table-scroll`) e de caixas com `overflow`, onde o sticky não funciona. Foi feito com cálculo de posição e `position: fixed` (hook `useBarraFlutuante`, escuta a rolagem da página e a de qualquer caixa rolável, com `requestAnimationFrame`). Dentro de um modal com rolagem própria, a barra prende no topo do modal.
+- Nos campos de anotação inline a barra só existe com o campo em foco; nesse caso ela só flutua enquanto o campo está em foco.
+- Testado em navegador real (Chromium) com um texto de 90 linhas dentro de uma caixa com rolagem horizontal: barra normal no topo, presa em 6 px do topo ao rolar, de volta ao lugar depois do fim, e o negrito funciona com a barra flutuando. **Não testado no Safari/iPhone** (o gesto de rolar do iPhone pode atrasar um pouco a barra).
+
 ## Reuniões na home, lista por data e "Nova reunião" (15/10)
 
 Pedido do Leandro: um botão de **Reuniões** na home, discreto, para achar rápido as reuniões e as pautas; na lista, a **data na frente do nome** e a **mais recente em cima**; manter na lista o que já existe (o ícone com a quantidade de tópicos); e, dentro da tela, poder **criar uma reunião**, que vai para o dia certo na lista de tarefas. Ele aprovou o desenho **C** (print de ideias).

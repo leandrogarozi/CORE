@@ -97,6 +97,89 @@ function HighlightMenu({
 // Editor de texto rico (negrito/itálico/sublinhado/tachado, títulos, lista, checklist,
 // alinhamento, link) — guarda e devolve o conteúdo como HTML. Usado em todo campo de
 // observação/resumo/nota do app (lembretes, tarefas, projetos, livros...).
+interface BarraFlutuante {
+  top: number;
+  left: number;
+  width: number;
+  altura: number;
+}
+
+/** O ancestral que rola na vertical de verdade (um modal, por exemplo); null = a própria página. */
+function ancestralQueRola(el: HTMLElement): HTMLElement | null {
+  let atual = el.parentElement;
+  while (atual && atual !== document.body) {
+    const { overflowY } = getComputedStyle(atual);
+    if ((overflowY === "auto" || overflowY === "scroll") && atual.scrollHeight > atual.clientHeight + 1) return atual;
+    atual = atual.parentElement;
+  }
+  return null;
+}
+
+/**
+ * Barra de formatação que ACOMPANHA a tela: quando o texto é comprido e a barra
+ * já saiu por cima, ela fica presa no topo enquanto o editor ainda estiver à
+ * vista. Quem escreve texto longo não precisa mais subir só para pôr um negrito
+ * ou um marca-texto.
+ *
+ * Não usa `position: sticky` de propósito: o editor vive dentro de tabelas com
+ * rolagem horizontal e de caixas com `overflow`, e nesses lugares o sticky não
+ * pega. Aqui a posição é calculada e a barra vira `fixed`, onde quer que esteja.
+ */
+function useBarraFlutuante(
+  raiz: React.RefObject<HTMLDivElement | null>,
+  barra: React.RefObject<HTMLDivElement | null>,
+  ativa: boolean,
+  // O editor só aparece depois que o Tiptap carrega; até lá os refs estão vazios.
+  pronto: boolean
+): BarraFlutuante | null {
+  const [flutuando, setFlutuando] = useState<BarraFlutuante | null>(null);
+
+  useEffect(() => {
+    const el = raiz.current;
+    const bar = barra.current;
+    if (!ativa || !pronto || !el || !bar) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- desliga a barra flutuante quando a barra some
+      setFlutuando(null);
+      return;
+    }
+    let quadro = 0;
+
+    function atualizar() {
+      quadro = 0;
+      if (!el || !bar) return;
+      const altura = bar.offsetHeight || 40;
+      const caixa = el.getBoundingClientRect();
+      const pai = ancestralQueRola(el);
+      const topoVisivel = pai ? pai.getBoundingClientRect().top : 0;
+      const limite = Math.max(topoVisivel, 0) + 6;
+      // Só flutua se a barra já passou do topo e ainda sobra editor à vista embaixo dela.
+      const deve = caixa.top < limite && caixa.bottom > limite + altura + 48;
+      const proximo = deve ? { top: limite, left: caixa.left, width: caixa.width, altura } : null;
+      setFlutuando((atual) => {
+        if (!proximo || !atual) return proximo;
+        const igual =
+          atual.top === proximo.top && atual.left === proximo.left && atual.width === proximo.width && atual.altura === proximo.altura;
+        return igual ? atual : proximo;
+      });
+    }
+    function agendar() {
+      if (!quadro) quadro = requestAnimationFrame(atualizar);
+    }
+
+    // `true` (captura): pega a rolagem da página e a de qualquer caixa com rolagem.
+    window.addEventListener("scroll", agendar, true);
+    window.addEventListener("resize", agendar);
+    agendar();
+    return () => {
+      window.removeEventListener("scroll", agendar, true);
+      window.removeEventListener("resize", agendar);
+      if (quadro) cancelAnimationFrame(quadro);
+    };
+  }, [raiz, barra, ativa, pronto]);
+
+  return ativa ? flutuando : null;
+}
+
 export function RichTextEditor({
   value,
   onChange,
@@ -116,6 +199,8 @@ export function RichTextEditor({
   // porque eu digitei" de "o texto mudou porque abriram outro item".
   const ultimoEmitido = useRef(value);
   const highlightBtnRef = useRef<HTMLButtonElement>(null);
+  const raizRef = useRef<HTMLDivElement>(null);
+  const barraRef = useRef<HTMLDivElement>(null);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -138,6 +223,8 @@ export function RichTextEditor({
       onChange(html);
     },
   });
+
+  const barraFlutuante = useBarraFlutuante(raizRef, barraRef, !hideToolbar, !!editor);
 
   // Recarregar o conteúdo só quando o texto vem DE FORA (trocou de lembrete,
   // de tarefa). Antes a comparação era só `value !== editor.getHTML()`, e como
@@ -183,11 +270,19 @@ export function RichTextEditor({
         : "p";
 
   return (
-    <div className="rte">
+    <div className="rte" ref={raizRef}>
+      {/* Segura o lugar da barra enquanto ela está flutuando, para o texto não pular. */}
+      {barraFlutuante && <div style={{ height: barraFlutuante.altura }} aria-hidden="true" />}
       {/* preventDefault no mousedown: sem isso, clicar num botão tira o foco do
           editor — o que fecharia a barra no modo "aparece só com foco". */}
       <div
-        className="rte-toolbar"
+        ref={barraRef}
+        className={"rte-toolbar" + (barraFlutuante ? " flutuando" : "")}
+        style={
+          barraFlutuante
+            ? { position: "fixed", top: barraFlutuante.top, left: barraFlutuante.left, width: barraFlutuante.width }
+            : undefined
+        }
         hidden={hideToolbar}
         onMouseDown={(e) => e.preventDefault()}
       >

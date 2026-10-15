@@ -2965,3 +2965,9 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .task-badge.task-falta-reuniao{ color:var(--challenge); background:var(--challenge-soft); cursor:pointer; gap:4px; }
 .task-badge.task-falta-reuniao svg{ width:10px; height:10px; }
 .task-badge.task-falta-reuniao:hover{ filter:brightness(0.95); }
+
+/* Barra do editor de texto acompanhando a rolagem (ver useBarraFlutuante) */
+.rte-toolbar.flutuando{
+  z-index:60; box-sizing:border-box; border:1px solid var(--border-strong); border-radius:9px;
+  box-shadow:var(--sh-2);
+}
