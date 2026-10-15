@@ -1644,7 +1644,7 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
   background:linear-gradient(to bottom, transparent, var(--surface));
 }
 .note-field .rte{ border-color:transparent; background:transparent; overflow:visible; }
-.note-field:focus-within .rte{ border-color:var(--border-strong); background:var(--bg); overflow:hidden; }
+.note-field:focus-within .rte{ border-color:var(--border-strong); background:var(--bg); overflow:hidden; overflow:clip; }
 .note-field .rte-editor{ min-height:auto; padding:6px 8px; overflow:visible; }
 /* espaço reservado pro ícone de expandir, que fica por cima do canto direito */
 .note-field .rte-toolbar{ padding-right:32px; }
@@ -2550,7 +2550,8 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .profile-signout-box{ display:block; }
 
 /* editor de texto rico (Tiptap) */
-.rte{ display:flex; flex-direction:column; border:1px solid var(--border-strong); border-radius:9px; overflow:hidden; background:var(--bg); }
+/* overflow:clip e não hidden: clip recorta igual, mas não cria uma caixa de rolagem, e é isso que deixa a barra "colar" (sticky) dentro do pop-up. */
+.rte{ display:flex; flex-direction:column; border:1px solid var(--border-strong); border-radius:9px; overflow:hidden; overflow:clip; background:var(--bg); }
 .rte-toolbar{
   display:flex; align-items:center; gap:2px; flex-wrap:wrap; padding:6px 8px;
   border-bottom:1px solid var(--border); background:var(--surface);
@@ -2968,6 +2969,8 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 
 /* Barra do editor de texto acompanhando a rolagem (ver useBarraFlutuante) */
 .rte-toolbar.flutuando{
-  z-index:60; box-sizing:border-box; border:1px solid var(--border-strong); border-radius:9px;
+  z-index:60; box-sizing:border-box; border:1.5px solid var(--accent); border-radius:9px;
   box-shadow:var(--sh-2);
 }
+/* Dentro de uma caixa que rola (o pop-up de anotação): a barra fica colada no topo da caixa. */
+.rte-toolbar.colada{ position:sticky; top:8px; z-index:5; }

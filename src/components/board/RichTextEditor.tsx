@@ -100,15 +100,27 @@ function HighlightMenu({
 // Quanto a barra flutuante fica abaixo do topo da tela (px). Foi 6; o Leandro pediu
 // "uns dois dedinhos" mais para baixo, e dois dedos são uns 60 px.
 const DISTANCIA_DO_TOPO = 66;
+// Dentro de uma caixa com rolagem própria (o pop-up de anotação) a barra gruda perto do topo da caixa.
+const DISTANCIA_NA_CAIXA = 8;
 
-interface BarraFlutuante {
+interface PosicaoFixa {
   top: number;
   left: number;
   width: number;
   altura: number;
 }
 
-/** O ancestral que rola na vertical de verdade (um modal, por exemplo); null = a própria página. */
+interface EstadoDaBarra {
+  /** "fixa": sobre a página (position: fixed). "colada": dentro de uma caixa que rola (position: sticky). */
+  modo: "normal" | "fixa" | "colada";
+  /** A barra está de fato acompanhando a tela (ganha borda e sombra). */
+  seguindo: boolean;
+  posicao: PosicaoFixa | null;
+}
+
+const NORMAL: EstadoDaBarra = { modo: "normal", seguindo: false, posicao: null };
+
+/** O ancestral que rola na vertical de verdade (um pop-up, por exemplo); null = a própria página. */
 function ancestralQueRola(el: HTMLElement): HTMLElement | null {
   let atual = el.parentElement;
   while (atual && atual !== document.body) {
@@ -119,15 +131,30 @@ function ancestralQueRola(el: HTMLElement): HTMLElement | null {
   return null;
 }
 
+function mesmoEstado(a: EstadoDaBarra, b: EstadoDaBarra): boolean {
+  if (a.modo !== b.modo || a.seguindo !== b.seguindo) return false;
+  if (!a.posicao || !b.posicao) return a.posicao === b.posicao;
+  return (
+    a.posicao.top === b.posicao.top &&
+    a.posicao.left === b.posicao.left &&
+    a.posicao.width === b.posicao.width &&
+    a.posicao.altura === b.posicao.altura
+  );
+}
+
 /**
  * Barra de formatação que ACOMPANHA a tela: quando o texto é comprido e a barra
  * já saiu por cima, ela fica presa no topo enquanto o editor ainda estiver à
  * vista. Quem escreve texto longo não precisa mais subir só para pôr um negrito
  * ou um marca-texto.
  *
- * Não usa `position: sticky` de propósito: o editor vive dentro de tabelas com
- * rolagem horizontal e de caixas com `overflow`, e nesses lugares o sticky não
- * pega. Aqui a posição é calculada e a barra vira `fixed`, onde quer que esteja.
+ * Dois jeitos, conforme onde o editor está:
+ *  - Sobre a página: `position: fixed`, com a posição calculada. Não dá para usar
+ *    `sticky` porque o editor vive dentro de tabelas com rolagem horizontal e de
+ *    caixas com `overflow`, onde o sticky não pega.
+ *  - Dentro de uma caixa que rola (o pop-up de anotação): `position: sticky`.
+ *    Ali o `fixed` não serve: o pop-up é centralizado com `transform`, e dentro
+ *    de um `transform` o `fixed` deixa de ser da tela e a barra sumia.
  */
 function useBarraFlutuante(
   raiz: React.RefObject<HTMLDivElement | null>,
@@ -135,15 +162,15 @@ function useBarraFlutuante(
   ativa: boolean,
   // O editor só aparece depois que o Tiptap carrega; até lá os refs estão vazios.
   pronto: boolean
-): BarraFlutuante | null {
-  const [flutuando, setFlutuando] = useState<BarraFlutuante | null>(null);
+): EstadoDaBarra {
+  const [estado, setEstado] = useState<EstadoDaBarra>(NORMAL);
 
   useEffect(() => {
     const el = raiz.current;
     const bar = barra.current;
     if (!ativa || !pronto || !el || !bar) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- desliga a barra flutuante quando a barra some
-      setFlutuando(null);
+      setEstado(NORMAL);
       return;
     }
     let quadro = 0;
@@ -154,17 +181,20 @@ function useBarraFlutuante(
       const altura = bar.offsetHeight || 40;
       const caixa = el.getBoundingClientRect();
       const pai = ancestralQueRola(el);
-      const topoVisivel = pai ? pai.getBoundingClientRect().top : 0;
-      const limite = Math.max(topoVisivel, 0) + DISTANCIA_DO_TOPO;
-      // Só flutua se a barra já passou do topo e ainda sobra editor à vista embaixo dela.
-      const deve = caixa.top < limite && caixa.bottom > limite + altura + 48;
-      const proximo = deve ? { top: limite, left: caixa.left, width: caixa.width, altura } : null;
-      setFlutuando((atual) => {
-        if (!proximo || !atual) return proximo;
-        const igual =
-          atual.top === proximo.top && atual.left === proximo.left && atual.width === proximo.width && atual.altura === proximo.altura;
-        return igual ? atual : proximo;
-      });
+      let proximo: EstadoDaBarra;
+      if (pai) {
+        const limite = pai.getBoundingClientRect().top + DISTANCIA_NA_CAIXA;
+        // Colada (sticky) o tempo todo; "seguindo" só quando já saiu do lugar de origem.
+        proximo = { modo: "colada", seguindo: caixa.top < limite - 1 && caixa.bottom > limite + altura + 48, posicao: null };
+      } else {
+        const limite = DISTANCIA_DO_TOPO;
+        // Só flutua se a barra já passou do topo e ainda sobra editor à vista embaixo dela.
+        const deve = caixa.top < limite && caixa.bottom > limite + altura + 48;
+        proximo = deve
+          ? { modo: "fixa", seguindo: true, posicao: { top: limite, left: caixa.left, width: caixa.width, altura } }
+          : NORMAL;
+      }
+      setEstado((atual) => (mesmoEstado(atual, proximo) ? atual : proximo));
     }
     function agendar() {
       if (!quadro) quadro = requestAnimationFrame(atualizar);
@@ -181,7 +211,7 @@ function useBarraFlutuante(
     };
   }, [raiz, barra, ativa, pronto]);
 
-  return ativa ? flutuando : null;
+  return ativa ? estado : NORMAL;
 }
 
 export function RichTextEditor({
@@ -228,7 +258,7 @@ export function RichTextEditor({
     },
   });
 
-  const barraFlutuante = useBarraFlutuante(raizRef, barraRef, !hideToolbar, !!editor);
+  const barra = useBarraFlutuante(raizRef, barraRef, !hideToolbar, !!editor);
 
   // Recarregar o conteúdo só quando o texto vem DE FORA (trocou de lembrete,
   // de tarefa). Antes a comparação era só `value !== editor.getHTML()`, e como
@@ -276,15 +306,17 @@ export function RichTextEditor({
   return (
     <div className="rte" ref={raizRef}>
       {/* Segura o lugar da barra enquanto ela está flutuando, para o texto não pular. */}
-      {barraFlutuante && <div style={{ height: barraFlutuante.altura }} aria-hidden="true" />}
+      {barra.modo === "fixa" && barra.posicao && <div style={{ height: barra.posicao.altura }} aria-hidden="true" />}
       {/* preventDefault no mousedown: sem isso, clicar num botão tira o foco do
           editor — o que fecharia a barra no modo "aparece só com foco". */}
       <div
         ref={barraRef}
-        className={"rte-toolbar" + (barraFlutuante ? " flutuando" : "")}
+        className={
+          "rte-toolbar" + (barra.modo === "colada" ? " colada" : "") + (barra.seguindo ? " flutuando" : "")
+        }
         style={
-          barraFlutuante
-            ? { position: "fixed", top: barraFlutuante.top, left: barraFlutuante.left, width: barraFlutuante.width }
+          barra.modo === "fixa" && barra.posicao
+            ? { position: "fixed", top: barra.posicao.top, left: barra.posicao.left, width: barra.posicao.width }
             : undefined
         }
         hidden={hideToolbar}
