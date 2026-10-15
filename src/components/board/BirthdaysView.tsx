@@ -53,19 +53,27 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
           type="button"
           className={"icon-btn zap-btn" + (pessoa.remind ? " active" : "")}
           title={pessoa.remind ? "Vai lembrar de mandar a mensagem. Clique pra desligar." : "Lembrar de mandar a mensagem"}
-          onClick={() => board.updateBirthday(pessoa.id, { remind: !pessoa.remind })}
+          onClick={() =>
+            board.updateBirthday(pessoa.id, pessoa.remind ? { remind: false, remindWhatsapp: false } : { remind: true })
+          }
         >
           <BellIcon filled={pessoa.remind} />
         </button>
-        {zap ? (
-          <a className="icon-btn zap-btn active" href={zap} target="_blank" rel="noopener noreferrer" title="Mandar a mensagem agora no WhatsApp">
-            <WhatsAppIcon filled />
-          </a>
-        ) : (
-          <span className="icon-btn zap-btn" title="Cadastre o telefone (abra o item) para mandar pelo WhatsApp" aria-disabled="true">
-            <WhatsAppIcon />
-          </span>
-        )}
+        {/* Zap: o mesmo lembrete, também no WhatsApp do Leandro (10 min antes das 9h). */}
+        <button
+          type="button"
+          className={"icon-btn zap-btn" + (pessoa.remindWhatsapp ? " active" : "")}
+          title={
+            pessoa.remindWhatsapp
+              ? "Vai te lembrar no seu WhatsApp. Clique pra desligar."
+              : "Me lembrar também no meu WhatsApp"
+          }
+          onClick={() =>
+            board.updateBirthday(pessoa.id, pessoa.remindWhatsapp ? { remindWhatsapp: false } : { remind: true, remindWhatsapp: true })
+          }
+        >
+          <WhatsAppIcon filled={pessoa.remindWhatsapp} />
+        </button>
       </div>
 
       {aberto && (
@@ -196,6 +204,13 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
           </label>
 
           <div className="edit-actions">
+            {zap ? (
+              <a className="btn btn-ghost" href={zap} target="_blank" rel="noopener noreferrer">
+                <WhatsAppIcon /> Mandar parabéns agora
+              </a>
+            ) : (
+              <span className="challenging-hint">Cadastre o telefone para poder mandar os parabéns pelo WhatsApp.</span>
+            )}
             <button
               type="button"
               className="btn btn-ghost danger-hover"
@@ -258,7 +273,7 @@ export function BirthdaysView({ onBack }: { onBack: () => void }) {
           </div>
           <p>
             Amigos, familiares e clientes, com a data de cada um. O <strong>sininho</strong> te lembra às 9h do dia de
-            mandar uma mensagem mais pessoal. O <strong>WhatsApp</strong> abre a conversa já com a mensagem pronta.
+            mandar uma mensagem mais pessoal. O <strong>zap</strong> faz o mesmo lembrete chegar no seu WhatsApp. Dentro de cada pessoa, o botão <strong>Mandar parabéns agora</strong> abre a conversa com ela já com a mensagem pronta.
             O envio automático e o cadastro pela internet (a pessoa mesma preencher) ainda estão por vir.
           </p>
         </div>

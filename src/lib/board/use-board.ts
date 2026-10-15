@@ -2471,19 +2471,42 @@ export function useBoard(userId: string | null) {
       }
       if (!campos) return;
 
+      // O zap do lembrete: só avisa no WhatsApp 10 min antes, como os outros.
+      const zap = !!pessoa?.remindWhatsapp;
+      const antecedencia = zap ? 10 : null;
+
       if (ja) {
-        const mudou = ja.title !== campos.title || ja.date !== campos.date;
+        const mudou =
+          ja.title !== campos.title ||
+          ja.date !== campos.date ||
+          ja.whatsapp !== zap ||
+          ja.alertMinutesBefore !== antecedencia;
         if (!mudou) return;
         apply((st) => ({
           ...st,
           reminders: st.reminders.map((r) =>
-            r.id === ja.id ? { ...r, title: campos.title, date: campos.date, done: false, status: "pending" as const } : r
+            r.id === ja.id
+              ? {
+                  ...r,
+                  title: campos.title,
+                  date: campos.date,
+                  whatsapp: zap,
+                  alertMinutesBefore: antecedencia,
+                  done: false,
+                  status: "pending" as const,
+                }
+              : r
           ),
         }));
         supabase
           .from("reminders")
           .update({
-            ...reminderToUpdateRow({ title: campos.title, date: campos.date }),
+            ...reminderToUpdateRow({
+              title: campos.title,
+              date: campos.date,
+              whatsapp: zap,
+              alertMinutesBefore: antecedencia,
+            }),
             done: false,
             status: "pending",
             whatsapp_notified_at: null,
@@ -2502,7 +2525,7 @@ export function useBoard(userId: string | null) {
         time: campos.time,
         repeat: "yearly",
         weekDays: null,
-        alertMinutesBefore: null,
+        alertMinutesBefore: antecedencia,
         note: null,
         done: false,
         status: "pending",
@@ -2512,7 +2535,7 @@ export function useBoard(userId: string | null) {
         sourceId: birthdayId,
         sourceStage: "item",
         inApp: true,
-        whatsapp: false,
+        whatsapp: zap,
       };
       apply((st) => ({ ...st, reminders: [...st.reminders, r] }));
       supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
@@ -2536,6 +2559,7 @@ export function useBoard(userId: string | null) {
         message: "",
         autoMessage: false,
         remind: true,
+        remindWhatsapp: false,
         note: "",
         order: stateRef.current.birthdays.length,
       };
@@ -2559,7 +2583,13 @@ export function useBoard(userId: string | null) {
         if (error) reportSaveError("updateBirthday", error);
       });
       // Só mexe no lembrete quando algo que ele usa mudou.
-      if (patch.name !== undefined || patch.month !== undefined || patch.day !== undefined || patch.remind !== undefined) {
+      if (
+        patch.name !== undefined ||
+        patch.month !== undefined ||
+        patch.day !== undefined ||
+        patch.remind !== undefined ||
+        patch.remindWhatsapp !== undefined
+      ) {
         sincronizarLembreteDoAniversario(id);
       }
     },

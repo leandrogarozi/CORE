@@ -1,4 +1,4 @@
-import { dateFromISO, isoAddDays } from "@/lib/date-utils";
+import { dateFromISO, isoAddDays, isoAddYears } from "@/lib/date-utils";
 import type { Medication, MedicationGroup, Reminder } from "@/lib/types";
 
 /**
@@ -153,8 +153,14 @@ export function proximaOcorrencia(
     const base = aPartirDe > r.date ? aPartirDe : r.date;
     return isoAddDays(base, 1);
   }
-  // Semanal/mensal/anual seguem o caminho que o app já usa em outro lugar; aqui
-  // só o que o zap cria (diário ou por dia da semana) precisa virar sozinho.
+  if (r.repeat === "yearly") {
+    // Aniversário: o mesmo dia do ano seguinte, sempre depois de `aPartirDe`.
+    let candidato = isoAddYears(r.date, 1);
+    for (let i = 0; i < 5 && candidato <= aPartirDe; i++) candidato = isoAddYears(candidato, 1);
+    return candidato > aPartirDe ? candidato : null;
+  }
+  // Semanal/mensal seguem o caminho que o app já usa em outro lugar; aqui só o
+  // que o FARO cria sozinho (diário, por dia da semana ou anual) precisa virar.
   return null;
 }
 

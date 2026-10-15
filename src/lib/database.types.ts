@@ -1211,6 +1211,7 @@ export type Database = {
           note: string
           phone: string
           remind: boolean
+          remind_whatsapp: boolean
           sort_order: number
           user_id: string
           year: number | null
@@ -1228,6 +1229,7 @@ export type Database = {
           note?: string
           phone?: string
           remind?: boolean
+          remind_whatsapp?: boolean
           sort_order?: number
           user_id: string
           year?: number | null
@@ -1245,6 +1247,7 @@ export type Database = {
           note?: string
           phone?: string
           remind?: boolean
+          remind_whatsapp?: boolean
           sort_order?: number
           user_id?: string
           year?: number | null

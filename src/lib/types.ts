@@ -432,6 +432,7 @@ export interface Birthday {
   message: string; // modelo; {nome} vira o primeiro nome. Vazio usa a mensagem padrão.
   autoMessage: boolean; // "mandar mensagem automática" (o envio sozinho ainda não está ligado)
   remind: boolean; // lembrar de mandar uma mensagem mais pessoal (vira lembrete anual)
+  remindWhatsapp: boolean; // o mesmo lembrete, também no WhatsApp do Leandro
   note: string;
   order: number;
 }

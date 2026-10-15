@@ -962,6 +962,7 @@ export function rowToBirthday(row: Tables<"birthdays">): Birthday {
     message: row.message,
     autoMessage: row.auto_message,
     remind: row.remind,
+    remindWhatsapp: row.remind_whatsapp,
     note: row.note,
     order: row.sort_order,
   };
@@ -980,6 +981,7 @@ export function birthdayToInsertRow(b: Birthday, userId: string): TablesInsert<"
     message: b.message,
     auto_message: b.autoMessage,
     remind: b.remind,
+    remind_whatsapp: b.remindWhatsapp,
     note: b.note,
     sort_order: b.order,
   };
@@ -996,6 +998,7 @@ export function birthdayToUpdateRow(b: Partial<Birthday>): TablesUpdate<"birthda
   if (b.message !== undefined) row.message = b.message;
   if (b.autoMessage !== undefined) row.auto_message = b.autoMessage;
   if (b.remind !== undefined) row.remind = b.remind;
+  if (b.remindWhatsapp !== undefined) row.remind_whatsapp = b.remindWhatsapp;
   if (b.note !== undefined) row.note = b.note;
   return row;
 }

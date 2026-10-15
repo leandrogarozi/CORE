@@ -5255,7 +5255,9 @@ Pedido do Leandro: um botão de **Reuniões** na home, discreto, para achar ráp
 - Menu **Aniversários** (ícone de bolo) e tela `BirthdaysView`. Cadastro rápido: nome, dia, mês, **ano opcional**, categoria. Lista ordenada por **quem faz aniversário primeiro**, com "hoje 🎉 / amanhã / em N dias" e a idade que a pessoa fará (quando há ano). Filtros Todos / Clientes / Amigos / Familiares, com contagem.
 - Cada pessoa abre para editar: nome, dia e mês, ano, categoria, **telefone**, **mensagem** (modelo com `{nome}` = primeiro nome; vazio usa "Parabéns, {nome}! 🎉 Que seu dia seja incrível. Um abraço!"), anotação, e excluir (com confirmação).
 - **Sininho = lembrar de mandar a mensagem pessoal:** cria um lembrete **anual às 9h** no dia ("🎂 Aniversário de X: mandar a mensagem", push sempre e aviso dentro do app), que aparece em Lembretes como automático (`sourceKind = "birthday"`). Ao criar/editar nome, dia, mês ou o sininho o lembrete é refeito; ao excluir a pessoa, some. Não é refeito ao abrir o app, para não desfazer um "feito".
-- **Botão WhatsApp** na linha: abre a conversa (`wa.me`) com a mensagem pronta, quando há telefone (10 ou 11 dígitos sem DDI ganham o 55).
+- **Zap na linha = lembrar no MEU WhatsApp (correção de 15/10):** antes o ícone do WhatsApp só abria a conversa com a pessoa e ficava travado sem telefone, então não dava para ligar o lembrete no WhatsApp. Agora ele é um **liga/desliga** sempre clicável (coluna `birthdays.remind_whatsapp`; ligar também liga o sininho; desligar o sininho desliga o zap). Ligado, o lembrete anual das 9h passa a ter `whatsapp = true` e `alert_minutes_before = 10` (chega às 8h50, como os outros lembretes do zap).
+- **Virada do ano:** `proximaOcorrencia` (`zap-engine.ts`) ganhou a repetição **anual**; a rotina do servidor que vira a página do dia leva o lembrete do aniversário para o mesmo dia do ano seguinte e zera `whatsapp_notified_at`, senão o aviso só sairia uma vez na vida.
+- **"Mandar parabéns agora"**: o antigo botão de abrir a conversa (`wa.me`) com a mensagem pronta mudou para dentro do cartão aberto da pessoa; só funciona com telefone cadastrado (10 ou 11 dígitos sem DDI ganham o 55).
 - **Caixa "Mensagem automática"** já existe no cadastro e guarda a escolha, mas **o envio sozinho ainda não existe** (a tela diz isso). Assim ninguém precisa remarcar depois.
 - Banco: tabela `birthdays` (RLS própria, `select` liberado para o `service_role`, gatilho de "tela desatualizada"), entra no **backup completo** (`montar.ts`). 29/02 em ano não bissexto cai em 28/02. Lógica pura e testada em `src/lib/board/aniversarios.ts`.
 
@@ -5264,7 +5266,7 @@ Pedido do Leandro: um botão de **Reuniões** na home, discreto, para achar ráp
 2. **Cadastro pelas próprias pessoas (formulário/link)** (plano fechado na seção "Funil de cadastro de clientes" acima). Página pública com um link por pessoa ou por lote (ex.: um link para clientes), que grava em `birthdays` sem login. Cuidados: rota pública com proteção contra spam (limite por IP e verificação), a pessoa só grava, nunca lê a lista, e **consentimento** explícito para receber mensagem (LGPD). Pode nascer junto do **Cadastro de cliente de verdade** (item do backlog): o aniversário vira um campo do cliente.
 3. **Importar** de uma planilha ou dos contatos (Google Contatos tem aniversário).
 4. **Mostrar no dia a dia:** card "aniversários de hoje/da semana" no Dashboard e na Agenda, e a IA do FARO citar no resumo do dia ("hoje é aniversário de…"). Hoje só o lembrete das 9h avisa.
-5. **Lembrete antecipado** (ex.: 3 dias antes, para quem exige presente) e **WhatsApp também no lembrete** (hoje só push e aviso no app).
+5. **Lembrete antecipado** (ex.: 3 dias antes, para quem exige presente). O WhatsApp no lembrete já existe (zap na linha).
 6. **Telefone e mensagem em lote** para clientes (mesma mensagem para todos os clientes da categoria).
 
 ## Aviso "Sua tela está desatualizada" e checklist com linhas alternadas (14/10)
