@@ -97,6 +97,10 @@ function HighlightMenu({
 // Editor de texto rico (negrito/itálico/sublinhado/tachado, títulos, lista, checklist,
 // alinhamento, link) — guarda e devolve o conteúdo como HTML. Usado em todo campo de
 // observação/resumo/nota do app (lembretes, tarefas, projetos, livros...).
+// Quanto a barra flutuante fica abaixo do topo da tela (px). Foi 6; o Leandro pediu
+// "uns dois dedinhos" mais para baixo, e dois dedos são uns 60 px.
+const DISTANCIA_DO_TOPO = 66;
+
 interface BarraFlutuante {
   top: number;
   left: number;
@@ -151,7 +155,7 @@ function useBarraFlutuante(
       const caixa = el.getBoundingClientRect();
       const pai = ancestralQueRola(el);
       const topoVisivel = pai ? pai.getBoundingClientRect().top : 0;
-      const limite = Math.max(topoVisivel, 0) + 6;
+      const limite = Math.max(topoVisivel, 0) + DISTANCIA_DO_TOPO;
       // Só flutua se a barra já passou do topo e ainda sobra editor à vista embaixo dela.
       const deve = caixa.top < limite && caixa.bottom > limite + altura + 48;
       const proximo = deve ? { top: limite, left: caixa.left, width: caixa.width, altura } : null;
