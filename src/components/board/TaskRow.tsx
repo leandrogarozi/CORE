@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
+import { tagsParaReuniao } from "@/lib/board/reunioes";
 import { AttachmentsButton } from "./AttachmentsButton";
 import { TimerButton } from "./TimerButton";
 import { StatusPicker } from "./StatusPicker";
@@ -44,7 +45,7 @@ import { taskEntriesOf } from "@/lib/board/task-time";
 import { PostponeModal } from "./PostponeModal";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { countOpenChecklistItems } from "@/lib/rich-text";
-import { CATEGORY_LABEL, isMeetingTask, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
+import { CATEGORY_LABEL, faltaTagReuniao, isMeetingTask, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
 import { ANTECEDENCIA_PADRAO_MIN } from "@/lib/board/zap-engine";
 import { oZapVaiSair } from "@/lib/board/reminder-alerts";
 import type { TaskEditFields } from "@/lib/board/use-board";
@@ -402,6 +403,28 @@ export function TaskRow({
               <span className="task-badge task-event-badge" title="Evento — compromisso com hora marcada">
                 <CalendarCheckIcon />
               </span>
+            )}
+            {/* Compromisso sem a tag Reunião: ele entra na tela Reuniões do mesmo jeito,
+                mas a linha avisa e um clique completa a tag. */}
+            {faltaTagReuniao(t) && (
+              <button
+                type="button"
+                className="task-badge task-falta-reuniao"
+                title="Compromisso sem a tag Reunião. Clique para marcar."
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const nova = tagsParaReuniao(t);
+                  const aplicar = () => board.setCategory(t.id, nova.category, nova.category2);
+                  if (nova.trocaDe) {
+                    askConfirm(`Trocar a tag "${CATEGORY_LABEL[nova.trocaDe]}" por "Reunião" em "${t.title}"?`, aplicar);
+                  } else {
+                    aplicar();
+                  }
+                }}
+              >
+                <UsersGroupIcon />
+                <span className="task-client-name">falta a tag Reunião</span>
+              </button>
             )}
             {/* Mesma pílula do cliente, mas com livrinho e em amarelo: olhando o
                 dia ele vê de relance que ali tem hora marcada pra estudar. */}

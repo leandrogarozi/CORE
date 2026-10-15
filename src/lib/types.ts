@@ -77,6 +77,18 @@ export function isMeetingTask(t: Pick<Task, "category" | "category2">): boolean 
   return t.category === "reuniao" || t.category2 === "reuniao";
 }
 
+// O que aparece na tela Reuniões: quem tem a tag Reunião OU foi marcado como
+// compromisso (evento). Marcar "compromisso" é o gesto que ele lembra de fazer;
+// a tag Reunião é só o complemento (ver faltaTagReuniao).
+export function entraEmReunioes(t: Pick<Task, "category" | "category2" | "isEvent">): boolean {
+  return isMeetingTask(t) || t.isEvent;
+}
+
+// Compromisso que ainda não tem a tag Reunião: a linha mostra um aviso para marcar.
+export function faltaTagReuniao(t: Pick<Task, "category" | "category2" | "isEvent">): boolean {
+  return t.isEvent && !isMeetingTask(t);
+}
+
 // Tempo trabalhado numa tarefa em UM dia. O tempo mora no dia, não na tarefa:
 // jogar a tarefa pra amanhã não pode levar junto as horas de hoje — foi hoje
 // que o trabalho aconteceu. Uma linha por tarefa + dia.

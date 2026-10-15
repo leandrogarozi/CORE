@@ -8,7 +8,7 @@ import { SearchIcon, UsersGroupIcon } from "./icons";
 import { countOpenChecklistItems } from "@/lib/rich-text";
 import { agruparReunioes, dataDaReuniao } from "@/lib/board/reunioes";
 import { todayISO } from "@/lib/date-utils";
-import { isMeetingTask, type Task } from "@/lib/types";
+import { entraEmReunioes, type Task } from "@/lib/types";
 
 const NO_CLIENT_LABEL = "Sem cliente";
 
@@ -35,7 +35,7 @@ export function MeetingsView({ onBack }: { onBack: () => void }) {
   const [criada, setCriada] = useState("");
 
   const hoje = todayISO();
-  const meetingTasks = board.state.tasks.filter((t) => isMeetingTask(t));
+  const meetingTasks = board.state.tasks.filter((t) => entraEmReunioes(t));
   const clientesConhecidos = useMemo(
     () =>
       Array.from(

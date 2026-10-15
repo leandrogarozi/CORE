@@ -51,7 +51,7 @@ import { BoltIcon, ChevronIcon, ExpandHorizontalIcon, MenuIcon, SettingsIcon, Us
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { dateFromISO, longLabel, mondayOf, todayISO } from "@/lib/date-utils";
 import { countOpenChecklistItems } from "@/lib/rich-text";
-import { isMeetingTask, type Task } from "@/lib/types";
+import { entraEmReunioes, type Task } from "@/lib/types";
 
 function BoardShell() {
   const { board, sortByQuick, setSortByQuick, setOpenProjectHandler, setOpenTaskInDayHandler, requestFocus } =
@@ -188,7 +188,7 @@ function BoardShell() {
   const overdueTaskCount = board.state.tasks.filter((t) => !t.done && t.date && t.date < todayISO()).length;
   const dayTasks = board.state.tasks.filter((t) => t.date === selectedDate);
   // Reuniões com pauta em aberto: o número do botão "Reuniões" da home.
-  const reunioesComPauta = board.state.tasks.filter((t) => isMeetingTask(t) && countOpenChecklistItems(t.note) > 0).length;
+  const reunioesComPauta = board.state.tasks.filter((t) => entraEmReunioes(t) && countOpenChecklistItems(t.note) > 0).length;
 
   return (
     <div className={"wrap" + (wide ? " wide" : "")}>

@@ -24,7 +24,7 @@ import { DAY_NAMES, fmtDayMonth, isoAddDays, todayISO } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 import { countOpenChecklistItems } from "@/lib/rich-text";
 import { MicButton } from "./MicButton";
-import { isMeetingTask } from "@/lib/types";
+import { entraEmReunioes } from "@/lib/types";
 import {
   REMINDER_ALERT_PRESETS,
   isReminderOverdue,
@@ -975,7 +975,7 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
   const [newTime, setNewTime] = useState("");
   const [faltando, setFaltando] = useState<string | null>(null);
   const openMeetingsCount = board.state.tasks.filter(
-    (t) => isMeetingTask(t) && countOpenChecklistItems(t.note) > 0
+    (t) => entraEmReunioes(t) && countOpenChecklistItems(t.note) > 0
   ).length;
 
   async function handleAdd(cobrando = true) {

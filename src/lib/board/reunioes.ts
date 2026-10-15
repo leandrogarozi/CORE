@@ -1,5 +1,6 @@
 import { dateFromISO, isoAddDays, isoFromDate, mondayOf } from "@/lib/date-utils";
 import { MESES } from "@/lib/board/aniversarios";
+import type { Category, Task } from "@/lib/types";
 
 /**
  * Lista de Reuniões "por data": a mais recente em cima.
@@ -52,4 +53,19 @@ export function dataDaReuniao(date: string | null): string {
   if (!date) return "--/--";
   const [, m, d] = date.split("-");
   return `${d}/${m}`;
+}
+
+/**
+ * As tags que a tarefa passa a ter quando o aviso "falta a tag Reunião" é aceito.
+ * Usa a segunda tag se estiver livre, depois a primeira se for "sem categoria".
+ * Se as duas estão ocupadas, troca a segunda (trocaDe diz qual) e quem chama confirma.
+ */
+export function tagsParaReuniao(t: Pick<Task, "category" | "category2">): {
+  category: Category;
+  category2: Category | null;
+  trocaDe: Category | null;
+} {
+  if (t.category2 === null) return { category: t.category, category2: "reuniao", trocaDe: null };
+  if (t.category === "sem_categoria") return { category: "reuniao", category2: t.category2, trocaDe: null };
+  return { category: t.category, category2: "reuniao", trocaDe: t.category2 };
 }
