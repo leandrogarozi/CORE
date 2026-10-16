@@ -30,7 +30,9 @@ export type AcaoProposta =
       ano: number | null;
       categoria: "cliente" | "amigo" | "familiar";
       telefone: string | null;
+      lembrarNoWhatsapp: boolean;
     }
+  | { tipo: "lembrete_de_aniversario"; nome: string; lembrar: boolean | null; whatsapp: boolean | null }
   | { tipo: "registrar_humor"; nivel: 1 | 2 | 3 | 4 | 5; emocao: string | null }
   | { tipo: "registrar_sono"; dormiu: string | null; acordou: string | null }
   | { tipo: "registrar_agua"; ml: number }
@@ -105,8 +107,26 @@ export const FERRAMENTAS_DO_FARO: Anthropic.Tool[] = [
         ano: { type: "integer", description: "Ano de nascimento, só se ele informou." },
         categoria: { type: "string", enum: ["cliente", "amigo", "familiar"], description: "Padrão: amigo." },
         telefone: { type: "string", description: "Opcional, com DDD." },
+        lembrar_no_whatsapp: {
+          type: "boolean",
+          description: "true se ele pediu para o lembrete também chegar no WhatsApp dele. Padrão: false.",
+        },
       },
       required: ["nome", "dia", "mes"],
+    },
+  },
+  {
+    name: "lembrete_de_aniversario",
+    description:
+      "Liga ou desliga, para alguém que JÁ está na lista de Aniversários, o sininho (lembrete das 9h no app) e/ou o zap (o mesmo lembrete também no WhatsApp dele). Use quando ele pedir 'ativa o lembrete / o WhatsApp do aniversário da Ana'. Passe só o que ele pediu. Ligar o WhatsApp liga o lembrete junto; desligar o lembrete desliga o WhatsApp.",
+    input_schema: {
+      type: "object",
+      properties: {
+        nome: { type: "string", description: "Nome da pessoa, como está na lista de aniversários." },
+        lembrar: { type: "boolean", description: "Sininho: lembrete das 9h no app." },
+        whatsapp: { type: "boolean", description: "Zap: também avisar no WhatsApp dele." },
+      },
+      required: ["nome"],
     },
   },
   {
@@ -244,7 +264,27 @@ export function validarAcao(nome: string, entrada: unknown): ResultadoDaValidaca
       if (!nome) return { ok: false, motivo: "faltou o nome da pessoa" };
       if (dia < 1 || dia > 31 || mes < 1 || mes > 12) return { ok: false, motivo: "faltou o dia e o mês do aniversário" };
       const categoria = e.categoria === "cliente" || e.categoria === "familiar" ? e.categoria : "amigo";
-      return { ok: true, acao: { tipo: "adicionar_aniversario", nome, dia, mes, ano, categoria, telefone: texto(e.telefone, 30) } };
+      return {
+        ok: true,
+        acao: {
+          tipo: "adicionar_aniversario",
+          nome,
+          dia,
+          mes,
+          ano,
+          categoria,
+          telefone: texto(e.telefone, 30),
+          lembrarNoWhatsapp: e.lembrar_no_whatsapp === true,
+        },
+      };
+    }
+    case "lembrete_de_aniversario": {
+      const nome = texto(e.nome, 120);
+      if (!nome) return { ok: false, motivo: "faltou o nome da pessoa" };
+      const lembrar = typeof e.lembrar === "boolean" ? e.lembrar : null;
+      const whatsapp = typeof e.whatsapp === "boolean" ? e.whatsapp : null;
+      if (lembrar === null && whatsapp === null) return { ok: false, motivo: "faltou dizer se é o lembrete ou o WhatsApp" };
+      return { ok: true, acao: { tipo: "lembrete_de_aniversario", nome, lembrar, whatsapp } };
     }
     case "registrar_humor": {
       const nivel = typeof e.nivel === "number" ? Math.round(e.nivel) : 0;
@@ -311,7 +351,14 @@ export function descreverAcao(a: AcaoProposta): string {
     case "anotar_gasto":
       return `Anotar gasto em "${a.checklist}": ${a.descricao}, ${reais(a.valorCentavos)}${a.data ? ` (${dataBr(a.data)})` : ""}`;
     case "adicionar_aniversario":
-      return `Adicionar aos aniversários: ${a.nome}, ${String(a.dia).padStart(2, "0")}/${String(a.mes).padStart(2, "0")}${a.ano ? `/${a.ano}` : ""} (${a.categoria})`;
+      return `Adicionar aos aniversários: ${a.nome}, ${String(a.dia).padStart(2, "0")}/${String(a.mes).padStart(2, "0")}${a.ano ? `/${a.ano}` : ""} (${a.categoria})${a.lembrarNoWhatsapp ? ", com lembrete também no WhatsApp" : ""}`;
+    case "lembrete_de_aniversario": {
+      const partes = [
+        a.lembrar === null ? null : `lembrete das 9h ${a.lembrar ? "ligado" : "desligado"}`,
+        a.whatsapp === null ? null : `WhatsApp ${a.whatsapp ? "ligado" : "desligado"}`,
+      ].filter(Boolean);
+      return `Aniversário de ${a.nome}: ${partes.join(", ")}`;
+    }
     case "registrar_humor":
       return `Registrar o humor de hoje: ${NIVEIS[a.nivel]}${a.emocao ? ` (${a.emocao.replace("_", " ")})` : ""}`;
     case "registrar_sono":

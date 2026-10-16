@@ -90,7 +90,30 @@ export async function executarAcao(acaoBruta: AcaoProposta, quadro: QuadroParaAc
       const id = await quadro.addBirthday({ name: acao.nome, month: acao.mes, day: acao.dia, year: acao.ano, category: acao.categoria });
       if (!id) return { ok: false, mensagem: "Não consegui adicionar o aniversário." };
       if (acao.telefone) quadro.updateBirthday(id, { phone: acao.telefone });
-      return { ok: true, mensagem: `${acao.nome} entrou na lista de aniversários, com lembrete às 9h.` };
+      if (acao.lembrarNoWhatsapp) quadro.updateBirthday(id, { remind: true, remindWhatsapp: true });
+      return {
+        ok: true,
+        mensagem: `${acao.nome} entrou na lista de aniversários, com lembrete às 9h${acao.lembrarNoWhatsapp ? " e no WhatsApp" : ""}.`,
+      };
+    }
+    case "lembrete_de_aniversario": {
+      const alvo = semAcento(acao.nome);
+      const pessoa =
+        quadro.birthdays.find((b) => semAcento(b.name) === alvo) ??
+        quadro.birthdays.find((b) => semAcento(b.name).includes(alvo) || alvo.includes(semAcento(b.name)));
+      if (!pessoa) return { ok: false, mensagem: `Não achei "${acao.nome}" na lista de aniversários.` };
+      // Zap exige o lembrete ligado; sem lembrete, não há o que mandar no WhatsApp.
+      const whatsapp = acao.lembrar === false ? false : acao.whatsapp;
+      const lembrar = whatsapp === true ? true : acao.lembrar;
+      quadro.updateBirthday(pessoa.id, {
+        ...(lembrar !== null ? { remind: lembrar } : {}),
+        ...(whatsapp !== null ? { remindWhatsapp: whatsapp } : {}),
+      });
+      const estado = [
+        lembrar === null ? null : `lembrete ${lembrar ? "ligado" : "desligado"}`,
+        whatsapp === null ? null : `WhatsApp ${whatsapp ? "ligado" : "desligado"}`,
+      ].filter(Boolean);
+      return { ok: true, mensagem: `${pessoa.name}: ${estado.join(", ")}.` };
     }
     case "registrar_humor": {
       quadro.updateDailyLog(hoje, { mood: acao.nivel, ...(acao.emocao ? { moodEmotion: acao.emocao } : {}) });
@@ -142,7 +165,17 @@ function converterParaEntrada(a: AcaoProposta): Record<string, unknown> {
     case "anotar_gasto":
       return { checklist: a.checklist, descricao: a.descricao, valor_reais: a.valorCentavos / 100, data: a.data ?? undefined };
     case "adicionar_aniversario":
-      return { nome: a.nome, dia: a.dia, mes: a.mes, ano: a.ano ?? undefined, categoria: a.categoria, telefone: a.telefone ?? undefined };
+      return {
+        nome: a.nome,
+        dia: a.dia,
+        mes: a.mes,
+        ano: a.ano ?? undefined,
+        categoria: a.categoria,
+        telefone: a.telefone ?? undefined,
+        lembrar_no_whatsapp: a.lembrarNoWhatsapp,
+      };
+    case "lembrete_de_aniversario":
+      return { nome: a.nome, lembrar: a.lembrar ?? undefined, whatsapp: a.whatsapp ?? undefined };
     case "registrar_humor":
       return { nivel: a.nivel, emocao: a.emocao ?? undefined };
     case "registrar_sono":
