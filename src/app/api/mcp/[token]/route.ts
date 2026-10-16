@@ -184,7 +184,10 @@ export async function POST(req: NextRequest, { params }: Contexto) {
     const r = await executarEscrita(nome, args, repo, { hoje: hojeNoBrasil(agora), novoId: () => crypto.randomUUID() });
     // Tudo que a IA grava no FARO avisa o Leandro. Falha no aviso nunca desfaz nem esconde a gravação.
     if (r.aviso) {
-      await enviarPushAoUsuario(createServiceClient(), usuario, { title: r.aviso.titulo, body: r.aviso.corpo }).catch(() => 0);
+      await enviarPushAoUsuario(createServiceClient(), usuario, { title: r.aviso.titulo, body: r.aviso.corpo }).catch((e) => {
+        console.error("conector: aviso por push falhou", e instanceof Error ? e.message : e);
+        return 0;
+      });
     }
     return r;
   };

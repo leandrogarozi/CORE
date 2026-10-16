@@ -15,7 +15,10 @@ export async function enviarPushAoUsuario(
   const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const privateKey = process.env.VAPID_PRIVATE_KEY;
   const subject = process.env.VAPID_SUBJECT;
-  if (!publicKey || !privateKey || !subject) return 0;
+  if (!publicKey || !privateKey || !subject) {
+    console.error("push avulso: chaves VAPID não configuradas no servidor");
+    return 0;
+  }
   webpush.setVapidDetails(subject, publicKey, privateKey);
 
   const { data: subs } = await supabase
@@ -33,9 +36,12 @@ export async function enviarPushAoUsuario(
       } catch (err: unknown) {
         const status = (err as { statusCode?: number })?.statusCode;
         if (status === 404 || status === 410) mortos.push(s.endpoint);
+        // Vai para o registro da Vercel: sem isso um aviso que não chega some sem deixar rastro.
+        else console.error("push avulso: falha ao enviar", status, err instanceof Error ? err.message : err);
       }
     })
   );
+  if (!(subs ?? []).length) console.error("push avulso: nenhum aparelho inscrito para este usuário");
   if (mortos.length) await supabase.from("push_subscriptions").delete().eq("user_id", userId).in("endpoint", mortos);
   return chegou;
 }
