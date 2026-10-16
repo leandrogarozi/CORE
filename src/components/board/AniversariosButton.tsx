@@ -1,7 +1,7 @@
 "use client";
 
 import { useBoardCtx } from "./board-context";
-import { CakeIcon } from "./icons";
+import { GiftIcon } from "./icons";
 import { diasAteAniversario, ordenarPorProximos } from "@/lib/board/aniversarios";
 import { todayISO } from "@/lib/date-utils";
 import type { ViewMode } from "./Sidebar";
@@ -40,7 +40,7 @@ export function AniversariosButton({ onNavigate }: { onNavigate: (modo: ViewMode
       title={dica}
       onClick={() => onNavigate("aniversarios")}
     >
-      <CakeIcon />
+      <GiftIcon />
       {hojeN > 0 && <span className="reminders-btn-count aviso-count">{hojeN > 9 ? "9+" : hojeN}</span>}
     </button>
   );

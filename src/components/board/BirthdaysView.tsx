@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
-import { BellIcon, CakeIcon, ChevronIcon, TrashIcon, WhatsAppIcon } from "./icons";
+import { BellIcon, GiftIcon, ChevronIcon, TrashIcon, WhatsAppIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import {
   CATEGORIAS_DE_ANIVERSARIO,
@@ -270,7 +270,7 @@ export function BirthdaysView({ onBack }: { onBack: () => void }) {
       <div className={"narrow-list" + (wide ? " list-xl" : "")}>
         <div className="synapse-intro">
           <div className="synapse-intro-title">
-            <CakeIcon /> Quem faz aniversário
+            <GiftIcon /> Quem faz aniversário
           </div>
           <p>
             Amigos, familiares e clientes, com a data de cada um. O <strong>sininho</strong> te lembra às 9h do dia de

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { BellIcon, BoltIcon,
-  BookOpenIcon, BookIcon, CakeIcon, CarIcon, CartIcon, ChartIcon, ChecklistIcon, FolderIcon, HomeIcon, MealIcon, PillIcon, SettingsIcon, TrashIcon, UserIcon, UsersGroupIcon, WeekIcon } from "./icons";
+  BookOpenIcon, BookIcon, GiftIcon, CarIcon, CartIcon, ChartIcon, ChecklistIcon, FolderIcon, HomeIcon, MealIcon, PillIcon, SettingsIcon, TrashIcon, UserIcon, UsersGroupIcon, WeekIcon } from "./icons";
 
 export type ViewMode =
   | "day"
@@ -133,7 +133,7 @@ export function Sidebar({
             className={"sidebar-item" + (viewMode === "aniversarios" ? " active" : "")}
             onClick={() => onSelect("aniversarios")}
           >
-            <CakeIcon /> Aniversários
+            <GiftIcon /> Aniversários
           </button>
           <button
             type="button"
