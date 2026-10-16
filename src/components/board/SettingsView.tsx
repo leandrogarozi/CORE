@@ -750,7 +750,8 @@ function ConectorFaroBox() {
     <CollapsibleBox title="Conector FARO (minha IA lê o FARO)" icon={<LinkIcon />}>
       <div className="hint-text" style={{ marginTop: 0, marginBottom: 8 }}>
         Liga o Claude ao FARO: ele passa a buscar e ler o que você aprovou em Conhecendo você, as sinapses, as ideias
-        e as anotações dos livros, sem você precisar apontar pasta nenhuma. Só leitura: ele não muda nada no FARO.
+        e as anotações dos livros, sem você precisar apontar pasta nenhuma. Ele também pode criar aniversários, tarefas
+        e lembretes, mas só depois de mostrar o que vai criar e você confirmar. Nunca edita nem apaga o que já existe.
         Saúde e medicamentos ficam de fora.
       </div>
 
@@ -804,7 +805,7 @@ function ConectorFaroBox() {
               <strong>Adicionar</strong>.
             </span>,
             <span key="testar">
-              Numa conversa nova, ligue o FARO no menu de ferramentas e pergunte: <em>&quot;O que o FARO sabe sobre mim?&quot;</em>
+              Numa conversa nova, ligue o FARO no menu de ferramentas e pergunte: <em>&quot;O que o FARO sabe sobre mim?&quot;</em> Para criar, peça: <em>&quot;adiciona no FARO o aniversário do João, 20/03&quot;</em>.
             </span>,
           ]}
         />
