@@ -12,6 +12,16 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
   - **Pausar**: tira da agenda as sessões em aberto (menos as que já têm tempo cronometrado) e guarda o plano com a etiqueta "pausado". **Retomar** refaz o calendário a partir de hoje.
   - **Estratégia contra a poluição:** quando há sessões atrasadas aparece uma faixa vermelha no cartão com **"Refazer a partir de hoje"** (descarta as atrasadas e remonta) e **"Pausar plano"**. Ideia futura, se ele quiser: replanejar sozinho quando passar de N dias atrasado, ou a IA do app pausar o estudo por comando de voz.
 
+## Revisão geral dos campos de formulário: fim do "quadradinho de contorno preto" (pedido em 16/10)
+
+**Pedido do Leandro (print de Aniversários, Plano de Estudo, Projetos e Manutenção como referência boa):** vários campos estavam com a caixa quadrada de contorno preto do navegador, fora do layout; queria tudo limpo como a Manutenção.
+
+**Causa:** campos (`input`, `select`, `textarea`) sem classe própria usavam o visual padrão do navegador. Eram os campos de dia/ano do cadastro de aniversários, Total/Min por dia/Começa em/Prazo do Plano de Estudo, as "Tags padrão" das etapas de Projeto, e qualquer outro que ninguém tinha estilizado.
+
+**Correção (uma regra só, em `globals.css`, logo depois do reset):** todo campo de formulário sem classe própria ganha o visual do FARO: fundo branco (`--surface`), contorno suave (`--linha`), cantos redondos (`--r-2`), texto 12,5 px, dica em cinza e contorno de destaque ao focar. É escrita com `:where()` (especificidade zero), então **qualquer classe do app continua mandando** (campo de busca, `.quickadd-input`, `.budget-input`, TimePicker...). Checkbox, radio, slider, cor e arquivo ficam como estão. Vale também para telas novas: **campo novo nasce certo sem precisar de classe.**
+- Ajustes de largura no cadastro de aniversários (o mês "outubro" e "ano (opcional)" estavam cortados).
+- Testado só numa maquete com o CSS real (antes e depois), não nas telas de verdade: **conferir no app** e me mandar print de qualquer lugar que ainda esteja estranho (o mais provável é um campo com classe própria que tenha ficado diferente do resto).
+
 ## Cadastro de clientes pelas LPs: endpoint, tabela e ponte com Aniversários (pedido em 16/10)
 
 **Pedido:** várias LPs (uma por produto) em `cadastro.leandrogarozi.com.br` enviam clientes novos para uma tabela única; o aniversário deve aparecer no FARO. **Preocupação dele:** conectar muita coisa ao FARO está bem, mas tem que ser fácil **separar** quando outras pessoas usarem o app.

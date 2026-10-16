@@ -215,8 +215,23 @@ body{
   font-size:14.5px; line-height:1.45; -webkit-font-smoothing:antialiased;
 }
 .mono{ font-family:"IBM Plex Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums; }
-button, input, select{ font-family:inherit; font-size:inherit; color:inherit; }
+:where(button, input, select){ font-family:inherit; font-size:inherit; color:inherit; }
 button{ cursor:pointer; background:none; border:none; }
+
+/* Campos de formulário SEM classe própria ganham o visual do FARO (fundo branco,
+   contorno suave, cantos redondos), em vez do quadradinho de contorno preto do
+   navegador. `:where()` tem especificidade zero: qualquer classe do app
+   (.quickadd-input, .budget-input, o campo de busca...) continua mandando. */
+:where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]):not([type="button"]):not([type="submit"]):not([type="hidden"]), select, textarea){
+  background:var(--surface); color:var(--text); border:1px solid var(--linha); border-radius:var(--r-2);
+  padding:7px 10px; font-size:12.5px; line-height:1.35;
+}
+:where(textarea){ font-family:inherit; line-height:1.45; resize:vertical; }
+:where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]), select, textarea):where(:focus){
+  border-color:var(--accent);
+}
+:where(input, textarea)::placeholder{ color:var(--text-faint); }
+:where(input:disabled, select:disabled, textarea:disabled){ opacity:0.55; cursor:not-allowed; }
 a{ color:inherit; }
 :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:4px; }
 
@@ -2951,8 +2966,9 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 /* Aniversários */
 .bday-form{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:10px 12px; }
 .bday-form .quickadd-input{ flex:1 1 160px; min-width:0; }
-.bday-num{ width:62px; }
-.bday-ano{ width:118px; }
+.bday-num{ width:68px; }
+.bday-ano{ width:140px; }
+.bday-form .budget-input{ width:auto; min-width:104px; }
 .bday-filtros{ display:flex; gap:6px; flex-wrap:wrap; margin:12px 0 8px; }
 .bday-filtro{
   display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border-radius:999px;
