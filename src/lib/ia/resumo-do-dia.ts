@@ -104,6 +104,23 @@ export function resumoDoDia(estado: Estado, hoje: string): string {
     linhas.push(`\nAMANHÃ (${dataBr(amanha)}): ${deAmanha.slice(0, 10).map((t) => (t.time ? t.time + " " : "") + t.title).join("; ")}`);
   }
 
+  // Os dias seguintes (depois de amanhã até 7 dias), para "o que tenho essa semana?".
+  const proximos: string[] = [];
+  for (let i = 2; i <= 7; i++) {
+    const dia = isoAddDays(hoje, i);
+    const doDiaX = ativas.filter((t) => t.date === dia && !t.done);
+    if (!doDiaX.length) continue;
+    const nome = DIAS[dateFromISO(dia).getDay()].replace("-feira", "");
+    proximos.push(
+      `${nome} ${dataBr(dia)}: ${doDiaX
+        .sort((a, b) => (a.time || "99:99").localeCompare(b.time || "99:99"))
+        .slice(0, 6)
+        .map((t) => (t.time ? t.time + " " : "") + t.title)
+        .join("; ")}${doDiaX.length > 6 ? ` (+${doDiaX.length - 6})` : ""}`
+    );
+  }
+  if (proximos.length) linhas.push(`\nPRÓXIMOS DIAS:\n${proximos.map((p) => `- ${p}`).join("\n")}`);
+
   const comGastos = estado.checklists.filter((c) => c.expensesEnabled).map((c) => c.title);
   if (estado.checklists.length) {
     linhas.push(

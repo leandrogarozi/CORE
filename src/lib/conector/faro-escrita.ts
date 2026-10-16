@@ -1,5 +1,5 @@
 import { lembreteDoAniversario, MESES } from "@/lib/board/aniversarios";
-import { dateFromISO } from "@/lib/date-utils";
+import { dateFromISO, isoAddDays } from "@/lib/date-utils";
 import { TIPOS_DE_CONHECIMENTO, normalizarTipo } from "@/lib/conhecimento";
 import { CATEGORY_LABEL, type Birthday, type Category, type Priority, type Reminder, type Task } from "@/lib/types";
 
@@ -28,11 +28,35 @@ export interface Repositorio {
   proximaOrdem(data: string | null): Promise<number>;
   inserirTarefa(t: Task): Promise<void>;
   inserirLembrete(r: Reminder): Promise<void>;
+  /** Tarefas em aberto do período (e as atrasadas) e lembretes do período. Saúde fica de fora. */
+  agendaDoPeriodo(desde: string, ate: string): Promise<AgendaLida>;
+  tarefasPorIds(ids: string[]): Promise<TarefaLida[]>;
+  statusConcluido(): Promise<string | null>;
+  concluirTarefas(ids: string[], statusId: string | null): Promise<void>;
+  anexarNota(id: string, notaNova: string): Promise<void>;
   /** "tipo|título" (normalizado) dos itens de Conhecendo você que não foram descartados. */
   conhecimentoExistente(): Promise<{ tipo: string; titulo: string }[]>;
   inserirConhecimento(
     itens: { id: string; tipo: string; titulo: string; conteudo: string; dataRef: string | null; origem: string | null; tags: string[] }[]
   ): Promise<void>;
+}
+
+export interface TarefaLida {
+  id: string;
+  title: string;
+  date: string | null;
+  time: string | null;
+  client: string | null;
+  note: string;
+  done: boolean;
+  category: string;
+  category2: string | null;
+}
+
+export interface AgendaLida {
+  tarefas: TarefaLida[];
+  atrasadas: TarefaLida[];
+  lembretes: { title: string; date: string | null; time: string | null }[];
 }
 
 export interface Contexto {
@@ -49,6 +73,9 @@ export const NOMES_DAS_FERRAMENTAS_DE_ESCRITA = [
   "faro_criar_tarefas",
   "faro_criar_lembretes",
   "faro_propor_aprendizado",
+  "faro_ver_agenda",
+  "faro_concluir_tarefas",
+  "faro_anotar_em_tarefa",
 ] as const;
 
 export function ehFerramentaDeEscrita(nome: string): boolean {
@@ -165,6 +192,54 @@ export const FERRAMENTAS_DE_ESCRITA = [
         ...CONFIRMACAO,
       },
       required: ["lembretes"],
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+  },
+  {
+    name: "faro_ver_agenda",
+    title: "Ver a agenda",
+    description:
+      "Lê a agenda do Leandro: tarefas em aberto (com id), reuniões, lembretes e as atrasadas, de hoje até N dias à frente (padrão 7, máximo 60). Só leitura. Tarefas de saúde não aparecem. Use antes de concluir ou anotar numa tarefa, para pegar o id certo.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        dias: { type: "integer", minimum: 0, maximum: 60, description: "Quantos dias à frente (padrão 7)." },
+        desde: { type: "string", description: "AAAA-MM-DD de início. Padrão: hoje." },
+      },
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: true, openWorldHint: false },
+  },
+  {
+    name: "faro_concluir_tarefas",
+    title: "Marcar tarefas como feitas",
+    description:
+      "Marca como concluídas tarefas que já existem, pelo id (de faro_ver_agenda). Fluxo obrigatório em 2 passos: 1) chame sem 'confirmado' e mostre a prévia ao Leandro; 2) com o ok dele, chame de novo e confirmado=true. Não apaga nada; ele pode reabrir a tarefa no app.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        ids: { type: "array", minItems: 1, maxItems: 30, items: { type: "string" }, description: "Ids das tarefas." },
+        ...CONFIRMACAO,
+      },
+      required: ["ids"],
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  },
+  {
+    name: "faro_anotar_em_tarefa",
+    title: "Anotar em uma tarefa ou reunião",
+    description:
+      "ACRESCENTA um texto no fim da anotação de uma tarefa ou reunião (pelo id de faro_ver_agenda). Nunca apaga nem reescreve o que já está lá. Bom para pauta, decisões e próximos passos de reunião. Fluxo obrigatório em 2 passos: 1) chame sem 'confirmado' e mostre o texto ao Leandro; 2) com o ok dele, chame de novo e confirmado=true.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: { type: "string", description: "Id da tarefa ou reunião." },
+        texto: { type: "string", description: "O que acrescentar, nas palavras dele." },
+        ...CONFIRMACAO,
+      },
+      required: ["id", "texto"],
       additionalProperties: false,
     },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
@@ -484,6 +559,88 @@ export async function criarLembretes(args: Args, repo: Repositorio, ctx: Context
 }
 
 // ---------------------------------------------------------------------------
+// Agenda (leitura) e pequenos ajustes em tarefas que já existem
+
+const ehSaude = (t: Pick<TarefaLida, "category" | "category2">) => t.category === "saude" || t.category2 === "saude";
+
+function linhaDaTarefa(t: TarefaLida): string {
+  const quando = t.date ? `${dataPorExtenso(t.date)}${t.time ? ` ${t.time}` : ""}` : "sem data";
+  const marcas = [t.client ? `cliente ${t.client}` : null, t.category2 === "reuniao" ? "reunião" : null].filter(Boolean);
+  return `- [${t.id}] ${t.title} · ${quando}${marcas.length ? ` · ${marcas.join(", ")}` : ""}`;
+}
+
+export async function verAgenda(args: Args, repo: Repositorio, ctx: Contexto): Promise<Resposta> {
+  const dias = typeof args.dias === "number" ? Math.max(0, Math.min(60, Math.round(args.dias))) : 7;
+  const desdeArg = texto(args.desde);
+  const desde = ehData(desdeArg) ? desdeArg : ctx.hoje;
+  const ate = isoAddDays(desde, dias);
+  const { tarefas, atrasadas, lembretes } = await repo.agendaDoPeriodo(desde, ate);
+  const ts = tarefas.filter((t) => !t.done && !ehSaude(t));
+  const at = atrasadas.filter((t) => !t.done && !ehSaude(t)).slice(0, 15);
+  const partes = [`Agenda de ${dataPorExtenso(desde)} até ${dataPorExtenso(ate)} (hoje é ${dataPorExtenso(ctx.hoje)}).`, ""];
+  partes.push(ts.length ? `Tarefas e reuniões em aberto (${ts.length}):` : "Nenhuma tarefa em aberto no período.");
+  partes.push(...ts.map(linhaDaTarefa));
+  if (at.length) partes.push("", `Atrasadas (${at.length}):`, ...at.map(linhaDaTarefa));
+  if (lembretes.length) {
+    partes.push("", `Lembretes (${lembretes.length}):`);
+    partes.push(...lembretes.map((l) => `- ${l.title}${l.date ? ` · ${dataPorExtenso(l.date)}${l.time ? ` ${l.time}` : ""}` : ""}`));
+  }
+  partes.push("", "Para marcar como feita ou anotar, use o id entre colchetes.");
+  return { texto: partes.join("\n") };
+}
+
+async function tarefasEscolhidas(ids: string[], repo: Repositorio): Promise<{ ok: TarefaLida[]; problemas: string[] }> {
+  const achadas = await repo.tarefasPorIds(ids);
+  const ok: TarefaLida[] = [];
+  const problemas: string[] = [];
+  for (const id of ids) {
+    const t = achadas.find((x) => x.id === id);
+    if (!t) problemas.push(`${id}: não achei essa tarefa.`);
+    else if (ehSaude(t)) problemas.push(`${t.title}: tarefa de saúde, não mexo por aqui.`);
+    else ok.push(t);
+  }
+  return { ok, problemas };
+}
+
+export async function concluirTarefas(args: Args, repo: Repositorio): Promise<Resposta> {
+  const confirmado = args.confirmado === true;
+  const ids = [...new Set(lista<unknown>(args.ids).map((i) => texto(i)).filter(Boolean))];
+  const { ok, problemas } = await tarefasEscolhidas(ids, repo);
+  const abertas = ok.filter((t) => !t.done);
+  for (const t of ok.filter((x) => x.done)) problemas.push(`${t.title}: já estava concluída.`);
+  if (confirmado && abertas.length) await repo.concluirTarefas(abertas.map((t) => t.id), await repo.statusConcluido());
+  const cab = confirmado ? `Marcadas como feitas (${abertas.length})` : `Prévia: ${abertas.length} tarefa(s) a marcar como feita(s)`;
+  const r = resultado(abertas.map(linhaDaTarefa), problemas, confirmado, cab);
+  if (confirmado && abertas.length) {
+    r.aviso = {
+      titulo: "A IA marcou tarefas como feitas",
+      corpo: `${abertas.map((t) => t.title).join(", ")}. Se não era isso, reabra a tarefa na lista.`,
+      destino: "day",
+    };
+  }
+  return r;
+}
+
+export async function anotarEmTarefa(args: Args, repo: Repositorio): Promise<Resposta> {
+  const confirmado = args.confirmado === true;
+  const id = texto(args.id);
+  const nota = texto(args.texto).slice(0, 4000);
+  if (!id || !nota) return { texto: "Preciso do id da tarefa e do texto a acrescentar.", erro: true };
+  const { ok, problemas } = await tarefasEscolhidas([id], repo);
+  if (!ok.length) return { texto: problemas.join("\n") || "Não achei a tarefa.", erro: true };
+  const t = ok[0];
+  if (confirmado) {
+    const html = `<p>${nota.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>")}</p>`;
+    await repo.anexarNota(t.id, `${t.note ?? ""}${html}`);
+    return {
+      texto: `Anotação acrescentada em "${t.title}" (o que já estava escrito ficou como estava).`,
+      aviso: { titulo: "A IA anotou em uma tarefa", corpo: `Em "${t.title}": ${nota.slice(0, 100)}${nota.length > 100 ? "…" : ""}`, destino: "day" },
+    };
+  }
+  return { texto: `Prévia: acrescentar ao fim da anotação de "${t.title}":\n\n${nota}${PRIMEIRO_PASSO}` };
+}
+
+// ---------------------------------------------------------------------------
 // Propostas de aprendizado (vão para "Para revisar", nunca direto para valer)
 
 const PALAVRAS_DE_SAUDE = /(medicament|rem[eé]dio|rosuvastatina|dosagem|diagn[oó]stic|receita m[eé]dica|\bsenha\b|cart[aã]o de cr[eé]dito|\bcpf\b)/i;
@@ -553,6 +710,12 @@ export async function executarEscrita(nome: string, args: Args, repo: Repositori
       return criarLembretes(args, repo, ctx);
     case "faro_propor_aprendizado":
       return proporAprendizado(args, repo, ctx);
+    case "faro_ver_agenda":
+      return verAgenda(args, repo, ctx);
+    case "faro_concluir_tarefas":
+      return concluirTarefas(args, repo);
+    case "faro_anotar_em_tarefa":
+      return anotarEmTarefa(args, repo);
     default:
       return { texto: `Ferramenta desconhecida: ${nome}`, erro: true };
   }

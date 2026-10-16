@@ -1,4 +1,4 @@
-import type { Birthday, Checklist, ChecklistExpense, DailyLog, Priority, StudyPlan } from "@/lib/types";
+import type { Birthday, Checklist, ChecklistExpense, DailyLog, Priority, StudyPlan, Task, TaskStatus } from "@/lib/types";
 import { descreverAcao, validarAcao, type AcaoProposta } from "./ferramentas";
 
 /**
@@ -17,6 +17,11 @@ export interface QuadroParaAcoes {
     extras?: { time?: string; priority?: Priority; note?: string }
   ) => Promise<boolean>;
   updateChecklist: (id: string, patch: { expenses: ChecklistExpense[] }) => void;
+  tasks: Task[];
+  taskStatuses: TaskStatus[];
+  setTaskStatus: (id: string, statusId: string) => void;
+  addMeeting: (campos: { title: string; client: string | null; date: string; time: string | null }) => string | null;
+  updateTaskNote: (id: string, note: string) => void;
   birthdays: Birthday[];
   addBirthday: (campos: Pick<Birthday, "name" | "month" | "day" | "year" | "category">) => Promise<string | null>;
   updateBirthday: (id: string, patch: Partial<Birthday>) => void;
@@ -45,6 +50,38 @@ export function acharChecklistDeGastos(checklists: Checklist[], nome: string): C
     null
   );
 }
+
+/**
+ * Acha a tarefa pelo título (sem ligar para acento ou maiúscula). Dá a resposta
+ * certa quando não acha ou quando há mais de uma: a IA nunca "adivinha" qual
+ * tarefa marcar, porque marcar a errada é pior do que perguntar.
+ */
+export function acharTarefa(
+  tarefas: Task[],
+  titulo: string,
+  data: string | null,
+  soAbertas: boolean
+): { tarefa: Task } | { erro: string } {
+  const alvo = semAcento(titulo);
+  const vivas = tarefas.filter((t) => !t.deletedAt && (!soAbertas || !t.done));
+  const exatas = vivas.filter((t) => semAcento(t.title) === alvo);
+  let achadas = exatas.length ? exatas : vivas.filter((t) => semAcento(t.title).includes(alvo) || alvo.includes(semAcento(t.title)));
+  if (data && achadas.length > 1) {
+    const naData = achadas.filter((t) => t.date === data);
+    if (naData.length) achadas = naData;
+  }
+  if (!achadas.length) return { erro: `Não achei a tarefa "${titulo}"${soAbertas ? " em aberto" : ""}.` };
+  if (achadas.length > 1) {
+    const exemplos = achadas
+      .slice(0, 4)
+      .map((t) => `"${t.title}"${t.date ? ` (${t.date.split("-").reverse().join("/")})` : ""}`)
+      .join(", ");
+    return { erro: `Achei mais de uma (${exemplos}). Diga qual, com a data.` };
+  }
+  return { tarefa: achadas[0] };
+}
+
+const escaparHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 export async function executarAcao(acaoBruta: AcaoProposta, quadro: QuadroParaAcoes, hoje: string): Promise<ResultadoDaExecucao> {
   const v = validarAcao(acaoBruta.tipo, converterParaEntrada(acaoBruta));
@@ -115,6 +152,26 @@ export async function executarAcao(acaoBruta: AcaoProposta, quadro: QuadroParaAc
       ].filter(Boolean);
       return { ok: true, mensagem: `${pessoa.name}: ${estado.join(", ")}.` };
     }
+    case "marcar_tarefa_feita": {
+      const r = acharTarefa(quadro.tasks, acao.titulo, acao.data, true);
+      if ("erro" in r) return { ok: false, mensagem: r.erro };
+      const feito = quadro.taskStatuses.find((s) => s.isDone);
+      if (!feito) return { ok: false, mensagem: "Não achei o status de concluído." };
+      quadro.setTaskStatus(r.tarefa.id, feito.id);
+      return { ok: true, mensagem: `"${r.tarefa.title}" marcada como feita.` };
+    }
+    case "criar_reuniao": {
+      const id = quadro.addMeeting({ title: acao.titulo, client: acao.cliente, date: acao.data, time: acao.hora });
+      return id ? { ok: true, mensagem: "Reunião criada." } : { ok: false, mensagem: "Não consegui criar a reunião." };
+    }
+    case "anotar_em_tarefa": {
+      const r = acharTarefa(quadro.tasks, acao.titulo, acao.data, false);
+      if ("erro" in r) return { ok: false, mensagem: r.erro };
+      // Só acrescenta: o que já estava escrito fica exatamente como está.
+      const novo = `<p>${escaparHtml(acao.texto).replace(/\n/g, "<br>")}</p>`;
+      quadro.updateTaskNote(r.tarefa.id, `${r.tarefa.note ?? ""}${novo}`);
+      return { ok: true, mensagem: `Anotação acrescentada em "${r.tarefa.title}".` };
+    }
     case "registrar_humor": {
       quadro.updateDailyLog(hoje, { mood: acao.nivel, ...(acao.emocao ? { moodEmotion: acao.emocao } : {}) });
       return { ok: true, mensagem: "Humor de hoje registrado." };
@@ -176,6 +233,12 @@ function converterParaEntrada(a: AcaoProposta): Record<string, unknown> {
       };
     case "lembrete_de_aniversario":
       return { nome: a.nome, lembrar: a.lembrar ?? undefined, whatsapp: a.whatsapp ?? undefined };
+    case "marcar_tarefa_feita":
+      return { titulo: a.titulo, data: a.data ?? undefined };
+    case "criar_reuniao":
+      return { titulo: a.titulo, cliente: a.cliente ?? undefined, data: a.data, hora: a.hora ?? undefined };
+    case "anotar_em_tarefa":
+      return { titulo: a.titulo, data: a.data ?? undefined, texto: a.texto };
     case "registrar_humor":
       return { nivel: a.nivel, emocao: a.emocao ?? undefined };
     case "registrar_sono":

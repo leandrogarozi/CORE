@@ -115,6 +115,62 @@ function repositorioDe(usuario: string): Repositorio {
       const { error } = await supabase.from("tasks").insert(taskToInsertRow(t, usuario));
       falhou("gravar tarefa", error);
     },
+    async agendaDoPeriodo(desde, ate) {
+      const colunas = "id, title, date, time, client, note, done, category, category2";
+      const [dentro, atrasadas, lembretes] = await Promise.all([
+        supabase.from("tasks").select(colunas).eq("user_id", usuario).is("deleted_at", null).eq("done", false).gte("date", desde).lte("date", ate).order("date").order("time"),
+        supabase.from("tasks").select(colunas).eq("user_id", usuario).is("deleted_at", null).eq("done", false).lt("date", desde).order("date", { ascending: false }).limit(30),
+        supabase.from("reminders").select("title, remind_date, remind_time, source_kind").eq("user_id", usuario).is("deleted_at", null).eq("done", false).gte("remind_date", desde).lte("remind_date", ate).order("remind_date"),
+      ]);
+      falhou("ler agenda", dentro.error ?? atrasadas.error ?? lembretes.error);
+      const paraTarefa = (t: NonNullable<typeof dentro.data>[number]) => ({
+        id: t.id,
+        title: t.title,
+        date: t.date,
+        time: t.time,
+        client: t.client,
+        note: t.note ?? "",
+        done: t.done,
+        category: t.category,
+        category2: t.category2,
+      });
+      return {
+        tarefas: (dentro.data ?? []).map(paraTarefa),
+        atrasadas: (atrasadas.data ?? []).map(paraTarefa),
+        // Remédio e refeição da dieta são saúde: nunca saem daqui.
+        lembretes: (lembretes.data ?? [])
+          .filter((r) => r.source_kind !== "medication" && r.source_kind !== "diet_meal")
+          .map((r) => ({ title: r.title, date: r.remind_date, time: r.remind_time })),
+      };
+    },
+    async tarefasPorIds(ids) {
+      if (!ids.length) return [];
+      const { data, error } = await supabase
+        .from("tasks")
+        .select("id, title, date, time, client, note, done, category, category2")
+        .eq("user_id", usuario)
+        .is("deleted_at", null)
+        .in("id", ids);
+      falhou("ler tarefas", error);
+      return (data ?? []).map((t) => ({ ...t, note: t.note ?? "" }));
+    },
+    async statusConcluido() {
+      const { data, error } = await supabase.from("task_statuses").select("id").eq("user_id", usuario).eq("is_done", true).order("sort_order").limit(1);
+      falhou("ler status concluído", error);
+      return data?.[0]?.id ?? null;
+    },
+    async concluirTarefas(ids, statusId) {
+      const { error } = await supabase
+        .from("tasks")
+        .update({ done: true, ...(statusId ? { status_id: statusId } : {}) })
+        .eq("user_id", usuario)
+        .in("id", ids);
+      falhou("concluir tarefas", error);
+    },
+    async anexarNota(id, notaNova) {
+      const { error } = await supabase.from("tasks").update({ note: notaNova }).eq("user_id", usuario).eq("id", id);
+      falhou("anotar na tarefa", error);
+    },
     async conhecimentoExistente() {
       const { data, error } = await supabase
         .from("knowledge_items")

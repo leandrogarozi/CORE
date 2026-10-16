@@ -33,6 +33,9 @@ export type AcaoProposta =
       lembrarNoWhatsapp: boolean;
     }
   | { tipo: "lembrete_de_aniversario"; nome: string; lembrar: boolean | null; whatsapp: boolean | null }
+  | { tipo: "marcar_tarefa_feita"; titulo: string; data: string | null }
+  | { tipo: "criar_reuniao"; titulo: string; cliente: string | null; data: string; hora: string | null }
+  | { tipo: "anotar_em_tarefa"; titulo: string; data: string | null; texto: string }
   | { tipo: "registrar_humor"; nivel: 1 | 2 | 3 | 4 | 5; emocao: string | null }
   | { tipo: "registrar_sono"; dormiu: string | null; acordou: string | null }
   | { tipo: "registrar_agua"; ml: number }
@@ -127,6 +130,48 @@ export const FERRAMENTAS_DO_FARO: Anthropic.Tool[] = [
         whatsapp: { type: "boolean", description: "Zap: também avisar no WhatsApp dele." },
       },
       required: ["nome"],
+    },
+  },
+  {
+    name: "marcar_tarefa_feita",
+    description:
+      "Marca como concluída uma tarefa que JÁ existe. Use o título como aparece no resumo (TAREFAS DE HOJE, ATRASADAS, AMANHÃ). Se houver duas com o mesmo nome, passe também a data.",
+    input_schema: {
+      type: "object",
+      properties: {
+        titulo: { type: "string", description: "Título da tarefa, como no resumo." },
+        data: { type: "string", description: "AAAA-MM-DD da tarefa, só para desempatar." },
+      },
+      required: ["titulo"],
+    },
+  },
+  {
+    name: "criar_reuniao",
+    description:
+      "Cria uma reunião (aparece na lista de tarefas do dia e na tela Reuniões). Precisa de data; a hora e o cliente são opcionais. Se ele não disser o dia, pergunte.",
+    input_schema: {
+      type: "object",
+      properties: {
+        titulo: { type: "string", description: "Nome da reunião. Ex.: 'Alinhamento do relatório'." },
+        cliente: { type: "string", description: "Cliente, se ele disse." },
+        data: { type: "string", description: "AAAA-MM-DD, já resolvida a partir da data de hoje." },
+        hora: { type: "string", description: "HH:MM (24h), só se ele disse." },
+      },
+      required: ["titulo", "data"],
+    },
+  },
+  {
+    name: "anotar_em_tarefa",
+    description:
+      "ACRESCENTA um texto no fim da anotação de uma tarefa ou reunião que já existe (nunca apaga o que está lá). Serve para anotar a pauta, decisões e próximos passos de uma reunião: 'anota na reunião do Bruno que ficou combinado X'. Escreva o texto limpo, nas palavras dele.",
+    input_schema: {
+      type: "object",
+      properties: {
+        titulo: { type: "string", description: "Título da tarefa ou reunião, como no resumo." },
+        data: { type: "string", description: "AAAA-MM-DD da tarefa, só para desempatar." },
+        texto: { type: "string", description: "O que acrescentar à anotação." },
+      },
+      required: ["titulo", "texto"],
     },
   },
   {
@@ -286,6 +331,25 @@ export function validarAcao(nome: string, entrada: unknown): ResultadoDaValidaca
       if (lembrar === null && whatsapp === null) return { ok: false, motivo: "faltou dizer se é o lembrete ou o WhatsApp" };
       return { ok: true, acao: { tipo: "lembrete_de_aniversario", nome, lembrar, whatsapp } };
     }
+    case "marcar_tarefa_feita": {
+      const titulo = texto(e.titulo, 200);
+      if (!titulo) return { ok: false, motivo: "faltou o título da tarefa" };
+      return { ok: true, acao: { tipo: "marcar_tarefa_feita", titulo, data: dataValida(e.data) } };
+    }
+    case "criar_reuniao": {
+      const titulo = texto(e.titulo, 200);
+      const data = dataValida(e.data);
+      if (!titulo) return { ok: false, motivo: "faltou o nome da reunião" };
+      if (!data) return { ok: false, motivo: "a reunião precisa de uma data válida" };
+      return { ok: true, acao: { tipo: "criar_reuniao", titulo, cliente: texto(e.cliente, 120), data, hora: horaValida(e.hora) } };
+    }
+    case "anotar_em_tarefa": {
+      const titulo = texto(e.titulo, 200);
+      const textoNota = texto(e.texto, 4000);
+      if (!titulo) return { ok: false, motivo: "faltou o título da tarefa ou reunião" };
+      if (!textoNota) return { ok: false, motivo: "faltou o texto da anotação" };
+      return { ok: true, acao: { tipo: "anotar_em_tarefa", titulo, data: dataValida(e.data), texto: textoNota } };
+    }
     case "registrar_humor": {
       const nivel = typeof e.nivel === "number" ? Math.round(e.nivel) : 0;
       if (nivel < 1 || nivel > 5) return { ok: false, motivo: "nível de humor deve ser de 1 a 5" };
@@ -359,6 +423,12 @@ export function descreverAcao(a: AcaoProposta): string {
       ].filter(Boolean);
       return `Aniversário de ${a.nome}: ${partes.join(", ")}`;
     }
+    case "marcar_tarefa_feita":
+      return `Marcar como feita: ${a.titulo}${a.data ? ` (${dataBr(a.data)})` : ""}`;
+    case "criar_reuniao":
+      return `Criar reunião: ${a.titulo}${a.cliente ? ` (${a.cliente})` : ""}, em ${dataBr(a.data)}${a.hora ? ` às ${a.hora}` : ""}`;
+    case "anotar_em_tarefa":
+      return `Acrescentar à anotação de "${a.titulo}": ${a.texto.length > 120 ? a.texto.slice(0, 117) + "…" : a.texto}`;
     case "registrar_humor":
       return `Registrar o humor de hoje: ${NIVEIS[a.nivel]}${a.emocao ? ` (${a.emocao.replace("_", " ")})` : ""}`;
     case "registrar_sono":
