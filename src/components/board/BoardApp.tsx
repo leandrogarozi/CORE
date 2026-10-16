@@ -210,8 +210,8 @@ function BoardShell() {
         <div className="brand">FARO</div>
         <TaskSearch onNavigate={handleSearchNavigate} />
         <div className="topbar-right">
-          <AniversariosButton onNavigate={selectView} />
           <AvisosButton onNavigate={selectView} />
+          <AniversariosButton onNavigate={selectView} />
           <ActiveTimerBadge />
           <div className="today-date mono">{longLabel(todayISO())}</div>
           <button className="today-btn" type="button" onClick={goToday}>

@@ -249,7 +249,7 @@ a{ color:inherit; }
 /* top bar */
 .topbar{ display:flex; align-items:center; gap:12px; margin-bottom:16px; }
 .brand{ font-weight:var(--fw-titulo); font-size:15px; letter-spacing:var(--ls-titulo); flex:none; }
-.topbar-right{ display:flex; align-items:center; gap:8px; flex:none; margin-left:auto; }
+.topbar-right{ display:flex; align-items:center; gap:8px; flex:none; }
 /* Tudo na barra de cima tem a MESMA altura (32px). Era isso que fazia a linha
    parecer desalinhada: botão de 26, ícone de 18 e "Hoje" de 30 lado a lado. */
 .topbar-right .btn{
@@ -266,7 +266,7 @@ a{ color:inherit; }
 .topbar-right .icon-btn:hover{ background:var(--segmento-fundo); }
 .menu-btn{ flex:none; }
 .topbar-search{
-  position:relative; display:flex; align-items:center; gap:9px; flex:1; min-width:0; max-width:460px;
+  position:relative; display:flex; align-items:center; gap:9px; flex:1; min-width:0;
   background:var(--surface); border:1px solid var(--linha); border-radius:var(--r-2); padding:0 12px; height:34px;
 }
 .topbar-search svg{ flex:none; color:var(--text-faint); }
