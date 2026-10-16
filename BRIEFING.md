@@ -12,6 +12,24 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
   - **Pausar**: tira da agenda as sessões em aberto (menos as que já têm tempo cronometrado) e guarda o plano com a etiqueta "pausado". **Retomar** refaz o calendário a partir de hoje.
   - **Estratégia contra a poluição:** quando há sessões atrasadas aparece uma faixa vermelha no cartão com **"Refazer a partir de hoje"** (descarta as atrasadas e remonta) e **"Pausar plano"**. Ideia futura, se ele quiser: replanejar sozinho quando passar de N dias atrasado, ou a IA do app pausar o estudo por comando de voz.
 
+## Cadastro de clientes pelas LPs: endpoint, tabela e ponte com Aniversários (pedido em 16/10)
+
+**Pedido:** várias LPs (uma por produto) em `cadastro.leandrogarozi.com.br` enviam clientes novos para uma tabela única; o aniversário deve aparecer no FARO. **Preocupação dele:** conectar muita coisa ao FARO está bem, mas tem que ser fácil **separar** quando outras pessoas usarem o app.
+
+**Feito (tudo documentado em `docs/CADASTRO-DE-CLIENTES.md`, com URL, formato do JSON, respostas e exemplos):**
+- Endpoint público `POST /api/cadastro` (rota no Vercel, não Edge Function): valida (nome, e-mail e consentimento obrigatórios), CORS só para `https://cadastro.leandrogarozi.com.br`, limite de 8 envios por IP em 10 min e 300/hora no total, campo-isca `website`, modo `teste:true` (valida e não grava), chave de serviço só no servidor.
+- Tabelas com RLS e sem leitura pública: `clientes_cadastro`, `cadastro_dono` (dono + chave pública `faro_cad_...`), `cadastro_tentativas`. Consentimento guardado (valor, hora carimbada pelo servidor e texto aceito). Cliente repetido (mesmo e-mail ou WhatsApp) **atualiza o mesmo registro** (soma `produtos`, guarda `respostas_extras` por produto, conta `envios`) e **não sobrescreve** nome/WhatsApp/aniversário já guardados, para ninguém trocar o telefone de outra pessoa só sabendo o e-mail.
+- **Aniversário:** entra sozinho na lista (categoria cliente, lembrete anual às 9h, nota "Veio do cadastro…"), sem pedir confirmação na prévia: vem de quem consentiu, e cada cadastro gera um **aviso na caixa Avisos + push** para ele conferir e apagar se quiser. Nome igual a um que já está na lista: não mexe.
+- **Apagar uma pessoa (LGPD):** `POST /api/cadastro/apagar` (só o dono logado) por e-mail, WhatsApp ou id; apaga de verdade e leva junto o aniversário e o lembrete que ela gerou. Ainda sem botão na tela.
+- **Separável:** pacote isolado em `src/lib/cadastro/` e `src/app/api/cadastro/`; a única ponte com o FARO é `sincronizar.ts` (aniversário); cada usuário futuro tem a própria linha em `cadastro_dono` e a própria chave. Para tirar tudo: apagar as duas pastas e as 3 tabelas.
+- **Teste:** lógica inteira (validação, gravação, repetido por e-mail e por WhatsApp, nome já na lista, isca, chave errada, limite por IP, IP nunca guardado puro) passou com um banco de mentira; a tabela e a regra de duplicidade foram provadas no banco real. **Não foi possível chamar o endereço de produção a partir da sessão do Claude (rede bloqueada)**: a primeira chamada de verdade é o `curl` com `teste:true` do documento.
+
+**Falta / decisões dele:**
+1. Rodar o `curl` de teste do documento (ou testar pela LP-molde) e depois um envio real para ver a linha na tabela.
+2. Decidir onde as LPs ficam (Hostinger ou Vercel) para criar o subdomínio; passo a passo no documento.
+3. Tela "Clientes" no FARO (listar cadastros, apagar com um botão, ver respostas por produto): ainda não existe.
+4. Termos/política de privacidade das LPs (e o texto do consentimento) antes de divulgar.
+
 ## ▶ RETOMAR AQUI (atualizado em 16/10/2026, noite)
 
 **Objetivo dele agora:** (A) **liberar o FARO para teste** com pessoas dele e (B) **sincronizar com o Google Agenda**.
