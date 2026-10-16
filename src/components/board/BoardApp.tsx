@@ -194,7 +194,13 @@ function BoardShell() {
     <div className={"wrap" + (wide ? " wide" : "")}>
       <SaveErrorToaster />
       <StaleScreenNotice />
-      <Sidebar open={sidebarOpen} viewMode={viewMode} onSelect={selectView} onClose={() => setSidebarOpen(false)} />
+      <Sidebar
+        open={sidebarOpen}
+        viewMode={viewMode}
+        onSelect={selectView}
+        onClose={() => setSidebarOpen(false)}
+        paraRevisar={board.state.knowledgeItems.filter((k) => k.status === "pendente").length}
+      />
 
       <div className="topbar">
         <button className="icon-btn menu-btn" type="button" aria-label="Abrir menu" onClick={() => setSidebarOpen(true)}>

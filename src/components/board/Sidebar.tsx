@@ -32,11 +32,14 @@ export function Sidebar({
   viewMode,
   onSelect,
   onClose,
+  paraRevisar = 0,
 }: {
   open: boolean;
   viewMode: ViewMode;
   onSelect: (mode: ViewMode) => void;
   onClose: () => void;
+  /** Quantos itens de "Conhecendo você" esperam aprovação (a IA propôs). */
+  paraRevisar?: number;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -84,6 +87,11 @@ export function Sidebar({
             onClick={() => onSelect("conhecendo")}
           >
             <UserIcon size={13} /> Conhecendo você
+            {paraRevisar > 0 && (
+              <span className="sidebar-badge" title="Aprendizados esperando você aprovar">
+                {paraRevisar}
+              </span>
+            )}
           </button>
           <button
             type="button"

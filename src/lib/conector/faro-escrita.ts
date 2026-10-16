@@ -1,5 +1,6 @@
 import { lembreteDoAniversario, MESES } from "@/lib/board/aniversarios";
 import { dateFromISO } from "@/lib/date-utils";
+import { TIPOS_DE_CONHECIMENTO, normalizarTipo } from "@/lib/conhecimento";
 import { CATEGORY_LABEL, type Birthday, type Category, type Priority, type Reminder, type Task } from "@/lib/types";
 
 /**
@@ -27,6 +28,11 @@ export interface Repositorio {
   proximaOrdem(data: string | null): Promise<number>;
   inserirTarefa(t: Task): Promise<void>;
   inserirLembrete(r: Reminder): Promise<void>;
+  /** "tipo|título" (normalizado) dos itens de Conhecendo você que não foram descartados. */
+  conhecimentoExistente(): Promise<{ tipo: string; titulo: string }[]>;
+  inserirConhecimento(
+    itens: { id: string; tipo: string; titulo: string; conteudo: string; dataRef: string | null; origem: string | null; tags: string[] }[]
+  ): Promise<void>;
 }
 
 export interface Contexto {
@@ -35,12 +41,14 @@ export interface Contexto {
 }
 
 type Args = Record<string, unknown>;
-type Resposta = { texto: string; erro?: boolean };
+/** `aviso`: o que o FARO manda de push ao Leandro quando algo foi gravado por aqui. */
+export type Resposta = { texto: string; erro?: boolean; aviso?: { titulo: string; corpo: string } };
 
 export const NOMES_DAS_FERRAMENTAS_DE_ESCRITA = [
   "faro_criar_aniversarios",
   "faro_criar_tarefas",
   "faro_criar_lembretes",
+  "faro_propor_aprendizado",
 ] as const;
 
 export function ehFerramentaDeEscrita(nome: string): boolean {
@@ -161,6 +169,38 @@ export const FERRAMENTAS_DE_ESCRITA = [
     },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
   },
+  {
+    name: "faro_propor_aprendizado",
+    title: "Propor aprendizado ao FARO",
+    description:
+      "Envia ao FARO o que você aprendeu sobre o Leandro nas conversas (perfil, valor, objetivo, preferência, decisão, projeto, aprendizado...). Vai como PROPOSTA: cai na aba 'Para revisar' de 'Conhecendo você' e o FARO avisa o Leandro; só vale depois que ele aprovar. Use quando ele revelar algo novo e durável sobre si, ou quando decidir algo importante. Não repita o que já existe (use faro_buscar antes), não invente, use as palavras dele, e nunca envie saúde, medicamentos, senhas ou dados bancários. Depois de enviar, diga a ele em uma linha o que você propôs.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        itens: {
+          type: "array",
+          minItems: 1,
+          maxItems: 20,
+          items: {
+            type: "object",
+            properties: {
+              tipo: { type: "string", enum: TIPOS_DE_CONHECIMENTO.map((t) => t.id) },
+              titulo: { type: "string", description: "Título curto e específico." },
+              conteudo: { type: "string", description: "O aprendizado, em Markdown, com as palavras dele quando possível." },
+              data: { type: "string", description: "AAAA-MM-DD de quando surgiu, se souber." },
+              tags: { type: "array", items: { type: "string" } },
+              origem: { type: "string", description: "De que conversa ou assunto veio. Ex.: 'conversa no Claude sobre o funil'." },
+            },
+            required: ["tipo", "titulo", "conteudo"],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ["itens"],
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -280,7 +320,9 @@ export async function criarAniversarios(args: Args, repo: Repositorio, ctx: Cont
     }
   }
   const cab = confirmado ? `Gravado no FARO (${ok.length})` : `Prévia: ${ok.length} aniversário(s) a adicionar, com lembrete anual às 9h`;
-  return resultado(ok.map((x) => x.linha), problemas, confirmado, cab);
+  const r = resultado(ok.map((x) => x.linha), problemas, confirmado, cab);
+  if (confirmado && ok.length) r.aviso = { titulo: "A IA adicionou aniversários", corpo: ok.map((x) => x.b.name).join(", ") };
+  return r;
 }
 
 // ---------------------------------------------------------------------------
@@ -361,7 +403,9 @@ export async function criarTarefas(args: Args, repo: Repositorio, ctx: Contexto)
 
   if (confirmado) for (const { t } of ok) await repo.inserirTarefa(t);
   const cab = confirmado ? `Gravado no FARO (${ok.length} tarefa(s))` : `Prévia: ${ok.length} tarefa(s) a criar`;
-  return resultado(ok.map((x) => x.linha), problemas, confirmado, cab);
+  const r = resultado(ok.map((x) => x.linha), problemas, confirmado, cab);
+  if (confirmado && ok.length) r.aviso = { titulo: "A IA criou tarefas no FARO", corpo: ok.map((x) => x.t.title).join(", ") };
+  return r;
 }
 
 // ---------------------------------------------------------------------------
@@ -422,7 +466,68 @@ export async function criarLembretes(args: Args, repo: Repositorio, ctx: Context
 
   if (confirmado) for (const { r } of ok) await repo.inserirLembrete(r);
   const cab = confirmado ? `Gravado no FARO (${ok.length} lembrete(s))` : `Prévia: ${ok.length} lembrete(s) a criar`;
-  return resultado(ok.map((x) => x.linha), problemas, confirmado, cab);
+  const r = resultado(ok.map((x) => x.linha), problemas, confirmado, cab);
+  if (confirmado && ok.length) r.aviso = { titulo: "A IA criou lembretes no FARO", corpo: ok.map((x) => x.r.title).join(", ") };
+  return r;
+}
+
+// ---------------------------------------------------------------------------
+// Propostas de aprendizado (vão para "Para revisar", nunca direto para valer)
+
+const PALAVRAS_DE_SAUDE = /(medicament|rem[eé]dio|rosuvastatina|dosagem|diagn[oó]stic|receita m[eé]dica|\bsenha\b|cart[aã]o de cr[eé]dito|\bcpf\b)/i;
+
+export async function proporAprendizado(args: Args, repo: Repositorio, ctx: Contexto): Promise<Resposta> {
+  const semAcentoMin = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/\s+/g, " ").trim();
+  const chave = (tipo: string, titulo: string) => `${tipo}|${semAcentoMin(titulo)}`;
+  const ja = new Set((await repo.conhecimentoExistente()).map((k) => chave(k.tipo, k.titulo)));
+  const novos: Parameters<Repositorio["inserirConhecimento"]>[0] = [];
+  const problemas: string[] = [];
+
+  for (const [i, bruto] of lista<Args>(args.itens).entries()) {
+    const titulo = texto(bruto.titulo).slice(0, 300);
+    const conteudo = texto(bruto.conteudo);
+    const tipo = normalizarTipo(texto(bruto.tipo));
+    const rotulo = titulo || `item ${i + 1}`;
+    if (!titulo || !conteudo) {
+      problemas.push(`${rotulo}: falta título ou conteúdo.`);
+      continue;
+    }
+    // Saúde e dados sensíveis nunca entram no cérebro do FARO por aqui.
+    if (PALAVRAS_DE_SAUDE.test(`${titulo} ${conteudo}`)) {
+      problemas.push(`${titulo}: parece conter saúde, medicamento, senha ou dado bancário. Isso não vai para o FARO.`);
+      continue;
+    }
+    if (ja.has(chave(tipo, titulo))) {
+      problemas.push(`${titulo}: já existe no FARO (mesmo tipo e título).`);
+      continue;
+    }
+    ja.add(chave(tipo, titulo));
+    const data = texto(bruto.data);
+    novos.push({
+      id: ctx.novoId(),
+      tipo,
+      titulo,
+      conteudo,
+      dataRef: ehData(data) ? data : null,
+      origem: texto(bruto.origem) || "conector (IA)",
+      tags: lista<unknown>(bruto.tags).map((t) => texto(t)).filter(Boolean).slice(0, 10),
+    });
+  }
+
+  if (!novos.length) return { texto: ["Nada foi enviado.", ...problemas.map((p) => `- ${p}`)].join("\n"), erro: true };
+  await repo.inserirConhecimento(novos);
+  const linhas = novos.map((n) => `- [${n.tipo}] ${n.titulo}`);
+  return {
+    texto: [
+      `Enviado ao FARO como PROPOSTA (${novos.length}). Está na aba "Para revisar" de "Conhecendo você"; só vale depois que o Leandro aprovar, e o FARO já avisou ele.`,
+      ...linhas,
+      ...(problemas.length ? ["", "Não enviados:", ...problemas.map((p) => `- ${p}`)] : []),
+    ].join("\n"),
+    aviso: {
+      titulo: novos.length === 1 ? "Tem 1 aprendizado novo para você aprovar" : `Tem ${novos.length} aprendizados novos para você aprovar`,
+      corpo: 'A IA propôs. Abra "Conhecendo você" → "Para revisar".',
+    },
+  };
 }
 
 export async function executarEscrita(nome: string, args: Args, repo: Repositorio, ctx: Contexto): Promise<Resposta> {
@@ -433,6 +538,8 @@ export async function executarEscrita(nome: string, args: Args, repo: Repositori
       return criarTarefas(args, repo, ctx);
     case "faro_criar_lembretes":
       return criarLembretes(args, repo, ctx);
+    case "faro_propor_aprendizado":
+      return proporAprendizado(args, repo, ctx);
     default:
       return { texto: `Ferramenta desconhecida: ${nome}`, erro: true };
   }

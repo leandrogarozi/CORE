@@ -5291,6 +5291,21 @@ Pedido do Leandro: um botão de **Reuniões** na home, discreto, para achar ráp
 - Candidatos a próximas ferramentas: ver a agenda do dia/semana (leitura), marcar tarefa como feita, adicionar item a checklist/lista de compras, registrar leitura/ideia (Ideias já é aprendizado: vai por "Conhecendo você").
 - **Teste feito só com dados de mentira** (prévia não grava, confirmação grava, duplicado pulado, data inválida barrada). Falta o teste real: a IA chamando o conector em produção.
 
+## IA devolve aprendizados ao FARO + aviso + mapa comercial (pedido em 16/10)
+
+**Pedido do Leandro:** o que ele conversa direto com a IA e ela vai aprendendo sobre ele, o FARO não tem. Como trazer de volta e manter atualizado? Aprovada a ideia de **propostas**. Pediu também: (1) sempre que a IA mandar algo para o FARO, o FARO **avisa ele** ("tem coisa nova para você aprovar"); (2) um **mapa explicando tudo isso**, bem explicado, para quando o FARO for comercializado. (A frase final do pedido ("E ele vai me...") veio cortada pelo ditado; entendido como "vai me avisar".)
+
+**Feito:**
+- Ferramenta `faro_propor_aprendizado` no conector externo (`faro-escrita.ts`): grava em `knowledge_items` com `status = 'pendente'` e `fonte = 'conector'`, que cai na aba **"Para revisar"** de Conhecendo você (a aprovação já existia). Não duplica (mesmo tipo e título), exige título e conteúdo, e **barra o que cita saúde, medicamento, senha, CPF ou cartão**. Só o que ele aprovar vale (e só o aprovado é lido pelo conector, entra no resumo e no backup).
+- **Aviso por push** (`enviarPushAoUsuario`): propor aprendizado ("Tem N aprendizados novos para você aprovar") e também qualquer criação feita pela IA (aniversários, tarefas, lembretes). Falha no push nunca desfaz a gravação.
+- **Bolinha com o número** de itens pendentes no menu "Conhecendo você" (`Sidebar`, `.sidebar-badge`).
+- Instruções do conector orientam a IA: propor quando ele revelar algo durável, conferir com `faro_buscar` antes, não inventar, avisar o que enviou. `service_role` ganhou `insert` em `knowledge_items`.
+- **Mapa comercial:** `docs/MAPA-IA-E-FARO.md` (3 caminhos, regras de confiança, tabela de capacidades, roteiro de 30 s, perguntas de cliente, limites). **Manter atualizado a cada capacidade nova da IA.**
+
+**Para o Leandro fazer (uma vez):** reconectar o conector no claude.ai para a IA ver a ferramenta nova e colar nas preferências do Claude: *"Quando eu revelar algo novo e durável sobre mim (valor, objetivo, preferência, decisão), proponha registrar no FARO."*
+
+**Decisões/limites:** o aviso é por **push**, não por WhatsApp (cada mensagem de WhatsApp tem custo e teto mensal; se ele preferir WhatsApp, é um passo à parte). A memória interna do Claude não é acessível: só chega o que a IA decide propor. Ideia futura: rotina semanal em que a IA revisa as conversas e propõe o que faltou.
+
 ## Aviso "Sua tela está desatualizada" e checklist com linhas alternadas (14/10)
 
 Pedido do Leandro: (1) ao sair de um computador e abrir o FARO em outro onde ele já estava aberto, aparecer um aviso de tela desatualizada, para não trabalhar numa tela parada e perder dados; (2) no checklist, linhas alternando cinza bem clarinho e branco (referência para saber qual carrinho e qual lixeira são de qual item) e um lápis para editar o nome sem excluir.

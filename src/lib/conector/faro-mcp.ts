@@ -7,7 +7,7 @@ import {
 } from "@/lib/learning-export";
 import { conhecimentoParaExportar, rotuloDoTipo, TIPOS_DE_CONHECIMENTO } from "@/lib/conhecimento";
 import type { KnowledgeItem, Synapse } from "@/lib/types";
-import { FERRAMENTAS_DE_ESCRITA, ehFerramentaDeEscrita, dataPorExtenso } from "./faro-escrita";
+import { FERRAMENTAS_DE_ESCRITA, ehFerramentaDeEscrita, dataPorExtenso, type Resposta } from "./faro-escrita";
 
 /**
  * Conector FARO: um servidor MCP (Model Context Protocol) que deixa a IA do
@@ -59,7 +59,7 @@ Como usar:
 
 O que está aqui é a palavra dele: prefira isso ao que você supõe. Responda em português do Brasil.
 
-Você também pode CRIAR no FARO, só coisas novas (nunca edita nem apaga): faro_criar_aniversarios (lista de Aniversários), faro_criar_tarefas e faro_criar_lembretes. Regra de ouro: toda criação tem 2 passos. Primeiro chame a ferramenta sem "confirmado": ela NÃO grava e devolve a prévia. Mostre a prévia ao Leandro, espere ele dizer que pode, e só então chame de novo, com os mesmos dados, e confirmado=true. Nunca confirme por conta própria. Se faltar um dado (dia, hora, mês), pergunte; não invente. Para guardar aprendizados, o caminho continua sendo "Conhecendo você" no app.`;
+Você também pode CRIAR no FARO, só coisas novas (nunca edita nem apaga): faro_criar_aniversarios (lista de Aniversários), faro_criar_tarefas e faro_criar_lembretes. Regra de ouro: toda criação tem 2 passos. Primeiro chame a ferramenta sem "confirmado": ela NÃO grava e devolve a prévia. Mostre a prévia ao Leandro, espere ele dizer que pode, e só então chame de novo, com os mesmos dados, e confirmado=true. Nunca confirme por conta própria. Se faltar um dado (dia, hora, mês), pergunte; não invente. APRENDIZADOS: quando o Leandro revelar algo novo e durável sobre si (valor, objetivo, preferência, decisão, projeto), ou decidir algo importante, proponha registrar com faro_propor_aprendizado. Vai como proposta para a aba "Para revisar"; o FARO avisa o Leandro e só vale depois que ele aprovar. Antes, confira com faro_buscar para não repetir; não invente; nunca mande saúde, medicamentos, senhas ou dados bancários. Depois de propor, diga a ele em uma linha o que você enviou.`;
 
 /** Dia de hoje na zona do Leandro, para a IA calcular "amanhã", "sexta" etc. sem errar. */
 export function hojeNoBrasil(agora: Date): string {
@@ -432,7 +432,7 @@ export async function responderMensagem(
   agora: Date,
   versao: string,
   // Sem isso o conector fica só de leitura (é o que os testes antigos esperam).
-  escrever?: (nome: string, args: Record<string, unknown>) => Promise<{ texto: string; erro?: boolean }>
+  escrever?: (nome: string, args: Record<string, unknown>) => Promise<Resposta>
 ): Promise<object | null> {
   const ehNotificacao = msg.id === undefined || msg.id === null;
   if (!msg || typeof msg.method !== "string") return ehNotificacao ? null : falha(msg?.id, -32600, "Requisição inválida");

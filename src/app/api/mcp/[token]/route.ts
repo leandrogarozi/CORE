@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { rowToKnowledgeItem, rowToSynapse } from "@/lib/board/mappers";
 import { hojeNoBrasil, responderMensagem, type AcervoDoFaro } from "@/lib/conector/faro-mcp";
 import { executarEscrita, type Repositorio } from "@/lib/conector/faro-escrita";
+import { enviarPushAoUsuario } from "@/lib/push/enviar";
 import {
   birthdayToInsertRow,
   reminderToInsertRow,
@@ -114,6 +115,35 @@ function repositorioDe(usuario: string): Repositorio {
       const { error } = await supabase.from("tasks").insert(taskToInsertRow(t, usuario));
       falhou("gravar tarefa", error);
     },
+    async conhecimentoExistente() {
+      const { data, error } = await supabase
+        .from("knowledge_items")
+        .select("tipo, titulo")
+        .eq("user_id", usuario)
+        .is("deleted_at", null)
+        .neq("status", "descartado");
+      falhou("ler conhecimento", error);
+      return data ?? [];
+    },
+    async inserirConhecimento(itens) {
+      const lote = new Date().toISOString();
+      const { error } = await supabase.from("knowledge_items").insert(
+        itens.map((k) => ({
+          id: k.id,
+          user_id: usuario,
+          tipo: k.tipo,
+          titulo: k.titulo,
+          conteudo: k.conteudo,
+          data_ref: k.dataRef,
+          origem: k.origem,
+          tags: k.tags,
+          status: "pendente",
+          fonte: "conector",
+          lote,
+        }))
+      );
+      falhou("gravar proposta", error);
+    },
     async inserirLembrete(r) {
       const { error } = await supabase.from("reminders").insert(reminderToInsertRow(r, usuario));
       falhou("gravar lembrete", error);
@@ -151,7 +181,12 @@ export async function POST(req: NextRequest, { params }: Contexto) {
   const repo = repositorioDe(usuario);
   const escrever = async (nome: string, args: Record<string, unknown>) => {
     usouFerramenta = true;
-    return executarEscrita(nome, args, repo, { hoje: hojeNoBrasil(agora), novoId: () => crypto.randomUUID() });
+    const r = await executarEscrita(nome, args, repo, { hoje: hojeNoBrasil(agora), novoId: () => crypto.randomUUID() });
+    // Tudo que a IA grava no FARO avisa o Leandro. Falha no aviso nunca desfaz nem esconde a gravação.
+    if (r.aviso) {
+      await enviarPushAoUsuario(createServiceClient(), usuario, { title: r.aviso.titulo, body: r.aviso.corpo }).catch(() => 0);
+    }
+    return r;
   };
   const respostas = (await Promise.all(lote.map((m) => responderMensagem(m, carregar, agora, "1.1.0", escrever)))).filter(
     (r): r is object => r !== null

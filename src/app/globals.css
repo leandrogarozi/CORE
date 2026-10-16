@@ -333,6 +333,7 @@ a{ color:inherit; }
 .sidebar-item.active{ background:var(--accent-soft); color:var(--accent); font-weight:600; }
 .sidebar-item-destaque{ color:var(--accent); background:var(--accent-soft); }
 .sidebar-item-destaque.active{ font-weight:600; box-shadow:inset 0 0 0 1px var(--accent); }
+.sidebar-badge{ margin-left:auto; min-width:18px; height:18px; padding:0 6px; border-radius:9px; background:var(--accent); color:#fff; font-size:11px; font-weight:700; line-height:18px; text-align:center; }
 .sidebar-item.disabled{ color:var(--text-faint); opacity:0.55; cursor:default; }
 .sidebar-section-bottom{ margin-top:auto; padding-top:12px; border-top:1px solid var(--border); }
 .today-date{ font-size:12.5px; color:var(--text-faint); }
