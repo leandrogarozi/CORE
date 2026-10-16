@@ -4,6 +4,14 @@ Documento vivo de decisões de produto e backlog do Leandro. Complementa o
 `README.md` (que é técnico/setup) — este aqui é sobre **o quê** e **por quê**.
 Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
 
+## Ajustes de 16/10 (noite): bolinho de aniversário e Plano de Estudo que não polui a agenda
+
+- **Aniversários saíram da linha da home** e viraram um **bolinho na barra de cima, ao lado de Avisos** (`AniversariosButton.tsx`). Apagado quando ninguém faz aniversário nos próximos **3 dias**; aceso (cor de destaque) quando há; com um **número** quando alguém faz aniversário **hoje**. Passar o mouse mostra "Em 3 dias: aniversário de Fulano" (uma linha por pessoa); clicar abre Aniversários. Na lista, a linha de quem faz de 1 a 3 dias muda de cor (`.bday-card.perto`); hoje mantém o contorno forte. A **barra de pesquisa ficou menor** (máx. 460 px) e o grupo de botões fica encostado à direita.
+- **Plano de Estudo** (`StudyPlansView.tsx`): antes só havia o ícone de lixeira para excluir e o "Pausar" apenas trocava a etiqueta, deixando as sessões atrasadas na agenda. Agora:
+  - **Cancelar plano** (botão por extenso): o plano some e as sessões não feitas saem da agenda (Lixeira); as feitas ficam no histórico.
+  - **Pausar**: tira da agenda as sessões em aberto (menos as que já têm tempo cronometrado) e guarda o plano com a etiqueta "pausado". **Retomar** refaz o calendário a partir de hoje.
+  - **Estratégia contra a poluição:** quando há sessões atrasadas aparece uma faixa vermelha no cartão com **"Refazer a partir de hoje"** (descarta as atrasadas e remonta) e **"Pausar plano"**. Ideia futura, se ele quiser: replanejar sozinho quando passar de N dias atrasado, ou a IA do app pausar o estudo por comando de voz.
+
 ## ▶ RETOMAR AQUI (atualizado em 16/10/2026, noite)
 
 **Objetivo dele agora:** (A) **liberar o FARO para teste** com pessoas dele e (B) **sincronizar com o Google Agenda**.

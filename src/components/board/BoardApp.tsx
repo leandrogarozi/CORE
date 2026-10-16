@@ -45,7 +45,7 @@ import { ProfileView } from "./ProfileView";
 import { TimerNudges } from "./TimerNudges";
 import { Sidebar, type ViewMode } from "./Sidebar";
 import { AvisosButton } from "./AvisosButton";
-import { AniversariosNaHome } from "./AniversariosNaHome";
+import { AniversariosButton } from "./AniversariosButton";
 import { SaveErrorToaster } from "./SaveErrorToaster";
 import { StaleScreenNotice } from "./StaleScreenNotice";
 import { BoltIcon, ChevronIcon, ExpandHorizontalIcon, MenuIcon, SettingsIcon, UserIcon, UsersGroupIcon, WarningIcon, WeekIcon } from "./icons";
@@ -210,6 +210,7 @@ function BoardShell() {
         <div className="brand">FARO</div>
         <TaskSearch onNavigate={handleSearchNavigate} />
         <div className="topbar-right">
+          <AniversariosButton onNavigate={selectView} />
           <AvisosButton onNavigate={selectView} />
           <ActiveTimerBadge />
           <div className="today-date mono">{longLabel(todayISO())}</div>
@@ -377,8 +378,6 @@ function BoardShell() {
               <RemindersButton onOpenFull={() => setViewMode("reminders")} />
             </div>
           </div>
-
-          {viewMode !== "dashboard" && <AniversariosNaHome onOpen={() => setViewMode("aniversarios")} />}
 
           {viewMode === "dashboard" ? (
             <Dashboard />

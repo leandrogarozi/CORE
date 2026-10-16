@@ -2848,6 +2848,38 @@ export function useBoard(userId: string | null) {
   );
 
   /**
+   * Pausar o estudo: o plano fica guardado e as sessões ainda em aberto saem da
+   * agenda (vão para a Lixeira), para não virarem uma pilha de atrasadas quando
+   * ele não consegue estudar. O que foi feito, e o que já tem tempo cronometrado,
+   * fica como está. Ao retomar, o calendário é refeito a partir de hoje.
+   * Devolve quantas sessões saíram da agenda.
+   */
+  const pauseStudyPlan = useCallback(
+    (planId: string): number => {
+      const comTempo = new Set(stateRef.current.taskTimeEntries.filter((e) => e.seconds > 0).map((e) => e.taskId));
+      const aTirar = stateRef.current.tasks.filter((t) => t.studyPlanId === planId && !t.done && !comTempo.has(t.id));
+      const agora = new Date().toISOString();
+      const ids = aTirar.map((t) => t.id);
+      apply((st) => ({
+        ...st,
+        studyPlans: st.studyPlans.map((p) => (p.id === planId ? { ...p, status: "pausado" as const } : p)),
+        tasks: st.tasks.filter((t) => !ids.includes(t.id)),
+        trashedTasks: [...st.trashedTasks, ...aTirar.map((t) => ({ ...t, deletedAt: agora }))],
+      }));
+      supabase.from("study_plans").update(studyPlanToUpdateRow({ status: "pausado" })).eq("id", planId).then(({ error }) => {
+        if (error) reportSaveError("pausar plano de estudo", error);
+      });
+      if (ids.length) {
+        supabase.from("tasks").update({ deleted_at: agora }).in("id", ids).then(({ error }) => {
+          if (error) reportSaveError("pausar plano de estudo: sessões", error);
+        });
+      }
+      return ids.length;
+    },
+    [apply, supabase]
+  );
+
+  /**
    * Monta (ou REFAZ) o calendário de sessões do plano.
    *
    * Antes isto só ACRESCENTAVA o que faltava, e foi o que estragou o plano da
@@ -4012,6 +4044,7 @@ export function useBoard(userId: string | null) {
     addStudyPlan,
     updateStudyPlan,
     deleteStudyPlan,
+    pauseStudyPlan,
     generateStudySessions,
     setTaskStatus,
     setQuick,

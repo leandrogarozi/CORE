@@ -86,7 +86,37 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
     if (novo.length) board.updateStudyPlan(plan.id, { weekDays: novo });
   }
 
+  // Sessões que já passaram do dia e não foram feitas: o que polui a agenda quando ele não está estudando.
+  const hojeISO = todayISO();
+  const atrasadas = sessoes.filter((t) => !t.done && t.date && t.date < hojeISO);
+  const emAberto = sessoes.filter((t) => !t.done);
+  const pausado = plan.status === "pausado";
+
+  function pausar() {
+    askConfirm(
+      `Pausar "${plan.name}"? As ${emAberto.length} sessões em aberto saem da sua agenda (vão pra Lixeira) e nada fica atrasado. As já feitas ficam no histórico. Quando retomar, o FARO redistribui a partir de hoje.`,
+      () => {
+        const n = board.pauseStudyPlan(plan.id);
+        setGerou(`Plano pausado. ${n} sessão(ões) saíram da agenda.`);
+      }
+    );
+  }
+
+  async function retomar() {
+    board.updateStudyPlan(plan.id, { status: "ativo" });
+    const n = await board.generateStudySessions(plan.id);
+    setGerou(n > 0 ? `Plano retomado: ${n} sessão(ões) na agenda a partir de hoje.` : "Plano retomado.");
+  }
+
+  function cancelar() {
+    askConfirm(
+      `Cancelar o plano "${plan.name}"? Ele some da lista e as ${emAberto.length} sessões ainda não feitas saem da sua agenda (vão pra Lixeira). As já concluídas ficam no histórico.`,
+      () => board.deleteStudyPlan(plan.id)
+    );
+  }
+
   async function gerar() {
+    if (pausado) board.updateStudyPlan(plan.id, { status: "ativo" });
     const n = await board.generateStudySessions(plan.id);
     setGerou(
       n > 0
@@ -103,6 +133,7 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
           <ChevronIcon />
         </button>
         <span className="study-card-name">{plan.name}</span>
+        {pausado && <span className="study-paused">pausado</span>}
         {m.naoCabeNoPrazo && (
           <span className="study-late" title="No ritmo atual não fecha no prazo">
             <WarningIcon /> fora do prazo
@@ -126,6 +157,32 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
           <TrashIcon />
         </button>
       </div>
+
+      {/* Estudo parado não pode poluir a agenda: sessão atrasada vira uma saída em um clique. */}
+      {atrasadas.length > 0 && !pausado && (
+        <div className="study-atraso">
+          <span>
+            <WarningIcon /> {atrasadas.length} {atrasadas.length === 1 ? "sessão atrasada" : "sessões atrasadas"} na sua agenda.
+          </span>
+          <span className="study-atraso-acoes">
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() =>
+                askConfirm(
+                  `Descartar as ${atrasadas.length} sessões atrasadas e refazer o calendário a partir de hoje? As atrasadas vão pra Lixeira; as já feitas ficam.`,
+                  gerar
+                )
+              }
+            >
+              Refazer a partir de hoje
+            </button>
+            <button type="button" className="btn btn-ghost" onClick={pausar}>
+              Pausar plano
+            </button>
+          </span>
+        </div>
+      )}
 
       {/* A resposta que tira a montanha da frente: quanto por dia, e quando acaba. */}
       <div className="study-answer">
@@ -380,8 +437,11 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
 
           <div className="edit-actions study-actions">
             {gerou && <span className="study-gerou">{gerou}</span>}
-            <button type="button" className="btn btn-ghost" onClick={() => board.updateStudyPlan(plan.id, { status: plan.status === "pausado" ? "ativo" : "pausado" })}>
-              {plan.status === "pausado" ? "Retomar" : "Pausar"}
+            <button type="button" className="btn btn-ghost danger-hover" onClick={cancelar}>
+              Cancelar plano
+            </button>
+            <button type="button" className="btn btn-ghost" onClick={pausado ? retomar : pausar}>
+              {pausado ? "Retomar" : "Pausar"}
             </button>
             <button type="button" className="btn btn-accent" onClick={gerar}>
               Distribuir na agenda

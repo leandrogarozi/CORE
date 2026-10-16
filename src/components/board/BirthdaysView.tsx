@@ -16,6 +16,7 @@ import {
   rotuloDosDias,
 } from "@/lib/board/aniversarios";
 import { todayISO } from "@/lib/date-utils";
+import { DIAS_DE_AVISO_DO_ANIVERSARIO } from "./AniversariosButton";
 import type { Birthday } from "@/lib/types";
 
 type Filtro = "todos" | Birthday["category"];
@@ -34,7 +35,7 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
   const zap = linkDoWhatsApp(pessoa);
 
   return (
-    <div className={"bday-card" + (dias === 0 ? " hoje" : "")}>
+    <div className={"bday-card" + (dias === 0 ? " hoje" : dias <= DIAS_DE_AVISO_DO_ANIVERSARIO ? " perto" : "")}>
       <div className="bday-head">
         <button type="button" className="synapse-card-toggle" aria-expanded={aberto} onClick={() => setAberto((v) => !v)}>
           <ChevronIcon />
