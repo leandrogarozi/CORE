@@ -12,6 +12,26 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
   - **Pausar**: tira da agenda as sessões em aberto (menos as que já têm tempo cronometrado) e guarda o plano com a etiqueta "pausado". **Retomar** refaz o calendário a partir de hoje.
   - **Estratégia contra a poluição:** quando há sessões atrasadas aparece uma faixa vermelha no cartão com **"Refazer a partir de hoje"** (descarta as atrasadas e remonta) e **"Pausar plano"**. Ideia futura, se ele quiser: replanejar sozinho quando passar de N dias atrasado, ou a IA do app pausar o estudo por comando de voz.
 
+## Revisão de layout dos formulários: Aniversários, Manutenção e base para o resto (16/10, noite)
+
+**Pedido do Leandro (voz, viajando):** campos desorganizados (frases em volta de bolinhas/caixas, texto atropelado, nome em cima e data embaixo quando poderiam ficar lado a lado), o item aberto da Manutenção com informação demais embolando a vista, botões difíceis de acertar no celular. Quer uma revisão **geral e profunda**: pegar o que já funciona e nunca foi reclamado (a lista de propriedades da tarefa, a Manutenção fechada) e adaptar aos lugares que estão fora do padrão; também para web e celular.
+
+**Padrão adotado (para toda tela nova e para as que ainda faltam revisar):**
+1. **Lista de propriedades (`.prop-list` / `.prop-row`):** rótulo à esquerda (124 px, pode quebrar em duas linhas, nunca invade o campo), valor à direita; em grade de 2 colunas quando cabe. **Todo tipo de campo** (texto, número, data, hora, tel, e-mail, select) dentro de `.prop-value` fica "fantasma": sem caixa até passar o mouse/focar. Número é curto (110 px), data tem largura de data.
+2. **Várias peças na mesma linha** (dia + mês + ano) usam `.prop-value.prop-multi`: ficam lado a lado e quebram juntas, nunca empilham em coluna.
+3. **Interruptor com frase:** usar `ToggleSwitch` (nunca checkbox solto); a frase ao lado quebra de linha em vez de ser cortada.
+4. **Seções com título** (`.maint-secao` + `.maint-secao-titulo`, caixa-alta pequena com linha embaixo) para separar blocos de um mesmo item.
+5. **Celular (até 520 px):** o rótulo vai **em cima** do campo, ocupando a linha toda; cabeçalhos de linha com muitos controles **quebram em linhas** (nome na primeira, etiquetas/botões na segunda); alvos de toque de 36 a 40 px nos sininhos, zaps e botões das linhas.
+
+**Feito:**
+- **Aniversários:** o cartão aberto agora tem Nome | Dia/mês/ano na mesma linha, "Quem é" e Telefone, e a "Mensagem automática" virou interruptor com explicação ao lado (antes: caixinha por cima do texto). Rodapé com a dica à esquerda e "Excluir" à direita.
+- **Manutenção (item aberto):** dividido em **Prazo** (a cada, aguardando começar, início do ciclo), **Anotações**, **Quando o FARO avisa** (Comprar, Fazer, Venceu e não fiz, mais a mensagem do WhatsApp) e **Histórico**. Cada "momento" é uma linha com título, a frase curta ("[7] dias antes do vencimento", sem repetir "Comprar") e, do outro lado, "Comprei" + sininho + zap; sem a palavra duplicada. No celular o item e o cabeçalho do grupo deixaram de estourar a tela.
+- **Plano de Estudo e Projetos** pegam o mesmo visual dos campos pela regra global.
+
+**Como foi testado:** uma maquete que empacota as **telas reais** (Aniversários, Manutenção, Plano de Estudo) com o CSS real e dados de mentira, em 1280 e 390 px (sem nenhum elemento passando da borda no celular). **Não foi testado no app de verdade nem em iPhone.**
+
+**Ainda NÃO revisado tela a tela (próxima rodada, pedir prints dele):** Configurações, Projetos (linha das etapas), Lembretes, Checklists, Compras, Livros, Dieta, Medicamentos, Dashboard. Todos ganharam o visual base dos campos, mas ninguém conferiu a composição. Método: rodar a maquete (`esboço em /tmp`, esbuild + Playwright; recriar se a sessão for nova) mais um print dele do que estiver estranho.
+
 ## Revisão geral dos campos de formulário: fim do "quadradinho de contorno preto" (pedido em 16/10)
 
 **Pedido do Leandro (print de Aniversários, Plano de Estudo, Projetos e Manutenção como referência boa):** vários campos estavam com a caixa quadrada de contorno preto do navegador, fora do layout; queria tudo limpo como a Manutenção.

@@ -1349,15 +1349,15 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 /* Lista de propriedades (ícone + nome + valor), duas colunas quando cabe.
    Os controles ficam "invisíveis" até o mouse passar por cima — a tela fica
    limpa e mesmo assim tudo continua editável no clique. */
-.prop-list{ display:grid; grid-template-columns:repeat(auto-fit, minmax(290px, 1fr)); gap:2px 22px; margin:6px 0 10px; }
-.prop-row{ display:grid; grid-template-columns:104px minmax(0, 1fr); align-items:center; gap:6px; min-height:30px; }
+.prop-list{ display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:4px 28px; margin:6px 0 10px; }
+.prop-row{ display:grid; grid-template-columns:124px minmax(0, 1fr); align-items:center; gap:8px; min-height:34px; }
 .prop-label{
   display:flex; align-items:center; gap:7px; min-width:0;
-  font-size:12px; color:var(--text-muted); white-space:nowrap;
+  font-size:12px; color:var(--text-muted); line-height:1.25;
 }
 .prop-label svg{ width:13px; height:13px; flex:none; color:var(--text-faint); }
 .prop-value{ min-width:0; display:flex; align-items:center; }
-.prop-value > select, .prop-value > input[type="text"],
+.prop-value > select, .prop-value > input:where(:not([type="checkbox"]):not([type="radio"])),
 .prop-value > .time-picker-btn, .prop-value > .reminder-date-btn,
 .prop-value > .category-picker-btn, .prop-value > .attachment-field-btn{
   width:100%; box-sizing:border-box; min-height:28px;
@@ -1368,12 +1368,12 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .prop-value > .category-picker-btn, .prop-value > .attachment-field-btn{
   display:flex; align-items:center; gap:6px; white-space:nowrap; overflow:hidden;
 }
-.prop-value > select:hover, .prop-value > input[type="text"]:hover,
+.prop-value > select:hover, .prop-value > input:where(:not([type="checkbox"]):not([type="radio"])):hover,
 .prop-value > .time-picker-btn:hover, .prop-value > .reminder-date-btn:hover,
 .prop-value > .category-picker-btn:hover, .prop-value > .attachment-field-btn:hover{
   background:var(--surface-2); border-color:var(--border);
 }
-.prop-value > select:focus, .prop-value > input[type="text"]:focus{
+.prop-value > select:focus, .prop-value > input:where(:not([type="checkbox"]):not([type="radio"])):focus{
   outline:none; background:var(--surface-2); border-color:var(--accent);
 }
 .prop-value > .reminder-date-btn svg{ color:var(--text-faint); }
@@ -1381,7 +1381,17 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .prop-value > .reminder-date-btn{ white-space:normal; }
 .prop-value > .reminder-date-btn span{ overflow:visible; white-space:normal; }
 .prop-value > .attachment-field-btn.has-attachments{ color:var(--accent); }
-.prop-value input[type="text"]::placeholder{ color:var(--text-faint); }
+.prop-value input::placeholder{ color:var(--text-faint); }
+/* Tamanhos: número é curtinho, data tem largura de data; só texto ocupa a linha toda. */
+.prop-value > input[type="number"]{ width:110px; }
+.prop-value > input[type="date"], .prop-value > input[type="time"]{ width:auto; min-width:150px; }
+/* Várias peças na mesma linha (ex.: dia + mês + ano): quebram juntas, nunca empilham em coluna. */
+.prop-value.prop-multi{ gap:8px; flex-wrap:wrap; }
+.prop-value.prop-multi > input[type="number"]{ width:64px; }
+.prop-value.prop-multi > input.prop-ano{ width:92px; }
+.prop-value.prop-multi > select{ width:auto; flex:1 1 110px; min-width:0; }
+/* Linha com interruptor + frase explicando: a frase quebra, não é cortada. */
+.prop-value .challenging-toggle{ flex-wrap:wrap; row-gap:4px; }
 
 /* ID da tarefa: só leitura, mas selecionável — dá pra copiar pelo botão ou
    pelo teclado. */
@@ -1430,7 +1440,7 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 }
 .task-badge.task-challenging-badge svg{ width:9px; height:9px; }
 .challenging-toggle{ display:flex; align-items:center; gap:9px; min-width:0; }
-.challenging-hint{ font-size:11.5px; color:var(--text-faint); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.challenging-hint{ font-size:11.5px; color:var(--text-faint); line-height:1.4; flex:1 1 180px; min-width:0; }
 
 /* Pedido de justificativa pra adiar */
 .postpone-panel{ max-width:460px; display:flex; flex-direction:column; gap:11px; text-align:left; }
@@ -2989,8 +2999,8 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .bday-cat.cat-familiar{ background:color-mix(in srgb, var(--success) 16%, var(--surface)); color:var(--success); }
 .bday-quando{ font-size:11.5px; color:var(--text-faint); }
 .bday-body{ padding:4px 12px 12px 34px; border-top:1px solid var(--linha); }
-.bday-dia-mes{ display:flex; gap:6px; flex-wrap:wrap; }
-.bday-dia-mes input[type=number]:first-child{ width:62px; }
+.bday-acoes{ margin-top:10px; }
+.bday-acoes-dica{ margin-right:auto; }
 .bday-msg{ width:100%; resize:vertical; font:inherit; font-size:12.5px; padding:6px 8px; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--text); }
 
 /* Home: Reuniões ao lado de Lembretes */
@@ -3034,3 +3044,48 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 }
 /* Dentro de uma caixa que rola (o pop-up de anotação): a barra fica colada no topo da caixa. */
 .rte-toolbar.colada{ position:sticky; top:8px; z-index:5; }
+
+/* ==== Manutenção: item aberto em seções (Prazo, Anotações, Avisos, Histórico) ==== */
+.maint-secao{ margin-top:16px; }
+.maint-secao:first-child{ margin-top:4px; }
+.maint-secao-titulo{
+  font-size:10.5px; font-weight:var(--fw-titulo); letter-spacing:.06em; text-transform:uppercase;
+  color:var(--text-faint); margin-bottom:6px; padding-bottom:5px; border-bottom:1px solid var(--linha);
+}
+.maint-secao .maint-explain{ margin:2px 0 8px; }
+.maint-secao .prop-row-empilhada{ margin-top:10px; }
+.maint-explain svg{ width:11px; height:11px; vertical-align:-1px; }
+/* Cada "momento" vira uma linha limpa: texto de um lado, ações do outro. */
+.maint-momentos{ border-top:none; padding-top:0; margin-top:16px; gap:0; }
+.maint-momento{ padding:9px 0; border-bottom:1px solid var(--linha); gap:8px 10px; }
+.maint-momento:last-of-type{ border-bottom:none; }
+.maint-momento-texto strong{ font-size:13px; }
+.maint-linha-dias{ font-size:12.5px; }
+.maint-linha-dias input, .maint-momento-dias input{
+  width:64px; background:var(--surface); border:1px solid var(--linha); border-radius:var(--r-2);
+  padding:5px 8px; font-size:12.5px; color:var(--text);
+}
+.maint-momento-icones .icon-btn{ width:32px; height:32px; border-radius:var(--r-2); }
+.maint-momento-icones .icon-btn svg{ width:15px; height:15px; }
+@media (max-width:640px){
+  .maint-momento-texto{ flex-basis:100%; }
+  .maint-momento-icones{ margin-left:0; }
+  .maint-momento-icones .icon-btn{ width:40px; height:40px; }
+}
+
+/* ==== Celular: cabeçalhos com muitos controles quebram em linhas, nada passa da borda ==== */
+@media (max-width:640px){
+  .maint-asset-head, .maint-item-head{ flex-wrap:wrap; row-gap:6px; }
+  .maint-asset-name{ flex:1 1 calc(100% - 84px); min-width:0; }
+  .maint-item-name{ flex:1 1 calc(100% - 36px); min-width:0; }
+  .maint-item-resumo{ flex:1 1 90px; }
+  .maint-item-head .btn, .maint-item-head .icon-btn{ min-height:36px; }
+  .maint-item-head .icon-btn{ min-width:36px; }
+}
+@media (max-width:520px){
+  /* No celular o rótulo vai em cima e o campo ocupa a linha toda: nada de coluna de 124px espremendo o valor. */
+  .prop-row:not(.prop-row-empilhada){ grid-template-columns:minmax(0, 1fr); gap:2px; padding:4px 0; }
+  .prop-row:not(.prop-row-empilhada) .prop-label{ font-size:11.5px; }
+  .bday-form .quickadd-input{ flex-basis:100%; }
+  .bday-head .icon-btn{ min-width:36px; min-height:36px; }
+}

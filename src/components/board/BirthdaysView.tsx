@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { BellIcon, GiftIcon, ChevronIcon, TrashIcon, WhatsAppIcon } from "./icons";
+import { ToggleSwitch } from "./ToggleSwitch";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import {
   CATEGORIAS_DE_ANIVERSARIO,
@@ -93,7 +94,7 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
             </label>
             <div className="prop-row">
               <span className="prop-label">Dia e mês</span>
-              <div className="prop-value bday-dia-mes">
+              <div className="prop-value prop-multi">
                 <input
                   type="number"
                   min={1}
@@ -121,7 +122,8 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
                   type="number"
                   min={1900}
                   max={2100}
-                  placeholder="ano (opcional)"
+                  className="prop-ano"
+                  placeholder="ano"
                   defaultValue={pessoa.year ?? ""}
                   aria-label="Ano de nascimento"
                   onBlur={(e) => {
@@ -173,21 +175,23 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
             </div>
           </label>
 
-          <div className="prop-row">
-            <span className="prop-label">Mensagem automática</span>
-            <div className="prop-value">
-              <label className="challenging-toggle">
-                <input
-                  type="checkbox"
-                  checked={pessoa.autoMessage}
-                  onChange={(e) => board.updateBirthday(pessoa.id, { autoMessage: e.target.checked })}
-                />
-                <span className="challenging-hint">
-                  {pessoa.autoMessage
-                    ? "Marcado. O envio sozinho ainda não está ligado: quando ligarmos, esta pessoa já entra."
-                    : "Quando o envio automático existir, manda no dia sem você precisar."}
-                </span>
-              </label>
+          <div className="prop-list">
+            <div className="prop-row">
+              <span className="prop-label">Mensagem automática</span>
+              <div className="prop-value">
+                <label className="challenging-toggle">
+                  <ToggleSwitch
+                    checked={pessoa.autoMessage}
+                    ariaLabel="Mensagem automática"
+                    onChange={(v) => board.updateBirthday(pessoa.id, { autoMessage: v })}
+                  />
+                  <span className="challenging-hint">
+                    {pessoa.autoMessage
+                      ? "Marcado. O envio sozinho ainda não está ligado: quando ligarmos, esta pessoa já entra."
+                      : "Quando o envio automático existir, manda no dia sem você precisar."}
+                  </span>
+                </label>
+              </div>
             </div>
           </div>
 
@@ -204,13 +208,13 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
             </div>
           </label>
 
-          <div className="edit-actions">
+          <div className="edit-actions edit-actions-split bday-acoes">
             {zap ? (
               <a className="btn btn-ghost" href={zap} target="_blank" rel="noopener noreferrer">
                 <WhatsAppIcon /> Mandar parabéns agora
               </a>
             ) : (
-              <span className="challenging-hint">Cadastre o telefone para poder mandar os parabéns pelo WhatsApp.</span>
+              <span className="challenging-hint bday-acoes-dica">Cadastre o telefone para poder mandar os parabéns pelo WhatsApp.</span>
             )}
             <button
               type="button"

@@ -361,6 +361,8 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
 
       {aberto && (
         <div className="maint-item-body">
+          <div className="maint-secao">
+          <div className="maint-secao-titulo">Prazo</div>
           <div className="prop-list">
             <label className="prop-row">
               <span className="prop-label">A cada (meses)</span>
@@ -434,7 +436,20 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
               </label>
             )}
           </div>
+          {asset.tracksOdometer && (
+            <div className="maint-explain">
+              Preencha os dois quando o serviço vencer por tempo <strong>ou</strong> por {asset.odometerUnit} — o FARO usa o que chegar primeiro. Deixe um vazio se só um vale.
+            </div>
+          )}
+          {st.dueDateByTime && st.dueDateByUse && (
+            <div className="maint-explain">
+              Por tempo venceria {fmtShortDate(st.dueDateByTime)}; pelo uso, {fmtShortDate(st.dueDateByUse)}. Vale o que vem primeiro.
+            </div>
+          )}
+          </div>
 
+          <div className="maint-secao">
+          <div className="maint-secao-titulo">Anotações</div>
           <label className="prop-row prop-row-empilhada">
             <span className="prop-label">Observação</span>
             <div className="prop-value maint-msg">
@@ -449,18 +464,19 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
             </div>
           </label>
 
-          <div className="maint-momentos">
-            <div className="maint-momentos-titulo">Quando o FARO avisa</div>
+          </div>
+
+          <div className="maint-secao maint-momentos">
+            <div className="maint-secao-titulo">Quando o FARO avisa</div>
             <div className="maint-explain">
-              O aviso no celular (push) chega sempre. Em cada momento, o sininho liga o aviso também dentro do app e o
-              WhatsApp liga por lá.
+              O aviso no celular chega sempre. Em cada momento, o <BellIcon /> liga o aviso também dentro do app e o{" "}
+              <WhatsAppIcon /> liga o WhatsApp.
             </div>
 
             <div className="maint-momento">
               <div className="maint-momento-texto">
                 <strong>Comprar</strong>
                 <span className="maint-linha-dias">
-                  Comprar
                   <input
                     type="number"
                     min={0}
@@ -472,7 +488,7 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
                       board.updateMaintenanceItem(item.id, { buyDaysBefore: Number.isFinite(v) && v > 0 ? Math.round(v) : null });
                     }}
                   />
-                  dias antes do vencimento:
+                  dias antes do vencimento
                 </span>
                 <span className="maint-momento-dica">
                   {item.buyDaysBefore
@@ -535,7 +551,6 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
               <div className="maint-momento-texto">
                 <strong>Fazer</strong>
                 <span className="maint-linha-dias">
-                  Avisar
                   <input
                     type="number"
                     min={0}
@@ -547,7 +562,7 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
                       if (Number.isFinite(v) && v >= 0) board.updateMaintenanceItem(item.id, { alertDaysBefore: Math.round(v) });
                     }}
                   />
-                  dias antes do vencimento:
+                  dias antes do vencimento
                 </span>
                 <span className="maint-momento-dica">e também no dia em que vence.</span>
               </div>
@@ -612,7 +627,6 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
                 </button>
               </span>
             </div>
-          </div>
 
           {/* Este campo começou como "Anotações" e virou a MENSAGEM. Ele
               percebeu que o "Fiz" já guarda observação por serviço, então o
@@ -635,21 +649,11 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
               />
             </div>
           </label>
-
-          <div className="maint-explain">
-            Preencha os dois quando o serviço vencer por tempo <strong>ou</strong> por{" "}
-            {asset.odometerUnit} — o FARO usa o que chegar primeiro. Deixe um vazio se só um vale.
           </div>
-          {st.dueDateByTime && st.dueDateByUse && (
-            <div className="maint-explain">
-              Por tempo venceria {fmtShortDate(st.dueDateByTime)}; pelo uso, {fmtShortDate(st.dueDateByUse)}.
-              Vale o que vem primeiro.
-            </div>
-          )}
 
           {historico.length > 0 && (
-            <div className="maint-history">
-              <span className="prop-label">Histórico</span>
+            <div className="maint-history maint-secao">
+              <div className="maint-secao-titulo">Histórico</div>
               {historico.slice(0, 6).map((s) => (
                 <div className="maint-history-row" key={s.id}>
                   <span className="mono">{fmtShortDate(s.doneOn)}</span>
