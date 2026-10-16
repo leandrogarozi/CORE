@@ -42,7 +42,6 @@ import { ConfirmModal } from "./ConfirmModal";
 import { FaroMascot } from "./FaroMascot";
 import { ActiveTimerBadge } from "./TimerButton";
 import { ProfileView } from "./ProfileView";
-import { MeetingButton } from "./MeetingButton";
 import { TimerNudges } from "./TimerNudges";
 import { Sidebar, type ViewMode } from "./Sidebar";
 import { AvisosButton } from "./AvisosButton";
@@ -210,7 +209,7 @@ function BoardShell() {
         <div className="brand">FARO</div>
         <TaskSearch onNavigate={handleSearchNavigate} />
         <div className="topbar-right">
-          <MeetingButton />
+          <AvisosButton onNavigate={selectView} />
           <ActiveTimerBadge />
           <div className="today-date mono">{longLabel(todayISO())}</div>
           <button className="today-btn" type="button" onClick={goToday}>
@@ -375,7 +374,6 @@ function BoardShell() {
                 Reuniões
               </button>
               <RemindersButton onOpenFull={() => setViewMode("reminders")} />
-              <AvisosButton onNavigate={selectView} />
             </div>
           </div>
 

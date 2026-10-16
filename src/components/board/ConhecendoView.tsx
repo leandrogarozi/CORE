@@ -77,15 +77,22 @@ function ResumoDoFaro({ aprovados, aprovadosDepoisDoResumo }: { aprovados: numbe
         </p>
       )}
       {erro && <p className="know-resumo-erro">{erro}</p>}
-      {emDia && <p className="know-feito">✓ Resumo em dia: nada novo foi aprovado desde que ele foi escrito.</p>}
-      {dados?.resumo && novidades > 0 && (
-        <p className="know-feito know-feito-aviso">
-          {novidades} {novidades === 1 ? "item aprovado ou editado" : "itens aprovados ou editados"} depois deste resumo. Vale atualizar.
+      {dados?.resumo && (
+        <p className="know-feito">
+          ✓ Você atualizou o resumo em {quando}.
+          {emDia ? " Nada novo foi aprovado desde então." : ""}
+          {novidades > 0 && (
+            <span className="know-feito-aviso">
+              {" "}
+              {novidades} {novidades === 1 ? "item aprovado ou editado" : "itens aprovados ou editados"} depois dele: vale atualizar.
+            </span>
+          )}
         </p>
       )}
+      {/* Azul só quando ainda não existe resumo; depois fica cinza, como "Atualizar conhecimento". */}
       <button
         type="button"
-        className={"btn " + (emDia ? "btn-ghost" : "btn-accent")}
+        className={"btn " + (dados?.resumo ? "btn-ghost" : "btn-accent")}
         disabled={gerando || !aprovados}
         onClick={gerar}
       >

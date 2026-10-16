@@ -115,18 +115,17 @@ export function AvisosButton({ onNavigate }: { onNavigate: (modo: ViewMode) => v
 
   return (
     <>
+      {/* Só o ícone, na barra de cima: a home já tem Reuniões e Lembretes e ficava cheia. */}
       <button
         ref={btnRef}
         type="button"
-        className="reminders-btn"
+        className={"icon-btn aviso-icon-btn" + (naoLidos ? " aviso-novo" : "") + (open ? " active" : "")}
+        aria-label={naoLidos ? `Avisos: ${naoLidos} não lido(s)` : "Avisos"}
         title={naoLidos ? `${naoLidos} aviso(s) para você ver` : "Avisos do FARO"}
         onClick={alternar}
       >
-        <span className={"reminders-btn-bell" + (naoLidos ? " aviso-novo" : "")}>
-          <InboxIcon />
-          {naoLidos > 0 && <span className="reminders-btn-count aviso-count">{naoLidos > 9 ? "9+" : naoLidos}</span>}
-        </span>
-        Avisos
+        <InboxIcon />
+        {naoLidos > 0 && <span className="reminders-btn-count aviso-count">{naoLidos > 9 ? "9+" : naoLidos}</span>}
       </button>
       {open &&
         pos &&

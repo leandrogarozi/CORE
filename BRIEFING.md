@@ -5316,6 +5316,11 @@ Pedido do Leandro: um botão de **Reuniões** na home, discreto, para achar ráp
 - **Conhecendo você:** quem já trouxe itens da IA vê "✓ Você já trouxe N itens (última vez em dd/mm)" e um botão cinza **Atualizar conhecimento** (o azul só aparece se nunca trouxe). O resumo mostra "✓ Resumo em dia" com botão cinza e só vira azul quando há item aprovado/editado depois dele ("N itens aprovados ou editados depois deste resumo"). Para isso `KnowledgeItem` ganhou `updatedAt`.
 - Push avulso agora registra o motivo da falha (`enviar.ts`). Pendência do aviso por push: só há **1 aparelho inscrito** (iPhone, de 03/10); se o aviso não chegar, rodar "testar notificação" em Configurações e religar as notificações no aparelho.
 
+## Ajustes de 16/10 (depois da caixa de Avisos)
+
+- **Barra de cima:** o botão **Avisos** passou a ser só um ícone (caixa de entrada, com a bolinha de não lidos) na **barra do topo, no lugar do play de reunião** (`MeetingButton`), porque a home estava cheia (Reuniões + Lembretes + Avisos). A home volta a ter só **Reuniões** e **Lembretes**. O botão Reuniões leva à tela de Reuniões, onde se cria uma reunião nova; por isso o play de iniciar reunião saiu da barra. **O componente `MeetingButton.tsx` continua no código, sem uso**, caso ele queira o play de volta.
+- **Conhecendo você, resumo:** igual ao "trazer o que a IA sabe": depois de gerado mostra "✓ Você atualizou o resumo em dd/mm" com o botão **cinza** (clicável); só é azul quando ainda não existe resumo. Se entrou ou mudou algo aprovado depois, a frase acrescenta, em destaque, "N itens aprovados ou editados depois dele: vale atualizar" (sem pintar o botão de azul).
+
 ## Aviso "Sua tela está desatualizada" e checklist com linhas alternadas (14/10)
 
 Pedido do Leandro: (1) ao sair de um computador e abrir o FARO em outro onde ele já estava aberto, aparecer um aviso de tela desatualizada, para não trabalhar numa tela parada e perder dados; (2) no checklist, linhas alternando cinza bem clarinho e branco (referência para saber qual carrinho e qual lixeira são de qual item) e um lápis para editar o nome sem excluir.
