@@ -2971,6 +2971,16 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .meeting-new-title{ display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:var(--fw-forte); color:var(--text-muted); }
 .meeting-new-row{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
 .meeting-new-row input[type=text]{ min-width:130px; flex:1 1 140px; }
+/* Campos sem a borda preta do navegador: fundo cinza clarinho, como o resto do app. */
+.meeting-new-row input[type=text], .meeting-new-row input[type=date]{
+  height:var(--ctl-h); padding:0 12px; border:1px solid transparent; border-radius:var(--r-2);
+  background:var(--segmento-fundo); font-size:12.5px; color:var(--text);
+  transition:background var(--mov), border-color var(--mov);
+}
+.meeting-new-row input::placeholder{ color:var(--text-faint); }
+.meeting-new-row input[type=text]:focus, .meeting-new-row input[type=date]:focus{
+  outline:none; background:var(--surface); border-color:var(--accent);
+}
 .meeting-new-row .meeting-new-nome{ flex:2 1 240px; }
 .meeting-new-ok{ font-size:12px; color:var(--success); }
 .meeting-modo{ display:inline-flex; border:1px solid var(--linha); border-radius:var(--r-2); overflow:hidden; flex:none; }
