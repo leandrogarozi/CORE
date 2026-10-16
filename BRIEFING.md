@@ -4,6 +4,51 @@ Documento vivo de decisões de produto e backlog do Leandro. Complementa o
 `README.md` (que é técnico/setup) — este aqui é sobre **o quê** e **por quê**.
 Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
 
+## ▶ RETOMAR AQUI (atualizado em 16/10/2026, noite)
+
+**Objetivo dele agora:** (A) **liberar o FARO para teste** com pessoas dele e (B) **sincronizar com o Google Agenda**.
+
+### O que está no ar hoje (resumo)
+- App completo em produção (https://core-app-seven-gamma.vercel.app, deploy automático a cada push na branch `claude/new-session-7uftof`), Supabase `dfrqgwpujodnwpbsgdrq`, projeto Vercel `core-app`.
+- **IA de dentro do app (mascote, "Toque e fale"):** cria tarefa, lembrete, reunião; marca tarefa como feita; acrescenta texto na anotação de tarefa/reunião; anota gasto; adiciona aniversário e liga/desliga o lembrete e o WhatsApp dele; registra humor, sono, água, dieta; reajusta plano de estudo. Sempre com cartão de confirmação. Código em `src/lib/ia/`.
+- **Conector FARO (MCP) para o Claude externo:** lê o cérebro (Conhecendo você, sinapses, ideias, livros), lê a **agenda** (`faro_ver_agenda`), cria aniversários, tarefas (reunião = tag `reuniao`) e lembretes, marca como feita, acrescenta anotação e **propõe aprendizados** para a aba "Para revisar". Toda escrita pede confirmação no servidor. Saúde fica de fora. Código em `src/lib/conector/`. Mapa explicado (também para vender): `docs/MAPA-IA-E-FARO.md`.
+- **Avisos:** ícone na barra de cima (tabela `faro_avisos`), push e bolinha em "Conhecendo você". Aniversários: lista, lembrete anual às 9h com WhatsApp opcional, linha discreta na home.
+- **Segurança verificada em 16/10:** RLS ligado em todas as tabelas e toda política é `auth.uid() = user_id`; alertas do Supabase tratados (funções de gatilho sem `execute` público; `search_path` fixado em `faro_task_code`). Sobrou: proteção contra senha vazada (é um interruptor no painel do Supabase) e `search_path` de `faro_jobs.rolar_tarefas_que_seguem` (função do agendador, mexer com cuidado).
+
+### Minha parte (Leandro) — só ele consegue
+1. **Testar a notificação do celular:** Configurações → "testar notificação". Só há **1 aparelho inscrito** (iPhone de 03/10). Se não chegar, religar as notificações naquele aparelho (app instalado na tela de início). Sem isso o push de avisos da IA e dos lembretes não chega.
+2. **Mac Mini:** rodar o comando do instalador do backup (pendente desde 14/10).
+3. **Reconectar o conector no claude.ai** para ver as ferramentas novas (agenda, concluir, anotar). O Claude recusa o mesmo endereço duas vezes: adicionar com `?v=3` no fim do endereço. Colar nas preferências do Claude a instrução de propor aprendizados (texto em `docs/MAPA-IA-E-FARO.md`).
+4. **Painel do Supabase → Authentication → Passwords:** ligar "Leaked password protection" (1 clique).
+5. **Liberar o acesso do Claude ao time da Vercel** (o conector Vercel do Claude está dando 403): sem isso eu não leio os registros do servidor.
+6. **Decisões e materiais:** (a) onde está hospedado `leandrogarozi.com.br` (Hostinger?) e se o funil fica em `cadastro.leandrogarozi.com.br`; (b) trazer a landing page comercial (destrava o funil de cadastro de clientes, plano na seção "Funil de cadastro de clientes"); (c) **Google Agenda**: confirmar o caminho (abaixo) e, quando chegar a hora, fazer os ~10 min no Google Cloud.
+
+### Próximos passos mais importantes (ordem sugerida)
+**Trilha B — Google Agenda (leva dias de espera do Google, então começar cedo)**
+1. **Termos de uso + política de privacidade** (páginas públicas simples, LGPD, dados de saúde, exportar e apagar conta). **É o primeiro item porque o Google exige a política de privacidade e o domínio verificado para liberar o escopo de calendário** e porque é pré-requisito do teste.
+2. **Abrir o pedido de verificação do Google** (OAuth, escopo `calendar.events`, 3 a 5 dias úteis) em paralelo, para quando houver testadores. Precisa do item 1 e do domínio.
+3. **Sync FARO → Google Agenda só para o Leandro, por conta de serviço** (decidido em 14/09, ver "Próximos passos confirmados" abaixo): sobe a tarefa marcada como **evento** (`tasks.is_event`) e as **reuniões**; mão única; guarda o id do evento na tarefa; atualiza e apaga junto. Faço o lado do FARO; ele faz o Google Cloud (~10 min) e cola a credencial na Vercel. Depois evoluir para o OAuth de cada cliente.
+   - Em aberto: **mão dupla** (trazer eventos criados no Google para o FARO) fica para depois; e o conector já lê a agenda do FARO, então a IA externa enxerga os dois lados quando o Google estiver ligado.
+
+**Trilha A — liberar para teste (do "Roteiro até o teste", 03/10; status em 16/10)**
+4. **Isolamento dos dados:** RLS e advisors feitos (ver acima). **Falta:** prova com duas contas reais (uma não vê nada da outra) e conferir que as rotas do servidor (conector, backup, WhatsApp) só tocam o usuário certo.
+5. **Conta nova limpa e sem "Leandro" fixo:** ainda há o nome dele no texto da IA do app (`INSTRUCAO_DO_FARO`), nas instruções do conector, em telas de Configurações ("Particular do Leandro") e no mascote; trocar por dados do perfil. O conector também é **de uma pessoa só** (token em `backup_status`); para testadores cada um gera o seu (já funciona por usuário, falta revisar os textos).
+6. **Onboarding de primeira vez:** nome, fuso, WhatsApp com aceite, instalar o app e ligar o push (iPhone e Android).
+7. **Alerta de falha do motor de lembretes** (e do push): avisar o Leandro quando o agendador errar; reaproveitar a caixa Avisos + push.
+8. **Botão de feedback/reportar problema** dentro do app.
+9. **WhatsApp para terceiros:** aceite (opt-in), saldo por usuário, **teto global** (hoje o teto é por usuário e cada um edita o seu), aviso de crédito acabando.
+10. **IA com a chave do cliente** (botão para conectar a API e pôr crédito; alerta de crédito acabando).
+11. **Ensaio geral:** duas contas novas, iPhone e Android reais (cadastro, lembrete, WhatsApp, push, backup, conector). Só convida depois de passar.
+12. **Teste fechado:** 5 a 10 pessoas, 2 a 4 semanas, crédito de WhatsApp dado à mão; medir uso, entregas, falhas, pedidos.
+
+### Coisas pequenas e limitações para não esquecer
+- `MeetingButton.tsx` (play de reunião) saiu da barra de cima e ficou sem uso, caso ele queira de volta.
+- Duas conexões do conector no claude.ai ("Faro" e "Faro 2"): tudo bem; usar a nova.
+- Barra flutuante do editor ainda não testada em Safari/iPhone; tela desatualizada testada só no banco (não em dois computadores reais).
+- Funil público de cadastro de clientes (`/cadastro/<token>`), envio automático de aniversário (modelo aprovado pela Meta) e importação de aniversários continuam para depois.
+- Rotina semanal "a IA revisa as conversas e propõe aprendizados": ideia futura.
+- Regra de ouro ao criar ação nova da IA: **ligar nos dois lugares** (`src/lib/ia/` e `src/lib/conector/`) e atualizar `docs/MAPA-IA-E-FARO.md`.
+
 ## Próximos passos confirmados (retomar aqui)
 
 - [ ] **Sincronizar FARO → Google Agenda (decidido em 14/09, a fazer)**
@@ -5278,9 +5323,9 @@ Pedido do Leandro: um botão de **Reuniões** na home, discreto, para achar ráp
 **Feito em 16/10 (fase 3 do conector externo, "com escrita"):**
 - Três ferramentas novas no conector (`src/lib/conector/faro-escrita.ts`, ligadas em `faro-mcp.ts` e na rota `api/mcp/[token]`): `faro_criar_aniversarios` (vários de uma vez; já cria o lembrete anual das 9h; opção de lembrar no WhatsApp), `faro_criar_tarefas` (data, hora, prioridade, tag, cliente, nota; sem data vai para o Backlog; tag Reunião entra na lista de Reuniões) e `faro_criar_lembretes` (data e hora obrigatórias, repetição, WhatsApp opcional).
 - **Confirmação obrigatória, exigida no servidor:** a primeira chamada **não grava** e devolve a prévia (com dia da semana, para a data errada saltar aos olhos); só com `confirmado: true`, depois do ok do Leandro, grava. Por isso a IA não consegue pular a etapa.
-- **Só cria; nunca edita nem apaga.** O pior erro possível é um item a mais, que ele apaga na tela. Aniversário com o mesmo nome (sem contar acento/maiúscula) é pulado, nunca duplicado. Dados inválidos (data impossível, hora sem data) voltam como "problemas" e não entram.
+- **Só cria (e, desde 16/10, dois ajustes leves e reversíveis em tarefas que já existem: marcar como feita e ACRESCENTAR texto na anotação); nunca apaga nem reescreve.** O pior erro possível é um item a mais, que ele apaga na tela. Aniversário com o mesmo nome (sem contar acento/maiúscula) é pulado, nunca duplicado. Dados inválidos (data impossível, hora sem data) voltam como "problemas" e não entram.
 - A IA recebe a **data de hoje** (Brasília) nas instruções, para calcular "amanhã"/"sexta" sem errar.
-- Banco: `service_role` ganhou `insert` em `birthdays`, `tasks` e `reminders` (só isso). A tela de outro aparelho mostra o aviso "Sua tela está desatualizada" quando a IA grava.
+- Banco: `service_role` ganhou `insert` em `birthdays`, `tasks` e `reminders` (só isso). **Correção (16/10):** o aviso "Sua tela está desatualizada" NÃO dispara para gravações do conector (elas vêm do servidor, sem o cabeçalho de aparelho). Quem cobre isso é a caixa **Avisos** (recarrega a cada 2 min e ao voltar para o app); a lista de tarefas só atualiza ao reabrir o app.
 - **Saúde continua fora** do conector.
 
 **Para ligar (ele faz uma vez):** o conector já existe, mas a lista de ferramentas é lida na hora de conectar. Em claude.ai → Configurações → Conectores → FARO, **desconectar e reconectar** (ou atualizar), para aparecerem as 3 novas. Depois, em qualquer conversa: "adiciona no FARO o aniversário do João, 20/03, e da Ana, 5/11".

@@ -66,7 +66,7 @@ A pessoa toca no mascote, fala ou escreve, e a IA propõe **cartões de ação**
 ## As regras que não mudam (a confiança do produto)
 
 1. **A pessoa aprova.** A IA propõe; o FARO só guarda como "valendo" o que a pessoa confirmou.
-2. **A IA só cria; não edita nem apaga** o que já existe. O pior erro possível é um item a mais, que se apaga em um toque.
+2. **A IA só cria e faz dois ajustes leves e reversíveis** (marcar como feita, acrescentar texto à anotação). Não apaga nem reescreve nada. O pior erro possível é um item a mais ou uma tarefa marcada a mais, que se desfaz em um toque.
 3. **Sem duplicar.** Pessoa já na lista de aniversários e aprendizado de mesmo título são pulados.
 4. **Dado inválido é barrado** (data impossível, hora sem data, aprendizado que cita saúde ou senha).
 5. **Saúde nunca viaja.** Medicamentos, tratamentos e anotações de saúde não são lidos nem enviados pela IA externa.
@@ -82,12 +82,16 @@ A pessoa toca no mascote, fala ou escreve, e a IA propõe **cartões de ação**
 | Criar lembrete | sim | sim | **sim** |
 | Adicionar aniversário (com lembrete no app e no WhatsApp) | sim | sim | **sim** |
 | Ligar/desligar lembrete e WhatsApp de um aniversário | sim | (em breve) | **sim** |
+| Ver a agenda (próximos dias, atrasadas, lembretes) | pelo resumo do dia | **sim** (`faro_ver_agenda`) | não precisa (só leitura) |
+| Criar reunião | sim | sim (tarefa com tag Reunião) | **sim** |
+| Marcar tarefa como feita | sim | sim | **sim** |
+| Acrescentar texto na anotação de tarefa/reunião (pauta, decisões) | sim | sim | **sim** |
 | Anotar gasto num checklist | sim | (em breve) | **sim** |
 | Registrar humor, sono, água, dieta | sim | não (de propósito) | **sim** |
 | Reajustar plano de estudo | sim | não | **sim** |
 | Propor aprendizado novo sobre a pessoa | não se aplica | **sim** | **vai para "Para revisar"** |
 | Anexar arquivo | não | não | (futuro) |
-| Editar ou apagar o que já existe | não | não | não permitido |
+| Editar ou apagar o que já existe (além dos dois ajustes acima) | não | não | não permitido |
 
 ## Como a pessoa é avisada
 
@@ -118,7 +122,7 @@ A pessoa toca no mascote, fala ou escreve, e a IA propõe **cartões de ação**
 ## Limites conhecidos (honestidade vale em material comercial)
 
 - A **memória interna** da IA não é acessível ao FARO: só chega o que a própria IA decide propor durante as conversas.
-- A IA externa **ainda não anexa arquivos** nem marca tarefas como feitas.
+- A IA externa **ainda não anexa arquivos**.
 - O aviso de proposta chega por **notificação do celular**; sem o app instalado e as notificações ligadas, vale o número no menu.
 
 ## Onde está no código (para quem for manter)
