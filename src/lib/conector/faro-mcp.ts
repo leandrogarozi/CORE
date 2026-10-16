@@ -7,14 +7,16 @@ import {
 } from "@/lib/learning-export";
 import { conhecimentoParaExportar, rotuloDoTipo, TIPOS_DE_CONHECIMENTO } from "@/lib/conhecimento";
 import type { KnowledgeItem, Synapse } from "@/lib/types";
+import { FERRAMENTAS_DE_ESCRITA, ehFerramentaDeEscrita, dataPorExtenso } from "./faro-escrita";
 
 /**
  * Conector FARO: um servidor MCP (Model Context Protocol) que deixa a IA do
  * Leandro (Claude, ChatGPT...) LER o cérebro do FARO: o que ele aprovou em
  * "Conhecendo você", as sinapses, as ideias e o que anotou dos livros.
  *
- * Só leitura, nesta etapa. Nada aqui escreve no banco. Saúde e medicamentos
- * ficam de fora de propósito: este módulo nem recebe essas tabelas.
+ * Leitura aqui; a escrita (criar aniversários, tarefas e lembretes, sempre com
+ * confirmação) vive em faro-escrita.ts. Saúde e medicamentos ficam de fora de
+ * propósito: este módulo nem recebe essas tabelas.
  *
  * Módulo puro (sem rede e sem banco): a rota carrega o acervo e entrega aqui.
  * É o que deixa testar o protocolo inteiro com dados de mentira.
@@ -55,7 +57,14 @@ Como usar:
 - faro_novidades mostra o que entrou desde uma data. faro_listar lista por tipo.
 - faro_onde_estao_os_arquivos diz em que pasta do Google Drive estão as cópias em Markdown (uma por item, compatíveis com Obsidian), caso você tenha acesso ao Drive.
 
-O que está aqui é a palavra dele: prefira isso ao que você supõe. Responda em português do Brasil. Este conector só lê; para guardar algo novo, sugira que ele cole no FARO (Conhecendo você).`;
+O que está aqui é a palavra dele: prefira isso ao que você supõe. Responda em português do Brasil.
+
+Você também pode CRIAR no FARO, só coisas novas (nunca edita nem apaga): faro_criar_aniversarios (lista de Aniversários), faro_criar_tarefas e faro_criar_lembretes. Regra de ouro: toda criação tem 2 passos. Primeiro chame a ferramenta sem "confirmado": ela NÃO grava e devolve a prévia. Mostre a prévia ao Leandro, espere ele dizer que pode, e só então chame de novo, com os mesmos dados, e confirmado=true. Nunca confirme por conta própria. Se faltar um dado (dia, hora, mês), pergunte; não invente. Para guardar aprendizados, o caminho continua sendo "Conhecendo você" no app.`;
+
+/** Dia de hoje na zona do Leandro, para a IA calcular "amanhã", "sexta" etc. sem errar. */
+export function hojeNoBrasil(agora: Date): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(agora);
+}
 
 // ---------------------------------------------------------------------------
 // Ferramentas
@@ -421,7 +430,9 @@ export async function responderMensagem(
   msg: MensagemRpc,
   carregar: () => Promise<AcervoDoFaro>,
   agora: Date,
-  versao: string
+  versao: string,
+  // Sem isso o conector fica só de leitura (é o que os testes antigos esperam).
+  escrever?: (nome: string, args: Record<string, unknown>) => Promise<{ texto: string; erro?: boolean }>
 ): Promise<object | null> {
   const ehNotificacao = msg.id === undefined || msg.id === null;
   if (!msg || typeof msg.method !== "string") return ehNotificacao ? null : falha(msg?.id, -32600, "Requisição inválida");
@@ -434,17 +445,28 @@ export async function responderMensagem(
         protocolVersion: VERSOES_ACEITAS.includes(pedida) ? pedida : VERSAO_DO_PROTOCOLO,
         capabilities: { tools: { listChanged: false } },
         serverInfo: { name: "faro", title: "FARO", version: versao },
-        instructions: INSTRUCOES,
+        instructions: `${INSTRUCOES}\n\nHoje é ${dataPorExtenso(hojeNoBrasil(agora))} (horário de Brasília).`,
       });
     }
     case "ping":
       return resultado(msg.id, {});
     case "tools/list":
-      return resultado(msg.id, { tools: FERRAMENTAS });
+      return resultado(msg.id, { tools: escrever ? [...FERRAMENTAS, ...FERRAMENTAS_DE_ESCRITA] : FERRAMENTAS });
     case "tools/call": {
       const nome = typeof msg.params?.name === "string" ? msg.params.name : "";
-      if (!FERRAMENTAS.some((f) => f.name === nome)) return falha(msg.id, -32602, `Ferramenta desconhecida: ${nome}`);
       const args = (msg.params?.arguments ?? {}) as Record<string, unknown>;
+      if (escrever && ehFerramentaDeEscrita(nome)) {
+        try {
+          const { texto, erro } = await escrever(nome, args);
+          return resultado(msg.id, { content: [{ type: "text", text: texto }], isError: !!erro });
+        } catch (e) {
+          return resultado(msg.id, {
+            content: [{ type: "text", text: `Não consegui gravar no FARO: ${e instanceof Error ? e.message : String(e)}` }],
+            isError: true,
+          });
+        }
+      }
+      if (!FERRAMENTAS.some((f) => f.name === nome)) return falha(msg.id, -32602, `Ferramenta desconhecida: ${nome}`);
       try {
         const { texto, erro } = executarFerramenta(nome, args, await carregar(), agora);
         return resultado(msg.id, { content: [{ type: "text", text: texto }], isError: !!erro });

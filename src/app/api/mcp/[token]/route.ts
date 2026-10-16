@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { rowToKnowledgeItem, rowToSynapse } from "@/lib/board/mappers";
-import { responderMensagem, type AcervoDoFaro } from "@/lib/conector/faro-mcp";
+import { hojeNoBrasil, responderMensagem, type AcervoDoFaro } from "@/lib/conector/faro-mcp";
+import { executarEscrita, type Repositorio } from "@/lib/conector/faro-escrita";
+import {
+  birthdayToInsertRow,
+  reminderToInsertRow,
+  taskToInsertRow,
+} from "@/lib/board/mappers";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
 /**
- * Conector FARO (servidor MCP remoto, só leitura).
+ * Conector FARO (servidor MCP remoto): lê o acervo e cria aniversários, tarefas e
+ * lembretes, sempre depois da confirmação do Leandro (ver faro-escrita.ts).
  *
  * O endereço carrega a chave: /api/mcp/faro_mcp_... É assim porque o "conector
  * personalizado" do Claude aceita um endereço sem login; a chave no caminho é o
@@ -59,6 +66,61 @@ async function carregarAcervo(usuario: string): Promise<AcervoDoFaro> {
   };
 }
 
+function repositorioDe(usuario: string): Repositorio {
+  const supabase = createServiceClient();
+  const falhou = (onde: string, e: { message: string } | null) => {
+    if (e) throw new Error(`${onde}: ${e.message}`);
+  };
+  return {
+    async aniversariosExistentes() {
+      const { data, error } = await supabase
+        .from("birthdays")
+        .select("name, month, day")
+        .eq("user_id", usuario)
+        .is("deleted_at", null);
+      falhou("ler aniversários", error);
+      return data ?? [];
+    },
+    async inserirAniversario(b, lembrete) {
+      const { error } = await supabase.from("birthdays").insert(birthdayToInsertRow(b, usuario));
+      falhou("gravar aniversário", error);
+      if (lembrete) {
+        const { error: e2 } = await supabase.from("reminders").insert(reminderToInsertRow(lembrete, usuario));
+        falhou("gravar lembrete do aniversário", e2);
+      }
+    },
+    async statusDasTarefas() {
+      const { data, error } = await supabase
+        .from("task_statuses")
+        .select("id, is_done, is_scheduled, sort_order")
+        .eq("user_id", usuario)
+        .order("sort_order");
+      falhou("ler status das tarefas", error);
+      const todos = data ?? [];
+      const trabalho = todos.filter((s) => !s.is_done && !s.is_scheduled);
+      return {
+        padrao: trabalho[0]?.id ?? todos.find((s) => !s.is_done)?.id ?? todos[0]?.id ?? null,
+        agendado: todos.find((s) => s.is_scheduled)?.id ?? null,
+      };
+    },
+    async proximaOrdem(data) {
+      let q = supabase.from("tasks").select("sort_order").eq("user_id", usuario).is("deleted_at", null);
+      q = data ? q.eq("date", data) : q.is("date", null);
+      const { data: linhas, error } = await q.order("sort_order", { ascending: false }).limit(1);
+      falhou("ler ordem das tarefas", error);
+      return linhas?.length ? (linhas[0].sort_order ?? 0) + 1 : 0;
+    },
+    async inserirTarefa(t) {
+      const { error } = await supabase.from("tasks").insert(taskToInsertRow(t, usuario));
+      falhou("gravar tarefa", error);
+    },
+    async inserirLembrete(r) {
+      const { error } = await supabase.from("reminders").insert(reminderToInsertRow(r, usuario));
+      falhou("gravar lembrete", error);
+    },
+  };
+}
+
 async function registrarUso(usuario: string) {
   const supabase = createServiceClient();
   const { data } = await supabase.from("backup_status").select("conector_chamadas").eq("user_id", usuario).maybeSingle();
@@ -86,7 +148,12 @@ export async function POST(req: NextRequest, { params }: Contexto) {
   };
   const agora = new Date();
   const lote = Array.isArray(corpo) ? corpo : [corpo];
-  const respostas = (await Promise.all(lote.map((m) => responderMensagem(m, carregar, agora, "1.0.0")))).filter(
+  const repo = repositorioDe(usuario);
+  const escrever = async (nome: string, args: Record<string, unknown>) => {
+    usouFerramenta = true;
+    return executarEscrita(nome, args, repo, { hoje: hojeNoBrasil(agora), novoId: () => crypto.randomUUID() });
+  };
+  const respostas = (await Promise.all(lote.map((m) => responderMensagem(m, carregar, agora, "1.1.0", escrever)))).filter(
     (r): r is object => r !== null
   );
   if (usouFerramenta) await registrarUso(usuario).catch(() => {});

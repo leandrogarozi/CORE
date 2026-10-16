@@ -5269,6 +5269,26 @@ Pedido do Leandro: um botão de **Reuniões** na home, discreto, para achar ráp
 5. **Lembrete antecipado** (ex.: 3 dias antes, para quem exige presente). O WhatsApp no lembrete já existe (zap na linha).
 6. **Telefone e mensagem em lote** para clientes (mesma mensagem para todos os clientes da categoria).
 
+## Conector FARO com escrita: a IA cria aniversários, tarefas e lembretes (pedido em 16/10)
+
+**Pedido do Leandro:** abriu a IA, colou o nome e o aniversário de dois amigos e pediu para jogar na lista de Aniversários; a IA respondeu que não faz isso, só lembrete. Ele quer **conversar com a IA e ela completar coisas no aplicativo**, para automatizar. Exemplo que ele deu (app de finanças): "gastei X no cartão Y, sobe o arquivo" → a IA monta a tarefa e **manda ele confirmar**.
+
+**Feito em 16/10 (fase 3 do conector, "com escrita"):**
+- Três ferramentas novas no conector (`src/lib/conector/faro-escrita.ts`, ligadas em `faro-mcp.ts` e na rota `api/mcp/[token]`): `faro_criar_aniversarios` (vários de uma vez; já cria o lembrete anual das 9h; opção de lembrar no WhatsApp), `faro_criar_tarefas` (data, hora, prioridade, tag, cliente, nota; sem data vai para o Backlog; tag Reunião entra na lista de Reuniões) e `faro_criar_lembretes` (data e hora obrigatórias, repetição, WhatsApp opcional).
+- **Confirmação obrigatória, exigida no servidor:** a primeira chamada **não grava** e devolve a prévia (com dia da semana, para a data errada saltar aos olhos); só com `confirmado: true`, depois do ok do Leandro, grava. Por isso a IA não consegue pular a etapa.
+- **Só cria; nunca edita nem apaga.** O pior erro possível é um item a mais, que ele apaga na tela. Aniversário com o mesmo nome (sem contar acento/maiúscula) é pulado, nunca duplicado. Dados inválidos (data impossível, hora sem data) voltam como "problemas" e não entram.
+- A IA recebe a **data de hoje** (Brasília) nas instruções, para calcular "amanhã"/"sexta" sem errar.
+- Banco: `service_role` ganhou `insert` em `birthdays`, `tasks` e `reminders` (só isso). A tela de outro aparelho mostra o aviso "Sua tela está desatualizada" quando a IA grava.
+- **Saúde continua fora** do conector.
+
+**Para ligar (ele faz uma vez):** o conector já existe, mas a lista de ferramentas é lida na hora de conectar. Em claude.ai → Configurações → Conectores → FARO, **desconectar e reconectar** (ou atualizar), para aparecerem as 3 novas. Depois, em qualquer conversa: "adiciona no FARO o aniversário do João, 20/03, e da Ana, 5/11".
+
+**Limites e próximos passos:**
+- **Anexos/arquivos não sobem pelo conector** (a IA coloca o nome/descrição na nota; o arquivo ele anexa na tarefa). Dá para criar uma ferramenta de anexo depois.
+- Não há "desfazer" pelo conector (apagar na tela, Lixeira para tarefas). Se virar problema, criar `faro_apagar_o_que_voce_criou` limitado aos ids da própria conversa.
+- Candidatos a próximas ferramentas: ver a agenda do dia/semana (leitura), marcar tarefa como feita, adicionar item a checklist/lista de compras, registrar leitura/ideia (Ideias já é aprendizado: vai por "Conhecendo você").
+- **Teste feito só com dados de mentira** (prévia não grava, confirmação grava, duplicado pulado, data inválida barrada). Falta o teste real: a IA chamando o conector em produção.
+
 ## Aviso "Sua tela está desatualizada" e checklist com linhas alternadas (14/10)
 
 Pedido do Leandro: (1) ao sair de um computador e abrir o FARO em outro onde ele já estava aberto, aparecer um aviso de tela desatualizada, para não trabalhar numa tela parada e perder dados; (2) no checklist, linhas alternando cinza bem clarinho e branco (referência para saber qual carrinho e qual lixeira são de qual item) e um lápis para editar o nome sem excluir.
