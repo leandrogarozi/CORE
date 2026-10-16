@@ -1197,6 +1197,111 @@ export type Database = {
         }
         Relationships: []
       }
+      cadastro_dono: {
+        Row: {
+          ativo: boolean
+          chave: string
+          criado_em: string
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          chave: string
+          criado_em?: string
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean
+          chave?: string
+          criado_em?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      cadastro_tentativas: {
+        Row: {
+          criado_em: string
+          id: number
+          ip_hash: string
+        }
+        Insert: {
+          criado_em?: string
+          id?: number
+          ip_hash: string
+        }
+        Update: {
+          criado_em?: string
+          id?: number
+          ip_hash?: string
+        }
+        Relationships: []
+      }
+      clientes_cadastro: {
+        Row: {
+          aniversario: string | null
+          atualizado_em: string
+          birthday_id: string | null
+          consentimento: boolean
+          consentimento_em: string
+          consentimento_texto: string | null
+          criado_em: string
+          email: string
+          email_norm: string
+          envios: number
+          id: string
+          nome: string
+          origem: string | null
+          produto: string
+          produtos: string[]
+          respostas_extras: Json
+          user_id: string
+          whatsapp: string | null
+          whatsapp_norm: string | null
+        }
+        Insert: {
+          aniversario?: string | null
+          atualizado_em?: string
+          birthday_id?: string | null
+          consentimento: boolean
+          consentimento_em: string
+          consentimento_texto?: string | null
+          criado_em?: string
+          email: string
+          email_norm: string
+          envios?: number
+          id?: string
+          nome: string
+          origem?: string | null
+          produto: string
+          produtos?: string[]
+          respostas_extras?: Json
+          user_id: string
+          whatsapp?: string | null
+          whatsapp_norm?: string | null
+        }
+        Update: {
+          aniversario?: string | null
+          atualizado_em?: string
+          birthday_id?: string | null
+          consentimento?: boolean
+          consentimento_em?: string
+          consentimento_texto?: string | null
+          criado_em?: string
+          email?: string
+          email_norm?: string
+          envios?: number
+          id?: string
+          nome?: string
+          origem?: string | null
+          produto?: string
+          produtos?: string[]
+          respostas_extras?: Json
+          user_id?: string
+          whatsapp?: string | null
+          whatsapp_norm?: string | null
+        }
+        Relationships: []
+      }
       faro_avisos: {
         Row: {
           corpo: string
