@@ -568,6 +568,7 @@ export interface KnowledgeItem {
   fonte: "importacao" | "manual" | "conector";
   lote: string | null;
   createdAt: string;
+  updatedAt: string; // última vez que foi editado ou teve o status mudado (aprovado, descartado...)
 }
 
 export interface BoardState {

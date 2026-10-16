@@ -45,6 +45,7 @@ import { ProfileView } from "./ProfileView";
 import { MeetingButton } from "./MeetingButton";
 import { TimerNudges } from "./TimerNudges";
 import { Sidebar, type ViewMode } from "./Sidebar";
+import { AvisosButton } from "./AvisosButton";
 import { SaveErrorToaster } from "./SaveErrorToaster";
 import { StaleScreenNotice } from "./StaleScreenNotice";
 import { BoltIcon, ChevronIcon, ExpandHorizontalIcon, MenuIcon, SettingsIcon, UserIcon, UsersGroupIcon, WarningIcon, WeekIcon } from "./icons";
@@ -374,6 +375,7 @@ function BoardShell() {
                 Reuniões
               </button>
               <RemindersButton onOpenFull={() => setViewMode("reminders")} />
+              <AvisosButton onNavigate={selectView} />
             </div>
           </div>
 

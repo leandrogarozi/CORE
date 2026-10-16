@@ -2367,6 +2367,7 @@ export function useBoard(userId: string | null) {
           fonte,
           lote,
           createdAt: lote,
+          updatedAt: lote,
         });
       }
       if (!novos.length) return { novos: 0, repetidos: itens.length };
@@ -2405,8 +2406,9 @@ export function useBoard(userId: string | null) {
 
   const updateKnowledge = useCallback(
     (id: string, patch: Partial<Pick<KnowledgeItem, "tipo" | "titulo" | "conteudo" | "status" | "tags" | "dataRef">>) => {
-      apply((st) => ({ ...st, knowledgeItems: st.knowledgeItems.map((k) => (k.id === id ? { ...k, ...patch } : k)) }));
-      const row: TablesUpdate<"knowledge_items"> = { updated_at: new Date().toISOString() };
+      const agora = new Date().toISOString();
+      apply((st) => ({ ...st, knowledgeItems: st.knowledgeItems.map((k) => (k.id === id ? { ...k, ...patch, updatedAt: agora } : k)) }));
+      const row: TablesUpdate<"knowledge_items"> = { updated_at: agora };
       if (patch.tipo !== undefined) row.tipo = patch.tipo;
       if (patch.titulo !== undefined) row.titulo = patch.titulo;
       if (patch.conteudo !== undefined) row.conteudo = patch.conteudo;
@@ -2425,10 +2427,14 @@ export function useBoard(userId: string | null) {
     (ids: string[], status: KnowledgeItem["status"]) => {
       if (!ids.length) return;
       const alvo = new Set(ids);
-      apply((st) => ({ ...st, knowledgeItems: st.knowledgeItems.map((k) => (alvo.has(k.id) ? { ...k, status } : k)) }));
+      const agora = new Date().toISOString();
+      apply((st) => ({
+        ...st,
+        knowledgeItems: st.knowledgeItems.map((k) => (alvo.has(k.id) ? { ...k, status, updatedAt: agora } : k)),
+      }));
       supabase
         .from("knowledge_items")
-        .update({ status, updated_at: new Date().toISOString() })
+        .update({ status, updated_at: agora })
         .in("id", ids)
         .then(({ error }) => {
           if (error) reportSaveError("setKnowledgeStatus", error);

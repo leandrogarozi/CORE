@@ -42,7 +42,7 @@ export interface Contexto {
 
 type Args = Record<string, unknown>;
 /** `aviso`: o que o FARO manda de push ao Leandro quando algo foi gravado por aqui. */
-export type Resposta = { texto: string; erro?: boolean; aviso?: { titulo: string; corpo: string } };
+export type Resposta = { texto: string; erro?: boolean; aviso?: { titulo: string; corpo: string; destino: string } };
 
 export const NOMES_DAS_FERRAMENTAS_DE_ESCRITA = [
   "faro_criar_aniversarios",
@@ -321,7 +321,11 @@ export async function criarAniversarios(args: Args, repo: Repositorio, ctx: Cont
   }
   const cab = confirmado ? `Gravado no FARO (${ok.length})` : `Prévia: ${ok.length} aniversário(s) a adicionar, com lembrete anual às 9h`;
   const r = resultado(ok.map((x) => x.linha), problemas, confirmado, cab);
-  if (confirmado && ok.length) r.aviso = { titulo: "A IA adicionou aniversários", corpo: ok.map((x) => x.b.name).join(", ") };
+  if (confirmado && ok.length) r.aviso = {
+      titulo: "A IA adicionou aniversários",
+      corpo: `${ok.map((x) => x.b.name).join(", ")}. Está na lista de Aniversários, com lembrete às 9h no dia. Se não era isso, é só excluir lá.`,
+      destino: "aniversarios",
+    };
   return r;
 }
 
@@ -404,7 +408,11 @@ export async function criarTarefas(args: Args, repo: Repositorio, ctx: Contexto)
   if (confirmado) for (const { t } of ok) await repo.inserirTarefa(t);
   const cab = confirmado ? `Gravado no FARO (${ok.length} tarefa(s))` : `Prévia: ${ok.length} tarefa(s) a criar`;
   const r = resultado(ok.map((x) => x.linha), problemas, confirmado, cab);
-  if (confirmado && ok.length) r.aviso = { titulo: "A IA criou tarefas no FARO", corpo: ok.map((x) => x.t.title).join(", ") };
+  if (confirmado && ok.length) r.aviso = {
+      titulo: "A IA criou tarefas no FARO",
+      corpo: `${ok.map((x) => x.t.title).join(", ")}. Estão na lista de tarefas, no dia combinado (ou no Backlog, se não tinham data). Se não era isso, é só excluir.`,
+      destino: "day",
+    };
   return r;
 }
 
@@ -467,7 +475,11 @@ export async function criarLembretes(args: Args, repo: Repositorio, ctx: Context
   if (confirmado) for (const { r } of ok) await repo.inserirLembrete(r);
   const cab = confirmado ? `Gravado no FARO (${ok.length} lembrete(s))` : `Prévia: ${ok.length} lembrete(s) a criar`;
   const r = resultado(ok.map((x) => x.linha), problemas, confirmado, cab);
-  if (confirmado && ok.length) r.aviso = { titulo: "A IA criou lembretes no FARO", corpo: ok.map((x) => x.r.title).join(", ") };
+  if (confirmado && ok.length) r.aviso = {
+      titulo: "A IA criou lembretes no FARO",
+      corpo: `${ok.map((x) => x.r.title).join(", ")}. Estão em Lembretes. Se não era isso, é só excluir.`,
+      destino: "reminders",
+    };
   return r;
 }
 
@@ -525,7 +537,8 @@ export async function proporAprendizado(args: Args, repo: Repositorio, ctx: Cont
     ].join("\n"),
     aviso: {
       titulo: novos.length === 1 ? "Tem 1 aprendizado novo para você aprovar" : `Tem ${novos.length} aprendizados novos para você aprovar`,
-      corpo: 'A IA propôs. Abra "Conhecendo você" → "Para revisar".',
+      corpo: `A IA propôs: ${novos.map((n) => `"${n.titulo}"`).join(", ")}. Abra Conhecendo você → aba Para revisar para aprovar, editar ou descartar. Nada vale antes da sua aprovação.`,
+      destino: "conhecendo",
     },
   };
 }

@@ -602,6 +602,7 @@ export function rowToKnowledgeItem(row: Tables<"knowledge_items">): KnowledgeIte
     fonte: row.fonte === "manual" ? "manual" : row.fonte === "conector" ? "conector" : "importacao",
     lote: row.lote,
     createdAt: row.created_at,
+    updatedAt: row.updated_at ?? row.created_at,
   };
 }
 

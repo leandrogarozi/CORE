@@ -1197,6 +1197,39 @@ export type Database = {
         }
         Relationships: []
       }
+      faro_avisos: {
+        Row: {
+          corpo: string
+          criado_em: string
+          destino: string | null
+          id: string
+          lido_em: string | null
+          tipo: string
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          corpo?: string
+          criado_em?: string
+          destino?: string | null
+          id?: string
+          lido_em?: string | null
+          tipo?: string
+          titulo: string
+          user_id: string
+        }
+        Update: {
+          corpo?: string
+          criado_em?: string
+          destino?: string | null
+          id?: string
+          lido_em?: string | null
+          tipo?: string
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       birthdays: {
         Row: {
           auto_message: boolean

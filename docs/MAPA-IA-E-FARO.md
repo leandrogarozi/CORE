@@ -91,6 +91,7 @@ A pessoa toca no mascote, fala ou escreve, e a IA propõe **cartões de ação**
 
 ## Como a pessoa é avisada
 
+- **Caixa de Avisos na home (botão "Avisos"):** cada coisa que a IA propôs ou criou fica registrada até a pessoa ler, com explicação do que aconteceu, botão que leva ao lugar certo e "marcar como lido". É a rede de segurança: mesmo que a notificação do celular passe despercebida, o aviso continua lá.
 - **Notificação no celular (push):** sempre que a IA propõe um aprendizado ou cria algo.
 - **Número no menu:** "Conhecendo você" mostra quantos itens esperam aprovação.
 - **WhatsApp:** usado para os **lembretes** que a pessoa liga (aniversários, tarefas, remédios etc.), não para os avisos da IA, para não gerar custo por mensagem sem necessidade.
@@ -126,5 +127,5 @@ A pessoa toca no mascote, fala ou escreve, e a IA propõe **cartões de ação**
 - Criação e propostas (com confirmação): `src/lib/conector/faro-escrita.ts`.
 - IA do app: `src/lib/ia/` (`ferramentas.ts`, `executar.ts`, `conversa.ts`), tela `src/components/board/FaroMascot.tsx`.
 - Aprovação das propostas: `src/components/board/ConhecendoView.tsx` (aba "Para revisar").
-- Aviso: `src/lib/push/enviar.ts`.
+- Avisos: caixa na home `src/components/board/AvisosButton.tsx` (tabela `faro_avisos`) e push `src/lib/push/enviar.ts`.
 - Regra fixa: **toda ação nova da IA deve existir nos dois lugares** (IA do app e conector) e entrar neste mapa.

@@ -1010,3 +1010,17 @@ export function CakeIcon() {
     </svg>
   );
 }
+
+export function InboxIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none">
+      <path
+        d="M4 13.5 6.5 5.5A2 2 0 0 1 8.4 4h7.2a2 2 0 0 1 1.9 1.5l2.5 8M4 13.5V18a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4.5M4 13.5h4.5a1 1 0 0 1 1 1 2.5 2.5 0 0 0 5 0 1 1 0 0 1 1-1H20"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}

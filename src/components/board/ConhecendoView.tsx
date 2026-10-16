@@ -24,7 +24,7 @@ const ERROS_DO_RESUMO: Record<string, string> = {
 };
 
 /** "O que o FARO sabe sobre você": texto corrido escrito pela IA com o que você aprovou. */
-function ResumoDoFaro({ aprovados }: { aprovados: number }) {
+function ResumoDoFaro({ aprovados, aprovadosDepoisDoResumo }: { aprovados: number; aprovadosDepoisDoResumo: (em: string) => number }) {
   const [dados, setDados] = useState<ResumoGuardado | null>(null);
   const [gerando, setGerando] = useState(false);
   const [erro, setErro] = useState("");
@@ -56,6 +56,9 @@ function ResumoDoFaro({ aprovados }: { aprovados: number }) {
   }
 
   const quando = dados?.em ? new Date(dados.em).toLocaleDateString("pt-BR") : "";
+  // Já fez uma vez: o botão só chama atenção quando entrou ou mudou algo aprovado depois do resumo.
+  const novidades = dados?.resumo && dados.em ? aprovadosDepoisDoResumo(dados.em) : 0;
+  const emDia = !!dados?.resumo && novidades === 0;
   return (
     <div className="synapse-intro know-resumo">
       <div className="synapse-intro-title">
@@ -74,7 +77,18 @@ function ResumoDoFaro({ aprovados }: { aprovados: number }) {
         </p>
       )}
       {erro && <p className="know-resumo-erro">{erro}</p>}
-      <button type="button" className="btn btn-accent" disabled={gerando || !aprovados} onClick={gerar}>
+      {emDia && <p className="know-feito">✓ Resumo em dia: nada novo foi aprovado desde que ele foi escrito.</p>}
+      {dados?.resumo && novidades > 0 && (
+        <p className="know-feito know-feito-aviso">
+          {novidades} {novidades === 1 ? "item aprovado ou editado" : "itens aprovados ou editados"} depois deste resumo. Vale atualizar.
+        </p>
+      )}
+      <button
+        type="button"
+        className={"btn " + (emDia ? "btn-ghost" : "btn-accent")}
+        disabled={gerando || !aprovados}
+        onClick={gerar}
+      >
         {gerando ? "Escrevendo…" : dados?.resumo ? "Atualizar resumo" : "Gerar resumo"}
       </button>
       <span className="know-resumo-custo"> Custa cerca de R$ 0,30 por vez (entra no painel de custo).</span>
@@ -192,6 +206,10 @@ export function ConhecendoView({ onBack }: { onBack: () => void }) {
   const itens = board.state.knowledgeItems;
   const daAba = itens.filter((k) => k.status === aba && (filtro === "todos" || k.tipo === filtro));
   const conta = (s: Aba) => itens.filter((k) => k.status === s).length;
+  // Já trouxe o que a IA sabe? Então o botão azul vira "feito" e só reabre se ele quiser atualizar.
+  const trazidos = itens.filter((k) => k.fonte === "importacao" && k.status !== "descartado");
+  const jaTrouxe = trazidos.length > 0;
+  const ultimaVinda = trazidos.reduce((m, k) => (k.createdAt > m ? k.createdAt : m), "");
 
   async function copiar() {
     try {
@@ -251,7 +269,10 @@ export function ConhecendoView({ onBack }: { onBack: () => void }) {
       </div>
 
       <div className={"narrow-list" + (wide ? " list-xl" : "")}>
-        <ResumoDoFaro aprovados={conta("aprovado")} />
+        <ResumoDoFaro
+          aprovados={conta("aprovado")}
+          aprovadosDepoisDoResumo={(em) => itens.filter((k) => k.status === "aprovado" && k.updatedAt > em).length}
+        />
 
         <div className="synapse-intro">
           <div className="synapse-intro-title">
@@ -263,9 +284,22 @@ export function ConhecendoView({ onBack }: { onBack: () => void }) {
             vira arquivo na sua pasta de aprendizados.
           </p>
           {!importando ? (
-            <button type="button" className="btn btn-accent" onClick={() => setImportando(true)}>
-              Trazer o que minha IA já sabe
-            </button>
+            jaTrouxe ? (
+              <>
+                <p className="know-feito">
+                  ✓ Você já trouxe {trazidos.length} {trazidos.length === 1 ? "item" : "itens"} da sua IA
+                  {ultimaVinda ? ` (última vez em ${new Date(ultimaVinda).toLocaleDateString("pt-BR")})` : ""}. Não precisa fazer de novo, a
+                  menos que queira trazer o que ela aprendeu depois.
+                </p>
+                <button type="button" className="btn btn-ghost" onClick={() => setImportando(true)}>
+                  Atualizar conhecimento
+                </button>
+              </>
+            ) : (
+              <button type="button" className="btn btn-accent" onClick={() => setImportando(true)}>
+                Trazer o que minha IA já sabe
+              </button>
+            )
           ) : (
             <div className="know-import">
               <div className="know-passo">

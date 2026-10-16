@@ -5306,6 +5306,16 @@ Pedido do Leandro: um botão de **Reuniões** na home, discreto, para achar ráp
 
 **Decisões/limites:** o aviso é por **push**, não por WhatsApp (cada mensagem de WhatsApp tem custo e teto mensal; se ele preferir WhatsApp, é um passo à parte). A memória interna do Claude não é acessível: só chega o que a IA decide propor. Ideia futura: rotina semanal em que a IA revisa as conversas e propõe o que faltou.
 
+## Caixa de Avisos na home + botões de Conhecendo você que "ficam feitos" (pedido em 16/10)
+
+**Pedido do Leandro:** (1) um ícone de notificações na home, porque o aviso só no menu lateral passa despercebido: guarda a notificação que ele não viu, ao clicar explica o que aconteceu e onde ver; (2) em Conhecendo você, os dois botões azuis ("trazer o que minha IA já sabe" e o do resumo) ficam sempre ativos, parecendo que é preciso refazer; depois de feitos uma vez devem ficar apagados, com um botão "Atualizar conhecimento" para refazer.
+
+**Feito:**
+- Tabela **`faro_avisos`** (RLS por usuário; `service_role` com `select`/`insert`): tipo, título, corpo, destino (`conhecendo`, `aniversarios`, `day`, `reminders`), criado_em, lido_em. O conector grava um aviso para **toda** gravação da IA (proposta de aprendizado, aniversários, tarefas, lembretes), além do push. Cada texto diz o que a IA fez, onde está e que dá para desfazer/aprovar.
+- Botão **Avisos** (`AvisosButton.tsx`) na home, ao lado de Reuniões e Lembretes: bolinha com o número de não lidos; abre uma lista com título, texto, "há N min", botão que **leva ao lugar** (ex.: "Abrir Conhecendo você") e "Marcar como lido" / "Marcar todos como lidos". Recarrega ao abrir o app, ao voltar para ele e a cada 2 minutos.
+- **Conhecendo você:** quem já trouxe itens da IA vê "✓ Você já trouxe N itens (última vez em dd/mm)" e um botão cinza **Atualizar conhecimento** (o azul só aparece se nunca trouxe). O resumo mostra "✓ Resumo em dia" com botão cinza e só vira azul quando há item aprovado/editado depois dele ("N itens aprovados ou editados depois deste resumo"). Para isso `KnowledgeItem` ganhou `updatedAt`.
+- Push avulso agora registra o motivo da falha (`enviar.ts`). Pendência do aviso por push: só há **1 aparelho inscrito** (iPhone, de 03/10); se o aviso não chegar, rodar "testar notificação" em Configurações e religar as notificações no aparelho.
+
 ## Aviso "Sua tela está desatualizada" e checklist com linhas alternadas (14/10)
 
 Pedido do Leandro: (1) ao sair de um computador e abrir o FARO em outro onde ele já estava aberto, aparecer um aviso de tela desatualizada, para não trabalhar numa tela parada e perder dados; (2) no checklist, linhas alternando cinza bem clarinho e branco (referência para saber qual carrinho e qual lixeira são de qual item) e um lápis para editar o nome sem excluir.
