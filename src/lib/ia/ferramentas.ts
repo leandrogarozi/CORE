@@ -22,6 +22,15 @@ export type AcaoProposta =
       observacao: string | null;
     }
   | { tipo: "anotar_gasto"; checklist: string; descricao: string; valorCentavos: number; data: string | null }
+  | {
+      tipo: "adicionar_aniversario";
+      nome: string;
+      dia: number;
+      mes: number;
+      ano: number | null;
+      categoria: "cliente" | "amigo" | "familiar";
+      telefone: string | null;
+    }
   | { tipo: "registrar_humor"; nivel: 1 | 2 | 3 | 4 | 5; emocao: string | null }
   | { tipo: "registrar_sono"; dormiu: string | null; acordou: string | null }
   | { tipo: "registrar_agua"; ml: number }
@@ -81,6 +90,23 @@ export const FERRAMENTAS_DO_FARO: Anthropic.Tool[] = [
         data: { type: "string", description: "AAAA-MM-DD. Omita para usar hoje." },
       },
       required: ["checklist", "descricao", "valor_reais"],
+    },
+  },
+  {
+    name: "adicionar_aniversario",
+    description:
+      "Adiciona uma pessoa à lista de Aniversários (amigos, familiares e clientes); já cria o lembrete anual das 9h. Uma chamada por pessoa: se ele passar várias, chame a ferramenta uma vez para cada. Precisa do dia e do mês; o ano de nascimento é opcional e só vale se ele disse. Se faltar o dia ou o mês, pergunte. Se não disser quem é, use 'amigo'.",
+    input_schema: {
+      type: "object",
+      properties: {
+        nome: { type: "string", description: "Nome da pessoa, como ele disse." },
+        dia: { type: "integer", minimum: 1, maximum: 31 },
+        mes: { type: "integer", minimum: 1, maximum: 12 },
+        ano: { type: "integer", description: "Ano de nascimento, só se ele informou." },
+        categoria: { type: "string", enum: ["cliente", "amigo", "familiar"], description: "Padrão: amigo." },
+        telefone: { type: "string", description: "Opcional, com DDD." },
+      },
+      required: ["nome", "dia", "mes"],
     },
   },
   {
@@ -210,6 +236,16 @@ export function validarAcao(nome: string, entrada: unknown): ResultadoDaValidaca
         acao: { tipo: "anotar_gasto", checklist, descricao, valorCentavos: Math.round(valor * 100), data: dataValida(e.data) },
       };
     }
+    case "adicionar_aniversario": {
+      const nome = texto(e.nome, 120);
+      const dia = typeof e.dia === "number" ? Math.round(e.dia) : 0;
+      const mes = typeof e.mes === "number" ? Math.round(e.mes) : 0;
+      const ano = typeof e.ano === "number" && e.ano >= 1900 && e.ano <= 2100 ? Math.round(e.ano) : null;
+      if (!nome) return { ok: false, motivo: "faltou o nome da pessoa" };
+      if (dia < 1 || dia > 31 || mes < 1 || mes > 12) return { ok: false, motivo: "faltou o dia e o mês do aniversário" };
+      const categoria = e.categoria === "cliente" || e.categoria === "familiar" ? e.categoria : "amigo";
+      return { ok: true, acao: { tipo: "adicionar_aniversario", nome, dia, mes, ano, categoria, telefone: texto(e.telefone, 30) } };
+    }
     case "registrar_humor": {
       const nivel = typeof e.nivel === "number" ? Math.round(e.nivel) : 0;
       if (nivel < 1 || nivel > 5) return { ok: false, motivo: "nível de humor deve ser de 1 a 5" };
@@ -274,6 +310,8 @@ export function descreverAcao(a: AcaoProposta): string {
       return `Criar tarefa: ${a.titulo}${a.data ? `, para ${dataBr(a.data)}` : " (sem data)"}${a.hora ? ` às ${a.hora}` : ""}`;
     case "anotar_gasto":
       return `Anotar gasto em "${a.checklist}": ${a.descricao}, ${reais(a.valorCentavos)}${a.data ? ` (${dataBr(a.data)})` : ""}`;
+    case "adicionar_aniversario":
+      return `Adicionar aos aniversários: ${a.nome}, ${String(a.dia).padStart(2, "0")}/${String(a.mes).padStart(2, "0")}${a.ano ? `/${a.ano}` : ""} (${a.categoria})`;
     case "registrar_humor":
       return `Registrar o humor de hoje: ${NIVEIS[a.nivel]}${a.emocao ? ` (${a.emocao.replace("_", " ")})` : ""}`;
     case "registrar_sono":

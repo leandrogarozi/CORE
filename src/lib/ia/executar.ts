@@ -1,4 +1,4 @@
-import type { Checklist, ChecklistExpense, DailyLog, Priority, StudyPlan } from "@/lib/types";
+import type { Birthday, Checklist, ChecklistExpense, DailyLog, Priority, StudyPlan } from "@/lib/types";
 import { descreverAcao, validarAcao, type AcaoProposta } from "./ferramentas";
 
 /**
@@ -17,6 +17,9 @@ export interface QuadroParaAcoes {
     extras?: { time?: string; priority?: Priority; note?: string }
   ) => Promise<boolean>;
   updateChecklist: (id: string, patch: { expenses: ChecklistExpense[] }) => void;
+  birthdays: Birthday[];
+  addBirthday: (campos: Pick<Birthday, "name" | "month" | "day" | "year" | "category">) => Promise<string | null>;
+  updateBirthday: (id: string, patch: Partial<Birthday>) => void;
   updateDailyLog: (data: string, patch: Partial<DailyLog>) => void;
   studyPlans: StudyPlan[];
   updateStudyPlan: (id: string, patch: Partial<StudyPlan>) => void;
@@ -79,6 +82,16 @@ export async function executarAcao(acaoBruta: AcaoProposta, quadro: QuadroParaAc
       quadro.updateChecklist(lista.id, { expenses: [...lista.expenses, gasto] });
       return { ok: true, mensagem: `Gasto anotado em "${lista.title}".` };
     }
+    case "adicionar_aniversario": {
+      // Mesmo nome (sem contar acento ou maiúscula) já está na lista: não duplica.
+      if (quadro.birthdays.some((b) => semAcento(b.name) === semAcento(acao.nome))) {
+        return { ok: false, mensagem: `"${acao.nome}" já está na lista de aniversários.` };
+      }
+      const id = await quadro.addBirthday({ name: acao.nome, month: acao.mes, day: acao.dia, year: acao.ano, category: acao.categoria });
+      if (!id) return { ok: false, mensagem: "Não consegui adicionar o aniversário." };
+      if (acao.telefone) quadro.updateBirthday(id, { phone: acao.telefone });
+      return { ok: true, mensagem: `${acao.nome} entrou na lista de aniversários, com lembrete às 9h.` };
+    }
     case "registrar_humor": {
       quadro.updateDailyLog(hoje, { mood: acao.nivel, ...(acao.emocao ? { moodEmotion: acao.emocao } : {}) });
       return { ok: true, mensagem: "Humor de hoje registrado." };
@@ -128,6 +141,8 @@ function converterParaEntrada(a: AcaoProposta): Record<string, unknown> {
       return { titulo: a.titulo, data: a.data ?? undefined, hora: a.hora ?? undefined, prioridade: a.prioridade ?? undefined, observacao: a.observacao ?? undefined };
     case "anotar_gasto":
       return { checklist: a.checklist, descricao: a.descricao, valor_reais: a.valorCentavos / 100, data: a.data ?? undefined };
+    case "adicionar_aniversario":
+      return { nome: a.nome, dia: a.dia, mes: a.mes, ano: a.ano ?? undefined, categoria: a.categoria, telefone: a.telefone ?? undefined };
     case "registrar_humor":
       return { nivel: a.nivel, emocao: a.emocao ?? undefined };
     case "registrar_sono":
