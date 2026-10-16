@@ -5321,6 +5321,10 @@ Pedido do Leandro: um botão de **Reuniões** na home, discreto, para achar ráp
 - **Barra de cima:** o botão **Avisos** passou a ser só um ícone (caixa de entrada, com a bolinha de não lidos) na **barra do topo, no lugar do play de reunião** (`MeetingButton`), porque a home estava cheia (Reuniões + Lembretes + Avisos). A home volta a ter só **Reuniões** e **Lembretes**. O botão Reuniões leva à tela de Reuniões, onde se cria uma reunião nova; por isso o play de iniciar reunião saiu da barra. **O componente `MeetingButton.tsx` continua no código, sem uso**, caso ele queira o play de volta.
 - **Conhecendo você, resumo:** igual ao "trazer o que a IA sabe": depois de gerado mostra "✓ Você atualizou o resumo em dd/mm" com o botão **cinza** (clicável); só é azul quando ainda não existe resumo. Se entrou ou mudou algo aprovado depois, a frase acrescenta, em destaque, "N itens aprovados ou editados depois dele: vale atualizar" (sem pintar o botão de azul).
 
+## Correção: aviso "Foco na dieta" voltava toda vez que abria o FARO (16/10)
+
+**Causa:** o banner da dieta (`TimerNudges.tsx`) aparecia para **toda refeição ativa cujo horário já passou hoje** e que não estava marcada como feita. O "×" só valia na memória, então ao reabrir o app voltavam o café, o almoço, etc. **Agora:** só aparece **no horário da refeição, até 30 minutos depois** (folga para quem abre um pouco depois), e o "×" fica guardado **por dia** no aparelho (`localStorage`, chave `faro-dieta-dispensadas:AAAA-MM-DD`). Marcar a refeição como feita continua sumindo com o aviso.
+
 ## Aviso "Sua tela está desatualizada" e checklist com linhas alternadas (14/10)
 
 Pedido do Leandro: (1) ao sair de um computador e abrir o FARO em outro onde ele já estava aberto, aparecer um aviso de tela desatualizada, para não trabalhar numa tela parada e perder dados; (2) no checklist, linhas alternando cinza bem clarinho e branco (referência para saber qual carrinho e qual lixeira são de qual item) e um lápis para editar o nome sem excluir.

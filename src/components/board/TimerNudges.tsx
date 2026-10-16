@@ -6,13 +6,50 @@ import { BellIcon, CheckIcon, PlayIcon, SendIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
 import { isReminderAlerting } from "@/lib/board/reminder-alerts";
 
+// Quanto tempo depois do horário da refeição o aviso "Foco na dieta" ainda aparece.
+// Antes ele aparecia para TODA refeição já passada do dia, e como o "×" só
+// valia até fechar o app, cada vez que o FARO abria vinham de volta o café, o
+// almoço... Agora é só o aviso do horário (com folga para quem abre um pouco depois).
+const JANELA_DA_REFEICAO_MIN = 30;
+
+const chaveDispensadas = (dia: string) => `faro-dieta-dispensadas:${dia}`;
+
+function lerDispensadas(dia: string): Set<string> {
+  try {
+    const bruto = localStorage.getItem(chaveDispensadas(dia));
+    return new Set(bruto ? (JSON.parse(bruto) as string[]) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function minutosDoDia(hm: string): number {
+  const [h, m] = hm.split(":").map(Number);
+  return h * 60 + m;
+}
+
 export function TimerNudges() {
   const { board } = useBoardCtx();
   const [nowMs, setNowMs] = useState<number | null>(null);
   const [dismissedOverdue, setDismissedOverdue] = useState<Set<string>>(new Set());
   const [dismissedUpcoming, setDismissedUpcoming] = useState<Set<string>>(new Set());
   const [dismissedReminders, setDismissedReminders] = useState<Set<string>>(new Set());
-  const [dismissedDietMeals, setDismissedDietMeals] = useState<Set<string>>(new Set());
+  // O "×" da dieta vale pelo dia inteiro, mesmo fechando e abrindo o app.
+  const [dismissedDietMeals, setDismissedDietMeals] = useState<Set<string>>(() =>
+    typeof window === "undefined" ? new Set() : lerDispensadas(todayISO())
+  );
+
+  function dispensarRefeicao(id: string) {
+    setDismissedDietMeals((s) => {
+      const novo = new Set(s).add(id);
+      try {
+        localStorage.setItem(chaveDispensadas(todayISO()), JSON.stringify([...novo]));
+      } catch {
+        // sem armazenamento: vale só até fechar o app
+      }
+      return novo;
+    });
+  }
 
   useEffect(() => {
     const tick = () => setNowMs(Date.now());
@@ -142,6 +179,7 @@ export function TimerNudges() {
             (m) =>
               m.active &&
               nowHM! >= m.time &&
+              minutosDoDia(nowHM!) - minutosDoDia(m.time) < JANELA_DA_REFEICAO_MIN &&
               (!m.weekDays || m.weekDays.length === 0 || m.weekDays.includes(nowWeekDay!)) &&
               !dietMealsChecked.includes(m.id) &&
               !dismissedDietMeals.has(m.id)
@@ -170,7 +208,7 @@ export function TimerNudges() {
                 <button
                   type="button"
                   className="icon-btn timer-nudge-close"
-                  onClick={() => setDismissedDietMeals((s) => new Set(s).add(m.id))}
+                  onClick={() => dispensarRefeicao(m.id)}
                   aria-label="Dispensar"
                 >
                   ×
