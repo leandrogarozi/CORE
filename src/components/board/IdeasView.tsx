@@ -72,7 +72,7 @@ export function IdeasView({ onBack }: { onBack: () => void }) {
         <button className="strip-nav" type="button" aria-label="Voltar" onClick={onBack}>
           ‹
         </button>
-        <span className="dash-range-label">Ideias</span>
+        <span className="dash-range-label">Ideias e Estudos</span>
         <span style={{ width: 32 }} />
       </div>
 

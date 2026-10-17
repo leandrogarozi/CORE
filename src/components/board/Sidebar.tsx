@@ -119,7 +119,7 @@ export function Sidebar({
             className={"sidebar-item" + (viewMode === "ideias" ? " active" : "")}
             onClick={() => onSelect("ideias")}
           >
-            <BoltIcon /> Ideias
+            <BoltIcon /> Ideias e Estudos
           </button>
           <button
             type="button"

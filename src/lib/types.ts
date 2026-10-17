@@ -226,7 +226,7 @@ export interface Project {
 
 export const PROJECT_NAMING_TEMPLATE_DEFAULT = "[{projeto}] [Etapa_{etapa}] - ";
 
-export type AttachmentEntityType = "task" | "reminder" | "book" | "project";
+export type AttachmentEntityType = "task" | "reminder" | "book" | "project" | "synapse";
 
 export interface Attachment {
   id: string;

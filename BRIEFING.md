@@ -51,6 +51,11 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
 - **Tempo gasto na tarefa** (`TaskRow.tsx`, `TaskTimeButton`): os campos de minutos viraram o seletor roleta `MinutesPicker` (h:min), na linha de cada dia e no lançamento novo.
 - Estilo em `globals.css` (`.rte-content blockquote`, `.rte-content .rte-pensamento`). Testado no harness (liga/desliga, round-trip do HTML); não verificado no app real.
 
+## Ideias e Estudos: anexar documento (17/10)
+
+- Menu e título da tela "Ideias" agora se chamam **Ideias e Estudos** (`Sidebar.tsx`, `IdeasView.tsx`; o id interno continua `ideias`).
+- Cada cartão de ideia/sinapse ganhou o botão de anexo (`AttachmentsButton`, `entityType="synapse"`). Migração `attachments_entity_type_synapse` liberou `synapse` na regra da tabela `attachments` (o armazenamento já valia por pasta do usuário).
+
 ## Cadastro de clientes pelas LPs: endpoint, tabela e ponte com Aniversários (pedido em 16/10)
 
 **Pedido:** várias LPs (uma por produto) em `cadastro.leandrogarozi.com.br` enviam clientes novos para uma tabela única; o aniversário deve aparecer no FARO. **Preocupação dele:** conectar muita coisa ao FARO está bem, mas tem que ser fácil **separar** quando outras pessoas usarem o app.

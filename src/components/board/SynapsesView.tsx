@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { NoteField } from "./NoteField";
 import { MicButton } from "./MicButton";
+import { AttachmentsButton } from "./AttachmentsButton";
 import { BoltIcon, CheckIcon, ChevronIcon, DownloadIcon, TrashIcon } from "./icons";
 import { arquivoDaIdeia, arquivoDaSinapse } from "@/lib/learning-export";
 import { baixarTexto, soONome } from "@/lib/baixar";
@@ -91,6 +92,7 @@ export function SynapseCard({ synapse, ideia = false }: { synapse: Synapse; idei
             </button>
           ) : null;
         })()}
+        <AttachmentsButton entityType="synapse" entityId={synapse.id} ariaLabel={`Anexos da ${rotulo}`} />
         <button
           type="button"
           className="icon-btn danger-hover"
