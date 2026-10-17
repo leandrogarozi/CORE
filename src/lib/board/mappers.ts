@@ -539,6 +539,7 @@ export function rowToSynapse(row: Tables<"synapses">): Synapse {
     source: row.source,
     createdAt: row.created_at,
     kind: row.kind === "ideia" ? "ideia" : "sinapse",
+    tag: row.tag === "estudo" ? "estudo" : "ideia",
     titleAuto: row.title_auto ?? false,
   };
 }
@@ -552,6 +553,7 @@ export function synapseToInsertRow(sy: Synapse, userId: string): TablesInsert<"s
     questions: sy.questions,
     source: sy.source,
     kind: sy.kind,
+    tag: sy.tag,
     title_auto: sy.titleAuto,
   };
 }

@@ -54,6 +54,7 @@ export interface SinapseParaExportar {
   questions: string | null;
   source: string | null;
   createdAt?: string | null;
+  tag?: string | null; // "ideia" | "estudo" (só nas ideias)
 }
 
 /**
@@ -176,6 +177,7 @@ export function arquivoDaIdeia(s: SinapseParaExportar): ArquivoDeAprendizado | n
     `# ${s.title.trim()}`,
     "",
   ];
+  partes.push(`**Tag:** ${s.tag === "estudo" ? "Estudo" : "Ideia"}`, "");
   if (s.createdAt) partes.push(`**Anotada em:** ${s.createdAt.slice(0, 10)}`, "");
   partes.push("## A ideia", "", htmlParaMarkdown(s.learning), "");
   return { nome: `${pastaDaArea("ideias")}/${nomeDeArquivo(s.title)}`, conteudo: partes.join("\n") };

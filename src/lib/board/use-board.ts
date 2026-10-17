@@ -1086,7 +1086,7 @@ export function useBoard(userId: string | null) {
   const addSynapse = useCallback(
     async (
       title: string,
-      extra: { kind?: Synapse["kind"]; learning?: string; source?: string | null; titleAuto?: boolean } = {}
+      extra: { kind?: Synapse["kind"]; tag?: Synapse["tag"]; learning?: string; source?: string | null; titleAuto?: boolean } = {}
     ): Promise<string | null> => {
       if (!userId || !title.trim()) return null;
       const sy: Synapse = {
@@ -1097,6 +1097,7 @@ export function useBoard(userId: string | null) {
         source: extra.source ?? null,
         createdAt: new Date().toISOString(),
         kind: extra.kind ?? "sinapse",
+        tag: extra.tag ?? "ideia",
         titleAuto: extra.titleAuto ?? false,
       };
       apply((s) => ({ ...s, synapses: [sy, ...s.synapses] }));
@@ -1112,7 +1113,7 @@ export function useBoard(userId: string | null) {
   );
 
   const updateSynapse = useCallback(
-    (id: string, patch: Partial<Pick<Synapse, "title" | "learning" | "questions" | "source">>) => {
+    (id: string, patch: Partial<Pick<Synapse, "title" | "learning" | "questions" | "source" | "tag">>) => {
       // Quem edita o título à mão assume o título: deixa de ser "dado pelo FARO".
       const comMarca = patch.title !== undefined ? { ...patch, titleAuto: false } : patch;
       apply((s) => ({ ...s, synapses: s.synapses.map((x) => (x.id === id ? { ...x, ...comMarca } : x)) }));

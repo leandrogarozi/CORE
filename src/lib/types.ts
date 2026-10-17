@@ -400,6 +400,8 @@ export interface Book {
  * que reconecta com ele. A pergunta é a parte que faz a sinapse ser lembrada —
  * sem ela vira só mais uma anotação.
  */
+export type SynapseTag = "ideia" | "estudo";
+
 export interface Synapse {
   id: string;
   title: string; // o "nome" da sinapse, ex.: "Qual o personagem?"
@@ -410,6 +412,8 @@ export interface Synapse {
   // "ideia" = insight rápido (voz ou manual): mesma tabela, outra tela. title_auto marca
   // o título que o FARO deu sozinho, para a IA refinar depois.
   kind: "sinapse" | "ideia";
+  // Só vale para kind "ideia" (tela Ideias e Estudos): a mesma anotação pode ser uma ideia ou um estudo.
+  tag: SynapseTag;
   titleAuto: boolean;
 }
 

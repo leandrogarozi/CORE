@@ -3118,3 +3118,11 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
   .bday-form .quickadd-input{ flex-basis:100%; }
   .bday-head .icon-btn{ min-width:36px; min-height:36px; }
 }
+
+/* Ideias e Estudos: etiqueta discreta no cartão e filtro acima da lista. */
+.synapse-tag-badge{
+  flex:none; font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; font-weight:600;
+  padding:2px 7px; border-radius:var(--r-2); background:var(--accent-soft); color:var(--accent);
+}
+.synapse-tag-badge.estudo{ background:color-mix(in srgb, var(--success) 14%, transparent); color:var(--success); }
+.idea-filter{ margin:4px 0 10px; }

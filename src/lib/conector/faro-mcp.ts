@@ -172,7 +172,7 @@ function itensDoAcervo(a: AcervoDoFaro): Item[] {
       itens.push({
         id: s.id,
         tipo: "ideia",
-        rotulo: "Ideia",
+        rotulo: s.tag === "estudo" ? "Estudo" : "Ideia",
         titulo: s.title.trim() || "Ideia",
         texto: htmlParaMarkdown(s.learning),
         data: s.createdAt,

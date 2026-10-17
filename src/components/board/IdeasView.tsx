@@ -7,6 +7,7 @@ import { MicButton } from "./MicButton";
 import { BoltIcon, MicIcon } from "./icons";
 import { useDictation } from "@/lib/board/use-dictation";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
+import type { SynapseTag } from "@/lib/types";
 import { corpoDaIdeia, tituloDaIdeia } from "@/lib/board/ideias";
 
 // Ideias (insights): teve uma ideia, joga rápido no FARO. Por voz: clica, fala,
@@ -21,6 +22,8 @@ export function IdeasView({ onBack }: { onBack: () => void }) {
   const ditadoRef = useRef("");
   const guardarAoParar = useRef(false);
   const [guardada, setGuardada] = useState<string | null>(null);
+  // Filtro da lista; ideia nova nasce com a tag que estiver filtrada (em "Todas", é ideia).
+  const [filtro, setFiltro] = useState<"todas" | SynapseTag>("todas");
 
   const { supported, listening, partial, error, start, stop } = useDictation({
     onText: (t) => {
@@ -39,10 +42,10 @@ export function IdeasView({ onBack }: { onBack: () => void }) {
     setDitado("");
     if (!texto) return;
     const titulo = tituloDaIdeia(texto);
-    void board.addSynapse(titulo, { kind: "ideia", learning: corpoDaIdeia(texto), titleAuto: true }).then((id) => {
+    void board.addSynapse(titulo, { kind: "ideia", tag: filtro === "estudo" ? "estudo" : "ideia", learning: corpoDaIdeia(texto), titleAuto: true }).then((id) => {
       setGuardada(id ? titulo : null);
     });
-  }, [listening, board]);
+  }, [listening, board, filtro]);
 
   function comecar() {
     setGuardada(null);
@@ -60,11 +63,12 @@ export function IdeasView({ onBack }: { onBack: () => void }) {
     const title = newTitle.trim();
     if (!title) return;
     setNewTitle("");
-    const id = await board.addSynapse(title, { kind: "ideia" });
+    const id = await board.addSynapse(title, { kind: "ideia", tag: filtro === "estudo" ? "estudo" : "ideia" });
     if (!id) setNewTitle(title);
   }
 
-  const ideias = board.state.synapses.filter((s) => s.kind === "ideia");
+  const todasIdeias = board.state.synapses.filter((s) => s.kind === "ideia");
+  const ideias = filtro === "todas" ? todasIdeias : todasIdeias.filter((s) => s.tag === filtro);
 
   return (
     <div className="section">
@@ -120,6 +124,20 @@ export function IdeasView({ onBack }: { onBack: () => void }) {
           )}
         </div>
 
+        <div className="note-options-chips idea-filter" role="group" aria-label="Filtrar por tag">
+          {([["todas", "Todas"], ["ideia", "Ideias"], ["estudo", "Estudos"]] as const).map(([v, nome]) => (
+            <button
+              key={v}
+              type="button"
+              className={"note-chip" + (filtro === v ? " active" : "")}
+              aria-pressed={filtro === v}
+              onClick={() => setFiltro(v)}
+            >
+              {nome}
+            </button>
+          ))}
+        </div>
+
         <div className="list-card">
           <div className="quickadd-row">
             <span className="quickadd-plus" aria-hidden="true">
@@ -128,7 +146,7 @@ export function IdeasView({ onBack }: { onBack: () => void }) {
             <input
               type="text"
               className="quickadd-input"
-              placeholder="+ Escrever uma ideia: dê um título e pressione Enter"
+              placeholder={filtro === "estudo" ? "+ Escrever um estudo: dê um título e pressione Enter" : "+ Escrever uma ideia: dê um título e pressione Enter"}
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
@@ -140,7 +158,7 @@ export function IdeasView({ onBack }: { onBack: () => void }) {
 
         {!ideias.length && (
           <div className="list-card">
-            <div className="hp-empty">Nenhuma ideia ainda. A primeira pode ser a de agora.</div>
+            <div className="hp-empty">{todasIdeias.length ? "Nada com essa tag ainda." : "Nenhuma ideia ainda. A primeira pode ser a de agora."}</div>
           </div>
         )}
 

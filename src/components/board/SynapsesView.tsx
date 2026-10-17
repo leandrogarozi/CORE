@@ -77,6 +77,11 @@ export function SynapseCard({ synapse, ideia = false }: { synapse: Synapse; idei
             <span className="synapse-card-preview">{questionsPreview || learningPreview}</span>
           )}
         </div>
+        {ideia && (
+          <span className={"synapse-tag-badge" + (synapse.tag === "estudo" ? " estudo" : "")}>
+            {synapse.tag === "estudo" ? "Estudo" : "Ideia"}
+          </span>
+        )}
         {dirty && <span className="synapse-dirty-dot" title="Tem alteração não salva" />}
         <span className="synapse-card-date mono">{fmtDate(synapse.createdAt)}</span>
         {(() => {
@@ -109,6 +114,24 @@ export function SynapseCard({ synapse, ideia = false }: { synapse: Synapse; idei
         <div className="synapse-card-body">
           {synapse.titleAuto && (
             <div className="synapse-save-hint">Título provisório dado pelo FARO. Edite se quiser.</div>
+          )}
+          {ideia && (
+            <div className="synapse-field">
+              <span className="synapse-field-label">Tag</span>
+              <div className="note-options-chips">
+                {(["ideia", "estudo"] as const).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    className={"note-chip" + (synapse.tag === t ? " active" : "")}
+                    aria-pressed={synapse.tag === t}
+                    onClick={() => board.updateSynapse(synapse.id, { tag: t })}
+                  >
+                    {t === "ideia" ? "IDEIA" : "ESTUDO"}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
           <label className="synapse-field">
             <span className="synapse-field-label">{ideia ? "A ideia" : "Qual a nova sinapse — o aprendizado?"}</span>

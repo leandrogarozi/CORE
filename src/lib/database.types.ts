@@ -1491,6 +1491,7 @@ export type Database = {
           learning: string
           questions: string
           source: string | null
+          tag: string
           title: string
           title_auto: boolean
           updated_at: string
@@ -1504,6 +1505,7 @@ export type Database = {
           learning?: string
           questions?: string
           source?: string | null
+          tag?: string
           title: string
           title_auto?: boolean
           updated_at?: string
@@ -1517,6 +1519,7 @@ export type Database = {
           learning?: string
           questions?: string
           source?: string | null
+          tag?: string
           title?: string
           title_auto?: boolean
           updated_at?: string
