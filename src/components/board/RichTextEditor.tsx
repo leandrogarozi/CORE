@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { EditorContent, useEditor } from "@tiptap/react";
+import { EditorContent, useEditor, Node as TiptapNode, mergeAttributes } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
@@ -24,10 +24,32 @@ import {
   RtHighlightIcon,
   RtItalicIcon,
   RtOrderedListIcon,
+  RtQuoteIcon,
   RtStrikethroughIcon,
+  RtThoughtIcon,
   RtTaskListIcon,
   RtUnderlineIcon,
 } from "./icons";
+
+/**
+ * Bloco de PENSAMENTO: um recado de quem escreve para si mesmo (o que passou pela
+ * cabeça, a dúvida, a ideia solta), separado do resto do texto. É o irmão da
+ * citação: a citação destaca a fala de OUTRA pessoa; o pensamento, a SUA.
+ * Guardado como `<div data-tipo="pensamento">`, que o editor volta a reconhecer
+ * ao abrir e o exportador de Markdown (html-para-markdown) vira "> 💭 ...".
+ */
+const Pensamento = TiptapNode.create({
+  name: "pensamento",
+  group: "block",
+  content: "block+",
+  defining: true,
+  parseHTML() {
+    return [{ tag: 'div[data-tipo="pensamento"]' }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ["div", mergeAttributes(HTMLAttributes, { "data-tipo": "pensamento", class: "rte-pensamento" }), 0];
+  },
+});
 
 // Paleta de destaque (mesma ideia do ClickUp): cor de fundo aplicada ao texto selecionado.
 const HIGHLIGHT_COLORS = [
@@ -246,6 +268,7 @@ export function RichTextEditor({
       TaskList,
       TaskItem.configure({ nested: true }),
       Highlight.configure({ multicolor: true }),
+      Pensamento,
       Placeholder.configure({ placeholder: placeholder ?? "" }),
     ],
     content: value,
@@ -403,6 +426,25 @@ export function RichTextEditor({
           onClick={() => editor.chain().focus().toggleTaskList().run()}
         >
           <RtTaskListIcon />
+        </button>
+        <span className="rte-sep" />
+        <button
+          type="button"
+          className={"rte-btn" + (editor.isActive("blockquote") ? " active" : "")}
+          title="Citação: destaca uma frase de alguém"
+          aria-label="Citação"
+          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+        >
+          <RtQuoteIcon />
+        </button>
+        <button
+          type="button"
+          className={"rte-btn" + (editor.isActive("pensamento") ? " active" : "")}
+          title="Pensamento: destaca o que passou pela sua cabeça"
+          aria-label="Pensamento"
+          onClick={() => editor.chain().focus().toggleWrap("pensamento").run()}
+        >
+          <RtThoughtIcon />
         </button>
         <span className="rte-sep" />
         <button

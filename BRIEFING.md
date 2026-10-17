@@ -42,6 +42,13 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
 - Ajustes de largura no cadastro de aniversários (o mês "outubro" e "ano (opcional)" estavam cortados).
 - Testado só numa maquete com o CSS real (antes e depois), não nas telas de verdade: **conferir no app** e me mandar print de qualquer lugar que ainda esteja estranho (o mais provável é um campo com classe própria que tenha ficado diferente do resto).
 
+## Editor de texto: blocos Citação e Pensamento (17/10)
+
+- Dois botões novos na barra do editor (`RichTextEditor.tsx`), depois do grupo de checklist e antes do alinhamento. Clicar de novo no botão tira o formato.
+- **Citação** = `blockquote` do Tiptap (barra de destaque à esquerda, itálico, fundo suave). Ícone `RtQuoteIcon` (pacote `Double_Quotes_L`).
+- **Pensamento** = nó próprio `pensamento` (`<div data-tipo="pensamento" class="rte-pensamento">`), balão tracejado com 💭 decorativo. Ícone `RtThoughtIcon` (pacote `Cloud`). Exportado para Markdown como `> 💭 texto` (`html-para-markdown.ts`).
+- Estilo em `globals.css` (`.rte-content blockquote`, `.rte-content .rte-pensamento`). Testado no harness (liga/desliga, round-trip do HTML); não verificado no app real.
+
 ## Cadastro de clientes pelas LPs: endpoint, tabela e ponte com Aniversários (pedido em 16/10)
 
 **Pedido:** várias LPs (uma por produto) em `cadastro.leandrogarozi.com.br` enviam clientes novos para uma tabela única; o aniversário deve aparecer no FARO. **Preocupação dele:** conectar muita coisa ao FARO está bem, mas tem que ser fácil **separar** quando outras pessoas usarem o app.

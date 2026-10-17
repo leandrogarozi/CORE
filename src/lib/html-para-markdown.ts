@@ -60,6 +60,9 @@ export function htmlParaMarkdown(html: string | null | undefined): string {
   t = t.replace(/<\/li>/gi, "");
 
   t = t.replace(/<blockquote[^>]*>/gi, "\n\n> ").replace(/<\/blockquote>/gi, "\n\n");
+  // Bloco de pensamento do editor: vira citação marcada com a nuvem, que é o que
+  // um leitor de Markdown (Obsidian, Drive) entende sem plugin.
+  t = t.replace(/<div\b[^>]*data-tipo="pensamento"[^>]*>/gi, "\n\n> 💭 ").replace(/<\/div>/gi, "\n\n");
 
   // Link: o endereço faz parte do aprendizado (de onde veio), então vira link
   // Markdown em vez de sumir.
