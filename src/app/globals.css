@@ -2701,10 +2701,10 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 }
 .rte-content blockquote > p, .rte-content .rte-pensamento > p{ margin:0; }
 .rte-content blockquote > * + *{ margin-top:6px; }
-/* Pensamento: balão suave; o rótulo "pensamento" minúsculo fica em cima do texto (decorativo, fora do texto). */
+/* Pensamento: faixa retangular de fundo suave; o rótulo "pensamento" minúsculo fica em cima do texto (decorativo, fora do texto). */
 .rte-content .rte-pensamento{
-  position:relative; margin:22px 0 6px; padding:20px 14px 8px; border-radius:var(--r-3);
-  background:color-mix(in srgb, var(--accent) 8%, var(--surface)); border:1px dashed color-mix(in srgb, var(--accent) 45%, var(--linha));
+  position:relative; margin:22px 0 6px; padding:20px 14px 8px; border-radius:0;
+  background:color-mix(in srgb, var(--accent) 8%, var(--surface)); border:0;
 }
 .rte-content .rte-pensamento::before{
   content:"\2601\FE0E"; position:absolute; left:13px; top:2px; line-height:1;
