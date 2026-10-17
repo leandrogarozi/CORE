@@ -2703,11 +2703,15 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .rte-content blockquote > * + *{ margin-top:6px; }
 /* Pensamento: balão suave; o rótulo "pensamento" minúsculo fica em cima do texto (decorativo, fora do texto). */
 .rte-content .rte-pensamento{
-  position:relative; margin:18px 0 6px; padding:16px 14px 8px; border-radius:var(--r-3);
+  position:relative; margin:22px 0 6px; padding:20px 14px 8px; border-radius:var(--r-3);
   background:color-mix(in srgb, var(--accent) 8%, var(--surface)); border:1px dashed color-mix(in srgb, var(--accent) 45%, var(--linha));
 }
 .rte-content .rte-pensamento::before{
-  content:"pensamento"; position:absolute; left:14px; top:4px; line-height:1;
+  content:"\2601\FE0E"; position:absolute; left:13px; top:2px; line-height:1;
+  font-size:17px; color:var(--accent);
+}
+.rte-content .rte-pensamento::after{
+  content:"pensamento"; position:absolute; left:36px; top:5px; line-height:1;
   font-size:9px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-faint);
 }
 .rte-content .rte-pensamento > * + *{ margin-top:6px; }
