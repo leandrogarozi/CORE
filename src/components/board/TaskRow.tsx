@@ -692,9 +692,8 @@ function TaskWhenButton({ date, time, endDate, endTime, onSave }: TaskWhenFields
   );
 }
 
-// Uma linha da lista de tempo por dia. O campo de minutos guarda rascunho e só
-// grava ao sair ou no Enter: gravar a cada tecla mandaria "1", "12" e "120" pro
-// banco enquanto ele digita 120.
+// Uma linha da lista de tempo por dia. O seletor de horas:minutos (o mesmo roleta
+// do resto do app) grava a cada escolha; zerar apaga o dia.
 function TaskTimeDayRow({
   dateISO,
   seconds,
@@ -705,29 +704,12 @@ function TaskTimeDayRow({
   onCommit: (minutes: number) => void;
 }) {
   const minutes = Math.round(seconds / 60);
-  const [draft, setDraft] = useState<string | null>(null);
-
-  function commit() {
-    if (draft === null) return;
-    const val = Math.round(Number(draft.replace(",", ".")));
-    if (Number.isFinite(val) && val >= 0 && val !== minutes) onCommit(val);
-    setDraft(null);
-  }
 
   return (
     <div className="task-time-row">
       <span className="task-time-day mono">{fmtDayMonth(dateISO)}</span>
-      <input
-        type="number"
-        min={0}
-        className="budget-input task-time-min mono"
-        value={draft ?? String(minutes)}
-        aria-label={`Minutos em ${fmtDayMonth(dateISO)}`}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={commit}
-        onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-      />
-      <span className="task-time-unit">min</span>
+      <MinutesPicker minutes={minutes} onChange={onCommit} className="task-time-pick mono" />
+      <span className="task-time-unit">h:min</span>
       <span className="task-time-hm mono">{fmtTempoCurto(seconds)}</span>
       <button
         type="button"
@@ -748,7 +730,7 @@ function TaskTimeButton({ taskId }: { taskId: string }) {
   const { board } = useBoardCtx();
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const [newDate, setNewDate] = useState(() => todayISO());
-  const [newMinutes, setNewMinutes] = useState("");
+  const [newMinutes, setNewMinutes] = useState<number | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
   const pos = useClampedPopoverPos(anchorRect, popRef);
@@ -760,7 +742,9 @@ function TaskTimeButton({ taskId }: { taskId: string }) {
   useEffect(() => {
     if (!open) return;
     function onDocPointerDown(e: MouseEvent) {
-      if (popRef.current?.contains(e.target as Node) || btnRef.current?.contains(e.target as Node)) return;
+      const alvo = e.target as Element;
+      // O roleta de horas abre num portal próprio, fora deste popover: clicar nele não pode fechar a lista.
+      if (popRef.current?.contains(alvo) || btnRef.current?.contains(alvo) || alvo.closest?.(".time-picker-pop")) return;
       setAnchorRect(null);
     }
     window.addEventListener("mousedown", onDocPointerDown);
@@ -768,13 +752,13 @@ function TaskTimeButton({ taskId }: { taskId: string }) {
   }, [open]);
 
   function lancar() {
-    const min = Math.round(Number(newMinutes.replace(",", ".")));
-    if (!newDate || !Number.isFinite(min) || min <= 0) return;
+    const min = newMinutes ?? 0;
+    if (!newDate || min <= 0) return;
     // Soma no dia em vez de substituir: lançar 30min num dia que já tem 1h vira
     // 1h30, que é o que se espera de quem está registrando mais uma sessão.
     const atual = entries.find((e) => e.date === newDate);
     board.setTaskTimeMinutes(taskId, newDate, Math.round((atual?.seconds ?? 0) / 60) + min);
-    setNewMinutes("");
+    setNewMinutes(null);
   }
 
   const label = totalSeg > 0 ? `${fmtTempoCurto(totalSeg)} em ${entries.length} dia${entries.length > 1 ? "s" : ""}` : null;
@@ -812,17 +796,13 @@ function TaskTimeButton({ taskId }: { taskId: string }) {
                 aria-label="Dia do lançamento"
                 onChange={(e) => setNewDate(e.target.value)}
               />
-              <input
-                type="number"
-                min={0}
-                className="budget-input task-time-min mono"
-                placeholder="0"
-                value={newMinutes}
-                aria-label="Minutos a lançar"
-                onChange={(e) => setNewMinutes(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && lancar()}
+              <MinutesPicker
+                minutes={newMinutes}
+                onChange={setNewMinutes}
+                onClear={() => setNewMinutes(null)}
+                placeholder="h:min"
+                className="task-time-pick mono"
               />
-              <span className="task-time-unit">min</span>
               <button type="button" className="btn btn-accent task-time-add-btn" onClick={lancar}>
                 Lançar
               </button>

@@ -47,6 +47,8 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
 - Dois botões novos na barra do editor (`RichTextEditor.tsx`), depois do grupo de checklist e antes do alinhamento. Clicar de novo no botão tira o formato.
 - **Citação** = `blockquote` do Tiptap (barra de destaque à esquerda, itálico, fundo suave). Ícone `RtQuoteIcon` (pacote `Double_Quotes_L`).
 - **Pensamento** = nó próprio `pensamento` (`<div data-tipo="pensamento" class="rte-pensamento">`), balão tracejado com 💭 decorativo. Ícone `RtThoughtIcon` (pacote `Cloud`). Exportado para Markdown como `> 💭 texto` (`html-para-markdown.ts`).
+- **Ajuste de 17/10:** Citação sem fundo (só o filete colorido), com aspas grandes + rótulo "citação" minúsculo no topo; Pensamento sem nuvem, com rótulo "pensamento" minúsculo no topo (ambos via `::before/::after`, não entram no texto).
+- **Tempo gasto na tarefa** (`TaskRow.tsx`, `TaskTimeButton`): os campos de minutos viraram o seletor roleta `MinutesPicker` (h:min), na linha de cada dia e no lançamento novo.
 - Estilo em `globals.css` (`.rte-content blockquote`, `.rte-content .rte-pensamento`). Testado no harness (liga/desliga, round-trip do HTML); não verificado no app real.
 
 ## Cadastro de clientes pelas LPs: endpoint, tabela e ponte com Aniversários (pedido em 16/10)
