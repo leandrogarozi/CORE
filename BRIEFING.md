@@ -64,6 +64,15 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
 - Vai no zip do botão "Baixar .zip" (Configurações) e no envio automático do Mac/Windows para a pasta do Drive (`/api/backup/aprendizado` agora lê `birthdays`). O backup completo em JSON (`montar.ts`) já tinha a tabela `birthdays` desde antes.
 - A área aparece com checkbox nas Configurações; quem nunca configurou as áreas já recebe tudo marcado (Leandro está nesse caso). Testado com dados de mentira; o envio real para o Drive roda na próxima passada do Mac.
 
+## Painel de links de cadastro: Cadastros, Clientes, não enviar, CSV e backup (18/10)
+
+- **Banco:** `cadastro_links` (código único, RLS do dono), `clientes_cadastro.nao_enviar/nao_enviar_em`, política de UPDATE para o dono.
+- **Servidor:** `GET /api/cadastro/config?c=` e `POST /api/cadastro` com `codigo` (regras e códigos de resposta em `docs/CADASTRO-DE-CLIENTES.md`). Testado com banco de mentira (inativo, inexistente, obrigatória faltando, grava, segundo envio 409, mesma pessoa em outro link sem desmarcar, chave de outro dono, páginas antigas). Não consegui chamar o endereço de produção a partir da sessão.
+- **Telas:** menu **Cadastros** (criar/editar link com perguntas, ativar/desativar, copiar link, ver respostas) e **Clientes** (selo "Respondeu pelo site ✔", ficha com respostas, interruptor **Não enviar**, apagar pessoa). Código novo = cliente-pessoa sem acento (se repetir vira -2). Só testadas no ambiente de teste, não no app real.
+- **Não enviar:** conferido no ponto único de saída de WhatsApp e no botão de parabéns; novo canal de envio precisa chamar `src/lib/cadastro/nao-enviar.ts`.
+- **CSV:** baixar em Clientes e em Cadastros. **Backup:** área "CRM clientes" no zip do Drive + tabelas no JSON completo; restauração em `/api/backup/restaurar-crm` (testada com banco de mentira e, no banco real, por um teste desfeito no fim).
+- **Falta:** Leandro ligar `CONFIG_FARO=true` na página; primeira chamada real do `config`; avisar se a página usar `tipo` diferente de texto/longo/numero/sim_nao/data.
+
 ## Cadastro de clientes pelas LPs: endpoint, tabela e ponte com Aniversários (pedido em 16/10)
 
 **Pedido:** várias LPs (uma por produto) em `cadastro.leandrogarozi.com.br` enviam clientes novos para uma tabela única; o aniversário deve aparecer no FARO. **Preocupação dele:** conectar muita coisa ao FARO está bem, mas tem que ser fácil **separar** quando outras pessoas usarem o app.

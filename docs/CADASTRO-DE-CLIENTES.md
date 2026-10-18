@@ -121,3 +121,50 @@ O endpoint **não precisa** do subdomínio para funcionar: roda no endereço do 
 - **Páginas na Vercel** (um projeto à parte, ex.: `cadastro-lps`): no projeto → Settings → Domains → adicionar `cadastro.leandrogarozi.com.br`; a Vercel mostra um registro **CNAME** (`cadastro` → `cname.vercel-dns.com`) para criar no DNS de onde o domínio está (Hostinger, se os DNS forem de lá).
 
 Em qualquer caso, a página precisa ser servida em **HTTPS** nesse endereço, senão o endpoint recusa (CORS).
+
+## Links por pessoa (`codigo`) e leitura das perguntas (a partir de 18/10)
+
+Cada pessoa tem o seu link: `https://cadastro.leandrogarozi.com.br/<codigo>` (ex.: `witt-flaviana`). Os links são criados em **Cadastros** no FARO e ficam na tabela `cadastro_links`.
+
+### Ler a configuração do link
+
+```
+GET https://core-app-seven-gamma.vercel.app/api/cadastro/config?c=<codigo>
+```
+
+Mesmo CORS do POST. Resposta:
+
+```json
+{ "ok": true, "ativo": true, "respondido": false, "eyebrow": "...", "titulo": "...", "boas_vindas": "...",
+  "perguntas": [ { "id": "cargo", "texto": "Qual o seu cargo?", "tipo": "texto", "opcional": false } ] }
+```
+
+- Código inexistente ou desativado: `{ "ok": true, "ativo": false }` (não diz qual dos dois).
+- Link que já atingiu o limite de respostas: `"respondido": true` (a página mostra "Já recebemos as suas respostas") e `perguntas` vem vazia.
+- Limite de 60 consultas por IP a cada 10 minutos (`429` depois).
+- `tipo` das perguntas: `texto` (curta), `longo`, `numero`, `sim_nao`, `data`. Tipo desconhecido: trate como `texto`.
+
+### Enviar as respostas
+
+O POST de sempre, com o campo novo `codigo`; as respostas vão em `respostas_extras`, **uma chave por `id` de pergunta**:
+
+```json
+{ "codigo": "witt-flaviana", "nome": "...", "email": "...", "whatsapp": "...", "aniversario": "1988-05-20",
+  "consentimento": true, "respostas_extras": { "cargo": "Gerente" }, "chave": "faro_cad_...", "website": "" }
+```
+
+- `produto` passa a ser opcional quando há `codigo` (o servidor usa o cliente do link). Páginas antigas com `produto`/`?p=` continuam iguais.
+- Só valem as respostas cujo `id` é do link (o resto é descartado); pergunta não opcional sem resposta devolve `400` com `campo` = id da pergunta.
+- Link inexistente/desativado: `400 {ok:false, ativo:false}`. Link que já atingiu o limite: **`409 {ok:false, respondido:true}`**.
+- `teste:true` valida tudo (inclusive o link) e não grava nem gasta a vaga do link.
+- Gravando: a resposta fica ligada à pessoa (`clientes_cadastro.respostas_extras[<codigo>]`), o link é marcado como respondido (`respondido_em`, `respostas_count`, `cliente_id`) e a data de nascimento entra na lista de Aniversários. A vaga do link é reservada antes de gravar (dois envios ao mesmo tempo não passam do limite) e devolvida se a gravação falhar.
+
+## "Não enviar"
+
+`clientes_cadastro.nao_enviar` (padrão falso) e `nao_enviar_em`. Liga/desliga na tela **Clientes**. Todo envio do FARO confere a marca antes (`src/lib/cadastro/nao-enviar.ts`): o ponto único de saída do WhatsApp (`callWhatsAppApi`, em `src/lib/whatsapp/send.ts`) recusa o número marcado, e o botão "Mandar parabéns" de Aniversários some para a pessoa marcada. **Quem criar um envio novo (e-mail, por exemplo) precisa chamar `conferirEmail` / `conferirNumero`.** Uma resposta nova pelo site nunca desmarca.
+
+## Planilhas (CSV) e backup
+
+- Botão de baixar nas telas **Clientes** e **Cadastros**: todas as colunas, uma coluna por pergunta, e a marca de não enviar.
+- Backup: área **CRM clientes** (liga/desliga em Configurações → Backup de aprendizado): `CRM clientes/Clientes.csv`, `Links de cadastro.csv` e `crm-clientes.json` no Drive (mesma rodada automática do Mac). O backup completo em JSON (`faro-backup-*.json`) também leva `clientes_cadastro` e `cadastro_links`.
+- Restaurar: `POST /api/backup/restaurar-crm` (logado) com o conteúdo de `crm-clientes.json` ou do backup completo. Grava por `id` (rodar duas vezes não duplica) e só com o dono de quem restaura.
