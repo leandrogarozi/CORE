@@ -3298,3 +3298,6 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .bday-body .prop-multi{ display:flex; gap:8px; align-items:center; }
 .bday-body .prop-multi input{ width:84px; flex:none; }
 .bday-body .prop-multi select{ flex:1; min-width:0; width:auto; }
+.bday-body .prop-value.prop-multi{ display:flex; flex-wrap:nowrap; gap:8px; align-items:center; }
+.bday-body .prop-value.prop-multi input:not([type="checkbox"]){ width:84px; flex:none; }
+.bday-body .prop-value.prop-multi select{ flex:1; min-width:0; width:auto; }
