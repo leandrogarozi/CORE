@@ -8,9 +8,6 @@ import {
   BlocosDeEscolha,
   CaixaDeMarcar,
   Etiqueta,
-  IconeEstrela,
-  IconeLink,
-  IconeLista,
   IconeTextoCurto,
   IconeTextoLongo,
   PilulaDeMarcar,
@@ -20,8 +17,6 @@ import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { baixarTexto } from "@/lib/baixar";
 import { csvDosLinks, respostasPorPergunta, rotuloDoStatus, statusDoLink } from "@/lib/cadastro/csv";
 import {
-  ESCALAS_DE_NOTA,
-  MAXIMO_DE_OPCOES,
   TIPOS_DE_PERGUNTA,
   codigoDoLink,
   idDaPergunta,
@@ -70,15 +65,10 @@ function BotaoCopiar({ codigo }: { codigo: string }) {
   );
 }
 
-const ICONES_DO_TIPO: Record<string, React.ReactNode> = {
-  texto: <IconeTextoCurto />,
-  longo: <IconeTextoLongo />,
-  escolha: <IconeLista />,
-  links: <IconeLink />,
-  nota: <IconeEstrela />,
-};
-const BLOCOS_DE_TIPO = TIPOS_DE_PERGUNTA.map((t) => ({ ...t, icone: ICONES_DO_TIPO[t.id] }));
-const BLOCOS_DE_ESCALA = ESCALAS_DE_NOTA.map((e) => ({ id: e.id, rotulo: e.rotulo }));
+const BLOCOS_DE_TIPO = TIPOS_DE_PERGUNTA.map((t) => ({
+  ...t,
+  icone: t.id === "texto" ? <IconeTextoCurto /> : <IconeTextoLongo />,
+}));
 const TAMANHOS = [
   { id: "p", rotulo: "P" },
   { id: "m", rotulo: "M" },
@@ -101,8 +91,7 @@ function CartaoDePergunta({
   onMover: (delta: number) => void;
   onTirar: () => void;
 }) {
-  const tipo = TIPOS_DE_PERGUNTA.some((t) => t.id === p.tipo) ? p.tipo : "texto";
-  const opcoes = p.opcoes ?? [];
+  const tipo = p.tipo === "longo" ? "longo" : "texto";
   return (
     <article className="fm-pergunta">
       <header className="fm-pergunta-cab">
@@ -136,62 +125,8 @@ function CartaoDePergunta({
         onChange={(e) => onMudar({ instrucao: e.target.value })}
       />
       <div className="fm-pergunta-corpo">
-        <Etiqueta>Tipo de resposta</Etiqueta>
-        <BlocosDeEscolha
-          opcoes={BLOCOS_DE_TIPO}
-          valor={tipo}
-          ariaLabel="Tipo de resposta"
-          onChange={(t) =>
-            onMudar({
-              tipo: t,
-              ...(t === "escolha" ? { opcoes: opcoes.length ? opcoes : ["", ""] } : {}),
-              ...(t === "nota" ? { escala: p.escala ?? "1-5" } : {}),
-            })
-          }
-        />
-
-        {tipo === "escolha" && (
-          <>
-            <Etiqueta>Opções de resposta</Etiqueta>
-            <div className="fm-opcoes">
-              {opcoes.map((o, k) => (
-                <div className="fm-opcao" key={k}>
-                  <span className="fm-letra">{String.fromCharCode(65 + k)}</span>
-                  <input
-                    type="text"
-                    value={o}
-                    placeholder={`Opção ${String.fromCharCode(65 + k)}`}
-                    aria-label={`Opção ${String.fromCharCode(65 + k)}`}
-                    onChange={(e) => onMudar({ opcoes: opcoes.map((x, j) => (j === k ? e.target.value : x)) })}
-                  />
-                  <button
-                    type="button"
-                    className="icon-btn"
-                    title="Tirar a opção"
-                    onClick={() => onMudar({ opcoes: opcoes.filter((_, j) => j !== k) })}
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
-            {opcoes.length < MAXIMO_DE_OPCOES && (
-              <button type="button" className="fm-adicionar" onClick={() => onMudar({ opcoes: [...opcoes, ""] })}>
-                + Adicionar opção
-              </button>
-            )}
-            <CaixaDeMarcar marcado={p.outros === true} onChange={(v) => onMudar({ outros: v })}>
-              Incluir opção &ldquo;Outros&rdquo; (campo livre)
-            </CaixaDeMarcar>
-          </>
-        )}
-
-        {tipo === "nota" && (
-          <>
-            <Etiqueta>Escala</Etiqueta>
-            <BlocosDeEscolha opcoes={BLOCOS_DE_ESCALA} valor={p.escala ?? "1-5"} ariaLabel="Escala da nota" onChange={(e) => onMudar({ escala: e })} />
-          </>
-        )}
+        <Etiqueta>Tamanho da resposta</Etiqueta>
+        <BlocosDeEscolha opcoes={BLOCOS_DE_TIPO} valor={tipo} ariaLabel="Tamanho da resposta" onChange={(t) => onMudar({ tipo: t })} />
 
         <CaixaDeMarcar marcado={!p.opcional} onChange={(v) => onMudar({ opcional: !v })}>
           Resposta obrigatória
@@ -359,14 +294,7 @@ function EditorDoLink({
               // Pergunta sem texto não vale; opção em branco também. O id da pergunta nunca muda, mesmo se o texto mudar.
               const perguntas = d.perguntas
                 .filter((p) => p.texto.trim())
-                .map((p) => ({
-                  ...p,
-                  texto: p.texto.trim(),
-                  instrucao: p.instrucao?.trim() || undefined,
-                  opcoes: p.tipo === "escolha" ? (p.opcoes ?? []).map((o) => o.trim()).filter(Boolean) : undefined,
-                  outros: p.tipo === "escolha" ? p.outros === true : undefined,
-                  escala: p.tipo === "nota" ? p.escala ?? "1-5" : undefined,
-                }));
+                .map((p) => ({ ...p, texto: p.texto.trim(), instrucao: p.instrucao?.trim() || undefined }));
               await onSalvar({ ...d, cliente: d.cliente.trim(), pessoa: d.pessoa.trim(), boas_vindas: abertura ? d.boas_vindas.trim() : "", perguntas });
               setSalvando(false);
             }}

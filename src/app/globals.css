@@ -3241,3 +3241,60 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
   .fm-card{ padding:14px; }
   .fm-pilula{ padding:9px 12px; font-size:13.5px; }
 }
+
+/* ============================================================
+   Mesmo visual limpo do form-kit nos formulários que já existiam: cada seção vira
+   um cartão, o nome do campo fica em cima (etiqueta pequena) e o campo ocupa a linha.
+   Vale para Manutenção (item aberto e registro de serviço) e Aniversários (pessoa aberta).
+   ============================================================ */
+.fm-blocos{ grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); }
+.maint-item-body{ display:flex; flex-direction:column; gap:12px; border-top:none; padding-top:6px; }
+.maint-item-body .maint-secao,
+.maint-register{
+  margin-top:0; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:16px 18px;
+}
+.maint-item-body .maint-secao-titulo{
+  font-size:15px; font-weight:600; letter-spacing:0; text-transform:none; color:var(--text);
+  border-bottom:none; padding-bottom:0; margin-bottom:12px;
+}
+.maint-item-body .maint-momentos{ padding:16px 18px; margin-top:0; }
+.maint-item-body .prop-list{ gap:12px; }
+.maint-item-body .prop-row:not(.prop-row-empilhada),
+.bday-body .prop-row:not(.prop-row-empilhada),
+.maint-register .prop-row:not(.prop-row-empilhada){
+  grid-template-columns:minmax(0, 1fr); gap:6px; padding:0;
+}
+.maint-item-body .prop-label,
+.bday-body .prop-label,
+.maint-register .prop-label{
+  font-size:11px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:var(--text-faint);
+}
+.maint-item-body .prop-value input:not([type="checkbox"]),
+.maint-item-body .prop-value select,
+.bday-body .prop-value input:not([type="checkbox"]):not(.prop-ano),
+.bday-body .prop-value select{
+  width:100%;
+}
+.bday-body{ display:flex; flex-direction:column; gap:12px; padding:12px 14px 14px; }
+.bday-body .prop-list{
+  background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:16px 18px; gap:12px;
+}
+.bday-body .prop-row-empilhada{
+  background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:16px 18px;
+}
+@media (max-width:640px){
+  .maint-item-body .maint-secao, .maint-register, .bday-body .prop-list, .bday-body .prop-row-empilhada{ padding:14px; border-radius:14px; }
+}
+/* Campo com caixa cinza clara, como no app de briefing (nada de borda preta). */
+.maint-item-body .prop-value input:not([type="checkbox"]),
+.maint-item-body .prop-value select,
+.bday-body .prop-value input:not([type="checkbox"]),
+.bday-body .prop-value select,
+.bday-body .prop-value textarea,
+.maint-register .prop-value input,
+.maint-register .prop-value select{
+  background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:9px 12px;
+}
+.bday-body .prop-multi{ display:flex; gap:8px; align-items:center; }
+.bday-body .prop-multi input{ width:84px; flex:none; }
+.bday-body .prop-multi select{ flex:1; min-width:0; width:auto; }
