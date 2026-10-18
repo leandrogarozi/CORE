@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import JSZip from "jszip";
 import { createServiceClient } from "@/lib/supabase/service";
 import { donoDaChave } from "@/lib/backup/dono-da-chave";
-import { rowToBook, rowToKnowledgeItem, rowToSynapse } from "@/lib/board/mappers";
+import { rowToBirthday, rowToBook, rowToKnowledgeItem, rowToSynapse } from "@/lib/board/mappers";
 import { AREAS_PADRAO, arquivosDoBackup, ehAreaDeBackup } from "@/lib/learning-export";
 import { conhecimentoParaExportar } from "@/lib/conhecimento";
 import { arquivoDoResumo } from "@/lib/ia/resumo";
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
   if (!usuario) return NextResponse.json({ error: "chave inválida" }, { status: 401 });
 
   const supabase = createServiceClient();
-  const [livros, sinapses, config, conhecimento] = await Promise.all([
+  const [livros, sinapses, config, conhecimento, aniversarios] = await Promise.all([
     // A tabela de livros não tem exclusão suave (deleted_at): apagar é apagar.
     supabase.from("books").select("*").eq("user_id", usuario),
     supabase.from("synapses").select("*").eq("user_id", usuario).is("deleted_at", null),
@@ -34,8 +34,9 @@ export async function GET(req: NextRequest) {
       .eq("user_id", usuario)
       .eq("status", "aprovado")
       .is("deleted_at", null),
+    supabase.from("birthdays").select("*").eq("user_id", usuario).is("deleted_at", null),
   ]);
-  const erro = livros.error ?? sinapses.error ?? conhecimento.error;
+  const erro = livros.error ?? sinapses.error ?? conhecimento.error ?? aniversarios.error;
   if (erro) return NextResponse.json({ error: erro.message }, { status: 500 });
 
   const areas = (config.data?.backup_areas ?? AREAS_PADRAO).filter(ehAreaDeBackup);
@@ -46,6 +47,7 @@ export async function GET(req: NextRequest) {
       sinapses: todas.filter((s) => s.kind !== "ideia"),
       ideias: todas.filter((s) => s.kind === "ideia"),
       conhecendo: (conhecimento.data ?? []).map(rowToKnowledgeItem).map(conhecimentoParaExportar),
+      aniversarios: (aniversarios.data ?? []).map(rowToBirthday),
     },
     areas,
     config.data?.backup_name ?? "",

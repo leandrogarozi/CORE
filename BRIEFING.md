@@ -58,6 +58,12 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
 
 - **Tag IDEIA / ESTUDO (17/10):** coluna `synapses.tag` (`ideia` padrão, `estudo`; migração `synapses_tag_ideia_estudo`), só vale para `kind = "ideia"`. No cartão: etiqueta no cabeçalho e campo "Tag" com dois botões; na tela: filtro Todas/Ideias/Estudos (item novo nasce com a tag filtrada). Vai para o arquivo exportado (`**Tag:**`) e para o rótulo no conector.
 
+## Backup: lista de Aniversários (18/10)
+
+- Nova área de backup **Aniversários** (`learning-export.ts`: `arquivosDosAniversarios`, entra em `AREAS_DE_BACKUP` e no padrão). Gera `Aniversários/Aniversários.md` (por mês, com categoria, ano, WhatsApp e anotação) e `Aniversários/Aniversários.csv` (planilha, UTF-8 com BOM, protegido contra fórmula).
+- Vai no zip do botão "Baixar .zip" (Configurações) e no envio automático do Mac/Windows para a pasta do Drive (`/api/backup/aprendizado` agora lê `birthdays`). O backup completo em JSON (`montar.ts`) já tinha a tabela `birthdays` desde antes.
+- A área aparece com checkbox nas Configurações; quem nunca configurou as áreas já recebe tudo marcado (Leandro está nesse caso). Testado com dados de mentira; o envio real para o Drive roda na próxima passada do Mac.
+
 ## Cadastro de clientes pelas LPs: endpoint, tabela e ponte com Aniversários (pedido em 16/10)
 
 **Pedido:** várias LPs (uma por produto) em `cadastro.leandrogarozi.com.br` enviam clientes novos para uma tabela única; o aniversário deve aparecer no FARO. **Preocupação dele:** conectar muita coisa ao FARO está bem, mas tem que ser fácil **separar** quando outras pessoas usarem o app.

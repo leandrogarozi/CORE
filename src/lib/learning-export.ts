@@ -57,6 +57,17 @@ export interface SinapseParaExportar {
   tag?: string | null; // "ideia" | "estudo" (só nas ideias)
 }
 
+export interface AniversarioParaExportar {
+  id?: string;
+  name: string;
+  month: number;
+  day: number;
+  year: number | null;
+  category: string;
+  phone: string;
+  note: string;
+}
+
 /**
  * As áreas que a pessoa escolhe nas Configurações.
  *
@@ -70,10 +81,11 @@ export const AREAS_DE_BACKUP = [
   { id: "livros", rotulo: "Resumos de livro", pasta: "Livros" },
   { id: "ideias", rotulo: "Ideias (insights)", pasta: "Ideias" },
   { id: "conhecendo", rotulo: "Conhecendo você", pasta: "Conhecendo você" },
+  { id: "aniversarios", rotulo: "Aniversários", pasta: "Aniversários" },
 ] as const;
 
 export type AreaDeBackup = (typeof AREAS_DE_BACKUP)[number]["id"];
-export const AREAS_PADRAO: AreaDeBackup[] = ["sinapses", "livros", "ideias", "conhecendo"];
+export const AREAS_PADRAO: AreaDeBackup[] = ["sinapses", "livros", "ideias", "conhecendo", "aniversarios"];
 
 export function ehAreaDeBackup(v: string): v is AreaDeBackup {
   return AREAS_DE_BACKUP.some((a) => a.id === v);
@@ -183,6 +195,65 @@ export function arquivoDaIdeia(s: SinapseParaExportar): ArquivoDeAprendizado | n
   return { nome: `${pastaDaArea("ideias")}/${nomeDeArquivo(s.title)}`, conteudo: partes.join("\n") };
 }
 
+const NOMES_DOS_MESES = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
+const ROTULO_DA_CATEGORIA: Record<string, string> = { cliente: "Cliente", amigo: "Amigo", familiar: "Familiar" };
+const doisDigitos = (n: number) => String(n).padStart(2, "0");
+
+function ordemDosAniversarios(lista: AniversarioParaExportar[]): AniversarioParaExportar[] {
+  return [...lista].sort((a, b) => a.month - b.month || a.day - b.day || a.name.localeCompare(b.name, "pt-BR"));
+}
+
+/**
+ * A lista de Aniversários vira DOIS arquivos: um .md para ler (agrupado por mês,
+ * abre bem no celular e no Obsidian) e um .csv com tudo, que abre na planilha e
+ * serve para trazer a lista de volta. Telefone e anotação vão junto: é o backup
+ * dele, na pasta dele — sem isso, perder o app seria perder o contato.
+ */
+export function arquivosDosAniversarios(lista: AniversarioParaExportar[], geradoEm: string): ArquivoDeAprendizado[] {
+  if (!lista.length) return [];
+  const ordenada = ordemDosAniversarios(lista);
+  const pasta = pastaDaArea("aniversarios");
+
+  const md = [cabecalho({ tipo: "aniversarios", data: geradoEm.slice(0, 10), origem: "FARO" }), "# Aniversários", ""];
+  md.push(`${ordenada.length} pessoa${ordenada.length > 1 ? "s" : ""}, em ordem de data (dia/mês).`, "");
+  let mesAtual = 0;
+  for (const b of ordenada) {
+    if (b.month !== mesAtual) {
+      mesAtual = b.month;
+      if (md[md.length - 1] !== "") md.push("");
+      md.push(`## ${NOMES_DOS_MESES[b.month - 1] ?? `Mês ${b.month}`}`, "");
+    }
+    const detalhes = [
+      ROTULO_DA_CATEGORIA[b.category] ?? b.category,
+      b.year ? `nasceu em ${b.year}` : null,
+      b.phone.trim() ? `WhatsApp ${b.phone.trim()}` : null,
+    ].filter(Boolean);
+    md.push(`- **${doisDigitos(b.day)}/${doisDigitos(b.month)}** · ${b.name.trim()} — ${detalhes.join(" · ")}`);
+    if (b.note.trim()) md.push(`  - ${b.note.trim().replace(/\s*\n\s*/g, " ")}`);
+  }
+  md.push("");
+
+  // Aspas dobradas, e "=" ou "@" no começo viram fórmula numa planilha: prefixa com apóstrofo.
+  const celula = (v: string | number | null) => {
+    let t = v === null ? "" : String(v);
+    if (/^[=@]/.test(t)) t = `'${t}`;
+    return `"${t.replace(/"/g, '""')}"`;
+  };
+  const csv = [["Nome", "Dia", "Mês", "Ano", "Categoria", "WhatsApp", "Anotação"].map(celula).join(",")];
+  for (const b of ordenada) {
+    csv.push([b.name.trim(), b.day, b.month, b.year, ROTULO_DA_CATEGORIA[b.category] ?? b.category, b.phone.trim(), b.note.trim()].map(celula).join(","));
+  }
+
+  return [
+    { nome: `${pasta}/Aniversários.md`, conteudo: md.join("\n") },
+    // BOM no começo: sem ele o Excel abre o acento errado.
+    { nome: `${pasta}/Aniversários.csv`, conteudo: "\uFEFF" + csv.join("\r\n") + "\r\n" },
+  ];
+}
+
 export interface ConhecimentoParaExportar {
   id?: string;
   tipo: string;
@@ -222,6 +293,7 @@ export interface DadosDoBackup {
   sinapses: SinapseParaExportar[];
   ideias: SinapseParaExportar[];
   conhecendo: ConhecimentoParaExportar[];
+  aniversarios?: AniversarioParaExportar[];
 }
 
 /**
@@ -258,6 +330,13 @@ export function indiceDoBackup(
     if (!dados.conhecendo.length) linhas.push("_Nada aprovado ainda._", "");
     for (const k of dados.conhecendo) linhas.push(`- ${k.titulo.trim()} — ${k.rotuloDoTipo}`);
     linhas.push("");
+  }
+
+  if (areas.includes("aniversarios")) {
+    const lista = dados.aniversarios ?? [];
+    linhas.push(`## Aniversários (${lista.length})`, "");
+    if (!lista.length) linhas.push("_Nenhum aniversário cadastrado ainda._", "");
+    else linhas.push("Lista completa em `Aniversários/Aniversários.md` (para ler) e `.csv` (planilha).", "");
   }
 
   if (areas.includes("livros")) {
@@ -308,6 +387,7 @@ export function arquivosDoBackup(
   if (areas.includes("conhecendo")) {
     for (const k of dados.conhecendo) arquivos.push(arquivoDoConhecimento(k));
   }
+  if (areas.includes("aniversarios")) arquivos.push(...arquivosDosAniversarios(dados.aniversarios ?? [], geradoEm));
   if (areas.includes("livros")) {
     for (const l of dados.livros) {
       const a = arquivoDoLivro(l);

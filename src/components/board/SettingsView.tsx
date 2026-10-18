@@ -850,6 +850,7 @@ function BackupDeAprendizadoBox() {
     sinapses: board.state.synapses.filter((s) => s.kind !== "ideia"),
     ideias: board.state.synapses.filter((s) => s.kind === "ideia"),
     conhecendo: board.state.knowledgeItems.filter((k) => k.status === "aprovado").map(conhecimentoParaExportar),
+    aniversarios: board.state.birthdays,
   };
 
   // Quantos TÊM anotação, por área — o número que importa, porque é o que vai
@@ -859,12 +860,14 @@ function BackupDeAprendizadoBox() {
     ideias: dados.ideias.filter((x) => temConteudo(x.learning)).length,
     conhecendo: dados.conhecendo.length,
     livros: dados.livros.filter((x) => temConteudo(x.insights)).length,
+    aniversarios: board.state.birthdays.length,
   };
   const totalNaArea = {
     sinapses: dados.sinapses.length,
     livros: dados.livros.length,
     ideias: dados.ideias.length,
     conhecendo: board.state.knowledgeItems.filter((k) => k.status !== "descartado").length,
+    aniversarios: board.state.birthdays.length,
   };
   // Menos o índice, que não é aprendizado — o número é a promessa do botão.
   const quantos = Math.max(0, quantosArquivos(dados, areas) - 1);
@@ -936,7 +939,7 @@ function BackupDeAprendizadoBox() {
             <span>
               <span className="settings-label">{a.rotulo}</span>
               <span className="settings-toggle-hint">
-                {comAnotacao[a.id]} com anotação
+                {comAnotacao[a.id]} {a.id === "aniversarios" ? "cadastrados" : "com anotação"}
                 {totalNaArea[a.id] > comAnotacao[a.id] && ` (de ${totalNaArea[a.id]})`}
               </span>
             </span>
