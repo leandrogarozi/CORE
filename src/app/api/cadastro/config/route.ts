@@ -11,7 +11,8 @@ export const dynamic = "force-dynamic";
  *
  *   GET /api/cadastro/config?c=<codigo>
  *
- * Resposta: { ok:true, ativo, respondido, eyebrow, titulo, boas_vindas, perguntas:[{id,texto,tipo,opcional}] }
+ * Resposta: { ok:true, ativo, respondido, eyebrow, titulo, boas_vindas, tamanho_texto, campos,
+ *            perguntas:[{id,texto,tipo,opcional, instrucao?, opcoes?, outros?, escala?}] }
  * Código que não existe ou está desativado: { ok:true, ativo:false } (sem dizer qual dos dois).
  * Link que já atingiu o limite de respostas: respondido:true.
  *
@@ -63,7 +64,11 @@ export async function GET(req: NextRequest) {
       eyebrow: link.eyebrow,
       titulo: link.titulo,
       boas_vindas: link.boas_vindas,
-      perguntas: respondido ? [] : lerPerguntas(link.perguntas).map((p) => ({ id: p.id, texto: p.texto, tipo: p.tipo, opcional: p.opcional })),
+      // tamanho_texto (p|m|g) vale para a mensagem de boas-vindas; campos diz o que a página deve pedir
+      // (nome e e-mail sempre; WhatsApp e aniversário a critério do link).
+      tamanho_texto: link.tamanho_texto,
+      campos: { nome: true, email: true, whatsapp: link.pedir_whatsapp, aniversario: link.pedir_aniversario },
+      perguntas: respondido ? [] : lerPerguntas(link.perguntas),
     },
     200,
     origem

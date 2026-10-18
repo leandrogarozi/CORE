@@ -136,13 +136,15 @@ Mesmo CORS do POST. Resposta:
 
 ```json
 { "ok": true, "ativo": true, "respondido": false, "eyebrow": "...", "titulo": "...", "boas_vindas": "...",
-  "perguntas": [ { "id": "cargo", "texto": "Qual o seu cargo?", "tipo": "texto", "opcional": false } ] }
+  "tamanho_texto": "m", "campos": { "nome": true, "email": true, "whatsapp": true, "aniversario": true },
+  "perguntas": [ { "id": "cargo", "texto": "Qual o seu cargo?", "tipo": "texto", "opcional": false, "instrucao": "opcional" } ] }
 ```
 
 - Código inexistente ou desativado: `{ "ok": true, "ativo": false }` (não diz qual dos dois).
 - Link que já atingiu o limite de respostas: `"respondido": true` (a página mostra "Já recebemos as suas respostas") e `perguntas` vem vazia.
 - Limite de 60 consultas por IP a cada 10 minutos (`429` depois).
-- `tipo` das perguntas: `texto` (curta), `longo`, `numero`, `sim_nao`, `data`. Tipo desconhecido: trate como `texto`.
+- `tipo` das perguntas (mesmos blocos do app de briefing): `texto` (curto), `longo`, `escolha` (traz `opcoes` com até 10 alternativas e `outros: true` quando há "Outros" com campo livre; resposta = uma das opções, ou texto livre se `outros`), `links` (texto/links), `nota` (traz `escala`: `"1-5"` ou `"0-10"`; resposta = número inteiro dentro da escala). Tipo desconhecido: trate como `texto`. `instrucao` é a observação que aparece abaixo da pergunta.
+- `campos` diz o que pedir da pessoa: nome e e-mail sempre; `whatsapp` e `aniversario` podem vir `false` (a página esconde o campo). `tamanho_texto` (`p`, `m` ou `g`) é o tamanho da mensagem de boas-vindas (`boas_vindas` vazio = sem mensagem de abertura).
 
 ### Enviar as respostas
 
@@ -154,7 +156,7 @@ O POST de sempre, com o campo novo `codigo`; as respostas vão em `respostas_ext
 ```
 
 - `produto` passa a ser opcional quando há `codigo` (o servidor usa o cliente do link). Páginas antigas com `produto`/`?p=` continuam iguais.
-- Só valem as respostas cujo `id` é do link (o resto é descartado); pergunta não opcional sem resposta devolve `400` com `campo` = id da pergunta.
+- Só valem as respostas cujo `id` é do link (o resto é descartado); pergunta obrigatória sem resposta, nota fora da escala ou opção que não existe devolvem `400` com `campo` = id da pergunta.
 - Link inexistente/desativado: `400 {ok:false, ativo:false}`. Link que já atingiu o limite: **`409 {ok:false, respondido:true}`**.
 - `teste:true` valida tudo (inclusive o link) e não grava nem gasta a vaga do link.
 - Gravando: a resposta fica ligada à pessoa (`clientes_cadastro.respostas_extras[<codigo>]`), o link é marcado como respondido (`respondido_em`, `respostas_count`, `cliente_id`) e a data de nascimento entra na lista de Aniversários. A vaga do link é reservada antes de gravar (dois envios ao mesmo tempo não passam do limite) e devolvida se a gravação falhar.

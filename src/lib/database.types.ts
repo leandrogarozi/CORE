@@ -1248,9 +1248,12 @@ export type Database = {
           id: string
           limit_respostas: number
           perguntas: Json
+          pedir_aniversario: boolean
+          pedir_whatsapp: boolean
           pessoa: string
           respondido_em: string | null
           respostas_count: number
+          tamanho_texto: string
           titulo: string
           user_id: string
         }
@@ -1265,9 +1268,12 @@ export type Database = {
           id?: string
           limit_respostas?: number
           perguntas?: Json
+          pedir_aniversario?: boolean
+          pedir_whatsapp?: boolean
           pessoa?: string
           respondido_em?: string | null
           respostas_count?: number
+          tamanho_texto?: string
           titulo?: string
           user_id: string
         }
@@ -1282,9 +1288,12 @@ export type Database = {
           id?: string
           limit_respostas?: number
           perguntas?: Json
+          pedir_aniversario?: boolean
+          pedir_whatsapp?: boolean
           pessoa?: string
           respondido_em?: string | null
           respostas_count?: number
+          tamanho_texto?: string
           titulo?: string
           user_id?: string
         }

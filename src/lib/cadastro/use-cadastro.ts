@@ -16,6 +16,10 @@ export interface DadosDoLink {
   boas_vindas: string;
   perguntas: Pergunta[];
   limit_respostas: number;
+  /** Tamanho do texto da mensagem de boas-vindas na página. */
+  tamanho_texto: "p" | "m" | "g";
+  pedir_whatsapp: boolean;
+  pedir_aniversario: boolean;
 }
 
 /**

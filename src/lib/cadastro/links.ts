@@ -8,18 +8,33 @@ import type { Json } from "@/lib/database.types";
 export const ENDERECO_DOS_LINKS = "https://cadastro.leandrogarozi.com.br";
 
 export const TIPOS_DE_PERGUNTA = [
-  { id: "texto", rotulo: "Resposta curta" },
-  { id: "longo", rotulo: "Resposta longa" },
-  { id: "numero", rotulo: "Número" },
-  { id: "sim_nao", rotulo: "Sim ou não" },
-  { id: "data", rotulo: "Data" },
+  { id: "texto", rotulo: "Texto curto", dica: "Uma linha" },
+  { id: "longo", rotulo: "Texto longo", dica: "Parágrafo" },
+  { id: "escolha", rotulo: "Múltipla escolha", dica: "Até 10 opções" },
+  { id: "links", rotulo: "Links", dica: "Referências" },
+  { id: "nota", rotulo: "Nota", dica: "1 a 5 ou 0 a 10" },
 ] as const;
+
+export const ESCALAS_DE_NOTA = [
+  { id: "1-5", rotulo: "1 a 5", min: 1, max: 5 },
+  { id: "0-10", rotulo: "0 a 10", min: 0, max: 10 },
+] as const;
+export const MAXIMO_DE_OPCOES = 10;
 
 export interface Pergunta {
   id: string;
   texto: string;
+  /** texto | longo | escolha | links | nota. Qualquer outro valor a página trata como texto curto. */
   tipo: string;
   opcional: boolean;
+  /** Observação que aparece abaixo da pergunta. */
+  instrucao?: string;
+  /** Só em `escolha`: as alternativas (até 10). */
+  opcoes?: string[];
+  /** Só em `escolha`: acrescenta "Outros" com campo livre. */
+  outros?: boolean;
+  /** Só em `nota`: "1-5" ou "0-10". */
+  escala?: string;
 }
 
 /** Minúsculas, sem acento, só letras e números separados por um hífen. */
@@ -61,7 +76,18 @@ export function lerPerguntas(bruto: Json | undefined | null): Pergunta[] {
     const texto = typeof o.texto === "string" ? o.texto.trim().slice(0, 300) : "";
     if (!id || !texto || vistos.has(id)) continue;
     vistos.add(id);
-    saida.push({ id, texto, tipo: typeof o.tipo === "string" && o.tipo ? o.tipo : "texto", opcional: o.opcional === true });
+    const tipo = typeof o.tipo === "string" && o.tipo ? o.tipo : "texto";
+    const p: Pergunta = { id, texto, tipo, opcional: o.opcional === true };
+    if (typeof o.instrucao === "string" && o.instrucao.trim()) p.instrucao = o.instrucao.trim().slice(0, 300);
+    if (tipo === "escolha") {
+      p.opcoes = (Array.isArray(o.opcoes) ? o.opcoes : [])
+        .filter((x): x is string => typeof x === "string" && x.trim() !== "")
+        .map((x) => x.trim().slice(0, 200))
+        .slice(0, MAXIMO_DE_OPCOES);
+      p.outros = o.outros === true;
+    }
+    if (tipo === "nota") p.escala = o.escala === "0-10" ? "0-10" : "1-5";
+    saida.push(p);
   }
   return saida;
 }
@@ -94,6 +120,19 @@ export function respostasDoLink(
     if (vazia(v)) {
       if (!p.opcional) return { ok: false, campo: p.id, erro: `Responda: ${p.texto}` };
       continue;
+    }
+    if (p.tipo === "nota") {
+      const escala = ESCALAS_DE_NOTA.find((e) => e.id === p.escala) ?? ESCALAS_DE_NOTA[0];
+      const n = typeof v === "number" ? v : typeof v === "string" ? Number(v) : NaN;
+      if (!Number.isInteger(n) || n < escala.min || n > escala.max) {
+        return { ok: false, campo: p.id, erro: `Dê uma nota de ${escala.rotulo}: ${p.texto}` };
+      }
+      respostas[p.id] = n;
+      continue;
+    }
+    if (p.tipo === "escolha" && p.opcoes?.length && !p.outros) {
+      const ok = typeof v === "string" && p.opcoes.includes(v);
+      if (!ok) return { ok: false, campo: p.id, erro: `Escolha uma das opções: ${p.texto}` };
     }
     respostas[p.id] = v as Resposta;
   }
