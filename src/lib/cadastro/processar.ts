@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Json } from "@/lib/database.types";
 import { validarCadastro } from "./validar";
 import { levarAniversarioParaOFaro } from "./sincronizar";
+import { lerPerguntas, respostasDoLink, slugDoLink } from "./links";
 
 /**
  * O miolo do cadastro público, separado da rota para poder ser testado com um
@@ -41,6 +42,7 @@ export async function processarCadastro(p: PedidoDeCadastro): Promise<RespostaDo
     supabase
       .from("cadastro_tentativas")
       .select("id", { count: "exact", head: true })
+      .not("ip_hash", "like", "cfg:%") // consultas da configuração têm limite próprio
       .gte("criado_em", new Date(agora.getTime() - 60 * 60000).toISOString()),
   ]);
   if ((porIp.count ?? 0) >= LIMITE_POR_IP || (global.count ?? 0) >= LIMITE_GLOBAL) {
@@ -58,20 +60,63 @@ export async function processarCadastro(p: PedidoDeCadastro): Promise<RespostaDo
   if (!v.ok) return resp(400, { ok: false, campo: v.campo, erro: v.erro });
   const d = v.dados;
 
-  // --- de quem é este cadastro: pela chave pública da página, ou o único dono ativo ---
+  // --- de quem é este cadastro: pelo link, pela chave pública da página, ou o único dono ativo ---
   let usuario: string | null = null;
+  let donoDaChave: string | null = null;
   if (d.chave) {
     const { data } = await supabase.from("cadastro_dono").select("user_id").eq("chave", d.chave).eq("ativo", true).maybeSingle();
-    usuario = data?.user_id ?? null;
-    if (!usuario) return resp(400, { ok: false, erro: "Chave do cadastro inválida." });
+    donoDaChave = data?.user_id ?? null;
+    if (!donoDaChave) return resp(400, { ok: false, erro: "Chave do cadastro inválida." });
+  }
+
+  // --- link da pessoa: precisa existir, estar ativo e ainda não ter atingido o limite de respostas ---
+  let link: Database["public"]["Tables"]["cadastro_links"]["Row"] | null = null;
+  let respostasDoLinkValidas: Record<string, string | number | boolean | string[]> = {};
+  if (d.codigo) {
+    const { data } = await supabase.from("cadastro_links").select("*").eq("codigo", d.codigo).maybeSingle();
+    if (!data || !data.ativo || (donoDaChave && donoDaChave !== data.user_id)) {
+      return resp(400, { ok: false, ativo: false, erro: "Este link não está disponível." });
+    }
+    if (data.respostas_count >= data.limit_respostas) {
+      return resp(409, { ok: false, respondido: true, erro: "Já recebemos as suas respostas." });
+    }
+    const conferidas = respostasDoLink(lerPerguntas(data.perguntas), d.respostasExtras);
+    if (!conferidas.ok) return resp(400, { ok: false, campo: conferidas.campo, erro: conferidas.erro });
+    respostasDoLinkValidas = conferidas.respostas;
+    link = data;
+    usuario = data.user_id;
+  } else if (donoDaChave) {
+    usuario = donoDaChave;
   } else {
     const { data } = await supabase.from("cadastro_dono").select("user_id").eq("ativo", true).limit(2);
     if (data?.length === 1) usuario = data[0].user_id;
     if (!usuario) return resp(400, { ok: false, erro: "Cadastro não configurado." });
   }
 
-  // Modo de teste: tudo é validado, nada é gravado. É o "endereço de teste" para a LP-molde.
-  if (d.teste) return resp(200, { ok: true, teste: true, normalizado: { ...d, chave: undefined } });
+  // Produto: o da página antiga, ou o cliente do link (ex.: "witt").
+  const produto = d.produto || slugDoLink(link?.cliente ?? "") || "link";
+
+  // Modo de teste: tudo é validado (inclusive o link), nada é gravado. É o "endereço de teste" para a LP-molde.
+  if (d.teste) return resp(200, { ok: true, teste: true, normalizado: { ...d, produto, chave: undefined } });
+
+  // Reserva a vaga do link ANTES de gravar: dois envios ao mesmo tempo não passam do limite
+  // (a segunda atualização falha porque o contador mudou). Se a gravação falhar, a vaga é devolvida.
+  const agoraISO = agora.toISOString();
+  let reservou = false;
+  if (link) {
+    const { data: reservado, error: erroReserva } = await supabase
+      .from("cadastro_links")
+      .update({ respostas_count: link.respostas_count + 1, respondido_em: agoraISO })
+      .eq("id", link.id)
+      .eq("respostas_count", link.respostas_count)
+      .select("id");
+    if (erroReserva) {
+      console.error("cadastro: não reservou o link", erroReserva.message);
+      return resp(500, { ok: false, erro: "Não foi possível salvar agora. Tente de novo em instantes." });
+    }
+    if (!reservado?.length) return resp(409, { ok: false, respondido: true, erro: "Já recebemos as suas respostas." });
+    reservou = true;
+  }
 
   try {
     // --- cliente repetido (mesmo e-mail ou mesmo WhatsApp): atualiza em vez de duplicar ---
@@ -86,13 +131,13 @@ export async function processarCadastro(p: PedidoDeCadastro): Promise<RespostaDo
       antigo = porZap.data?.[0] ?? null;
     }
 
-    const agoraISO = agora.toISOString();
     let registroId: string;
     let birthdayIdAtual: string | null = null;
     const extras = (antigo && typeof antigo.respostas_extras === "object" && antigo.respostas_extras && !Array.isArray(antigo.respostas_extras)
       ? { ...(antigo.respostas_extras as Record<string, Json>) }
       : {}) as Record<string, Json>;
-    extras[d.produto] = d.respostasExtras as Json;
+    // Respostas do link ficam sob o código do link; as das páginas antigas, sob o produto.
+    extras[link ? link.codigo : produto] = (link ? respostasDoLinkValidas : d.respostasExtras) as Json;
 
     if (antigo) {
       registroId = antigo.id;
@@ -101,11 +146,12 @@ export async function processarCadastro(p: PedidoDeCadastro): Promise<RespostaDo
         .from("clientes_cadastro")
         .update({
           atualizado_em: agoraISO,
-          produto: d.produto,
-          produtos: Array.from(new Set([...(antigo.produtos ?? []), d.produto])),
+          produto,
+          produtos: Array.from(new Set([...(antigo.produtos ?? []), produto])),
           // Dados pessoais já guardados NÃO são sobrescritos por um novo envio (a
           // página é pública: qualquer um poderia trocar o telefone de outra
           // pessoa só sabendo o e-mail). Um novo envio só preenche o que estava vazio.
+          // `nao_enviar` também fica de fora de propósito: resposta nova NUNCA desmarca sozinha.
           nome: antigo.nome || d.nome,
           whatsapp: antigo.whatsapp ?? d.whatsapp,
           whatsapp_norm: antigo.whatsapp_norm ?? d.whatsapp,
@@ -125,8 +171,8 @@ export async function processarCadastro(p: PedidoDeCadastro): Promise<RespostaDo
         .from("clientes_cadastro")
         .insert({
           user_id: usuario,
-          produto: d.produto,
-          produtos: [d.produto],
+          produto,
+          produtos: [produto],
           nome: d.nome,
           email: d.email,
           email_norm: d.emailNorm,
@@ -152,7 +198,7 @@ export async function processarCadastro(p: PedidoDeCadastro): Promise<RespostaDo
       try {
         const r = await levarAniversarioParaOFaro(
           supabase,
-          { usuario, nome: antigo?.nome ?? d.nome, whatsapp: antigo?.whatsapp ?? d.whatsapp ?? null, aniversario: aniv, produto: d.produto },
+          { usuario, nome: antigo?.nome ?? d.nome, whatsapp: antigo?.whatsapp ?? d.whatsapp ?? null, aniversario: aniv, produto },
           hojeISO
         );
         if (r.birthdayId) await supabase.from("clientes_cadastro").update({ birthday_id: r.birthdayId }).eq("id", registroId);
@@ -167,15 +213,24 @@ export async function processarCadastro(p: PedidoDeCadastro): Promise<RespostaDo
     // --- avisa o dono: caixa de Avisos + push ---
     const nomeNoFaro = antigo?.nome ?? d.nome;
     const titulo = antigo ? `Cadastro atualizado: ${nomeNoFaro}` : `Novo cadastro: ${nomeNoFaro}`;
-    const corpoAviso = `${nomeNoFaro} se cadastrou pela página "${d.produto}"${d.origem ? ` (${d.origem})` : ""}.${aniversarioNoFaro}`;
+    const corpoAviso = `${nomeNoFaro} ${link ? `respondeu pelo link "${link.codigo}"` : `se cadastrou pela página "${produto}"`}${d.origem ? ` (${d.origem})` : ""}.${aniversarioNoFaro}`;
     const { error: erroAviso } = await supabase
       .from("faro_avisos")
-      .insert({ user_id: usuario, tipo: "cadastro", titulo, corpo: corpoAviso, destino: d.aniversario ? "aniversarios" : null });
+      .insert({ user_id: usuario, tipo: "cadastro", titulo, corpo: corpoAviso, destino: link ? "cadastros" : d.aniversario ? "aniversarios" : null });
     if (erroAviso) console.error("cadastro: aviso não gravado", erroAviso.message);
     await p.avisarPush(usuario, titulo, corpoAviso.slice(0, 140)).catch(() => 0);
 
+    // O link passa a apontar para a pessoa que respondeu (a ficha em Clientes).
+    if (link) await supabase.from("cadastro_links").update({ cliente_id: registroId }).eq("id", link.id);
+
     return resp(200, { ok: true });
   } catch (e) {
+    if (reservou && link) {
+      await supabase
+        .from("cadastro_links")
+        .update({ respostas_count: link.respostas_count, respondido_em: link.respondido_em })
+        .eq("id", link.id);
+    }
     console.error("cadastro: falha ao gravar", e instanceof Error ? e.message : e);
     return resp(500, { ok: false, erro: "Não foi possível salvar agora. Tente de novo em instantes." });
   }

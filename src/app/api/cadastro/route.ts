@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { enviarPushAoUsuario } from "@/lib/push/enviar";
-import { ORIGENS_PERMITIDAS, origemPermitida } from "@/lib/cadastro/validar";
+import { cabecalhosCors, origemPermitida } from "@/lib/cadastro/validar";
 import { processarCadastro } from "@/lib/cadastro/processar";
 
 export const dynamic = "force-dynamic";
@@ -10,11 +10,13 @@ export const maxDuration = 30;
 /**
  * Endpoint PÚBLICO de cadastro de clientes (as LPs em cadastro.leandrogarozi.com.br).
  *
- *   POST /api/cadastro   JSON: produto, nome, email, consentimento (obrigatórios);
+ *   POST /api/cadastro   JSON: codigo (do link) OU produto (páginas antigas), nome, email,
+ *                        consentimento (obrigatórios);
  *                        whatsapp, aniversario (AAAA-MM-DD), respostas_extras,
  *                        origem, texto_consentimento, chave, teste, website (isca).
  *
- * Resposta: 200 {ok:true} | 400 {ok:false, campo, erro} | 403 | 429 {ok:false, erro}
+ * Resposta: 200 {ok:true} | 400 {ok:false, campo, erro} | 403 | 409 {ok:false, respondido:true}
+ *           (link que já atingiu o limite de respostas) | 429 {ok:false, erro}
  *
  * Segurança: a chave de serviço nunca sai do servidor; CORS só para as páginas do
  * subdomínio; limite por IP e global; campo-isca `website` (bot que preenche é
@@ -26,17 +28,7 @@ export const maxDuration = 30;
 
 const TAMANHO_MAXIMO = 16 * 1024;
 
-function cabecalhos(origem: string | null): Record<string, string> {
-  const h: Record<string, string> = {
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Max-Age": "86400",
-    "Cache-Control": "no-store",
-    Vary: "Origin",
-  };
-  if (origem && ORIGENS_PERMITIDAS.includes(origem)) h["Access-Control-Allow-Origin"] = origem;
-  return h;
-}
+const cabecalhos = (origem: string | null) => cabecalhosCors(origem, "POST, OPTIONS");
 
 function responder(corpo: object, status: number, origem: string | null) {
   return NextResponse.json(corpo, { status, headers: cabecalhos(origem) });

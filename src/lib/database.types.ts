@@ -1236,6 +1236,60 @@ export type Database = {
         }
         Relationships: []
       }
+      cadastro_links: {
+        Row: {
+          ativo: boolean
+          boas_vindas: string
+          cliente: string
+          cliente_id: string | null
+          codigo: string
+          criado_em: string
+          eyebrow: string
+          id: string
+          limit_respostas: number
+          perguntas: Json
+          pessoa: string
+          respondido_em: string | null
+          respostas_count: number
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          ativo?: boolean
+          boas_vindas?: string
+          cliente?: string
+          cliente_id?: string | null
+          codigo: string
+          criado_em?: string
+          eyebrow?: string
+          id?: string
+          limit_respostas?: number
+          perguntas?: Json
+          pessoa?: string
+          respondido_em?: string | null
+          respostas_count?: number
+          titulo?: string
+          user_id: string
+        }
+        Update: {
+          ativo?: boolean
+          boas_vindas?: string
+          cliente?: string
+          cliente_id?: string | null
+          codigo?: string
+          criado_em?: string
+          eyebrow?: string
+          id?: string
+          limit_respostas?: number
+          perguntas?: Json
+          pessoa?: string
+          respondido_em?: string | null
+          respostas_count?: number
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       clientes_cadastro: {
         Row: {
           aniversario: string | null
@@ -1249,6 +1303,8 @@ export type Database = {
           email_norm: string
           envios: number
           id: string
+          nao_enviar: boolean
+          nao_enviar_em: string | null
           nome: string
           origem: string | null
           produto: string
@@ -1270,6 +1326,8 @@ export type Database = {
           email_norm: string
           envios?: number
           id?: string
+          nao_enviar?: boolean
+          nao_enviar_em?: string | null
           nome: string
           origem?: string | null
           produto: string
@@ -1291,6 +1349,8 @@ export type Database = {
           email_norm?: string
           envios?: number
           id?: string
+          nao_enviar?: boolean
+          nao_enviar_em?: string | null
           nome?: string
           origem?: string | null
           produto?: string

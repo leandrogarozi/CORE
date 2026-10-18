@@ -11,6 +11,9 @@
  */
 
 export interface CadastroValido {
+  /** Código do link (cadastro.leandrogarozi.com.br/<codigo>); null nas páginas antigas por produto. */
+  codigo: string | null;
+  /** Vazio quando veio só o link: quem preenche é o servidor, com o cliente do link. */
   produto: string;
   nome: string;
   email: string;
@@ -75,8 +78,14 @@ export function validarCadastro(corpo: unknown, hojeISO: string): ResultadoDaVal
   const c = corpo as Record<string, unknown>;
   const texto = (v: unknown) => (typeof v === "string" ? limpar(v) : "");
 
+  const codigoBruto = texto(c.codigo).toLowerCase();
+  if (codigoBruto && !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(codigoBruto)) return falha("codigo", "Link inválido.");
+  const codigo = codigoBruto || null;
+
   const produto = texto(c.produto).toLowerCase();
-  if (!/^[a-z0-9][a-z0-9_-]{0,39}$/.test(produto)) return falha("produto", "Produto inválido (use letras minúsculas, números, - ou _).");
+  if (!(codigo && !produto) && !/^[a-z0-9][a-z0-9_-]{0,39}$/.test(produto)) {
+    return falha("produto", "Produto inválido (use letras minúsculas, números, - ou _).");
+  }
 
   const nome = texto(c.nome);
   if (nome.length < 2 || nome.length > 120) return falha("nome", "Informe o nome (2 a 120 letras).");
@@ -111,6 +120,7 @@ export function validarCadastro(corpo: unknown, hojeISO: string): ResultadoDaVal
   return {
     ok: true,
     dados: {
+      codigo,
       produto,
       nome,
       email,
@@ -128,6 +138,19 @@ export function validarCadastro(corpo: unknown, hojeISO: string): ResultadoDaVal
 
 /** Origens que podem chamar o endpoint pelo navegador. */
 export const ORIGENS_PERMITIDAS = ["https://cadastro.leandrogarozi.com.br"];
+
+/** Cabeçalhos de CORS: só as páginas do subdomínio podem chamar pelo navegador. */
+export function cabecalhosCors(origem: string | null, metodos: string): Record<string, string> {
+  const h: Record<string, string> = {
+    "Access-Control-Allow-Methods": metodos,
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Max-Age": "86400",
+    "Cache-Control": "no-store",
+    Vary: "Origin",
+  };
+  if (origem && ORIGENS_PERMITIDAS.includes(origem)) h["Access-Control-Allow-Origin"] = origem;
+  return h;
+}
 
 export function origemPermitida(origem: string | null): boolean {
   return !origem || ORIGENS_PERMITIDAS.includes(origem);
