@@ -13,11 +13,13 @@ import {
   diasAteAniversario,
   idadeQueFara,
   linkDoWhatsApp,
+  telefoneParaWhatsApp,
   ordenarPorProximos,
   rotuloDosDias,
 } from "@/lib/board/aniversarios";
 import { todayISO } from "@/lib/date-utils";
 import { DIAS_DE_AVISO_DO_ANIVERSARIO } from "./AniversariosButton";
+import { useNaoEnviar } from "@/lib/cadastro/use-cadastro";
 import type { Birthday } from "@/lib/types";
 
 type Filtro = "todos" | Birthday["category"];
@@ -33,7 +35,11 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
   const hoje = todayISO();
   const dias = diasAteAniversario(pessoa, hoje);
   const idade = idadeQueFara(pessoa, hoje);
-  const zap = linkDoWhatsApp(pessoa);
+  // Quem está marcado como "não enviar" na tela Clientes não ganha botão de mandar mensagem.
+  const naoEnviar = useNaoEnviar();
+  const numero = telefoneParaWhatsApp(pessoa.phone);
+  const bloqueada = naoEnviar.birthdays.has(pessoa.id) || (!!numero && naoEnviar.numeros.has(numero));
+  const zap = bloqueada ? null : linkDoWhatsApp(pessoa);
 
   return (
     <div className={"bday-card" + (dias === 0 ? " hoje" : dias <= DIAS_DE_AVISO_DO_ANIVERSARIO ? " perto" : "")}>
@@ -214,7 +220,11 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
                 <WhatsAppIcon /> Mandar parabéns agora
               </a>
             ) : (
-              <span className="challenging-hint bday-acoes-dica">Cadastre o telefone para poder mandar os parabéns pelo WhatsApp.</span>
+              <span className="challenging-hint bday-acoes-dica">
+                {bloqueada
+                  ? "Marcada como “não enviar” na tela Clientes: o FARO não manda mensagem para esta pessoa."
+                  : "Cadastre o telefone para poder mandar os parabéns pelo WhatsApp."}
+              </span>
             )}
             <button
               type="button"

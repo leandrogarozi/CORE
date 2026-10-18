@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
   if (!usuario) return NextResponse.json({ error: "chave inválida" }, { status: 401 });
 
   const supabase = createServiceClient();
-  const [livros, sinapses, config, conhecimento, aniversarios] = await Promise.all([
+  const [livros, sinapses, config, conhecimento, aniversarios, clientesCrm, linksCrm] = await Promise.all([
     // A tabela de livros não tem exclusão suave (deleted_at): apagar é apagar.
     supabase.from("books").select("*").eq("user_id", usuario),
     supabase.from("synapses").select("*").eq("user_id", usuario).is("deleted_at", null),
@@ -35,8 +35,10 @@ export async function GET(req: NextRequest) {
       .eq("status", "aprovado")
       .is("deleted_at", null),
     supabase.from("birthdays").select("*").eq("user_id", usuario).is("deleted_at", null),
+    supabase.from("clientes_cadastro").select("*").eq("user_id", usuario).order("criado_em"),
+    supabase.from("cadastro_links").select("*").eq("user_id", usuario).order("criado_em"),
   ]);
-  const erro = livros.error ?? sinapses.error ?? conhecimento.error ?? aniversarios.error;
+  const erro = livros.error ?? sinapses.error ?? conhecimento.error ?? aniversarios.error ?? clientesCrm.error ?? linksCrm.error;
   if (erro) return NextResponse.json({ error: erro.message }, { status: 500 });
 
   const areas = (config.data?.backup_areas ?? AREAS_PADRAO).filter(ehAreaDeBackup);
@@ -48,6 +50,7 @@ export async function GET(req: NextRequest) {
       ideias: todas.filter((s) => s.kind === "ideia"),
       conhecendo: (conhecimento.data ?? []).map(rowToKnowledgeItem).map(conhecimentoParaExportar),
       aniversarios: (aniversarios.data ?? []).map(rowToBirthday),
+      crm: { clientes: clientesCrm.data ?? [], links: linksCrm.data ?? [] },
     },
     areas,
     config.data?.backup_name ?? "",

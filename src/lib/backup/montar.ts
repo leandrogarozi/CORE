@@ -28,6 +28,8 @@ export const TABELAS = [
   "shopping_items",
   "shopping_lists",
   "birthdays",
+  "clientes_cadastro",
+  "cadastro_links",
   "knowledge_items",
   "checklists",
   "attachments",

@@ -3126,3 +3126,40 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 }
 .synapse-tag-badge.estudo{ background:color-mix(in srgb, var(--success) 14%, transparent); color:var(--success); }
 .idea-filter{ margin:4px 0 10px; }
+
+/* Cadastros (links por pessoa) e Clientes (quem respondeu pelo site). */
+.cad-novo{ padding:var(--sp-3); }
+.cad-editor .cad-sub{ display:block; margin:14px 0 6px; }
+.cad-pergunta{
+  display:grid; grid-template-columns:minmax(0,1fr) auto auto auto; gap:8px; align-items:center;
+  padding:8px 0; border-bottom:1px solid var(--border);
+}
+.cad-pergunta-texto{ min-width:0; }
+.cad-opcional{ display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted); }
+.cad-pergunta-acoes{ display:inline-flex; gap:2px; }
+.cad-rodape{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:14px; }
+.cad-rodape-botoes{ display:inline-flex; gap:8px; }
+.cad-link-previa{ font-size:12px; color:var(--text-muted); overflow-wrap:anywhere; min-width:0; }
+.cad-link-linha{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+.cad-cliente{ color:var(--text-faint); font-weight:400; }
+.cad-status{ flex:none; font-size:11px; padding:2px 8px; border-radius:var(--r-2); background:var(--surface-2, var(--accent-soft)); color:var(--text-muted); }
+.cad-status.respondido{ background:color-mix(in srgb, var(--success) 14%, transparent); color:var(--success); }
+.cad-status.pendente{ background:var(--accent-soft); color:var(--accent); }
+.cad-card.desativado .bday-nome{ color:var(--text-faint); }
+.cad-respostas{ margin:6px 0 10px; }
+.cad-dl{ display:grid; gap:8px; margin:6px 0; }
+.cad-dl dt{ font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em; }
+.cad-dl dd{ margin:2px 0 0; font-size:13.5px; white-space:pre-wrap; overflow-wrap:anywhere; }
+.cli-selo{ flex:none; font-size:11px; padding:2px 8px; border-radius:var(--r-2); background:color-mix(in srgb, var(--success) 14%, transparent); color:var(--success); }
+.cli-nao-enviar{ flex:none; display:inline-flex; align-items:center; gap:8px; font-size:12px; color:var(--text-muted); cursor:pointer; }
+.cli-card.nao-enviar .bday-nome{ text-decoration:line-through; text-decoration-color:var(--text-faint); }
+.cli-apagar{ margin-top:12px; }
+@media (max-width:640px){
+  .cad-pergunta{ grid-template-columns:minmax(0,1fr) auto; }
+  .cad-pergunta select{ grid-column:1 / -1; }
+  .cad-opcional{ grid-column:1; }
+  .cad-pergunta-acoes{ grid-column:2; justify-self:end; }
+  .cli-selo{ display:none; }
+}
+.cad-editor textarea{ width:100%; }
+.cad-editor .prop-value{ min-width:0; }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { BellIcon, BoltIcon,
+import { BellIcon, BoltIcon, LinkIcon,
   BookOpenIcon, BookIcon, GiftIcon, CarIcon, CartIcon, ChartIcon, ChecklistIcon, FolderIcon, HomeIcon, MealIcon, PillIcon, SettingsIcon, TrashIcon, UserIcon, UsersGroupIcon, WeekIcon } from "./icons";
 
 export type ViewMode =
@@ -17,6 +17,8 @@ export type ViewMode =
   | "ideias"
   | "compras"
   | "aniversarios"
+  | "cadastros"
+  | "clientes"
   | "conhecendo"
   | "estudo"
   | "manutencao"
@@ -134,6 +136,20 @@ export function Sidebar({
             onClick={() => onSelect("aniversarios")}
           >
             <GiftIcon /> Aniversários
+          </button>
+          <button
+            type="button"
+            className={"sidebar-item" + (viewMode === "cadastros" ? " active" : "")}
+            onClick={() => onSelect("cadastros")}
+          >
+            <LinkIcon /> Cadastros
+          </button>
+          <button
+            type="button"
+            className={"sidebar-item" + (viewMode === "clientes" ? " active" : "")}
+            onClick={() => onSelect("clientes")}
+          >
+            <UsersGroupIcon /> Clientes
           </button>
           <button
             type="button"

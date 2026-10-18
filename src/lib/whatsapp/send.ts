@@ -1,3 +1,6 @@
+import { createServiceClient } from "@/lib/supabase/service";
+import { conferirNumero } from "@/lib/cadastro/nao-enviar";
+
 const GRAPH_API_VERSION = "v21.0";
 
 /**
@@ -42,6 +45,10 @@ async function callWhatsAppApi(body: Record<string, unknown>): Promise<WhatsAppS
   if (!token || !phoneNumberId) {
     return { ok: false, error: "WhatsApp não configurado no servidor (faltam variáveis de ambiente)" };
   }
+
+  // Único ponto de saída de WhatsApp do FARO: quem está marcado como "não enviar" não recebe nada.
+  const conferencia = await conferirNumero(createServiceClient(), String(body.to ?? ""));
+  if (!conferencia.pode) return { ok: false, error: conferencia.motivo };
 
   const res = await fetch(`https://graph.facebook.com/${GRAPH_API_VERSION}/${phoneNumberId}/messages`, {
     method: "POST",

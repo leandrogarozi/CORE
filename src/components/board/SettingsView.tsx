@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { useBoardCtx } from "./board-context";
+import { createClient } from "@/lib/supabase/client";
 import { conhecimentoParaExportar } from "@/lib/conhecimento";
 import { useWhatsAppCost } from "@/lib/board/use-whatsapp-cost";
 import { useIaCost } from "@/lib/board/use-ia-cost";
@@ -843,6 +844,17 @@ function BackupDeAprendizadoBox() {
   // null = nunca configurou. Trata como tudo marcado em vez de nada: um backup
   // que nasce sem nada selecionado parece quebrado no primeiro clique.
   const areas = (backupAreas ?? AREAS_PADRAO).filter(ehAreaDeBackup);
+  // Os cadastros pelo site não ficam no estado do app: busca aqui, uma vez, para a contagem e o .zip.
+  const [crm, setCrm] = useState<DadosDoBackup["crm"]>(undefined);
+  useEffect(() => {
+    const sb = createClient();
+    void Promise.all([
+      sb.from("clientes_cadastro").select("*").order("criado_em"),
+      sb.from("cadastro_links").select("*").order("criado_em"),
+    ]).then(([c, l]) => {
+      if (!c.error && !l.error) setCrm({ clientes: c.data ?? [], links: l.data ?? [] });
+    });
+  }, []);
   const nome = nomeDraft ?? backupName ?? "";
 
   const dados: DadosDoBackup = {
@@ -851,6 +863,7 @@ function BackupDeAprendizadoBox() {
     ideias: board.state.synapses.filter((s) => s.kind === "ideia"),
     conhecendo: board.state.knowledgeItems.filter((k) => k.status === "aprovado").map(conhecimentoParaExportar),
     aniversarios: board.state.birthdays,
+    crm,
   };
 
   // Quantos TÊM anotação, por área — o número que importa, porque é o que vai
@@ -861,6 +874,7 @@ function BackupDeAprendizadoBox() {
     conhecendo: dados.conhecendo.length,
     livros: dados.livros.filter((x) => temConteudo(x.insights)).length,
     aniversarios: board.state.birthdays.length,
+    crm: crm?.clientes.length ?? 0,
   };
   const totalNaArea = {
     sinapses: dados.sinapses.length,
@@ -868,6 +882,7 @@ function BackupDeAprendizadoBox() {
     ideias: dados.ideias.length,
     conhecendo: board.state.knowledgeItems.filter((k) => k.status !== "descartado").length,
     aniversarios: board.state.birthdays.length,
+    crm: crm?.clientes.length ?? 0,
   };
   // Menos o índice, que não é aprendizado — o número é a promessa do botão.
   const quantos = Math.max(0, quantosArquivos(dados, areas) - 1);
@@ -939,7 +954,7 @@ function BackupDeAprendizadoBox() {
             <span>
               <span className="settings-label">{a.rotulo}</span>
               <span className="settings-toggle-hint">
-                {comAnotacao[a.id]} {a.id === "aniversarios" ? "cadastrados" : "com anotação"}
+                {comAnotacao[a.id]} {a.id === "aniversarios" || a.id === "crm" ? "cadastrados" : "com anotação"}
                 {totalNaArea[a.id] > comAnotacao[a.id] && ` (de ${totalNaArea[a.id]})`}
               </span>
             </span>

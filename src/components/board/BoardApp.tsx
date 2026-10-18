@@ -28,6 +28,8 @@ import { SynapsesView } from "./SynapsesView";
 import { IdeasView } from "./IdeasView";
 import { ComprasView } from "./ComprasView";
 import { BirthdaysView } from "./BirthdaysView";
+import { CadastrosView } from "./CadastrosView";
+import { ClientesView } from "./ClientesView";
 import { ConhecendoView } from "./ConhecendoView";
 import { StudyPlansView } from "./StudyPlansView";
 import { MaintenanceView } from "./MaintenanceView";
@@ -281,6 +283,10 @@ function BoardShell() {
         <ComprasView onBack={() => setViewMode("day")} />
       ) : viewMode === "aniversarios" ? (
         <BirthdaysView onBack={() => setViewMode("day")} />
+      ) : viewMode === "cadastros" ? (
+        <CadastrosView onBack={() => setViewMode("day")} />
+      ) : viewMode === "clientes" ? (
+        <ClientesView onBack={() => setViewMode("day")} />
       ) : viewMode === "estudo" ? (
         <StudyPlansView onBack={() => setViewMode("day")} />
       ) : viewMode === "manutencao" ? (

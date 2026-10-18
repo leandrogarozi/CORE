@@ -1,4 +1,6 @@
 import { htmlParaMarkdown, temConteudo } from "@/lib/html-para-markdown";
+import type { Tables } from "@/lib/database.types";
+import { celulaCsv, csvDosClientes, csvDosLinks } from "@/lib/cadastro/csv";
 
 /**
  * Transforma o que está guardado no FARO em arquivos de texto legíveis.
@@ -82,10 +84,11 @@ export const AREAS_DE_BACKUP = [
   { id: "ideias", rotulo: "Ideias (insights)", pasta: "Ideias" },
   { id: "conhecendo", rotulo: "Conhecendo você", pasta: "Conhecendo você" },
   { id: "aniversarios", rotulo: "Aniversários", pasta: "Aniversários" },
+  { id: "crm", rotulo: "CRM clientes (cadastros pelo site)", pasta: "CRM clientes" },
 ] as const;
 
 export type AreaDeBackup = (typeof AREAS_DE_BACKUP)[number]["id"];
-export const AREAS_PADRAO: AreaDeBackup[] = ["sinapses", "livros", "ideias", "conhecendo", "aniversarios"];
+export const AREAS_PADRAO: AreaDeBackup[] = ["sinapses", "livros", "ideias", "conhecendo", "aniversarios", "crm"];
 
 export function ehAreaDeBackup(v: string): v is AreaDeBackup {
   return AREAS_DE_BACKUP.some((a) => a.id === v);
@@ -236,12 +239,7 @@ export function arquivosDosAniversarios(lista: AniversarioParaExportar[], gerado
   }
   md.push("");
 
-  // Aspas dobradas, e "=" ou "@" no começo viram fórmula numa planilha: prefixa com apóstrofo.
-  const celula = (v: string | number | null) => {
-    let t = v === null ? "" : String(v);
-    if (/^[=@]/.test(t)) t = `'${t}`;
-    return `"${t.replace(/"/g, '""')}"`;
-  };
+  const celula = celulaCsv;
   const csv = [["Nome", "Dia", "Mês", "Ano", "Categoria", "WhatsApp", "Anotação"].map(celula).join(",")];
   for (const b of ordenada) {
     csv.push([b.name.trim(), b.day, b.month, b.year, ROTULO_DA_CATEGORIA[b.category] ?? b.category, b.phone.trim(), b.note.trim()].map(celula).join(","));
@@ -251,6 +249,24 @@ export function arquivosDosAniversarios(lista: AniversarioParaExportar[], gerado
     { nome: `${pasta}/Aniversários.md`, conteudo: md.join("\n") },
     // BOM no começo: sem ele o Excel abre o acento errado.
     { nome: `${pasta}/Aniversários.csv`, conteudo: "\uFEFF" + csv.join("\r\n") + "\r\n" },
+  ];
+}
+
+/**
+ * CRM de clientes (quem se cadastrou pelos links e pelas páginas do site): duas
+ * planilhas para usar fora do FARO e um JSON com as linhas cruas, que é o que a
+ * restauração lê (`/api/backup/restaurar-crm`).
+ */
+export function arquivosDoCrm(crm: NonNullable<DadosDoBackup["crm"]>, geradoEm: string): ArquivoDeAprendizado[] {
+  if (!crm.clientes.length && !crm.links.length) return [];
+  const pasta = pastaDaArea("crm");
+  return [
+    { nome: `${pasta}/Clientes.csv`, conteudo: csvDosClientes(crm.clientes, crm.links) },
+    { nome: `${pasta}/Links de cadastro.csv`, conteudo: csvDosLinks(crm.links, crm.clientes) },
+    {
+      nome: `${pasta}/crm-clientes.json`,
+      conteudo: JSON.stringify({ app: "FARO", formato: 1, geradoEm, clientes: crm.clientes, links: crm.links }, null, 2),
+    },
   ];
 }
 
@@ -294,6 +310,7 @@ export interface DadosDoBackup {
   ideias: SinapseParaExportar[];
   conhecendo: ConhecimentoParaExportar[];
   aniversarios?: AniversarioParaExportar[];
+  crm?: { clientes: Tables<"clientes_cadastro">[]; links: Tables<"cadastro_links">[] };
 }
 
 /**
@@ -337,6 +354,13 @@ export function indiceDoBackup(
     linhas.push(`## Aniversários (${lista.length})`, "");
     if (!lista.length) linhas.push("_Nenhum aniversário cadastrado ainda._", "");
     else linhas.push("Lista completa em `Aniversários/Aniversários.md` (para ler) e `.csv` (planilha).", "");
+  }
+
+  if (areas.includes("crm")) {
+    const c = dados.crm ?? { clientes: [], links: [] };
+    linhas.push(`## CRM clientes (${c.clientes.length} pessoas, ${c.links.length} links)`, "");
+    if (!c.clientes.length && !c.links.length) linhas.push("_Nenhum cadastro ainda._", "");
+    else linhas.push("Planilhas em `CRM clientes/` (`Clientes.csv` e `Links de cadastro.csv`) e `crm-clientes.json` para restaurar.", "");
   }
 
   if (areas.includes("livros")) {
@@ -388,6 +412,7 @@ export function arquivosDoBackup(
     for (const k of dados.conhecendo) arquivos.push(arquivoDoConhecimento(k));
   }
   if (areas.includes("aniversarios")) arquivos.push(...arquivosDosAniversarios(dados.aniversarios ?? [], geradoEm));
+  if (areas.includes("crm") && dados.crm) arquivos.push(...arquivosDoCrm(dados.crm, geradoEm));
   if (areas.includes("livros")) {
     for (const l of dados.livros) {
       const a = arquivoDoLivro(l);
