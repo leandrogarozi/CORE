@@ -8,9 +8,9 @@ const hojeNoBrasil = () =>
   new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 
 /**
- * Lança (de novo) o aniversário de um cliente do site em Aniversários, aguardando confirmação.
- * Serve para o caso em que a pessoa respondeu mas o aniversário não está na lista (foi apagado,
- * ou o cadastro é antigo). Só o dono, logado.
+ * "Jogar para Aniversários": lança o aniversário de um cliente do site em Aniversários, aguardando
+ * confirmação, e avisa "novo aniversariante". Só acontece quando o Leandro aperta o botão na ficha do
+ * cliente (o cadastro não lança sozinho). Só o dono, logado.
  *   POST /api/cadastro/lancar-aniversario   JSON: { id }   (id do cliente em clientes_cadastro)
  */
 export async function POST(req: NextRequest) {
@@ -41,6 +41,17 @@ export async function POST(req: NextRequest) {
       hojeNoBrasil()
     );
     if (r.birthdayId) await supabase.from("clientes_cadastro").update({ birthday_id: r.birthdayId }).eq("id", c.id);
+    if (r.criou) {
+      // É aqui que nasce o aviso de "novo aniversariante" (o cadastro em si já avisou "novo cadastro").
+      const data = c.aniversario.split("-").reverse().slice(0, 2).join("/");
+      await supabase.from("faro_avisos").insert({
+        user_id: user.id,
+        tipo: "aniversario",
+        titulo: `Novo aniversariante: ${c.nome}`,
+        corpo: `O aniversário de ${c.nome} (${data}) entrou em Aniversários e espera a sua confirmação. Confira, ligue a mensagem e aperte “Confirmar cliente”. Há uma tarefa para isso em Lembretes.`,
+        destino: "aniversarios",
+      });
+    }
     return NextResponse.json({ ok: true, criou: r.criou, jaNaLista: !r.criou });
   } catch (e) {
     return NextResponse.json({ ok: false, erro: e instanceof Error ? e.message : "Não foi possível lançar agora." }, { status: 500 });

@@ -47,7 +47,7 @@ function FichaDoCliente({ c, cadastro, grupo }: { c: ClienteDoSite; cadastro: Re
     const corpo = (await r.json().catch(() => null)) as { ok?: boolean; erro?: string; jaNaLista?: boolean } | null;
     if (!r.ok || !corpo?.ok) setAviso(corpo?.erro ?? "Não foi possível lançar agora.");
     else {
-      setAviso(corpo.jaNaLista ? "Já havia alguém com esse nome em Aniversários, então não mexi." : "Lançado em Aniversários, aguardando a sua confirmação.");
+      setAviso(corpo.jaNaLista ? "Já havia alguém com esse nome em Aniversários, então não mexi." : "Foi para Aniversários, aguardando a sua confirmação.");
       await Promise.all([board.reload(), cadastro.carregar()]);
     }
     setLancando(false);
@@ -132,9 +132,9 @@ function FichaDoCliente({ c, cadastro, grupo }: { c: ClienteDoSite; cadastro: Re
           {c.aniversario && !noAniversarios && (
             <div className="cli-lancar">
               <button type="button" className="btn btn-accent" disabled={lancando} onClick={() => void lancar()}>
-                {lancando ? "Lançando…" : "Lançar em Aniversários"}
+                {lancando ? "Enviando…" : "Jogar para Aniversários"}
               </button>
-              <span className="fm-dica">Põe a data dela na lista de Aniversários, aguardando a sua confirmação.</span>
+              <span className="fm-dica">Leva a data dela para a lista de Aniversários, aguardando a sua confirmação, e cria o aviso de novo aniversariante.</span>
             </div>
           )}
           {aviso && <p className="fm-dica">{aviso}</p>}

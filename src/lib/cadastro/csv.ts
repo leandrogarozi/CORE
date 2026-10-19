@@ -39,6 +39,9 @@ export function respostasPorPergunta(c: Cliente, links: Link[]): Record<string, 
     const blocos = objeto(valor);
     if (!blocos) continue;
     const link = porCodigo.get(chave);
+    // Resposta de um link que foi apagado: sem as perguntas não dá para ler, então não aparece
+    // (os dados continuam guardados no banco e no backup). Só páginas antigas, por produto, ficam como "produto: campo".
+    if (!link && !(c.produtos ?? []).includes(chave)) continue;
     if (link) {
       const perguntas = lerPerguntas(link.perguntas);
       for (const p of perguntas) if (p.id in blocos) saida[p.texto] = respostaEmTexto(blocos[p.id]);
