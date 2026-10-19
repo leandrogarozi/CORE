@@ -3301,3 +3301,12 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .bday-body .prop-value.prop-multi{ display:flex; flex-wrap:nowrap; gap:8px; align-items:center; }
 .bday-body .prop-value.prop-multi input:not([type="checkbox"]){ width:84px; flex:none; }
 .bday-body .prop-value.prop-multi select{ flex:1; min-width:0; width:auto; }
+/* O título da pergunta tem que parecer um campo de escrever (antes parecia só um cabeçalho). */
+.fm-pergunta-titulo{
+  border:1px solid var(--border) !important; border-radius:10px !important; background:var(--surface) !important;
+  padding:8px 12px !important;
+}
+.fm-pergunta-titulo.faltando{ border-color:var(--danger, #d64545) !important; }
+.fm-resultado{ flex:1 1 100%; font-size:13px; order:3; }
+.fm-resultado.ok{ color:var(--success); }
+.fm-resultado.erro{ color:var(--danger, #d64545); }

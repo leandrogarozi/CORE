@@ -106,9 +106,9 @@ function CartaoDePergunta({
         <span className="fm-numero">{i + 1}</span>
         <input
           type="text"
-          className="fm-pergunta-titulo"
+          className={"fm-pergunta-titulo" + (!p.texto.trim() && p.instrucao ? " faltando" : "")}
           value={p.texto}
-          placeholder="Escreva a pergunta"
+          placeholder="Escreva aqui a pergunta"
           aria-label={`Pergunta ${i + 1}`}
           onChange={(e) => onMudar({ texto: e.target.value })}
         />
@@ -147,12 +147,14 @@ function EditorDoLink({
   inicial: DadosDoLink;
   rotuloSalvar: string;
   mostrarCodigo?: string;
-  onSalvar: (d: DadosDoLink) => Promise<void> | void;
+  /** Devolve true quando gravou; qualquer outro resultado mostra "não salvou". */
+  onSalvar: (d: DadosDoLink) => Promise<boolean | void> | boolean | void;
   onCancelar?: () => void;
 }) {
   const [d, setD] = useState<DadosDoLink>(inicial);
   const [abertura, setAbertura] = useState(inicial.boas_vindas.trim() !== "");
   const [salvando, setSalvando] = useState(false);
+  const [resultado, setResultado] = useState<{ ok: boolean; texto: string } | null>(null);
   const campo = <K extends keyof DadosDoLink>(k: K, v: DadosDoLink[K]) => setD((x) => ({ ...x, [k]: v }));
   const podeSalvar = d.cliente.trim() !== "" && d.pessoa.trim() !== "";
 
@@ -279,6 +281,11 @@ function EditorDoLink({
 
       <div className="fm-rodape">
         <span className="fm-link mono">{urlDoLink(mostrarCodigo ?? (podeSalvar ? codigoDoLink(d.cliente, d.pessoa) : "cliente-pessoa"))}</span>
+        {resultado && (
+          <span className={"fm-resultado" + (resultado.ok ? " ok" : " erro")} role="status">
+            {resultado.texto}
+          </span>
+        )}
         <span className="fm-rodape-botoes">
           {onCancelar && (
             <button type="button" className="btn btn-ghost" onClick={onCancelar}>
@@ -290,13 +297,23 @@ function EditorDoLink({
             className="btn btn-accent"
             disabled={!podeSalvar || salvando}
             onClick={async () => {
+              // Pergunta sem o título não pode sumir calada: avisa qual é e não grava até corrigir.
+              const semTitulo = d.perguntas.findIndex((p) => !p.texto.trim());
+              if (semTitulo >= 0) {
+                setResultado({ ok: false, texto: `A pergunta ${semTitulo + 1} está sem o texto da pergunta (o campo de cima do cartão). Escreva ou tire ela.` });
+                return;
+              }
               setSalvando(true);
-              // Pergunta sem texto não vale; opção em branco também. O id da pergunta nunca muda, mesmo se o texto mudar.
-              const perguntas = d.perguntas
-                .filter((p) => p.texto.trim())
-                .map((p) => ({ ...p, texto: p.texto.trim(), instrucao: p.instrucao?.trim() || undefined }));
-              await onSalvar({ ...d, cliente: d.cliente.trim(), pessoa: d.pessoa.trim(), boas_vindas: abertura ? d.boas_vindas.trim() : "", perguntas });
+              setResultado(null);
+              const perguntas = d.perguntas.map((p) => ({ ...p, texto: p.texto.trim(), instrucao: p.instrucao?.trim() || undefined }));
+              const gravou = await onSalvar({ ...d, cliente: d.cliente.trim(), pessoa: d.pessoa.trim(), boas_vindas: abertura ? d.boas_vindas.trim() : "", perguntas });
               setSalvando(false);
+              setResultado(
+                gravou === false
+                  ? { ok: false, texto: "Não salvou. Veja o aviso em vermelho no alto da página." }
+                  : { ok: true, texto: `Salvo ✔ ${perguntas.length} ${perguntas.length === 1 ? "pergunta" : "perguntas"}` }
+              );
+              if (gravou !== false) setTimeout(() => setResultado(null), 4000);
             }}
           >
             {rotuloSalvar}
@@ -383,9 +400,7 @@ function CartaoDoLink({
             }}
             rotuloSalvar="Salvar alterações"
             mostrarCodigo={link.codigo}
-            onSalvar={async (d) => {
-              await cadastro.atualizarLink(link.id, d);
-            }}
+            onSalvar={(d) => cadastro.atualizarLink(link.id, d)}
           />
           <p className="hint-text">
             O endereço do link não muda ao editar os textos. Mudar as perguntas não apaga o que já foi respondido.
@@ -459,6 +474,7 @@ export function CadastrosView({ onBack }: { onBack: () => void }) {
                   setNovoId(criado.id);
                   setCriando(false);
                 }
+                return !!criado;
               }}
             />
           </div>

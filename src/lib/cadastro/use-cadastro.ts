@@ -93,17 +93,22 @@ export function useCadastro() {
   );
 
   const atualizarLink = useCallback(
-    async (id: string, patch: Partial<Omit<DadosDoLink, "perguntas">> & { ativo?: boolean; perguntas?: Pergunta[] }) => {
+    async (id: string, patch: Partial<Omit<DadosDoLink, "perguntas">> & { ativo?: boolean; perguntas?: Pergunta[] }): Promise<boolean> => {
       setLinks((atual) => (atual ?? []).map((l) => (l.id === id ? ({ ...l, ...patch } as LinkDeCadastro) : l)));
       const { perguntas, ...resto } = patch;
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("cadastro_links")
         .update({ ...resto, ...(perguntas ? { perguntas: perguntas as unknown as Json } : {}) })
-        .eq("id", id);
-      if (error) {
-        setErro(error.message);
+        .eq("id", id)
+        .select("id");
+      // Sem erro mas sem linha atualizada = o banco recusou calado (permissão): também é falha.
+      if (error || !data?.length) {
+        setErro(error?.message ?? "O banco não aceitou a alteração. Atualize a página e tente de novo.");
         void carregar();
+        return false;
       }
+      setErro(null);
+      return true;
     },
     [supabase, carregar]
   );
