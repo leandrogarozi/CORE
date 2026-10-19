@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { senhaDoDonoConfere } from "@/lib/cadastro/senha";
 
 export const dynamic = "force-dynamic";
 
@@ -7,7 +8,8 @@ export const dynamic = "force-dynamic";
  * Apaga o cadastro de UMA pessoa (pedido de exclusão, LGPD). Só o dono do FARO,
  * logado, pode chamar.
  *
- *   POST /api/cadastro/apagar   JSON: { email } ou { whatsapp } ou { id }
+ *   POST /api/cadastro/apagar   JSON: { senha, e um de: email | whatsapp | id }
+ *   A senha do login é obrigatória e conferida aqui (403 se errada).
  *
  * Remove a linha de `clientes_cadastro` de verdade (não é "lixeira") e também o
  * aniversário e o lembrete que ela gerou na lista de Aniversários.
@@ -19,7 +21,10 @@ export async function POST(req: NextRequest) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ ok: false, erro: "Não autenticado." }, { status: 401 });
 
-  const corpo = (await req.json().catch(() => null)) as { id?: unknown; email?: unknown; whatsapp?: unknown } | null;
+  const corpo = (await req.json().catch(() => null)) as { id?: unknown; email?: unknown; whatsapp?: unknown; senha?: unknown } | null;
+  if (!(await senhaDoDonoConfere(user.email, corpo?.senha))) {
+    return NextResponse.json({ ok: false, erro: "Senha incorreta." }, { status: 403 });
+  }
   const id = typeof corpo?.id === "string" ? corpo.id : "";
   const email = typeof corpo?.email === "string" ? corpo.email.trim().toLowerCase() : "";
   const zap = typeof corpo?.whatsapp === "string" ? corpo.whatsapp.replace(/\D/g, "") : "";

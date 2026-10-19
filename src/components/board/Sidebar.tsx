@@ -35,6 +35,7 @@ export function Sidebar({
   onSelect,
   onClose,
   paraRevisar = 0,
+  aniversariosPendentes = 0,
 }: {
   open: boolean;
   viewMode: ViewMode;
@@ -42,6 +43,7 @@ export function Sidebar({
   onClose: () => void;
   /** Quantos itens de "Conhecendo você" esperam aprovação (a IA propôs). */
   paraRevisar?: number;
+  aniversariosPendentes?: number;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -136,6 +138,11 @@ export function Sidebar({
             onClick={() => onSelect("aniversarios")}
           >
             <GiftIcon /> Aniversários
+            {aniversariosPendentes > 0 && (
+              <span className="sidebar-badge" title="Cadastros do site aguardando confirmação">
+                {aniversariosPendentes}
+              </span>
+            )}
           </button>
           <button
             type="button"

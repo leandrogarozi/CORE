@@ -153,6 +153,7 @@ const EMPTY_STATE: BoardState = {
     bgIntensity: null,
     backupAreas: null,
     backupName: null,
+    birthdayMessage: null,
     tagColors: DEFAULT_TAG_COLORS,
     dailyBudgetHours: 12,
     waterGoalMl: 2000,
@@ -2567,6 +2568,7 @@ export function useBoard(userId: string | null) {
         autoMessage: false,
         remind: true,
         remindWhatsapp: false,
+        pending: false,
         note: "",
         order: stateRef.current.birthdays.length,
       };
@@ -2601,6 +2603,18 @@ export function useBoard(userId: string | null) {
       }
     },
     [apply, supabase, sincronizarLembreteDoAniversario]
+  );
+
+  // "Confirmar cliente": o cadastro que veio do site foi conferido. Passa a valer como
+  // aniversário comum (liga o lembrete anual das 9h) e a tarefa de conferir é dada como feita.
+  const confirmarCliente = useCallback(
+    (id: string) => {
+      updateBirthday(id, { pending: false, remind: true });
+      for (const r of stateRef.current.reminders) {
+        if (r.sourceStage === `cadastro:${id}` && !r.done && !r.deletedAt) completeReminder(r.id);
+      }
+    },
+    [updateBirthday, completeReminder]
   );
 
   const deleteBirthday = useCallback(
@@ -3713,6 +3727,7 @@ export function useBoard(userId: string | null) {
           bg_intensity: merged.bgIntensity,
           backup_areas: merged.backupAreas,
           backup_name: merged.backupName,
+          birthday_message: merged.birthdayMessage,
         })
         .then(({ error }) => {
           if (error) reportSaveError("updateSettings", error);
@@ -4071,6 +4086,7 @@ export function useBoard(userId: string | null) {
     addShoppingItem,
     addBirthday,
     updateBirthday,
+    confirmarCliente,
     deleteBirthday,
     addShoppingList,
     renameShoppingList,

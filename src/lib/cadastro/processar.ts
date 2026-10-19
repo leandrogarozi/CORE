@@ -203,7 +203,7 @@ export async function processarCadastro(p: PedidoDeCadastro): Promise<RespostaDo
         );
         if (r.birthdayId) await supabase.from("clientes_cadastro").update({ birthday_id: r.birthdayId }).eq("id", registroId);
         aniversarioNoFaro = r.criou
-          ? " O aniversário entrou na lista de Aniversários, com lembrete às 9h."
+          ? " O aniversário entrou em Aniversários, aguardando a sua confirmação (há uma tarefa para conferir)."
           : " Já havia alguém com esse nome na lista de Aniversários, então não mexi.";
       } catch (e) {
         console.error("cadastro: ponte com Aniversários falhou", e instanceof Error ? e.message : e);

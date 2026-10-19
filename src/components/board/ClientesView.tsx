@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useBoardCtx } from "./board-context";
+import { ConfirmarComSenha } from "./ConfirmarComSenha";
 import { ChevronIcon, DownloadIcon, TrashIcon, UserIcon } from "./icons";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
@@ -13,8 +13,8 @@ const dataBR = (iso: string | null) => (iso ? iso.slice(0, 10).split("-").revers
 const semAcento = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
 function FichaDoCliente({ c, cadastro }: { c: ClienteDoSite; cadastro: ReturnType<typeof useCadastro> }) {
-  const { askConfirm } = useBoardCtx();
   const [aberto, setAberto] = useState(false);
+  const [apagando, setApagando] = useState(false);
   const respostas = Object.entries(respostasPorPergunta(c, cadastro.links ?? []));
 
   return (
@@ -90,12 +90,20 @@ function FichaDoCliente({ c, cadastro }: { c: ClienteDoSite; cadastro: ReturnTyp
           <button
             type="button"
             className="btn btn-ghost cli-apagar"
-            onClick={() =>
-              askConfirm(`Apagar ${c.nome} de verdade (cadastro, aniversário e lembrete)? Isso não volta.`, () => void cadastro.apagarCliente(c.id), <TrashIcon />)
-            }
+            onClick={() => setApagando(true)}
           >
             <TrashIcon /> Apagar esta pessoa (pedido de exclusão)
           </button>
+          {apagando && (
+            <ConfirmarComSenha
+              titulo={`Apagar ${c.nome} de verdade?`}
+              botao="Apagar pessoa"
+              onCancelar={() => setApagando(false)}
+              onConfirmar={(senha) => cadastro.apagarCliente(c.id, senha)}
+            >
+              Isso apaga o cadastro, as respostas, o aniversário e o lembrete dessa pessoa. Não volta.
+            </ConfirmarComSenha>
+          )}
         </div>
       )}
     </div>

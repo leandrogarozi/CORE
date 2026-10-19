@@ -203,6 +203,7 @@ function BoardShell() {
         onSelect={selectView}
         onClose={() => setSidebarOpen(false)}
         paraRevisar={board.state.knowledgeItems.filter((k) => k.status === "pendente").length}
+        aniversariosPendentes={board.state.birthdays.filter((b) => b.pending).length}
       />
 
       <div className="topbar">

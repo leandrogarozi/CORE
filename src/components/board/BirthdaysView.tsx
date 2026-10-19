@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
-import { BellIcon, GiftIcon, ChevronIcon, TrashIcon, WhatsAppIcon } from "./icons";
+import { BellIcon, CheckIcon, GiftIcon, ChevronIcon, TrashIcon, WhatsAppIcon } from "./icons";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import {
@@ -13,6 +13,7 @@ import {
   diasAteAniversario,
   idadeQueFara,
   linkDoWhatsApp,
+  textoComNome,
   telefoneParaWhatsApp,
   ordenarPorProximos,
   rotuloDosDias,
@@ -22,7 +23,7 @@ import { DIAS_DE_AVISO_DO_ANIVERSARIO } from "./AniversariosButton";
 import { useNaoEnviar } from "@/lib/cadastro/use-cadastro";
 import type { Birthday } from "@/lib/types";
 
-type Filtro = "todos" | Birthday["category"];
+type Filtro = "todos" | "aguardando" | Birthday["category"];
 
 function rotuloDaCategoria(c: Birthday["category"]): string {
   return CATEGORIAS_DE_ANIVERSARIO.find((x) => x.id === c)?.rotulo ?? c;
@@ -30,8 +31,11 @@ function rotuloDaCategoria(c: Birthday["category"]): string {
 
 function PessoaCard({ pessoa }: { pessoa: Birthday }) {
   const { board, askConfirm } = useBoardCtx();
-  const [aberto, setAberto] = useState(false);
+  // Cadastro novo do site abre já aberto: é a hora de conferir.
+  const [aberto, setAberto] = useState(pessoa.pending);
   const [nome, setNome] = useState(pessoa.name);
+  const modelo = board.state.settings.birthdayMessage;
+  const [mensagem, setMensagem] = useState(pessoa.message);
   const hoje = todayISO();
   const dias = diasAteAniversario(pessoa, hoje);
   const idade = idadeQueFara(pessoa, hoje);
@@ -39,10 +43,10 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
   const naoEnviar = useNaoEnviar();
   const numero = telefoneParaWhatsApp(pessoa.phone);
   const bloqueada = naoEnviar.birthdays.has(pessoa.id) || (!!numero && naoEnviar.numeros.has(numero));
-  const zap = bloqueada ? null : linkDoWhatsApp(pessoa);
+  const zap = bloqueada ? null : linkDoWhatsApp(pessoa, modelo);
 
   return (
-    <div className={"bday-card" + (dias === 0 ? " hoje" : dias <= DIAS_DE_AVISO_DO_ANIVERSARIO ? " perto" : "")}>
+    <div className={"bday-card" + (pessoa.pending ? " pendente" : "") + (dias === 0 ? " hoje" : dias <= DIAS_DE_AVISO_DO_ANIVERSARIO ? " perto" : "")}>
       <div className="bday-head">
         <button type="button" className="synapse-card-toggle" aria-expanded={aberto} onClick={() => setAberto((v) => !v)}>
           <ChevronIcon />
@@ -52,6 +56,7 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
           {pessoa.name}
         </button>
         <span className={"bday-cat cat-" + pessoa.category}>{rotuloDaCategoria(pessoa.category)}</span>
+        {pessoa.pending && <span className="bday-pendente">Aguardando confirmação</span>}
         <span className="bday-quando">
           {rotuloDosDias(dias)}
           {idade !== null ? ` · ${idade} anos` : ""}
@@ -86,6 +91,17 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
 
       {aberto && (
         <div className="bday-body">
+          {pessoa.pending && (
+            <div className="bday-confirmar">
+              <p>
+                <strong>Veio do cadastro pelo site.</strong> Confira o nome e a data, ative a mensagem de aniversário (e o zap, se quiser) e
+                aperte <strong>Confirmar cliente</strong>. Só então o lembrete anual das 9h passa a valer.
+              </p>
+              <button type="button" className="btn btn-accent" onClick={() => board.confirmarCliente(pessoa.id)}>
+                <CheckIcon /> Confirmar cliente
+              </button>
+            </div>
+          )}
           <div className="prop-list">
             <label className="prop-row">
               <span className="prop-label">Nome</span>
@@ -168,37 +184,48 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
             </label>
           </div>
 
-          <label className="prop-row prop-row-empilhada">
-            <span className="prop-label">Mensagem (use {"{nome}"} para o primeiro nome)</span>
-            <div className="prop-value">
-              <textarea
-                className="bday-msg"
-                rows={3}
-                placeholder={MENSAGEM_PADRAO}
-                defaultValue={pessoa.message}
-                onBlur={(e) => board.updateBirthday(pessoa.id, { message: e.target.value })}
-              />
-            </div>
-          </label>
-
           <div className="prop-list">
             <div className="prop-row">
-              <span className="prop-label">Mensagem automática</span>
+              <span className="prop-label">Mensagem de aniversário</span>
               <div className="prop-value">
                 <label className="challenging-toggle">
                   <ToggleSwitch
                     checked={pessoa.autoMessage}
-                    ariaLabel="Mensagem automática"
-                    onChange={(v) => board.updateBirthday(pessoa.id, { autoMessage: v })}
+                    ariaLabel="Mensagem de aniversário"
+                    onChange={(v) => {
+                      // Ao ligar, entra a mensagem pronta (a de todos) já com o nome da pessoa; dá para editar.
+                      if (v && mensagem.trim() === "") {
+                        const pronta = textoComNome(modelo?.trim() || MENSAGEM_PADRAO, pessoa.name);
+                        setMensagem(pronta);
+                        board.updateBirthday(pessoa.id, { autoMessage: true, message: pronta });
+                      } else {
+                        board.updateBirthday(pessoa.id, { autoMessage: v });
+                      }
+                    }}
                   />
                   <span className="challenging-hint">
                     {pessoa.autoMessage
-                      ? "Marcado. O envio sozinho ainda não está ligado: quando ligarmos, esta pessoa já entra."
-                      : "Quando o envio automático existir, manda no dia sem você precisar."}
+                      ? "Ligada. O envio sozinho ainda não está ligado: quando ligarmos, esta pessoa já entra."
+                      : "Ligue para usar a mensagem pronta com o nome dela. Você pode editar."}
                   </span>
                 </label>
               </div>
             </div>
+            {pessoa.autoMessage && (
+              <label className="prop-row prop-row-empilhada">
+                <span className="prop-label">Mensagem para {pessoa.name.split(/\s+/)[0]}</span>
+                <div className="prop-value">
+                  <textarea
+                    className="bday-msg"
+                    rows={3}
+                    value={mensagem}
+                    placeholder={textoComNome(modelo?.trim() || MENSAGEM_PADRAO, pessoa.name)}
+                    onChange={(e) => setMensagem(e.target.value)}
+                    onBlur={() => mensagem !== pessoa.message && board.updateBirthday(pessoa.id, { message: mensagem })}
+                  />
+                </div>
+              </label>
+            )}
           </div>
 
           <label className="prop-row prop-row-empilhada">
@@ -252,10 +279,13 @@ export function BirthdaysView({ onBack }: { onBack: () => void }) {
 
   const hoje = todayISO();
   const todos = board.state.birthdays;
+  const aguardando = todos.filter((b) => b.pending);
   const lista = ordenarPorProximos(
-    filtro === "todos" ? todos : todos.filter((b) => b.category === filtro),
+    filtro === "todos" ? todos : filtro === "aguardando" ? aguardando : todos.filter((b) => b.category === filtro),
     hoje
   );
+  const [modeloDraft, setModeloDraft] = useState<string | null>(null);
+  const modeloAtual = board.state.settings.birthdayMessage ?? MENSAGEM_PADRAO;
   const diaNum = Math.round(Number(dia));
   const anoNum = ano.trim() === "" ? null : Math.round(Number(ano));
   const podeAdicionar =
@@ -289,9 +319,31 @@ export function BirthdaysView({ onBack }: { onBack: () => void }) {
           <p>
             Amigos, familiares e clientes, com a data de cada um. O <strong>sininho</strong> te lembra às 9h do dia de
             mandar uma mensagem mais pessoal. O <strong>zap</strong> faz o mesmo lembrete chegar no seu WhatsApp. Dentro de cada pessoa, o botão <strong>Mandar parabéns agora</strong> abre a conversa com ela já com a mensagem pronta.
-            O envio automático e o cadastro pela internet (a pessoa mesma preencher) ainda estão por vir.
+            Quem se cadastra pelo site chega aqui <strong>aguardando confirmação</strong>: confira, ligue a mensagem e aperte <strong>Confirmar cliente</strong>. O envio automático ainda está por vir.
           </p>
         </div>
+
+        <details className="fm-card bday-modelo">
+          <summary>
+            <strong>Mensagem pronta para todos</strong>
+            <span className="fm-dica">Vale para cada pessoa com o nome dela no lugar de {"{nome}"}.</span>
+          </summary>
+          <textarea
+            className="fm-textarea"
+            rows={3}
+            aria-label="Mensagem pronta para todos"
+            value={modeloDraft ?? modeloAtual}
+            onChange={(e) => setModeloDraft(e.target.value)}
+            onBlur={() => {
+              if (modeloDraft === null) return;
+              board.updateSettings({ birthdayMessage: modeloDraft.trim() && modeloDraft.trim() !== MENSAGEM_PADRAO ? modeloDraft : null });
+              setModeloDraft(null);
+            }}
+          />
+          <p className="fm-dica">
+            Prévia: {textoComNome(modeloDraft ?? modeloAtual, "Maria Souza")}
+          </p>
+        </details>
 
         <div className="list-card">
           <div className="bday-form">
@@ -349,11 +401,11 @@ export function BirthdaysView({ onBack }: { onBack: () => void }) {
         </div>
 
         <div className="bday-filtros">
-          {(["todos", ...CATEGORIAS_DE_ANIVERSARIO.map((c) => c.id)] as Filtro[]).map((f) => (
+          {(["todos", ...(aguardando.length ? ["aguardando"] : []), ...CATEGORIAS_DE_ANIVERSARIO.map((c) => c.id)] as Filtro[]).map((f) => (
             <button key={f} type="button" className={"bday-filtro" + (filtro === f ? " ativo" : "")} onClick={() => setFiltro(f)}>
-              {f === "todos" ? "Todos" : (CATEGORIAS_DE_ANIVERSARIO.find((c) => c.id === f)?.plural ?? f)}
+              {f === "todos" ? "Todos" : f === "aguardando" ? "Aguardando" : (CATEGORIAS_DE_ANIVERSARIO.find((c) => c.id === f)?.plural ?? f)}
               <span className="bday-filtro-n">
-                {f === "todos" ? todos.length : todos.filter((b) => b.category === f).length}
+                {f === "todos" ? todos.length : f === "aguardando" ? aguardando.length : todos.filter((b) => b.category === f).length}
               </span>
             </button>
           ))}

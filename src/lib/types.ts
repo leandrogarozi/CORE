@@ -320,6 +320,8 @@ export interface Settings {
   // sem migração de banco.
   backupAreas: string[] | null; // null = nunca configurou, vale "todas"
   backupName: string | null; // vira o título do índice e o nome do .zip
+  // Mensagem de aniversário pronta, igual para todos; {nome} vira o primeiro nome. null = a padrão.
+  birthdayMessage: string | null;
 }
 
 // Funcionalidades opcionais que podem ser ligadas/desligadas em Configurações.
@@ -437,6 +439,7 @@ export interface Birthday {
   autoMessage: boolean; // "mandar mensagem automática" (o envio sozinho ainda não está ligado)
   remind: boolean; // lembrar de mandar uma mensagem mais pessoal (vira lembrete anual)
   remindWhatsapp: boolean; // o mesmo lembrete, também no WhatsApp do Leandro
+  pending: boolean; // veio do cadastro pelo site e ainda não foi conferido: botão "Confirmar cliente"
   note: string;
   order: number;
 }

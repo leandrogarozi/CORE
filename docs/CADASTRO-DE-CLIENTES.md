@@ -159,6 +159,7 @@ O POST de sempre, com o campo novo `codigo`; as respostas vão em `respostas_ext
 - Só valem as respostas cujo `id` é do link (o resto é descartado); pergunta obrigatória sem resposta devolve `400` com `campo` = id da pergunta.
 - Link inexistente/desativado: `400 {ok:false, ativo:false}`. Link que já atingiu o limite: **`409 {ok:false, respondido:true}`**.
 - `teste:true` valida tudo (inclusive o link) e não grava nem gasta a vaga do link.
+- Aniversário: a data de nascimento entra em Aniversários como **aguardando confirmação** (`birthdays.aguardando_confirmacao`), sem lembrete anual e sem mensagem ativa, e o FARO cria uma tarefa (lembrete de hoje, `source_stage = cadastro:<id>`) para conferir. O botão **Confirmar cliente** liga o lembrete das 9h e dá a tarefa como feita.
 - Gravando: a resposta fica ligada à pessoa (`clientes_cadastro.respostas_extras[<codigo>]`), o link é marcado como respondido (`respondido_em`, `respostas_count`, `cliente_id`) e a data de nascimento entra na lista de Aniversários. A vaga do link é reservada antes de gravar (dois envios ao mesmo tempo não passam do limite) e devolvida se a gravação falhar.
 
 ## "Não enviar"

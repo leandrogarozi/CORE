@@ -1018,6 +1018,7 @@ export type Database = {
         Row: {
           backup_areas: string[] | null
           backup_name: string | null
+          birthday_message: string | null
           bg_intensity: number | null
           bg_tone: string | null
           avatar_url: string | null
@@ -1045,6 +1046,7 @@ export type Database = {
         Insert: {
           backup_areas?: string[] | null
           backup_name?: string | null
+          birthday_message?: string | null
           bg_intensity?: number | null
           bg_tone?: string | null
           avatar_url?: string | null
@@ -1072,6 +1074,7 @@ export type Database = {
         Update: {
           backup_areas?: string[] | null
           backup_name?: string | null
+          birthday_message?: string | null
           bg_intensity?: number | null
           bg_tone?: string | null
           avatar_url?: string | null
@@ -1406,6 +1409,7 @@ export type Database = {
       }
       birthdays: {
         Row: {
+          aguardando_confirmacao: boolean
           auto_message: boolean
           category: string
           created_at: string
@@ -1424,6 +1428,7 @@ export type Database = {
           year: number | null
         }
         Insert: {
+          aguardando_confirmacao?: boolean
           auto_message?: boolean
           category?: string
           created_at?: string
@@ -1442,6 +1447,7 @@ export type Database = {
           year?: number | null
         }
         Update: {
+          aguardando_confirmacao?: boolean
           auto_message?: boolean
           category?: string
           created_at?: string

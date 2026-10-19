@@ -466,6 +466,7 @@ export function rowToSettings(row: SettingsRow | null): Settings {
     bgIntensity: row?.bg_intensity ?? null,
     backupAreas: row?.backup_areas ?? null,
     backupName: row?.backup_name ?? null,
+    birthdayMessage: row?.birthday_message ?? null,
   };
 }
 
@@ -966,6 +967,7 @@ export function rowToBirthday(row: Tables<"birthdays">): Birthday {
     autoMessage: row.auto_message,
     remind: row.remind,
     remindWhatsapp: row.remind_whatsapp,
+    pending: row.aguardando_confirmacao,
     note: row.note,
     order: row.sort_order,
   };
@@ -985,6 +987,7 @@ export function birthdayToInsertRow(b: Birthday, userId: string): TablesInsert<"
     auto_message: b.autoMessage,
     remind: b.remind,
     remind_whatsapp: b.remindWhatsapp,
+    aguardando_confirmacao: b.pending,
     note: b.note,
     sort_order: b.order,
   };
@@ -1002,6 +1005,7 @@ export function birthdayToUpdateRow(b: Partial<Birthday>): TablesUpdate<"birthda
   if (b.autoMessage !== undefined) row.auto_message = b.autoMessage;
   if (b.remind !== undefined) row.remind = b.remind;
   if (b.remindWhatsapp !== undefined) row.remind_whatsapp = b.remindWhatsapp;
+  if (b.pending !== undefined) row.aguardando_confirmacao = b.pending;
   if (b.note !== undefined) row.note = b.note;
   return row;
 }

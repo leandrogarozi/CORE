@@ -3314,3 +3314,17 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .fm-acoes-link .btn{ display:inline-flex; align-items:center; gap:6px; }
 .fm-aviso{ margin:0 0 12px; padding:10px 14px; border-radius:12px; background:var(--accent-soft); color:var(--text); font-size:13px; line-height:1.45; }
 .fm-senha{ width:100%; margin:12px 0 4px; padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:var(--surface); }
+
+/* Aniversário vindo do cadastro pelo site: destaque até o Leandro apertar "Confirmar cliente". */
+.bday-card.pendente{ border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) inset; }
+.bday-pendente{ flex:none; font-size:10.5px; padding:2px 8px; border-radius:999px; background:var(--accent); color:#fff; letter-spacing:.03em; }
+.bday-confirmar{
+  display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  padding:14px 16px; border-radius:14px; background:var(--accent-soft);
+}
+.bday-confirmar p{ margin:0; font-size:13px; line-height:1.45; flex:1 1 260px; }
+.bday-confirmar .btn{ display:inline-flex; align-items:center; gap:6px; }
+.bday-modelo{ margin-bottom:var(--sp-3); }
+.bday-modelo summary{ cursor:pointer; display:flex; flex-direction:column; gap:2px; list-style:none; }
+.bday-modelo summary::-webkit-details-marker{ display:none; }
+.bday-modelo textarea{ margin-top:12px; width:100%; }

@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
-import { lembreteDoAniversario } from "@/lib/board/aniversarios";
 import { birthdayToInsertRow, reminderToInsertRow } from "@/lib/board/mappers";
 import type { Birthday, Reminder } from "@/lib/types";
 
@@ -45,6 +44,9 @@ export async function levarAniversarioParaOFaro(
   const alvo = semAcento(a.nome);
   if ((existentes ?? []).some((b) => semAcento(b.name) === alvo)) return { birthdayId: null, criou: false };
 
+  // Entra como "aguardando confirmação": sem lembrete anual e sem mensagem ativa até o Leandro
+  // conferir os dados e apertar "Confirmar cliente" (aí ele cuida da mensagem e do WhatsApp).
+  // No lugar, vai UMA tarefa (lembrete comum, de hoje) pedindo essa conferência.
   const b: Birthday = {
     id: crypto.randomUUID(),
     name: a.nome,
@@ -55,37 +57,36 @@ export async function levarAniversarioParaOFaro(
     phone: a.whatsapp ?? "",
     message: "",
     autoMessage: false,
-    remind: true,
+    remind: false,
     remindWhatsapp: false,
+    pending: true,
     note: `Veio do cadastro "${a.produto}" em ${hojeISO.split("-").reverse().join("/")}.`,
     order: (existentes ?? []).length,
   };
   const { error } = await supabase.from("birthdays").insert(birthdayToInsertRow(b, a.usuario));
   if (error) throw new Error(`criar aniversário: ${error.message}`);
 
-  const campos = lembreteDoAniversario(b, hojeISO);
-  if (campos) {
-    const r: Reminder = {
-      id: crypto.randomUUID(),
-      title: campos.title,
-      date: campos.date,
-      time: campos.time,
-      repeat: "yearly",
-      weekDays: null,
-      alertMinutesBefore: null,
-      note: null,
-      done: false,
-      status: "pending",
-      deletedAt: null,
-      taskId: null,
-      sourceKind: "birthday",
-      sourceId: b.id,
-      sourceStage: "item",
-      inApp: true,
-      whatsapp: false,
-    };
-    const { error: erroLembrete } = await supabase.from("reminders").insert(reminderToInsertRow(r, a.usuario));
-    if (erroLembrete) throw new Error(`criar lembrete do aniversário: ${erroLembrete.message}`);
-  }
+  const r: Reminder = {
+    id: crypto.randomUUID(),
+    title: `Conferir o cadastro de ${a.nome}: aniversário, mensagem e WhatsApp`,
+    date: hojeISO,
+    time: "09:00",
+    repeat: "none",
+    weekDays: null,
+    alertMinutesBefore: null,
+    note: "Abra Aniversários, confira os dados e aperte “Confirmar cliente”.",
+    done: false,
+    status: "pending",
+    deletedAt: null,
+    taskId: null,
+    sourceKind: null,
+    sourceId: null,
+    // Liga a tarefa à pessoa: “Confirmar cliente” dá a tarefa como feita.
+    sourceStage: `cadastro:${b.id}`,
+    inApp: true,
+    whatsapp: false,
+  };
+  const { error: erroLembrete } = await supabase.from("reminders").insert(reminderToInsertRow(r, a.usuario));
+  if (erroLembrete) throw new Error(`criar tarefa de conferência: ${erroLembrete.message}`);
   return { birthdayId: b.id, criou: true };
 }

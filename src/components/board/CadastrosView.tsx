@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { ChevronIcon, DownloadIcon, LinkIcon, TrashIcon } from "./icons";
 
@@ -12,6 +11,7 @@ const CopyIcon = () => (
   </svg>
 );
 import { ToggleSwitch } from "./ToggleSwitch";
+import { ConfirmarComSenha } from "./ConfirmarComSenha";
 import {
   BlocosDeEscolha,
   CaixaDeMarcar,
@@ -332,82 +332,6 @@ function EditorDoLink({
   );
 }
 
-/** Pede a senha do login antes de apagar um link. */
-function ApagarComSenha({
-  link,
-  temResposta,
-  onCancelar,
-  onApagar,
-  confirmarSenha,
-}: {
-  link: LinkDeCadastro;
-  temResposta: boolean;
-  onCancelar: () => void;
-  onApagar: () => Promise<boolean>;
-  confirmarSenha: (senha: string) => Promise<boolean>;
-}) {
-  const [senha, setSenha] = useState("");
-  const [trabalhando, setTrabalhando] = useState(false);
-  const [erro, setErro] = useState<string | null>(null);
-
-  async function confirmar() {
-    if (!senha || trabalhando) return;
-    setTrabalhando(true);
-    setErro(null);
-    if (!(await confirmarSenha(senha))) {
-      setErro("Senha incorreta.");
-      setTrabalhando(false);
-      return;
-    }
-    if (!(await onApagar())) {
-      setErro("Não consegui apagar. Veja o aviso em vermelho no alto da página.");
-      setTrabalhando(false);
-    }
-  }
-
-  return createPortal(
-    <>
-      <div className="modal-backdrop" onClick={onCancelar} />
-      <div className="modal-panel" role="dialog" aria-label="Apagar link de cadastro">
-        <div className="modal-title">
-          <span className="modal-title-icon">
-            <TrashIcon />
-          </span>
-          Apagar o link de {link.pessoa || link.codigo}?
-        </div>
-        <div className="scope-question">
-          O endereço <strong className="mono">{urlDoLink(link.codigo)}</strong> deixa de funcionar.
-          {temResposta
-            ? " As respostas que a pessoa já enviou continuam guardadas na tela Clientes."
-            : " Este link ainda não recebeu resposta."}{" "}
-          Para confirmar, digite a senha do seu login no FARO.
-        </div>
-        <input
-          type="password"
-          className="fm-senha"
-          autoFocus
-          autoComplete="current-password"
-          placeholder="Senha"
-          aria-label="Senha do FARO"
-          value={senha}
-          onChange={(e) => setSenha(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && void confirmar()}
-        />
-        {erro && <div className="mic-error">{erro}</div>}
-        <div className="confirm-actions">
-          <button type="button" className="btn btn-ghost" onClick={onCancelar}>
-            Cancelar
-          </button>
-          <button type="button" className="btn btn-danger" disabled={!senha || trabalhando} onClick={() => void confirmar()}>
-            {trabalhando ? "Conferindo…" : "Apagar link"}
-          </button>
-        </div>
-      </div>
-    </>,
-    document.body
-  );
-}
-
 function CartaoDoLink({
   link,
   cadastro,
@@ -507,13 +431,17 @@ function CartaoDoLink({
             </button>
           </div>
           {apagando && (
-            <ApagarComSenha
-              link={link}
-              temResposta={link.respostas_count > 0}
+            <ConfirmarComSenha
+              titulo={`Apagar o link de ${link.pessoa || link.codigo}?`}
+              botao="Apagar link"
               onCancelar={() => setApagando(false)}
-              onApagar={() => cadastro.apagarLink(link.id)}
-              confirmarSenha={cadastro.confirmarSenha}
-            />
+              onConfirmar={(senha) => cadastro.apagarLink(link.id, senha)}
+            >
+              O endereço <strong className="mono">{urlDoLink(link.codigo)}</strong> deixa de funcionar.
+              {link.respostas_count > 0
+                ? " As respostas que a pessoa já enviou continuam guardadas na tela Clientes."
+                : " Este link ainda não recebeu resposta."}
+            </ConfirmarComSenha>
           )}
         </div>
       )}

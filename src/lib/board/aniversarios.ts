@@ -67,10 +67,18 @@ export function ordenarPorProximos<T extends Pick<Birthday, "month" | "day" | "n
   );
 }
 
-/** A mensagem pronta com o nome da pessoa no lugar de {nome}. */
-export function mensagemDoAniversario(b: Pick<Birthday, "name" | "message">): string {
-  const modelo = b.message.trim() || MENSAGEM_PADRAO;
-  const primeiro = b.name.trim().split(/\s+/)[0] ?? b.name;
+/**
+ * A mensagem pronta com o nome da pessoa no lugar de {nome}. Texto próprio da pessoa
+ * primeiro; se não tem, vale o modelo de todos (Aniversários), e por último o padrão.
+ */
+export function mensagemDoAniversario(b: Pick<Birthday, "name" | "message">, modeloDeTodos?: string | null): string {
+  const modelo = b.message.trim() || modeloDeTodos?.trim() || MENSAGEM_PADRAO;
+  return textoComNome(modelo, b.name);
+}
+
+/** {nome} vira o primeiro nome. */
+export function textoComNome(modelo: string, nome: string): string {
+  const primeiro = nome.trim().split(/\s+/)[0] ?? nome;
   return modelo.replace(/\{nome\}/gi, primeiro);
 }
 
@@ -81,10 +89,10 @@ export function telefoneParaWhatsApp(telefone: string): string | null {
   return d.length <= 11 ? `55${d}` : d;
 }
 
-export function linkDoWhatsApp(b: Pick<Birthday, "name" | "phone" | "message">): string | null {
+export function linkDoWhatsApp(b: Pick<Birthday, "name" | "phone" | "message">, modeloDeTodos?: string | null): string | null {
   const numero = telefoneParaWhatsApp(b.phone);
   if (!numero) return null;
-  return `https://wa.me/${numero}?text=${encodeURIComponent(mensagemDoAniversario(b))}`;
+  return `https://wa.me/${numero}?text=${encodeURIComponent(mensagemDoAniversario(b, modeloDeTodos))}`;
 }
 
 /** O lembrete "mande a mensagem pessoal", ou null se a pessoa não pediu lembrete. */
