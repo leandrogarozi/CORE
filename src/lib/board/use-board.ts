@@ -64,7 +64,7 @@ import {
 import { isoAddDays, occurrenceDates, todayISO } from "@/lib/date-utils";
 import { studyDatesInRange } from "@/lib/board/study-plan";
 import { rolarTarefasQueSeguem } from "@/lib/board/seguir";
-import { lembreteDoAniversario } from "@/lib/board/aniversarios";
+import { frasesEmUso, lembreteDoAniversario, proximaFrase, textoComNome } from "@/lib/board/aniversarios";
 import { lembreteDaMedicacao, lembreteDaRefeicao, lembretesDaManutencao } from "@/lib/board/zap-engine";
 import { aoMarcarComprado, lembreteDaCompra } from "@/lib/board/compras";
 import { maintenanceStatus } from "@/lib/board/maintenance";
@@ -153,7 +153,7 @@ const EMPTY_STATE: BoardState = {
     bgIntensity: null,
     backupAreas: null,
     backupName: null,
-    birthdayMessage: null,
+    birthdayMessages: null,
     tagColors: DEFAULT_TAG_COLORS,
     dailyBudgetHours: 12,
     waterGoalMl: 2000,
@@ -2569,6 +2569,9 @@ export function useBoard(userId: string | null) {
         remind: true,
         remindWhatsapp: false,
         pending: false,
+        messageSlot: null,
+        lastSentYear: null,
+        lastSentSlot: null,
         note: "",
         order: stateRef.current.birthdays.length,
       };
@@ -2615,6 +2618,24 @@ export function useBoard(userId: string | null) {
       }
     },
     [updateBirthday, completeReminder]
+  );
+
+  // "Mandar parabéns" foi usado: anota o envio e, se a mensagem era uma das frases prontas, a pessoa
+  // passa para a próxima da fila (no ano que vem, outra frase). Texto próprio não gira.
+  const marcarParabensEnviado = useCallback(
+    (id: string) => {
+      const b = stateRef.current.birthdays.find((x) => x.id === id);
+      if (!b) return;
+      const frases = frasesEmUso(stateRef.current.settings.birthdayMessages);
+      const patch: Partial<Birthday> = { lastSentYear: new Date().getFullYear(), lastSentSlot: b.messageSlot };
+      if (b.messageSlot !== null) {
+        const proxima = proximaFrase(b.messageSlot, frases.length);
+        patch.messageSlot = proxima;
+        patch.message = textoComNome(frases[proxima].texto, b.name);
+      }
+      updateBirthday(id, patch);
+    },
+    [updateBirthday]
   );
 
   const deleteBirthday = useCallback(
@@ -3727,7 +3748,7 @@ export function useBoard(userId: string | null) {
           bg_intensity: merged.bgIntensity,
           backup_areas: merged.backupAreas,
           backup_name: merged.backupName,
-          birthday_message: merged.birthdayMessage,
+          birthday_messages: merged.birthdayMessages as never,
         })
         .then(({ error }) => {
           if (error) reportSaveError("updateSettings", error);
@@ -4087,6 +4108,7 @@ export function useBoard(userId: string | null) {
     addBirthday,
     updateBirthday,
     confirmarCliente,
+    marcarParabensEnviado,
     deleteBirthday,
     addShoppingList,
     renameShoppingList,

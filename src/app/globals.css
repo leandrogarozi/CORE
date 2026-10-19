@@ -3316,11 +3316,11 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .fm-senha{ width:100%; margin:12px 0 4px; padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:var(--surface); }
 
 /* Aniversário vindo do cadastro pelo site: destaque até o Leandro apertar "Confirmar cliente". */
-.bday-card.pendente{ border-color:var(--accent); box-shadow:0 0 0 1px var(--accent) inset; }
-.bday-pendente{ flex:none; font-size:10.5px; padding:2px 8px; border-radius:999px; background:var(--accent); color:#fff; letter-spacing:.03em; }
+.bday-card.pendente{ border-color:var(--danger); box-shadow:0 0 0 1px var(--danger) inset; }
+.bday-pendente{ flex:none; font-size:10.5px; padding:2px 8px; border-radius:999px; background:var(--danger); color:#fff; letter-spacing:.03em; }
 .bday-confirmar{
   display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
-  padding:14px 16px; border-radius:14px; background:var(--accent-soft);
+  padding:14px 16px; border-radius:14px; background:color-mix(in srgb, var(--danger) 10%, var(--surface));
 }
 .bday-confirmar p{ margin:0; font-size:13px; line-height:1.45; flex:1 1 260px; }
 .bday-confirmar .btn{ display:inline-flex; align-items:center; gap:6px; }
@@ -3328,3 +3328,11 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .bday-modelo summary{ cursor:pointer; display:flex; flex-direction:column; gap:2px; list-style:none; }
 .bday-modelo summary::-webkit-details-marker{ display:none; }
 .bday-modelo textarea{ margin-top:12px; width:100%; }
+
+.bday-frase-edit{ display:flex; flex-direction:column; gap:6px; margin-top:12px; }
+.bday-frase-edit > input{ font-weight:600; width:100%; }
+.bday-frases{ margin-bottom:8px; }
+.bday-body .prop-value.bday-frases-col{ display:flex; flex-direction:column; align-items:stretch; gap:8px; width:100%; min-width:0; }
+.bday-frases-col .bday-frases{ display:flex; flex-wrap:wrap; gap:8px; margin:0; }
+.bday-frases-col textarea{ width:100%; }
+.bday-frases-col .fm-dica{ margin:0; }

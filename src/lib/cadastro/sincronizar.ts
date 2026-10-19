@@ -60,6 +60,9 @@ export async function levarAniversarioParaOFaro(
     remind: false,
     remindWhatsapp: false,
     pending: true,
+    messageSlot: null,
+    lastSentYear: null,
+    lastSentSlot: null,
     note: `Veio do cadastro "${a.produto}" em ${hojeISO.split("-").reverse().join("/")}.`,
     order: (existentes ?? []).length,
   };

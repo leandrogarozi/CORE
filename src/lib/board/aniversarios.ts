@@ -1,4 +1,4 @@
-import type { Birthday } from "@/lib/types";
+import type { Birthday, BirthdayPhrase } from "@/lib/types";
 
 /**
  * Aniversários: contas de data e mensagem, sem tela e sem rede (por isso
@@ -68,11 +68,49 @@ export function ordenarPorProximos<T extends Pick<Birthday, "month" | "day" | "n
 }
 
 /**
- * A mensagem pronta com o nome da pessoa no lugar de {nome}. Texto próprio da pessoa
- * primeiro; se não tem, vale o modelo de todos (Aniversários), e por último o padrão.
+ * As 4 frases prontas de aniversário (a fila do rodízio). O Leandro troca o texto delas em
+ * Aniversários; estas são as de partida.
  */
-export function mensagemDoAniversario(b: Pick<Birthday, "name" | "message">, modeloDeTodos?: string | null): string {
-  const modelo = b.message.trim() || modeloDeTodos?.trim() || MENSAGEM_PADRAO;
+export const FRASES_PADRAO: BirthdayPhrase[] = [
+  {
+    titulo: "Mais próxima e afetiva",
+    texto:
+      "Parabéns, {nome}! 🎉 Que este novo ciclo te lembre do quanto você é capaz, e que você nunca desista do que Deus colocou no seu coração. Fico feliz de caminhar ao seu lado. Um abraço grande!",
+  },
+  {
+    titulo: "Com a sua missão, direta",
+    texto:
+      "{nome}, parabéns pela vida! 🙏 Meu desejo para este novo ano é simples: que você acredite mais em você e que nunca desista do que está construindo. Conte comigo nessa caminhada. Abraço!",
+  },
+  {
+    titulo: "Com o Movimento do MPM",
+    texto:
+      "Parabéns, {nome}! 🎉 Que este novo ano seja de movimento: enxergar mais de si, mudar o que precisa mudar e seguir firme no que importa. Estou torcendo por você. Um abraço!",
+  },
+  {
+    titulo: "Curta, para quem você conhece menos",
+    texto: "Parabéns, {nome}! Que Deus abençoe seu novo ciclo e que você acredite sempre mais em você. Um abraço!",
+  },
+];
+
+/** As frases em uso: as que ele escreveu (sem as vazias) ou as 4 de partida. */
+export function frasesEmUso(escolhidas: BirthdayPhrase[] | null | undefined): BirthdayPhrase[] {
+  const validas = (escolhidas ?? []).filter((f) => f.texto.trim() !== "");
+  return validas.length ? validas : FRASES_PADRAO;
+}
+
+/** Quem ainda não escolheu a frase começa pela primeira; depois que uma é enviada, vai para a seguinte da fila. */
+export function proximaFrase(slotAtual: number | null, total: number): number {
+  if (total <= 0) return 0;
+  return slotAtual === null ? 0 : (slotAtual + 1) % total;
+}
+
+/**
+ * A mensagem pronta com o nome da pessoa no lugar de {nome}. Texto próprio da pessoa
+ * primeiro; se não tem, vale a primeira frase pronta.
+ */
+export function mensagemDoAniversario(b: Pick<Birthday, "name" | "message">, frases?: BirthdayPhrase[] | null): string {
+  const modelo = b.message.trim() || frasesEmUso(frases)[0].texto || MENSAGEM_PADRAO;
   return textoComNome(modelo, b.name);
 }
 
@@ -89,10 +127,10 @@ export function telefoneParaWhatsApp(telefone: string): string | null {
   return d.length <= 11 ? `55${d}` : d;
 }
 
-export function linkDoWhatsApp(b: Pick<Birthday, "name" | "phone" | "message">, modeloDeTodos?: string | null): string | null {
+export function linkDoWhatsApp(b: Pick<Birthday, "name" | "phone" | "message">, frases?: BirthdayPhrase[] | null): string | null {
   const numero = telefoneParaWhatsApp(b.phone);
   if (!numero) return null;
-  return `https://wa.me/${numero}?text=${encodeURIComponent(mensagemDoAniversario(b, modeloDeTodos))}`;
+  return `https://wa.me/${numero}?text=${encodeURIComponent(mensagemDoAniversario(b, frases))}`;
 }
 
 /** O lembrete "mande a mensagem pessoal", ou null se a pessoa não pediu lembrete. */

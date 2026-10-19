@@ -192,7 +192,8 @@ export async function processarCadastro(p: PedidoDeCadastro): Promise<RespostaDo
     }
 
     // --- ponte com Aniversários: se falhar, o cadastro já está salvo e a pessoa não vê erro ---
-    let aniversarioNoFaro = "";
+    let aniversarioNovo: { nome: string; data: string } | null = null;
+    let aniversarioJaExistia = false;
     const aniv = antigo?.aniversario ?? d.aniversario ?? null;
     if (aniv && !birthdayIdAtual) {
       try {
@@ -202,23 +203,34 @@ export async function processarCadastro(p: PedidoDeCadastro): Promise<RespostaDo
           hojeISO
         );
         if (r.birthdayId) await supabase.from("clientes_cadastro").update({ birthday_id: r.birthdayId }).eq("id", registroId);
-        aniversarioNoFaro = r.criou
-          ? " O aniversário entrou em Aniversários, aguardando a sua confirmação (há uma tarefa para conferir)."
-          : " Já havia alguém com esse nome na lista de Aniversários, então não mexi.";
+        if (r.criou) aniversarioNovo = { nome: antigo?.nome ?? d.nome, data: aniv.split("-").reverse().slice(0, 2).join("/") };
+        else aniversarioJaExistia = true;
       } catch (e) {
         console.error("cadastro: ponte com Aniversários falhou", e instanceof Error ? e.message : e);
       }
     }
 
-    // --- avisa o dono: caixa de Avisos + push ---
+    // --- avisa o dono: dois avisos na caixa (cadastro novo para verificar; aniversariante novo para confirmar) + um push ---
     const nomeNoFaro = antigo?.nome ?? d.nome;
     const titulo = antigo ? `Cadastro atualizado: ${nomeNoFaro}` : `Novo cadastro: ${nomeNoFaro}`;
-    const corpoAviso = `${nomeNoFaro} ${link ? `respondeu pelo link "${link.codigo}"` : `se cadastrou pela página "${produto}"`}${d.origem ? ` (${d.origem})` : ""}.${aniversarioNoFaro}`;
-    const { error: erroAviso } = await supabase
-      .from("faro_avisos")
-      .insert({ user_id: usuario, tipo: "cadastro", titulo, corpo: corpoAviso, destino: link ? "cadastros" : d.aniversario ? "aniversarios" : null });
+    const corpoAviso = `${nomeNoFaro} ${link ? `respondeu pelo link "${link.codigo}"` : `se cadastrou pela página "${produto}"`}${d.origem ? ` (${d.origem})` : ""}. Abra Clientes para conferir os dados e as respostas.${aniversarioJaExistia ? " Já havia alguém com esse nome em Aniversários, então não mexi." : ""}`;
+    const avisos: { user_id: string; tipo: string; titulo: string; corpo: string; destino: string | null }[] = [
+      { user_id: usuario, tipo: "cadastro", titulo, corpo: corpoAviso, destino: "clientes" },
+    ];
+    if (aniversarioNovo) {
+      avisos.push({
+        user_id: usuario,
+        tipo: "aniversario",
+        titulo: `Novo aniversariante: ${aniversarioNovo.nome}`,
+        corpo: `O aniversário de ${aniversarioNovo.nome} (${aniversarioNovo.data}) entrou em Aniversários e espera a sua confirmação. Confira, ligue a mensagem e aperte “Confirmar cliente”. Há uma tarefa para isso em Lembretes.`,
+        destino: "aniversarios",
+      });
+    }
+    const { error: erroAviso } = await supabase.from("faro_avisos").insert(avisos);
     if (erroAviso) console.error("cadastro: aviso não gravado", erroAviso.message);
-    await p.avisarPush(usuario, titulo, corpoAviso.slice(0, 140)).catch(() => 0);
+    await p
+      .avisarPush(usuario, titulo, `${corpoAviso}${aniversarioNovo ? " Aniversário aguardando confirmação." : ""}`.slice(0, 140))
+      .catch(() => 0);
 
     // O link passa a apontar para a pessoa que respondeu (a ficha em Clientes).
     if (link) await supabase.from("cadastro_links").update({ cliente_id: registroId }).eq("id", link.id);

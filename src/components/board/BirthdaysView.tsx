@@ -8,6 +8,8 @@ import { useWideLayout } from "@/lib/board/use-wide-layout";
 import {
   CATEGORIAS_DE_ANIVERSARIO,
   MENSAGEM_PADRAO,
+  frasesEmUso,
+  proximaFrase,
   MESES,
   dataCurta,
   diasAteAniversario,
@@ -21,7 +23,7 @@ import {
 import { todayISO } from "@/lib/date-utils";
 import { DIAS_DE_AVISO_DO_ANIVERSARIO } from "./AniversariosButton";
 import { useNaoEnviar } from "@/lib/cadastro/use-cadastro";
-import type { Birthday } from "@/lib/types";
+import type { Birthday, BirthdayPhrase } from "@/lib/types";
 
 type Filtro = "todos" | "aguardando" | Birthday["category"];
 
@@ -31,10 +33,10 @@ function rotuloDaCategoria(c: Birthday["category"]): string {
 
 function PessoaCard({ pessoa }: { pessoa: Birthday }) {
   const { board, askConfirm } = useBoardCtx();
-  // Cadastro novo do site abre já aberto: é a hora de conferir.
-  const [aberto, setAberto] = useState(pessoa.pending);
+  // Fechado, como os outros: o vermelho da faixa já diz que precisa de confirmação.
+  const [aberto, setAberto] = useState(false);
   const [nome, setNome] = useState(pessoa.name);
-  const modelo = board.state.settings.birthdayMessage;
+  const frases = frasesEmUso(board.state.settings.birthdayMessages);
   const [mensagem, setMensagem] = useState(pessoa.message);
   const hoje = todayISO();
   const dias = diasAteAniversario(pessoa, hoje);
@@ -43,7 +45,7 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
   const naoEnviar = useNaoEnviar();
   const numero = telefoneParaWhatsApp(pessoa.phone);
   const bloqueada = naoEnviar.birthdays.has(pessoa.id) || (!!numero && naoEnviar.numeros.has(numero));
-  const zap = bloqueada ? null : linkDoWhatsApp(pessoa, modelo);
+  const zap = bloqueada ? null : linkDoWhatsApp(pessoa, frases);
 
   return (
     <div className={"bday-card" + (pessoa.pending ? " pendente" : "") + (dias === 0 ? " hoje" : dias <= DIAS_DE_AVISO_DO_ANIVERSARIO ? " perto" : "")}>
@@ -193,11 +195,12 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
                     checked={pessoa.autoMessage}
                     ariaLabel="Mensagem de aniversário"
                     onChange={(v) => {
-                      // Ao ligar, entra a mensagem pronta (a de todos) já com o nome da pessoa; dá para editar.
+                      // Ao ligar, entra a frase da vez (a primeira da fila) já com o nome da pessoa; dá para trocar e editar.
                       if (v && mensagem.trim() === "") {
-                        const pronta = textoComNome(modelo?.trim() || MENSAGEM_PADRAO, pessoa.name);
+                        const slot = pessoa.messageSlot ?? 0;
+                        const pronta = textoComNome(frases[Math.min(slot, frases.length - 1)].texto, pessoa.name);
                         setMensagem(pronta);
-                        board.updateBirthday(pessoa.id, { autoMessage: true, message: pronta });
+                        board.updateBirthday(pessoa.id, { autoMessage: true, message: pronta, messageSlot: Math.min(slot, frases.length - 1) });
                       } else {
                         board.updateBirthday(pessoa.id, { autoMessage: v });
                       }
@@ -206,25 +209,58 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
                   <span className="challenging-hint">
                     {pessoa.autoMessage
                       ? "Ligada. O envio sozinho ainda não está ligado: quando ligarmos, esta pessoa já entra."
-                      : "Ligue para usar a mensagem pronta com o nome dela. Você pode editar."}
+                      : "Ligue para escolher uma das frases prontas, já com o nome dela. Você pode editar."}
                   </span>
                 </label>
               </div>
             </div>
             {pessoa.autoMessage && (
-              <label className="prop-row prop-row-empilhada">
-                <span className="prop-label">Mensagem para {pessoa.name.split(/\s+/)[0]}</span>
-                <div className="prop-value">
+              <div className="prop-row prop-row-empilhada">
+                <span className="prop-label">Escolha a frase para {pessoa.name.split(/\s+/)[0]}</span>
+                <div className="prop-value bday-frases-col">
+                  <div className="note-options-chips bday-frases" role="group" aria-label="Frases prontas">
+                    {frases.map((f, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        className={"note-chip" + (pessoa.messageSlot === i ? " active" : "")}
+                        aria-pressed={pessoa.messageSlot === i}
+                        title={textoComNome(f.texto, pessoa.name)}
+                        onClick={() => {
+                          const texto = textoComNome(f.texto, pessoa.name);
+                          setMensagem(texto);
+                          board.updateBirthday(pessoa.id, { message: texto, messageSlot: i });
+                        }}
+                      >
+                        {i + 1}. {f.titulo || "Frase " + (i + 1)}
+                        {pessoa.lastSentSlot === i && pessoa.lastSentYear ? ` ✔ ${pessoa.lastSentYear}` : ""}
+                      </button>
+                    ))}
+                  </div>
                   <textarea
                     className="bday-msg"
-                    rows={3}
+                    rows={4}
                     value={mensagem}
-                    placeholder={textoComNome(modelo?.trim() || MENSAGEM_PADRAO, pessoa.name)}
+                    aria-label={`Mensagem para ${pessoa.name}`}
+                    placeholder="Escolha uma frase acima ou escreva a sua"
                     onChange={(e) => setMensagem(e.target.value)}
-                    onBlur={() => mensagem !== pessoa.message && board.updateBirthday(pessoa.id, { message: mensagem })}
+                    onBlur={() => {
+                      if (mensagem === pessoa.message) return;
+                      // Texto mexido à mão deixa de ser "a frase 2": passa a ser da pessoa e não entra no rodízio.
+                      const daFrase = pessoa.messageSlot !== null && textoComNome(frases[pessoa.messageSlot]?.texto ?? "", pessoa.name) === mensagem;
+                      board.updateBirthday(pessoa.id, { message: mensagem, messageSlot: daFrase ? pessoa.messageSlot : null });
+                    }}
                   />
+                  <p className="fm-dica">
+                    {pessoa.lastSentYear
+                      ? `Última enviada em ${pessoa.lastSentYear}${pessoa.lastSentSlot !== null && frases[pessoa.lastSentSlot] ? ` (“${frases[pessoa.lastSentSlot].titulo}”)` : ""}. `
+                      : ""}
+                    {pessoa.messageSlot !== null
+                      ? `Depois de enviar, a próxima da fila é “${frases[proximaFrase(pessoa.messageSlot, frases.length)]?.titulo ?? ""}”.`
+                      : "Texto próprio: não entra no rodízio das frases."}
+                  </p>
                 </div>
-              </label>
+              </div>
             )}
           </div>
 
@@ -243,7 +279,14 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
 
           <div className="edit-actions edit-actions-split bday-acoes">
             {zap ? (
-              <a className="btn btn-ghost" href={zap} target="_blank" rel="noopener noreferrer">
+              <a
+                className="btn btn-ghost"
+                href={zap}
+                target="_blank"
+                rel="noopener noreferrer"
+                // A conversa abre com a frase de agora; só depois a pessoa passa para a próxima da fila.
+                onClick={() => setTimeout(() => board.marcarParabensEnviado(pessoa.id), 0)}
+              >
                 <WhatsAppIcon /> Mandar parabéns agora
               </a>
             ) : (
@@ -284,8 +327,13 @@ export function BirthdaysView({ onBack }: { onBack: () => void }) {
     filtro === "todos" ? todos : filtro === "aguardando" ? aguardando : todos.filter((b) => b.category === filtro),
     hoje
   );
-  const [modeloDraft, setModeloDraft] = useState<string | null>(null);
-  const modeloAtual = board.state.settings.birthdayMessage ?? MENSAGEM_PADRAO;
+  const frasesAtuais = frasesEmUso(board.state.settings.birthdayMessages);
+  const [frasesDraft, setFrasesDraft] = useState<BirthdayPhrase[] | null>(null);
+  const frasesTela = frasesDraft ?? frasesAtuais;
+  function salvarFrases(lista: BirthdayPhrase[]) {
+    board.updateSettings({ birthdayMessages: lista });
+    setFrasesDraft(null);
+  }
   const diaNum = Math.round(Number(dia));
   const anoNum = ano.trim() === "" ? null : Math.round(Number(ano));
   const podeAdicionar =
@@ -325,24 +373,33 @@ export function BirthdaysView({ onBack }: { onBack: () => void }) {
 
         <details className="fm-card bday-modelo">
           <summary>
-            <strong>Mensagem pronta para todos</strong>
-            <span className="fm-dica">Vale para cada pessoa com o nome dela no lugar de {"{nome}"}.</span>
+            <strong>Frases prontas de aniversário</strong>
+            <span className="fm-dica">
+              Quatro frases para escolher em cada pessoa, com o nome dela no lugar de {"{nome}"}. Depois que uma é enviada, a pessoa passa para a
+              próxima da fila.
+            </span>
           </summary>
-          <textarea
-            className="fm-textarea"
-            rows={3}
-            aria-label="Mensagem pronta para todos"
-            value={modeloDraft ?? modeloAtual}
-            onChange={(e) => setModeloDraft(e.target.value)}
-            onBlur={() => {
-              if (modeloDraft === null) return;
-              board.updateSettings({ birthdayMessage: modeloDraft.trim() && modeloDraft.trim() !== MENSAGEM_PADRAO ? modeloDraft : null });
-              setModeloDraft(null);
-            }}
-          />
-          <p className="fm-dica">
-            Prévia: {textoComNome(modeloDraft ?? modeloAtual, "Maria Souza")}
-          </p>
+          {frasesTela.map((f, i) => (
+            <div className="bday-frase-edit" key={i}>
+              <input
+                type="text"
+                aria-label={`Nome da frase ${i + 1}`}
+                value={f.titulo}
+                placeholder={`Frase ${i + 1}`}
+                onChange={(e) => setFrasesDraft(frasesTela.map((x, j) => (j === i ? { ...x, titulo: e.target.value } : x)))}
+                onBlur={() => frasesDraft && salvarFrases(frasesDraft)}
+              />
+              <textarea
+                className="fm-textarea"
+                rows={3}
+                aria-label={`Texto da frase ${i + 1}`}
+                value={f.texto}
+                onChange={(e) => setFrasesDraft(frasesTela.map((x, j) => (j === i ? { ...x, texto: e.target.value } : x)))}
+                onBlur={() => frasesDraft && salvarFrases(frasesDraft)}
+              />
+            </div>
+          ))}
+          <p className="fm-dica">Prévia da primeira: {textoComNome(frasesTela[0]?.texto ?? "", "Maria Souza")}</p>
         </details>
 
         <div className="list-card">

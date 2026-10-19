@@ -320,8 +320,8 @@ export interface Settings {
   // sem migração de banco.
   backupAreas: string[] | null; // null = nunca configurou, vale "todas"
   backupName: string | null; // vira o título do índice e o nome do .zip
-  // Mensagem de aniversário pronta, igual para todos; {nome} vira o primeiro nome. null = a padrão.
-  birthdayMessage: string | null;
+  // Frases prontas de aniversário (a fila do rodízio); {nome} vira o primeiro nome. null = as 4 padrão.
+  birthdayMessages: BirthdayPhrase[] | null;
 }
 
 // Funcionalidades opcionais que podem ser ligadas/desligadas em Configurações.
@@ -427,6 +427,11 @@ export interface ShoppingLink {
 }
 
 // Lista de aniversários: amigos, familiares e clientes. O ano é opcional.
+export interface BirthdayPhrase {
+  titulo: string;
+  texto: string;
+}
+
 export interface Birthday {
   id: string;
   name: string;
@@ -440,6 +445,12 @@ export interface Birthday {
   remind: boolean; // lembrar de mandar uma mensagem mais pessoal (vira lembrete anual)
   remindWhatsapp: boolean; // o mesmo lembrete, também no WhatsApp do Leandro
   pending: boolean; // veio do cadastro pelo site e ainda não foi conferido: botão "Confirmar cliente"
+  // Rodízio das frases prontas: de qual frase (posição na lista de Aniversários) é a mensagem atual
+  // (null = texto próprio, não gira) e qual foi a última enviada e quando. Depois que a frase é
+  // enviada, a pessoa passa para a próxima da fila.
+  messageSlot: number | null;
+  lastSentYear: number | null;
+  lastSentSlot: number | null;
   note: string;
   order: number;
 }

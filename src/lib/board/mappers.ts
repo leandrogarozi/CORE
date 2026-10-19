@@ -3,6 +3,7 @@ import type {
   ActiveTimer,
   Attachment,
   AttachmentEntityType,
+  BirthdayPhrase,
   Book,
   BookStatus,
   Category,
@@ -466,7 +467,7 @@ export function rowToSettings(row: SettingsRow | null): Settings {
     bgIntensity: row?.bg_intensity ?? null,
     backupAreas: row?.backup_areas ?? null,
     backupName: row?.backup_name ?? null,
-    birthdayMessage: row?.birthday_message ?? null,
+    birthdayMessages: lerFrases(row?.birthday_messages),
   };
 }
 
@@ -954,6 +955,17 @@ export function attachmentToInsertRow(
   };
 }
 
+/** As frases de aniversário vêm de uma coluna JSON: confere o formato antes de usar. */
+function lerFrases(bruto: unknown): BirthdayPhrase[] | null {
+  if (!Array.isArray(bruto)) return null;
+  const lista = bruto.flatMap((x): BirthdayPhrase[] => {
+    if (!x || typeof x !== "object") return [];
+    const o = x as { titulo?: unknown; texto?: unknown };
+    return typeof o.texto === "string" ? [{ titulo: typeof o.titulo === "string" ? o.titulo : "", texto: o.texto }] : [];
+  });
+  return lista.length ? lista.slice(0, 4) : null;
+}
+
 export function rowToBirthday(row: Tables<"birthdays">): Birthday {
   return {
     id: row.id,
@@ -968,6 +980,9 @@ export function rowToBirthday(row: Tables<"birthdays">): Birthday {
     remind: row.remind,
     remindWhatsapp: row.remind_whatsapp,
     pending: row.aguardando_confirmacao,
+    messageSlot: row.message_slot,
+    lastSentYear: row.last_sent_year,
+    lastSentSlot: row.last_sent_slot,
     note: row.note,
     order: row.sort_order,
   };
@@ -988,6 +1003,9 @@ export function birthdayToInsertRow(b: Birthday, userId: string): TablesInsert<"
     remind: b.remind,
     remind_whatsapp: b.remindWhatsapp,
     aguardando_confirmacao: b.pending,
+    message_slot: b.messageSlot,
+    last_sent_year: b.lastSentYear,
+    last_sent_slot: b.lastSentSlot,
     note: b.note,
     sort_order: b.order,
   };
@@ -1006,6 +1024,9 @@ export function birthdayToUpdateRow(b: Partial<Birthday>): TablesUpdate<"birthda
   if (b.remind !== undefined) row.remind = b.remind;
   if (b.remindWhatsapp !== undefined) row.remind_whatsapp = b.remindWhatsapp;
   if (b.pending !== undefined) row.aguardando_confirmacao = b.pending;
+  if (b.messageSlot !== undefined) row.message_slot = b.messageSlot;
+  if (b.lastSentYear !== undefined) row.last_sent_year = b.lastSentYear;
+  if (b.lastSentSlot !== undefined) row.last_sent_slot = b.lastSentSlot;
   if (b.note !== undefined) row.note = b.note;
   return row;
 }

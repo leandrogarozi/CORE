@@ -1019,6 +1019,7 @@ export type Database = {
           backup_areas: string[] | null
           backup_name: string | null
           birthday_message: string | null
+          birthday_messages: Json | null
           bg_intensity: number | null
           bg_tone: string | null
           avatar_url: string | null
@@ -1047,6 +1048,7 @@ export type Database = {
           backup_areas?: string[] | null
           backup_name?: string | null
           birthday_message?: string | null
+          birthday_messages?: Json | null
           bg_intensity?: number | null
           bg_tone?: string | null
           avatar_url?: string | null
@@ -1075,6 +1077,7 @@ export type Database = {
           backup_areas?: string[] | null
           backup_name?: string | null
           birthday_message?: string | null
+          birthday_messages?: Json | null
           bg_intensity?: number | null
           bg_tone?: string | null
           avatar_url?: string | null
@@ -1416,7 +1419,10 @@ export type Database = {
           day: number
           deleted_at: string | null
           id: string
+          last_sent_slot: number | null
+          last_sent_year: number | null
           message: string
+          message_slot: number | null
           month: number
           name: string
           note: string
@@ -1435,7 +1441,10 @@ export type Database = {
           day: number
           deleted_at?: string | null
           id: string
+          last_sent_slot?: number | null
+          last_sent_year?: number | null
           message?: string
+          message_slot?: number | null
           month: number
           name: string
           note?: string
@@ -1454,7 +1463,10 @@ export type Database = {
           day?: number
           deleted_at?: string | null
           id?: string
+          last_sent_slot?: number | null
+          last_sent_year?: number | null
           message?: string
+          message_slot?: number | null
           month?: number
           name?: string
           note?: string
