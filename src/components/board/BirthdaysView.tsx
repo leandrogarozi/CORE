@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { BellIcon, CheckIcon, GiftIcon, ChevronIcon, TrashIcon, WhatsAppIcon } from "./icons";
 import { ToggleSwitch } from "./ToggleSwitch";
+import { ConfirmarComSenha } from "./ConfirmarComSenha";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import {
   CATEGORIAS_DE_ANIVERSARIO,
@@ -32,9 +33,10 @@ function rotuloDaCategoria(c: Birthday["category"]): string {
 }
 
 function PessoaCard({ pessoa }: { pessoa: Birthday }) {
-  const { board, askConfirm } = useBoardCtx();
+  const { board } = useBoardCtx();
   // Fechado, como os outros: o vermelho da faixa já diz que precisa de confirmação.
   const [aberto, setAberto] = useState(false);
+  const [apagando, setApagando] = useState(false);
   const [nome, setNome] = useState(pessoa.name);
   const frases = frasesEmUso(board.state.settings.birthdayMessages);
   const [mensagem, setMensagem] = useState(pessoa.message);
@@ -296,13 +298,28 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
                   : "Cadastre o telefone para poder mandar os parabéns pelo WhatsApp."}
               </span>
             )}
-            <button
-              type="button"
-              className="btn btn-ghost danger-hover"
-              onClick={() => askConfirm(`Excluir "${pessoa.name}" da lista de aniversários?`, () => board.deleteBirthday(pessoa.id))}
-            >
+            <button type="button" className="btn btn-ghost danger-hover" onClick={() => setApagando(true)}>
               <TrashIcon /> Excluir
             </button>
+            {apagando && (
+              <ConfirmarComSenha
+                titulo={`Excluir ${pessoa.name} da lista?`}
+                botao="Excluir"
+                onCancelar={() => setApagando(false)}
+                onConfirmar={async (senha) => {
+                  const r = await fetch("/api/senha/conferir", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ senha }),
+                  });
+                  if (!r.ok) return { ok: false, erro: r.status === 403 ? "Senha incorreta." : "Não foi possível conferir a senha agora." };
+                  board.deleteBirthday(pessoa.id);
+                  return { ok: true };
+                }}
+              >
+                O aniversário e o lembrete anual dessa pessoa saem da lista.
+              </ConfirmarComSenha>
+            )}
           </div>
         </div>
       )}

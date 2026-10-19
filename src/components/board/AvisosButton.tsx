@@ -47,6 +47,7 @@ export function AvisosButton({ onNavigate }: { onNavigate: (modo: ViewMode) => v
   const supabase = useMemo(() => createClient(), []);
   const [avisos, setAvisos] = useState<Aviso[]>([]);
   const [open, setOpen] = useState(false);
+  const [confirmandoLimpar, setConfirmandoLimpar] = useState(false);
   const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
@@ -83,12 +84,22 @@ export function AvisosButton({ onNavigate }: { onNavigate: (modo: ViewMode) => v
     function fora(e: MouseEvent) {
       if (popRef.current?.contains(e.target as Node) || btnRef.current?.contains(e.target as Node)) return;
       setOpen(false);
+      setConfirmandoLimpar(false);
     }
     window.addEventListener("mousedown", fora);
     return () => window.removeEventListener("mousedown", fora);
   }, [open]);
 
   const naoLidos = avisos.filter((a) => !a.lido).length;
+
+  async function limparTudo() {
+    const antes = avisos;
+    setAvisos([]);
+    setConfirmandoLimpar(false);
+    // RLS já limita ao dono; o filtro só diz "todas as linhas visíveis".
+    const { error } = await supabase.from("faro_avisos").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    if (error) setAvisos(antes);
+  }
 
   async function marcarLidos(ids: string[]) {
     if (!ids.length) return;
@@ -140,7 +151,25 @@ export function AvisosButton({ onNavigate }: { onNavigate: (modo: ViewMode) => v
                   Marcar todos como lidos
                 </button>
               )}
+              {avisos.length > 0 && !confirmandoLimpar && (
+                <button type="button" className="aviso-limpar" title="Apagar todos os avisos da lista" onClick={() => setConfirmandoLimpar(true)}>
+                  Limpar
+                </button>
+              )}
             </div>
+            {confirmandoLimpar && (
+              <div className="aviso-limpar-confirma" role="alertdialog" aria-label="Limpar avisos">
+                <span>Certeza que deseja limpar a lista?</span>
+                <span className="aviso-limpar-botoes">
+                  <button type="button" className="btn btn-ghost" onClick={() => setConfirmandoLimpar(false)}>
+                    Não
+                  </button>
+                  <button type="button" className="btn btn-danger" onClick={() => void limparTudo()}>
+                    Sim, limpar
+                  </button>
+                </span>
+              </div>
+            )}
             {avisos.length === 0 ? (
               <div className="hp-empty">
                 Nenhum aviso. Quando a IA propuser um aprendizado ou criar algo no FARO, ele aparece aqui.
@@ -150,21 +179,46 @@ export function AvisosButton({ onNavigate }: { onNavigate: (modo: ViewMode) => v
                 {avisos.map((a) => {
                   const onde = a.destino ? ONDE[a.destino] : undefined;
                   return (
-                    <div key={a.id} className={"aviso-item" + (a.lido ? "" : " novo")}>
+                    <div
+                      key={a.id}
+                      className={"aviso-item" + (a.lido ? " visto" : " novo")}
+                      // Clicar no aviso (em qualquer parte) é "visto": ganha o cheque na frente.
+                      onClick={() => !a.lido && marcarLidos([a.id])}
+                    >
                       <div className="aviso-titulo">
-                        {!a.lido && <span className="aviso-ponto" aria-label="não lido" />}
+                        {a.lido ? (
+                          <span className="aviso-cheque" role="img" aria-label="visto" title="Visto">
+                            ✓
+                          </span>
+                        ) : (
+                          <span className="aviso-ponto" aria-label="não lido" />
+                        )}
                         {a.titulo}
                         <span className="aviso-quando">{quando(a.criadoEm)}</span>
                       </div>
                       <div className="aviso-corpo">{a.corpo}</div>
                       <div className="aviso-acoes">
                         {onde && (
-                          <button type="button" className="btn btn-accent" onClick={() => abrir(a)}>
+                          <button
+                            type="button"
+                            className="btn btn-accent"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              abrir(a);
+                            }}
+                          >
                             {onde.rotulo}
                           </button>
                         )}
                         {!a.lido && (
-                          <button type="button" className="btn btn-ghost" onClick={() => marcarLidos([a.id])}>
+                          <button
+                            type="button"
+                            className="btn btn-ghost"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              marcarLidos([a.id]);
+                            }}
+                          >
                             Marcar como lido
                           </button>
                         )}
