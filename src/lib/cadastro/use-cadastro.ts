@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import type { Json, Tables } from "@/lib/database.types";
 import { codigoDoLink, codigoLivre, type Pergunta } from "./links";
@@ -113,6 +114,41 @@ export function useCadastro() {
     [supabase, carregar]
   );
 
+  /**
+   * Confere a senha de quem está logado SEM mexer na sessão do app: usa um cliente
+   * descartável (não guarda sessão) só para tentar entrar com e-mail + senha.
+   */
+  const confirmarSenha = useCallback(
+    async (senha: string): Promise<boolean> => {
+      const { data } = await supabase.auth.getUser();
+      const email = data.user?.email;
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+      const chave = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+      if (!email || !url || !chave || !senha) return false;
+      const descartavel = createSupabaseClient(url, chave, {
+        auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+      });
+      const { error } = await descartavel.auth.signInWithPassword({ email, password: senha });
+      return !error;
+    },
+    [supabase]
+  );
+
+  /** Apaga o link (as respostas já guardadas em Clientes ficam). Devolve false se não apagou. */
+  const apagarLink = useCallback(
+    async (id: string): Promise<boolean> => {
+      const { data, error } = await supabase.from("cadastro_links").delete().eq("id", id).select("id");
+      if (error || !data?.length) {
+        setErro(error?.message ?? "O banco não apagou o link. Atualize a página e tente de novo.");
+        return false;
+      }
+      setLinks((atual) => (atual ?? []).filter((l) => l.id !== id));
+      setErro(null);
+      return true;
+    },
+    [supabase]
+  );
+
   /** Liga/desliga o "não enviar". Ao ligar, também desliga a mensagem automática do aniversário da pessoa. */
   const marcarNaoEnviar = useCallback(
     async (cliente: ClienteDoSite, valor: boolean) => {
@@ -146,7 +182,7 @@ export function useCadastro() {
     [carregar]
   );
 
-  return { links, clientes, erro, carregar, criarLink, atualizarLink, marcarNaoEnviar, apagarCliente };
+  return { links, clientes, erro, carregar, criarLink, atualizarLink, confirmarSenha, apagarLink, marcarNaoEnviar, apagarCliente };
 }
 
 /** Quem está marcado como "não enviar", para as telas esconderem o botão de mandar mensagem. */

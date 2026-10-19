@@ -3310,3 +3310,7 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .fm-resultado{ flex:1 1 100%; font-size:13px; order:3; }
 .fm-resultado.ok{ color:var(--success); }
 .fm-resultado.erro{ color:var(--danger, #d64545); }
+.fm-acoes-link{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.fm-acoes-link .btn{ display:inline-flex; align-items:center; gap:6px; }
+.fm-aviso{ margin:0 0 12px; padding:10px 14px; border-radius:12px; background:var(--accent-soft); color:var(--text); font-size:13px; line-height:1.45; }
+.fm-senha{ width:100%; margin:12px 0 4px; padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:var(--surface); }

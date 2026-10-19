@@ -1,8 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { ChevronIcon, DownloadIcon, LinkIcon, TrashIcon } from "./icons";
+
+const CopyIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="9" y="9" width="11" height="11" rx="2" />
+    <path d="M5 15V6a2 2 0 0 1 2-2h9" />
+  </svg>
+);
 import { ToggleSwitch } from "./ToggleSwitch";
 import {
   BlocosDeEscolha,
@@ -324,17 +332,96 @@ function EditorDoLink({
   );
 }
 
+/** Pede a senha do login antes de apagar um link. */
+function ApagarComSenha({
+  link,
+  temResposta,
+  onCancelar,
+  onApagar,
+  confirmarSenha,
+}: {
+  link: LinkDeCadastro;
+  temResposta: boolean;
+  onCancelar: () => void;
+  onApagar: () => Promise<boolean>;
+  confirmarSenha: (senha: string) => Promise<boolean>;
+}) {
+  const [senha, setSenha] = useState("");
+  const [trabalhando, setTrabalhando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+
+  async function confirmar() {
+    if (!senha || trabalhando) return;
+    setTrabalhando(true);
+    setErro(null);
+    if (!(await confirmarSenha(senha))) {
+      setErro("Senha incorreta.");
+      setTrabalhando(false);
+      return;
+    }
+    if (!(await onApagar())) {
+      setErro("Não consegui apagar. Veja o aviso em vermelho no alto da página.");
+      setTrabalhando(false);
+    }
+  }
+
+  return createPortal(
+    <>
+      <div className="modal-backdrop" onClick={onCancelar} />
+      <div className="modal-panel" role="dialog" aria-label="Apagar link de cadastro">
+        <div className="modal-title">
+          <span className="modal-title-icon">
+            <TrashIcon />
+          </span>
+          Apagar o link de {link.pessoa || link.codigo}?
+        </div>
+        <div className="scope-question">
+          O endereço <strong className="mono">{urlDoLink(link.codigo)}</strong> deixa de funcionar.
+          {temResposta
+            ? " As respostas que a pessoa já enviou continuam guardadas na tela Clientes."
+            : " Este link ainda não recebeu resposta."}{" "}
+          Para confirmar, digite a senha do seu login no FARO.
+        </div>
+        <input
+          type="password"
+          className="fm-senha"
+          autoFocus
+          autoComplete="current-password"
+          placeholder="Senha"
+          aria-label="Senha do FARO"
+          value={senha}
+          onChange={(e) => setSenha(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && void confirmar()}
+        />
+        {erro && <div className="mic-error">{erro}</div>}
+        <div className="confirm-actions">
+          <button type="button" className="btn btn-ghost" onClick={onCancelar}>
+            Cancelar
+          </button>
+          <button type="button" className="btn btn-danger" disabled={!senha || trabalhando} onClick={() => void confirmar()}>
+            {trabalhando ? "Conferindo…" : "Apagar link"}
+          </button>
+        </div>
+      </div>
+    </>,
+    document.body
+  );
+}
+
 function CartaoDoLink({
   link,
   cadastro,
   inicialmenteAberto,
+  onDuplicar,
 }: {
   link: LinkDeCadastro;
   cadastro: ReturnType<typeof useCadastro>;
   inicialmenteAberto: boolean;
+  onDuplicar: (link: LinkDeCadastro) => void;
 }) {
   const { askConfirm } = useBoardCtx();
   const [aberto, setAberto] = useState(inicialmenteAberto);
+  const [apagando, setApagando] = useState(false);
   const status = statusDoLink(link);
   const quem = link.cliente_id ? cadastro.clientes?.find((c) => c.id === link.cliente_id) : undefined;
   const respostas = quem ? Object.entries(respostasPorPergunta(quem, [link])) : [];
@@ -406,10 +493,27 @@ function CartaoDoLink({
             O endereço do link não muda ao editar os textos. Mudar as perguntas não apaga o que já foi respondido.
             {status === "respondido" && " Este link já recebeu a resposta: para outra pessoa, crie outro link."}
           </p>
-          {link.ativo && (
-            <button type="button" className="btn btn-ghost" onClick={() => askConfirm(`Desativar o link de ${link.pessoa}?`, () => void cadastro.atualizarLink(link.id, { ativo: false }))}>
-              Desativar link
+          <div className="fm-acoes-link">
+            <button type="button" className="btn btn-ghost" onClick={() => onDuplicar(link)}>
+              <CopyIcon /> Duplicar link
             </button>
+            {link.ativo && (
+              <button type="button" className="btn btn-ghost" onClick={() => askConfirm(`Desativar o link de ${link.pessoa}?`, () => void cadastro.atualizarLink(link.id, { ativo: false }))}>
+                Desativar link
+              </button>
+            )}
+            <button type="button" className="btn btn-ghost danger-hover" onClick={() => setApagando(true)}>
+              <TrashIcon /> Apagar link
+            </button>
+          </div>
+          {apagando && (
+            <ApagarComSenha
+              link={link}
+              temResposta={link.respostas_count > 0}
+              onCancelar={() => setApagando(false)}
+              onApagar={() => cadastro.apagarLink(link.id)}
+              confirmarSenha={cadastro.confirmarSenha}
+            />
           )}
         </div>
       )}
@@ -422,6 +526,29 @@ export function CadastrosView({ onBack }: { onBack: () => void }) {
   const cadastro = useCadastro();
   const [criando, setCriando] = useState(false);
   const [novoId, setNovoId] = useState<string | null>(null);
+  // Duplicar: abre o formulário de novo link já preenchido com os textos e as perguntas do link copiado.
+  const [copia, setCopia] = useState<{ chave: number; de: string; dados: DadosDoLink } | null>(null);
+
+  function duplicar(l: LinkDeCadastro) {
+    setCopia({
+      chave: Date.now(),
+      de: l.pessoa || l.codigo,
+      dados: {
+        cliente: l.cliente,
+        pessoa: "",
+        eyebrow: l.eyebrow,
+        titulo: l.titulo,
+        boas_vindas: l.boas_vindas,
+        perguntas: lerPerguntas(l.perguntas),
+        limit_respostas: l.limit_respostas,
+        tamanho_texto: l.tamanho_texto === "p" || l.tamanho_texto === "g" ? l.tamanho_texto : "m",
+        pedir_whatsapp: l.pedir_whatsapp,
+        pedir_aniversario: l.pedir_aniversario,
+      },
+    });
+    setCriando(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
   const links = cadastro.links ?? [];
   const respondidos = links.filter((l) => statusDoLink(l) === "respondido").length;
 
@@ -454,7 +581,14 @@ export function CadastrosView({ onBack }: { onBack: () => void }) {
             {links.length > 0 && ` ${respondidos} de ${links.length} já responderam.`}
           </p>
           {!criando && (
-            <button type="button" className="btn btn-accent" onClick={() => setCriando(true)}>
+            <button
+              type="button"
+              className="btn btn-accent"
+              onClick={() => {
+                setCopia(null);
+                setCriando(true);
+              }}
+            >
               + Novo link
             </button>
           )}
@@ -464,15 +598,26 @@ export function CadastrosView({ onBack }: { onBack: () => void }) {
 
         {criando && (
           <div className="cad-novo">
+            {copia && (
+              <p className="fm-aviso">
+                Cópia do link de <strong>{copia.de}</strong>: escreva o nome da <strong>pessoa</strong> e confira o título e a mensagem de abertura
+                (se citarem o nome de quem foi copiada, troque).
+              </p>
+            )}
             <EditorDoLink
-              inicial={VAZIO}
+              key={copia?.chave ?? "novo"}
+              inicial={copia?.dados ?? VAZIO}
               rotuloSalvar="Criar link"
-              onCancelar={() => setCriando(false)}
+              onCancelar={() => {
+                setCriando(false);
+                setCopia(null);
+              }}
               onSalvar={async (d) => {
                 const criado = await cadastro.criarLink(d);
                 if (criado) {
                   setNovoId(criado.id);
                   setCriando(false);
+                  setCopia(null);
                 }
                 return !!criado;
               }}
@@ -488,7 +633,7 @@ export function CadastrosView({ onBack }: { onBack: () => void }) {
         )}
         <div className="bday-list">
           {links.map((l) => (
-            <CartaoDoLink key={l.id} link={l} cadastro={cadastro} inicialmenteAberto={l.id === novoId} />
+            <CartaoDoLink key={l.id} link={l} cadastro={cadastro} inicialmenteAberto={l.id === novoId} onDuplicar={duplicar} />
           ))}
         </div>
       </div>
