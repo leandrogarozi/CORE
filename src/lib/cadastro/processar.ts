@@ -195,7 +195,13 @@ export async function processarCadastro(p: PedidoDeCadastro): Promise<RespostaDo
     let aniversarioNovo: { nome: string; data: string } | null = null;
     let aniversarioJaExistia = false;
     const aniv = antigo?.aniversario ?? d.aniversario ?? null;
-    if (aniv && !birthdayIdAtual) {
+    // O aniversário já ligado à pessoa pode ter sido apagado depois: nesse caso lança de novo.
+    let birthdayVivo = false;
+    if (birthdayIdAtual) {
+      const { data: vivo } = await supabase.from("birthdays").select("id").eq("id", birthdayIdAtual).is("deleted_at", null).maybeSingle();
+      birthdayVivo = !!vivo;
+    }
+    if (aniv && !birthdayVivo) {
       try {
         const r = await levarAniversarioParaOFaro(
           supabase,

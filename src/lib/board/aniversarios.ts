@@ -145,3 +145,37 @@ export function lembreteDoAniversario(
     time: "09:00",
   };
 }
+
+const compararNomes = (a: string, b: string) => a.localeCompare(b, "pt-BR", { sensitivity: "base" });
+
+export interface GruposPorProximidade<T> {
+  hoje: T[]; // faz aniversário hoje (verde)
+  perto: T[]; // nos próximos dias (amarelo)
+  resto: T[]; // o resto, em ordem alfabética
+}
+
+/**
+ * Ordem das listas de Aniversários e de Clientes: quem faz aniversário hoje vem primeiro
+ * (verde), depois quem faz nos próximos `janela` dias (amarelo, do mais perto ao mais longe),
+ * e o resto em ordem alfabética. Passou o dia, a pessoa volta para a fila normal sozinha.
+ */
+export function agruparPorProximidade<T>(
+  lista: T[],
+  diasAte: (x: T) => number | null,
+  nomeDe: (x: T) => string,
+  janela = 3
+): GruposPorProximidade<T> {
+  const hoje: T[] = [];
+  const perto: T[] = [];
+  const resto: T[] = [];
+  for (const x of lista) {
+    const d = diasAte(x);
+    if (d === 0) hoje.push(x);
+    else if (d !== null && d > 0 && d <= janela) perto.push(x);
+    else resto.push(x);
+  }
+  hoje.sort((a, b) => compararNomes(nomeDe(a), nomeDe(b)));
+  perto.sort((a, b) => (diasAte(a)! - diasAte(b)!) || compararNomes(nomeDe(a), nomeDe(b)));
+  resto.sort((a, b) => compararNomes(nomeDe(a), nomeDe(b)));
+  return { hoje, perto, resto };
+}

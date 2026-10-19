@@ -979,6 +979,7 @@ export function rowToBirthday(row: Tables<"birthdays">): Birthday {
     autoMessage: row.auto_message,
     remind: row.remind,
     remindWhatsapp: row.remind_whatsapp,
+    noSend: row.nao_enviar,
     pending: row.aguardando_confirmacao,
     messageSlot: row.message_slot,
     lastSentYear: row.last_sent_year,
@@ -1002,6 +1003,7 @@ export function birthdayToInsertRow(b: Birthday, userId: string): TablesInsert<"
     auto_message: b.autoMessage,
     remind: b.remind,
     remind_whatsapp: b.remindWhatsapp,
+    nao_enviar: b.noSend,
     aguardando_confirmacao: b.pending,
     message_slot: b.messageSlot,
     last_sent_year: b.lastSentYear,
@@ -1023,6 +1025,7 @@ export function birthdayToUpdateRow(b: Partial<Birthday>): TablesUpdate<"birthda
   if (b.autoMessage !== undefined) row.auto_message = b.autoMessage;
   if (b.remind !== undefined) row.remind = b.remind;
   if (b.remindWhatsapp !== undefined) row.remind_whatsapp = b.remindWhatsapp;
+  if (b.noSend !== undefined) row.nao_enviar = b.noSend;
   if (b.pending !== undefined) row.aguardando_confirmacao = b.pending;
   if (b.messageSlot !== undefined) row.message_slot = b.messageSlot;
   if (b.lastSentYear !== undefined) row.last_sent_year = b.lastSentYear;

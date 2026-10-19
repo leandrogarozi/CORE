@@ -444,6 +444,7 @@ export interface Birthday {
   autoMessage: boolean; // "mandar mensagem automática" (o envio sozinho ainda não está ligado)
   remind: boolean; // lembrar de mandar uma mensagem mais pessoal (vira lembrete anual)
   remindWhatsapp: boolean; // o mesmo lembrete, também no WhatsApp do Leandro
+  noSend: boolean; // "Não enviar": o FARO não manda nenhuma mensagem para esta pessoa
   pending: boolean; // veio do cadastro pelo site e ainda não foi conferido: botão "Confirmar cliente"
   // Rodízio das frases prontas: de qual frase (posição na lista de Aniversários) é a mensagem atual
   // (null = texto próprio, não gira) e qual foi a última enviada e quando. Depois que a frase é

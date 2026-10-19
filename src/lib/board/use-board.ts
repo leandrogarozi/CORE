@@ -2568,6 +2568,7 @@ export function useBoard(userId: string | null) {
         autoMessage: false,
         remind: true,
         remindWhatsapp: false,
+        noSend: false,
         pending: false,
         messageSlot: null,
         lastSentYear: null,
@@ -2594,6 +2595,16 @@ export function useBoard(userId: string | null) {
       supabase.from("birthdays").update(birthdayToUpdateRow(patch)).eq("id", id).then(({ error }) => {
         if (error) reportSaveError("updateBirthday", error);
       });
+      // "Não enviar" vale para a pessoa toda: se ela veio do cadastro pelo site, a ficha em Clientes acompanha.
+      if (patch.noSend !== undefined) {
+        supabase
+          .from("clientes_cadastro")
+          .update({ nao_enviar: patch.noSend, nao_enviar_em: patch.noSend ? new Date().toISOString() : null })
+          .eq("birthday_id", id)
+          .then(({ error }) => {
+            if (error) reportSaveError("updateBirthday: não enviar do cliente", error);
+          });
+      }
       // Só mexe no lembrete quando algo que ele usa mudou.
       if (
         patch.name !== undefined ||

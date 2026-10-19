@@ -1,24 +1,60 @@
 "use client";
 
 import { useState } from "react";
+import { useBoardCtx } from "./board-context";
 import { ConfirmarComSenha } from "./ConfirmarComSenha";
 import { ChevronIcon, DownloadIcon, TrashIcon, UserIcon } from "./icons";
-import { ToggleSwitch } from "./ToggleSwitch";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
+import { agruparPorProximidade, diasAteAniversario, rotuloDosDias } from "@/lib/board/aniversarios";
+import { todayISO } from "@/lib/date-utils";
 import { baixarTexto } from "@/lib/baixar";
 import { csvDosClientes, respostasPorPergunta } from "@/lib/cadastro/csv";
+import { formulariosDoCliente } from "@/lib/cadastro/links";
 import { useCadastro, type ClienteDoSite } from "@/lib/cadastro/use-cadastro";
+import { DIAS_DE_AVISO_DO_ANIVERSARIO } from "./AniversariosButton";
 
 const dataBR = (iso: string | null) => (iso ? iso.slice(0, 10).split("-").reverse().join("/") : "");
 const semAcento = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
-function FichaDoCliente({ c, cadastro }: { c: ClienteDoSite; cadastro: ReturnType<typeof useCadastro> }) {
+/** Dias até o próximo aniversário do cliente, ou null se ele não informou a data. */
+function diasDoCliente(c: ClienteDoSite, hoje: string): number | null {
+  if (!c.aniversario) return null;
+  const [, m, d] = c.aniversario.split("-").map(Number);
+  return m && d ? diasAteAniversario({ month: m, day: d }, hoje) : null;
+}
+
+function FichaDoCliente({ c, cadastro, grupo }: { c: ClienteDoSite; cadastro: ReturnType<typeof useCadastro>; grupo?: "hoje" | "perto" }) {
+  const { board } = useBoardCtx();
   const [aberto, setAberto] = useState(false);
   const [apagando, setApagando] = useState(false);
+  const [lancando, setLancando] = useState(false);
+  const [aviso, setAviso] = useState<string | null>(null);
   const respostas = Object.entries(respostasPorPergunta(c, cadastro.links ?? []));
+  const formularios = formulariosDoCliente(c.id, c.produtos, cadastro.links ?? []);
+  const hoje = todayISO();
+  const dias = diasDoCliente(c, hoje);
+  const noAniversarios = !!c.birthday_id && board.state.birthdays.some((b) => b.id === c.birthday_id);
+  const pendenteNoAniv = noAniversarios && board.state.birthdays.find((b) => b.id === c.birthday_id)?.pending;
+
+  async function lancar() {
+    setLancando(true);
+    setAviso(null);
+    const r = await fetch("/api/cadastro/lancar-aniversario", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: c.id }),
+    });
+    const corpo = (await r.json().catch(() => null)) as { ok?: boolean; erro?: string; jaNaLista?: boolean } | null;
+    if (!r.ok || !corpo?.ok) setAviso(corpo?.erro ?? "Não foi possível lançar agora.");
+    else {
+      setAviso(corpo.jaNaLista ? "Já havia alguém com esse nome em Aniversários, então não mexi." : "Lançado em Aniversários, aguardando a sua confirmação.");
+      await Promise.all([board.reload(), cadastro.carregar()]);
+    }
+    setLancando(false);
+  }
 
   return (
-    <div className={"bday-card cli-card" + (c.nao_enviar ? " nao-enviar" : "")}>
+    <div className={"bday-card cli-card" + (grupo ? " " + grupo : "")}>
       <div className="bday-head">
         <button type="button" className="synapse-card-toggle" aria-expanded={aberto} onClick={() => setAberto((v) => !v)}>
           <ChevronIcon />
@@ -26,16 +62,31 @@ function FichaDoCliente({ c, cadastro }: { c: ClienteDoSite; cadastro: ReturnTyp
         <button type="button" className="bday-nome" onClick={() => setAberto((v) => !v)}>
           {c.nome}
         </button>
-        <span className="cli-selo">Respondeu pelo site ✔</span>
-        <label className="cli-nao-enviar" title="Marcado: o FARO não manda nada para esta pessoa (WhatsApp, aniversário, e-mail)">
-          <span>Não enviar</span>
-          <ToggleSwitch checked={c.nao_enviar} ariaLabel={`Não enviar mensagens para ${c.nome}`} onChange={(v) => void cadastro.marcarNaoEnviar(c, v)} />
-        </label>
+        {formularios[0] && (
+          <span className="cli-formulario" title={formularios.map((f) => `${f.empresa} — ${f.detalhe}`).join("\n")}>
+            {formularios[0].empresa}
+            {formularios.length > 1 ? ` +${formularios.length - 1}` : ""}
+          </span>
+        )}
+        {c.nao_enviar && <span className="cli-nao-enviar-chip">Não enviar</span>}
+        {dias !== null && dias <= DIAS_DE_AVISO_DO_ANIVERSARIO && <span className="bday-quando">{rotuloDosDias(dias)}</span>}
       </div>
 
       {aberto && (
         <div className="bday-body">
           <dl className="cad-dl">
+            <div>
+              <dt>Formulário de origem</dt>
+              <dd>
+                {formularios.length
+                  ? formularios.map((f) => (
+                      <span key={f.empresa + f.detalhe} className="cli-origem">
+                        <strong>{f.empresa}</strong> · {f.detalhe}
+                      </span>
+                    ))
+                  : "—"}
+              </dd>
+            </div>
             <div>
               <dt>E-mail</dt>
               <dd>{c.email}</dd>
@@ -46,16 +97,21 @@ function FichaDoCliente({ c, cadastro }: { c: ClienteDoSite; cadastro: ReturnTyp
             </div>
             <div>
               <dt>Aniversário</dt>
-              <dd>{dataBR(c.aniversario) || "—"}</dd>
-            </div>
-            <div>
-              <dt>Páginas e links</dt>
-              <dd>{(c.produtos ?? []).join(", ") || c.produto}</dd>
-            </div>
-            <div>
-              <dt>Cadastro</dt>
               <dd>
-                {dataBR(c.criado_em)} · última resposta {dataBR(c.atualizado_em)} · {c.envios} {c.envios === 1 ? "envio" : "envios"}
+                {dataBR(c.aniversario) || "—"}
+                {c.aniversario && (
+                  <>
+                    {" · "}
+                    {noAniversarios ? (pendenteNoAniv ? "em Aniversários, aguardando confirmação" : "em Aniversários") : "ainda não está em Aniversários"}
+                  </>
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt>Respondeu em</dt>
+              <dd>
+                {dataBR(c.criado_em)}
+                {c.envios > 1 ? ` (enviou ${c.envios} vezes; a última em ${dataBR(c.atualizado_em)})` : ""}
               </dd>
             </div>
             <div>
@@ -68,10 +124,20 @@ function FichaDoCliente({ c, cadastro }: { c: ClienteDoSite; cadastro: ReturnTyp
             {c.nao_enviar && (
               <div>
                 <dt>Não enviar</dt>
-                <dd>Marcado em {dataBR(c.nao_enviar_em)}. Uma resposta nova não desmarca.</dd>
+                <dd>Marcado desde {dataBR(c.nao_enviar_em)}. Para mudar, abra a pessoa em Aniversários.</dd>
               </div>
             )}
           </dl>
+
+          {c.aniversario && !noAniversarios && (
+            <div className="cli-lancar">
+              <button type="button" className="btn btn-accent" disabled={lancando} onClick={() => void lancar()}>
+                {lancando ? "Lançando…" : "Lançar em Aniversários"}
+              </button>
+              <span className="fm-dica">Põe a data dela na lista de Aniversários, aguardando a sua confirmação.</span>
+            </div>
+          )}
+          {aviso && <p className="fm-dica">{aviso}</p>}
 
           <span className="edit-field-label cad-sub">Respostas</span>
           {respostas.length ? (
@@ -115,10 +181,19 @@ export function ClientesView({ onBack }: { onBack: () => void }) {
   const cadastro = useCadastro();
   const [busca, setBusca] = useState("");
   const todos = cadastro.clientes ?? [];
+  const links = cadastro.links ?? [];
+  const hoje = todayISO();
   const q = semAcento(busca.trim());
-  const lista = q
-    ? todos.filter((c) => semAcento(`${c.nome} ${c.email} ${c.whatsapp ?? ""} ${(c.produtos ?? []).join(" ")}`).includes(q))
+  const filtrados = q
+    ? todos.filter((c) =>
+        semAcento(
+          `${c.nome} ${c.email} ${c.whatsapp ?? ""} ${(c.produtos ?? []).join(" ")} ${formulariosDoCliente(c.id, c.produtos, links)
+            .map((f) => f.empresa)
+            .join(" ")}`
+        ).includes(q)
+      )
     : todos;
+  const grupos = agruparPorProximidade(filtrados, (c) => diasDoCliente(c, hoje), (c) => c.nome, DIAS_DE_AVISO_DO_ANIVERSARIO);
   const bloqueados = todos.filter((c) => c.nao_enviar).length;
 
   return (
@@ -133,7 +208,7 @@ export function ClientesView({ onBack }: { onBack: () => void }) {
           className="icon-btn"
           title="Baixar planilha (CSV) dos clientes"
           disabled={!todos.length}
-          onClick={() => baixarTexto("clientes-faro.csv", csvDosClientes(todos, cadastro.links ?? []), "text/csv;charset=utf-8")}
+          onClick={() => baixarTexto("clientes-faro.csv", csvDosClientes(todos, links), "text/csv;charset=utf-8")}
         >
           <DownloadIcon />
         </button>
@@ -146,8 +221,8 @@ export function ClientesView({ onBack }: { onBack: () => void }) {
           </div>
           <p>
             {todos.length} {todos.length === 1 ? "pessoa" : "pessoas"}
-            {bloqueados > 0 && `, ${bloqueados} marcada${bloqueados > 1 ? "s" : ""} para não enviar`}. O interruptor <strong>Não enviar</strong> faz o FARO
-            não mandar nada para a pessoa (mensagem, aniversário, e-mail) até você desmarcar; uma resposta nova nunca desmarca sozinha.
+            {bloqueados > 0 && `, ${bloqueados} marcada${bloqueados > 1 ? "s" : ""} para não enviar`}, em ordem alfabética. Quem faz aniversário hoje fica no
+            alto em verde; nos próximos {DIAS_DE_AVISO_DO_ANIVERSARIO} dias, em amarelo. A marca <strong>Não enviar</strong> fica em Aniversários, em cada pessoa.
           </p>
         </div>
 
@@ -158,7 +233,7 @@ export function ClientesView({ onBack }: { onBack: () => void }) {
             <input
               type="search"
               className="quickadd-input"
-              placeholder="Buscar por nome, e-mail, WhatsApp ou link"
+              placeholder="Buscar por nome, e-mail, WhatsApp ou formulário"
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               aria-label="Buscar cliente"
@@ -167,13 +242,34 @@ export function ClientesView({ onBack }: { onBack: () => void }) {
         </div>
 
         {cadastro.clientes === null && !cadastro.erro && <div className="hp-empty">Carregando…</div>}
-        {cadastro.clientes !== null && !lista.length && (
+        {cadastro.clientes !== null && !filtrados.length && (
           <div className="list-card">
             <div className="hp-empty">{todos.length ? "Ninguém com essa busca." : "Ninguém respondeu ainda. Os links ficam em Cadastros."}</div>
           </div>
         )}
+
+        {grupos.hoje.length > 0 && (
+          <section className="bday-grupo hoje">
+            <h3 className="bday-grupo-titulo">🎉 Faz aniversário hoje</h3>
+            <div className="bday-list">
+              {grupos.hoje.map((c) => (
+                <FichaDoCliente key={c.id} c={c} cadastro={cadastro} grupo="hoje" />
+              ))}
+            </div>
+          </section>
+        )}
+        {grupos.perto.length > 0 && (
+          <section className="bday-grupo perto">
+            <h3 className="bday-grupo-titulo">Faz aniversário nos próximos {DIAS_DE_AVISO_DO_ANIVERSARIO} dias</h3>
+            <div className="bday-list">
+              {grupos.perto.map((c) => (
+                <FichaDoCliente key={c.id} c={c} cadastro={cadastro} grupo="perto" />
+              ))}
+            </div>
+          </section>
+        )}
         <div className="bday-list">
-          {lista.map((c) => (
+          {grupos.resto.map((c) => (
             <FichaDoCliente key={c.id} c={c} cadastro={cadastro} />
           ))}
         </div>

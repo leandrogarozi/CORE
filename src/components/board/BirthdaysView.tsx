@@ -8,6 +8,7 @@ import { ConfirmarComSenha } from "./ConfirmarComSenha";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import {
   CATEGORIAS_DE_ANIVERSARIO,
+  agruparPorProximidade,
   MENSAGEM_PADRAO,
   frasesEmUso,
   proximaFrase,
@@ -46,7 +47,7 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
   // Quem está marcado como "não enviar" na tela Clientes não ganha botão de mandar mensagem.
   const naoEnviar = useNaoEnviar();
   const numero = telefoneParaWhatsApp(pessoa.phone);
-  const bloqueada = naoEnviar.birthdays.has(pessoa.id) || (!!numero && naoEnviar.numeros.has(numero));
+  const bloqueada = pessoa.noSend || naoEnviar.birthdays.has(pessoa.id) || (!!numero && naoEnviar.numeros.has(numero));
   const zap = bloqueada ? null : linkDoWhatsApp(pessoa, frases);
 
   return (
@@ -189,6 +190,23 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
           </div>
 
           <div className="prop-list">
+            <div className="prop-row">
+              <span className="prop-label">Não enviar mensagens</span>
+              <div className="prop-value">
+                <label className="challenging-toggle">
+                  <ToggleSwitch
+                    checked={pessoa.noSend}
+                    ariaLabel={`Não enviar mensagens para ${pessoa.name}`}
+                    onChange={(v) => board.updateBirthday(pessoa.id, v ? { noSend: true, autoMessage: false } : { noSend: false })}
+                  />
+                  <span className="challenging-hint">
+                    {pessoa.noSend
+                      ? "Marcado: o FARO não manda nada para esta pessoa (WhatsApp, parabéns, e-mail). Uma resposta nova no site não desmarca."
+                      : "Ligue se esta pessoa não deve receber mensagens do FARO."}
+                  </span>
+                </label>
+              </div>
+            </div>
             <div className="prop-row">
               <span className="prop-label">Mensagem de aniversário</span>
               <div className="prop-value">
@@ -340,10 +358,15 @@ export function BirthdaysView({ onBack }: { onBack: () => void }) {
   const hoje = todayISO();
   const todos = board.state.birthdays;
   const aguardando = todos.filter((b) => b.pending);
-  const lista = ordenarPorProximos(
-    filtro === "todos" ? todos : filtro === "aguardando" ? aguardando : todos.filter((b) => b.category === filtro),
-    hoje
+  const [busca, setBusca] = useState("");
+  const q = busca.trim().normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+  const filtrados = (filtro === "todos" ? todos : filtro === "aguardando" ? aguardando : todos.filter((b) => b.category === filtro)).filter(
+    (b) => !q || `${b.name} ${b.phone} ${b.note}`.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().includes(q)
   );
+  // Ordem: hoje (verde), próximos dias (amarelo), aguardando confirmação (vermelho) e o resto em ordem alfabética.
+  const grupos = agruparPorProximidade(filtrados, (b) => diasAteAniversario(b, hoje), (b) => b.name, DIAS_DE_AVISO_DO_ANIVERSARIO);
+  const gruposResto = { pendentes: grupos.resto.filter((b) => b.pending), outros: grupos.resto.filter((b) => !b.pending) };
+  const lista = filtrados;
   const frasesAtuais = frasesEmUso(board.state.settings.birthdayMessages);
   const [frasesDraft, setFrasesDraft] = useState<BirthdayPhrase[] | null>(null);
   const frasesTela = frasesDraft ?? frasesAtuais;
@@ -474,6 +497,19 @@ export function BirthdaysView({ onBack }: { onBack: () => void }) {
           </div>
         </div>
 
+        <div className="list-card bday-busca">
+          <div className="quickadd-row">
+            <input
+              type="search"
+              className="quickadd-input"
+              placeholder="Buscar aniversariante por nome, telefone ou anotação"
+              aria-label="Buscar aniversariante"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+            />
+          </div>
+        </div>
+
         <div className="bday-filtros">
           {(["todos", ...(aguardando.length ? ["aguardando"] : []), ...CATEGORIAS_DE_ANIVERSARIO.map((c) => c.id)] as Filtro[]).map((f) => (
             <button key={f} type="button" className={"bday-filtro" + (filtro === f ? " ativo" : "")} onClick={() => setFiltro(f)}>
@@ -493,8 +529,38 @@ export function BirthdaysView({ onBack }: { onBack: () => void }) {
           </div>
         )}
 
+        {grupos.hoje.length > 0 && (
+          <section className="bday-grupo hoje">
+            <h3 className="bday-grupo-titulo">🎉 Faz aniversário hoje</h3>
+            <div className="bday-list">
+              {grupos.hoje.map((p) => (
+                <PessoaCard key={p.id} pessoa={p} />
+              ))}
+            </div>
+          </section>
+        )}
+        {grupos.perto.length > 0 && (
+          <section className="bday-grupo perto">
+            <h3 className="bday-grupo-titulo">Faz aniversário nos próximos {DIAS_DE_AVISO_DO_ANIVERSARIO} dias</h3>
+            <div className="bday-list">
+              {grupos.perto.map((p) => (
+                <PessoaCard key={p.id} pessoa={p} />
+              ))}
+            </div>
+          </section>
+        )}
+        {gruposResto.pendentes.length > 0 && (
+          <section className="bday-grupo aguardando">
+            <h3 className="bday-grupo-titulo">Aguardando a sua confirmação</h3>
+            <div className="bday-list">
+              {gruposResto.pendentes.map((p) => (
+                <PessoaCard key={p.id} pessoa={p} />
+              ))}
+            </div>
+          </section>
+        )}
         <div className="bday-list">
-          {lista.map((p) => (
+          {gruposResto.outros.map((p) => (
             <PessoaCard key={p.id} pessoa={p} />
           ))}
         </div>

@@ -1425,6 +1425,7 @@ export type Database = {
           message_slot: number | null
           month: number
           name: string
+          nao_enviar: boolean
           note: string
           phone: string
           remind: boolean
@@ -1447,6 +1448,7 @@ export type Database = {
           message_slot?: number | null
           month: number
           name: string
+          nao_enviar?: boolean
           note?: string
           phone?: string
           remind?: boolean
@@ -1469,6 +1471,7 @@ export type Database = {
           message_slot?: number | null
           month?: number
           name?: string
+          nao_enviar?: boolean
           note?: string
           phone?: string
           remind?: boolean

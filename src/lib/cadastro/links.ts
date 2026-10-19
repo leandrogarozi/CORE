@@ -111,3 +111,22 @@ export function respostaEmTexto(v: unknown): string {
   if (Array.isArray(v)) return v.join("; ");
   return String(v);
 }
+
+/**
+ * De qual formulário a pessoa veio: o nome da empresa/cliente do link (ex.: "Witt Trading") e a
+ * pessoa para quem o link foi feito. Cadastros de páginas antigas (por produto) aparecem pelo nome da página.
+ */
+export function formulariosDoCliente(
+  clienteId: string,
+  produtos: string[] | null,
+  links: { cliente_id: string | null; cliente: string; pessoa: string; codigo: string }[]
+): { empresa: string; detalhe: string }[] {
+  const dosLinks = links
+    .filter((l) => l.cliente_id === clienteId)
+    .map((l) => ({ empresa: l.cliente || l.codigo, detalhe: `link de ${l.pessoa || l.codigo} (${l.codigo})` }));
+  const slugsDosLinks = new Set(links.filter((l) => l.cliente_id === clienteId).map((l) => slugDoLink(l.cliente)));
+  const antigos = (produtos ?? [])
+    .filter((p) => !slugsDosLinks.has(p))
+    .map((p) => ({ empresa: p, detalhe: "página do site" }));
+  return [...dosLinks, ...antigos];
+}

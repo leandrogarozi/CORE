@@ -3348,3 +3348,20 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 }
 .aviso-limpar-botoes{ display:inline-flex; gap:6px; }
 .aviso-limpar-botoes .btn{ font-size:11.5px; padding:4px 10px; }
+
+/* Listas de Aniversários e Clientes: verde = faz hoje, amarelo = próximos dias, vermelho = aguardando confirmação. */
+.bday-grupo{ display:flex; flex-direction:column; gap:8px; padding:12px; border-radius:16px; margin-bottom:var(--sp-3); }
+.bday-grupo-titulo{ margin:0 2px; font-size:12px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; }
+.bday-grupo.hoje{ background:color-mix(in srgb, var(--success) 14%, var(--surface)); }
+.bday-grupo.hoje .bday-grupo-titulo{ color:var(--success); }
+.bday-grupo.perto{ background:color-mix(in srgb, #f2b705 18%, var(--surface)); }
+.bday-grupo.perto .bday-grupo-titulo{ color:#9a7400; }
+.bday-grupo.aguardando{ background:color-mix(in srgb, var(--danger) 9%, var(--surface)); }
+.bday-grupo.aguardando .bday-grupo-titulo{ color:var(--danger); }
+.bday-card.hoje{ border-color:var(--success); box-shadow:0 0 0 1px var(--success) inset; }
+.bday-card.perto{ background:var(--surface); border-color:#e0b100; }
+.cli-formulario{ flex:none; font-size:11px; padding:2px 8px; border-radius:var(--r-2); background:var(--surface-2, var(--accent-soft)); color:var(--text-muted); max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cli-nao-enviar-chip{ flex:none; font-size:10.5px; padding:2px 8px; border-radius:999px; border:1px solid var(--danger); color:var(--danger); }
+.cli-origem{ display:block; }
+.cli-lancar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:10px 0; }
+.bday-busca{ margin-bottom:var(--sp-3); }

@@ -59,6 +59,7 @@ export async function levarAniversarioParaOFaro(
     autoMessage: false,
     remind: false,
     remindWhatsapp: false,
+    noSend: false,
     pending: true,
     messageSlot: null,
     lastSentYear: null,

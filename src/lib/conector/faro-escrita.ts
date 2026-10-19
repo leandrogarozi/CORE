@@ -356,6 +356,7 @@ export async function criarAniversarios(args: Args, repo: Repositorio, ctx: Cont
       message: "",
       autoMessage: false,
       remind: true,
+      noSend: false,
       pending: false,
       messageSlot: null,
       lastSentYear: null,
