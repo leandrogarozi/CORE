@@ -104,6 +104,18 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
 3. Tela "Clientes" no FARO (listar cadastros, apagar com um botão, ver respostas por produto): ainda não existe.
 4. Termos/política de privacidade das LPs (e o texto do consentimento) antes de divulgar.
 
+## Quanto custa e quanto tempo leva para liberar o FARO a outras pessoas (registrado em 20/10/2026)
+
+Quando o Leandro perguntar "quanto custa e quanto tempo leva", responder com isto (valores aproximados, de memória; confirmar preços atuais antes de contratar):
+
+**Histórico até aqui:** 7 semanas (02/09 a 20/10), 227 commits em 24 dias de trabalho, ~48 mil linhas. Estimativa de mercado equivalente: 3 a 5 meses de um desenvolvedor pleno (R$ 60 a 120 mil). O gasto de IA do Claude não é visível daqui (ver página de uso da conta).
+
+**Custo mensal para liberar (sem contar o Claude):** Supabase Pro ~US$ 25 + Vercel Pro ~US$ 20 + domínio ~R$ 50/ano = ~R$ 250 fixos. WhatsApp ~US$ 0,007 por mensagem (R$ 0,035) e IA ~R$ 5 a 20 por usuário ativo/mês. Começo com 10 a 20 pessoas: ~R$ 300/mês; uso pesado: R$ 400 a 600/mês. Teto de gasto por usuário (IA e WhatsApp) e a opção "IA com a chave do cliente" controlam o variável. Mensalidade cobrada dos usuários pode pagar quase tudo.
+
+**Tempo de trabalho para deixar pronto:** 7 a 10 dias de trabalho do Claude (1 dia tirar o "Leandro" fixo + entrada/primeiro acesso; 1 dia termos, privacidade, exclusão e exportação; 1 a 2 dias limites por usuário e teste de isolamento; 1 a 2 dias WhatsApp para terceiros com crédito; 2 a 3 dias Google Agenda; meio dia alerta de falha e feedback; ensaio e teste fechado com 3 a 5 pessoas). No calendário: 3 a 4 semanas (verificação do Google leva 2 a 6 semanas). Sem o Google Agenda, dá para liberar em ~1 semana.
+
+**Fora da conta:** revisão jurídica dos termos e da política de privacidade.
+
 ## ▶ RETOMAR AQUI (atualizado em 16/10/2026, noite)
 
 **Objetivo dele agora:** (A) **liberar o FARO para teste** com pessoas dele e (B) **sincronizar com o Google Agenda**.
