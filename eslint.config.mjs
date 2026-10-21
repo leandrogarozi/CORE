@@ -12,8 +12,6 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Projeto separado (Cloudflare Pages), sem Next.
-    "fotos-evento/**",
   ]),
 ]);
 

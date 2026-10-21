@@ -1,6 +1,0 @@
-{
-  "name": "fotos-evento",
-  "private": true,
-  "type": "module",
-  "scripts": { "test": "node --test "test/*.test.js"" }
-}
