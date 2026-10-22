@@ -8,6 +8,7 @@ import {
   BookIcon,
   BookmarkIcon,
   BookOpenIcon,
+  CheckIcon,
   ChevronIcon,
   CommentIcon,
   DownloadIcon,
@@ -195,11 +196,13 @@ function BookStatusPicker({ book }: { book: Book }) {
       <button
         ref={btnRef}
         type="button"
-        className="book-status-dot"
+        className={"book-status-dot" + (book.status === "finalizado" ? " done" : "")}
         style={{ "--pill-color": BOOK_STATUS_COLOR[book.status] } as React.CSSProperties}
         title={BOOK_KIND_INFO[book.kind].status[book.status]}
         onClick={toggleOpen}
-      />
+      >
+        {book.status === "finalizado" && <CheckIcon />}
+      </button>
       {anchorRect && (
         <BookStatusMenu
           anchorRect={anchorRect}
@@ -416,6 +419,9 @@ function BookRow({
           <span className="book-row-order-num mono">{position}</span>
         </span>
       )}
+      {/* Mesmo lugar e tamanho da bolinha de status das tarefas: logo depois da
+          ordem, antes do título. Mudar de tela não muda o jeito de agir. */}
+      <BookStatusPicker book={book} />
       <input
         type="text"
         className="book-title-input"
@@ -425,10 +431,6 @@ function BookRow({
         onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
       />
       {book.status === "lendo" && <BookStartDateButton book={book} />}
-      {/* Bolinha antes da bandeirinha: status é o que ele olha primeiro ("estou
-          lendo? já li?"), prioridade vem depois. A ordem na linha é a ordem da
-          leitura. */}
-      <BookStatusPicker book={book} />
       <BookPriorityFlag book={book} />
       <BookInsightsButton book={book} />
       {book.status === "finalizado" && <BookEnviarAnotacoes book={book} />}
