@@ -54,30 +54,26 @@ Legenda: **Feito** (no ar), **Parcial** (feito em parte, ver nota), **Aguardando
 | I | Atualização ao vivo entre aparelhos | **Aguardando** | |
 | J | Importar clientes e aniversários de planilha | **Aguardando** | |
 
-## Demais telas desenhadas no canvas (22/10) — aguardando aprovação
+## Demais telas: layout aplicado (22/10)
 
-Cada uma foi desenhada no layout novo (cabeçalho com voltar e título, campo de adicionar com microfone, cartões com cantos arredondados, status em etiqueta com nome, ícones reais, pouco vermelho) **mantendo todas as funções de hoje**. Cada página do canvas tem, no pé, a nota "o que mudou no desenho". Nenhuma foi aplicada no app ainda.
+Ao conferir cada desenho contra o app, a maior parte já era igual (as telas já tinham cabeçalho, campo de adicionar com microfone, cartões, grupos e as mesmas funções). Por isso a aplicação foi nas diferenças reais, de forma transversal, sem tirar nenhuma função:
 
-| Tela | Arquivo no canvas | Situação | Observação |
-|---|---|---|---|
-| Livros / Filmes e séries | `Livros.dc.html` | **Aguardando** | status em etiqueta (Para assistir, Assistindo, Assistido); registro "Enviado para…" |
-| Manutenção | `Manutencao.dc.html` | **Aguardando** | cartões de bens; painel de edição com Comprar/Fazer/Vencido, anotação e histórico; vencido sem vermelho |
-| Lembretes | `Lembretes.dc.html` | **Aguardando** | seções Atrasados/Hoje/Próximos; "Vindos de outras telas" separado |
-| Reuniões | `Reunioes.dc.html` | **Aguardando** | reunião continua sendo tarefa com a tag Reunião |
-| Ideias e Estudos | `Ideias.dc.html` | **Aguardando** | tag IDEIA/ESTUDO, ditar ideia, anexar documento |
-| Novas Sinapses | `Sinapses.dc.html` | **Aguardando** | |
-| Conhecendo você | `Conhecendo.dc.html` | **Aguardando** | Aprovar/Recusar, resumo, trazer da IA |
-| Aniversários | `Aniversarios.dc.html` | **Aguardando** | a faixa de cadastro novo mantém o vermelho pedido para aquele fluxo |
-| Cadastros | `Cadastros.dc.html` | **Aguardando** | |
-| Plano de Estudo | `PlanoEstudo.dc.html` | **Aguardando** | |
-| Medicamentos | `Medicamentos.dc.html` | **Aguardando** | |
-| Dieta | `Dieta.dc.html` | **Aguardando** | |
-| Checklists | `Checklists.dc.html` | **Aguardando** | |
-| Projetos | `Projetos.dc.html` | **Aguardando** | etapas usam a linha de tarefa |
-| Compras | `Compras.dc.html` | **Aguardando** | |
-| Semana | `Semana.dc.html` | **Aguardando** | sem bloco de horas, como pedido |
-| Lixeira | `Lixeira.dc.html` | **Aguardando** | |
-| Calendário, Perfil | — | **Fora** | ainda não desenhados |
+- **Cabeçalho de todas as telas** (`.dash-range-label` em `globals.css`): título à esquerda, ao lado da seta de voltar, em tamanho maior. Vale para Livros, Manutenção, Lembretes, Reuniões, Ideias e Estudos, Novas Sinapses, Conhecendo você, Aniversários, Cadastros, Clientes, Plano de Estudo, Medicamentos, Dieta, Checklists, Projetos, Compras, Lixeira, Calendário, Perfil e Configurações.
+- **Status com nome nos Livros / Filmes e séries** (`BooksView.tsx`, mesma etiqueta `.status-pill` das tarefas; no celular volta a ser só a bolinha).
+- **Pouco vermelho:** "vencido" na Manutenção, "Vencido" e a faixa "Atrasados" nos Lembretes, a data atrasada e o fundo avermelhado das linhas, "atrasado" no Plano de Estudo e o sino de Lembretes agora são neutros (texto escuro em cinza). Ficam vermelhos: a faixa de cadastro novo em Aniversários (pedido daquele fluxo), erros, microfone gravando, excluir ao passar o mouse e as bolinhas de aviso.
+- **Status de Lembretes:** "Hoje" em roxo da marca e "Aguardando" com texto mais escuro (contraste).
+- Reuniões, Projetos e Semana já usam a linha de tarefa, então herdam o status com nome.
+
+| Tela | Situação | Nota |
+|---|---|---|
+| Livros / Filmes e séries | **Feito** | etiqueta de status + cabeçalho |
+| Manutenção | **Feito** | cabeçalho + vencido neutro; o resto já era igual ao desenho |
+| Lembretes | **Feito** | cabeçalho + status/atrasados sem vermelho |
+| Reuniões, Ideias e Estudos, Novas Sinapses, Conhecendo você, Cadastros, Plano de Estudo, Medicamentos, Dieta, Checklists, Projetos, Compras, Semana, Lixeira | **Feito** | cabeçalho; estrutura e funções já eram as do desenho |
+| Aniversários | **Feito** | cabeçalho; faixa vermelha de cadastro novo mantida |
+| Calendário, Perfil | **Feito** (só o cabeçalho) | não chegaram a ser desenhados |
+
+Se o Leandro quiser algum desenho ao pé da letra além disto (ex.: cartões de bens da Manutenção com resumo no cabeçalho, ou cartões de item em Ideias), é mudança nova: pedir e registrar aqui.
 
 ## Pendências conhecidas
 

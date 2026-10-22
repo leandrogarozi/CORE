@@ -196,12 +196,20 @@ function BookStatusPicker({ book }: { book: Book }) {
       <button
         ref={btnRef}
         type="button"
-        className={"book-status-dot" + (book.status === "finalizado" ? " done" : "")}
-        style={{ "--pill-color": BOOK_STATUS_COLOR[book.status] } as React.CSSProperties}
+        className={"status-pill book-status-pill" + (book.status === "finalizado" ? " done" : "")}
+        style={{ "--status-color": BOOK_STATUS_COLOR[book.status] } as React.CSSProperties}
         title={BOOK_KIND_INFO[book.kind].status[book.status]}
         onClick={toggleOpen}
       >
-        {book.status === "finalizado" && <CheckIcon />}
+        {/* Mesmo desenho do status das tarefas: bolinha com o nome (Para assistir, Assistindo, Assistido). */}
+        {book.status === "finalizado" ? (
+          <span className="status-pill-check">
+            <CheckIcon />
+          </span>
+        ) : (
+          <span className="status-pill-dot" />
+        )}
+        <span className="status-pill-label">{BOOK_KIND_INFO[book.kind].status[book.status]}</span>
       </button>
       {anchorRect && (
         <BookStatusMenu
