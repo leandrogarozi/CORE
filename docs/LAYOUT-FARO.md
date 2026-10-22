@@ -88,7 +88,7 @@ Se o Leandro quiser algum desenho ao pé da letra além disto (ex.: cartões de 
 - **Lembretes:** vencidos voltam a ter um vermelho suave (data, etiqueta "Vencido", sino e leve tom na linha), a pedido do Leandro. Isso substitui a regra anterior de deixar os vencidos neutros só em Lembretes.
 - **Play da tarefa:** com tempo registrado o play fica preenchido na cor da marca e o tempo aparece ao passar o mouse (não escreve mais o tempo ao lado, que desalinhava a coluna). O relógio rodando fica fora do fluxo, o botão não sai do lugar.
 - **Lista compacta:** colunas alinhadas, descrição longa cortada com "…".
-- **Registro do dia e saudação:** desenho aprovado em partes (saudação menor + 4 blocos); última versão em duas colunas de altura livre aguarda o OK para aplicar.
+- **Registro do dia e saudação (aplicado):** saudação em 16 px com o aviso em 13 px cinza (só "N tarefas atrasadas" tem cor e é clicável). Registro do dia em duas colunas de altura livre: Humor à esquerda (carinhas maiores, sentimentos em grade); Sono, Dieta e Água empilhados à direita. Em painel estreito vira uma coluna. Se sobrar vazio embaixo do Humor, a alternativa é mover o Sono para baixo dele.
 
 ## Pendências conhecidas
 

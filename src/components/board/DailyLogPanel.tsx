@@ -86,186 +86,192 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
             <span>Ainda falta registrar hoje: {missing.join(", ")}.</span>
           </div>
         )}
-        {waterOn && (
-          <div className="dl-row" data-dl="water">
-            <div className="dl-row-top">
-              <span className="dl-label">
-                <WaterDropIcon /> Água
-                <CommentButton
-                  icon={<WarningIcon />}
-                  value={board.state.settings.waterStrategies}
-                  placeholder="Ex.: garrafa de 1L com marcador de borracha — a cada litro bebido, reposiciono o marcador."
-                  ariaLabel="Estratégias pra manter o consumo de água"
-                  onSave={(text) => board.updateSettings({ waterStrategies: text || null })}
-                />
-              </span>
-              <span className="mono dl-value">
-                {waterMl} <span className="dl-of">/ {goalMl} ml</span>
-              </span>
+        <div className={"dl-cols" + (!moodOn || !(sleepOn || dietOn || waterOn) ? " solo" : "")}>
+          {moodOn && <div className="dl-col">
+          {moodOn && (
+            <div className="dl-row" data-dl="mood">
+              <div className="dl-row-top">
+                <span className="dl-label">
+                  <MoodFaceIcon value={4} size={13} /> Humor {label}
+                </span>
+              </div>
+              <div className="dl-mood-options">
+                {MOODS.map((m) => (
+                  <div className="dl-mood-item" key={m.v}>
+                    <button
+                      type="button"
+                      className={"dl-mood-btn" + (mood === m.v ? " active" : "")}
+                      aria-label={m.label}
+                      onClick={() => setMood(m.v)}
+                    >
+                      <span className="dl-mood-emoji">
+                        <MoodFaceIcon value={m.v} />
+                      </span>
+                      <span className="dl-mood-name">{m.label}</span>
+                    </button>
+                    {mood === m.v && (
+                      <CommentButton
+                        value={moodNote}
+                        placeholder="Quer comentar por que está se sentindo assim?"
+                        ariaLabel="Comentário sobre o humor"
+                        onSave={(text) => board.updateDailyLog(selectedDate, { moodNote: text || null })}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="dl-mood-emotion-row">
+                {emocoesEmUso(board.state.settings.dayOptions).map((m) => (
+                  <button
+                    key={m.v}
+                    type="button"
+                    className={"dl-mood-emotion-chip" + (moodEmotion === m.v ? " active" : "")}
+                    onClick={() => setMoodEmotion(m.v)}
+                  >
+                    {m.label}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="hp-bar">
-              <div className="hp-bar-fill" style={{ width: `${pct}%` }} />
-            </div>
-            <div className="dl-water-actions">
-              {passosDeAgua(board.state.settings.dayOptions).map((ml) => (
-                <button key={ml} type="button" className="btn btn-ghost dl-water-btn" onClick={() => addWater(ml)}>
-                  +{ml}ml
-                </button>
-              ))}
-              {waterMl > 0 && (
-                <button type="button" className="btn btn-ghost dl-water-btn" onClick={() => board.updateDailyLog(selectedDate, { waterMl: 0 })}>
-                  Zerar
-                </button>
+          )}
+          </div>}
+          {(sleepOn || dietOn || waterOn) && <div className="dl-col">
+          {sleepOn && (
+            <div className="dl-row" data-dl="sleep">
+              <div className="dl-row-top">
+                <span className="dl-label">
+                  <MoonIcon /> Sono
+                </span>
+              </div>
+              <div className="dl-sleep-inputs">
+                <label className="dl-sleep-field">
+                  <span>Acordou</span>
+                  <TimePicker
+                    value={wokeAt}
+                    onChange={(v) => board.updateDailyLog(selectedDate, { wokeAt: v || null })}
+                  />
+                </label>
+                <label className="dl-sleep-field">
+                  <span>Dormiu</span>
+                  <TimePicker
+                    value={sleptAt}
+                    onChange={(v) => board.updateDailyLog(selectedDate, { sleptAt: v || null })}
+                  />
+                </label>
+              </div>
+              {sono && (
+                <div className="dl-sleep-insight">
+                  De acordo com os dados que você tem enviado, você tem dormido em média{" "}
+                  <strong>{fmtHorasMin(sono.mediaMin)}</strong> por noite (últimos 14 dias, {sono.noites} noites).
+                  <span className="dl-sleep-tip">{sono.dica}</span>
+                </div>
               )}
             </div>
-          </div>
-        )}
+          )}
 
-        {dietOn && (
-          <div className="dl-row" data-dl="diet">
-            <div className="dl-row-top">
-              <span className="dl-label">
-                <MealIcon /> Fidelidade à dieta {label}
-              </span>
-            </div>
-            <div className="dl-diet-input">
-              <input
-                type="number"
-                min={0}
-                max={100}
-                placeholder="—"
-                className="dl-pct-input mono"
-                value={dietInput ?? (dietPct ?? "")}
-                onChange={(e) => setDietInput(e.target.value)}
-                onBlur={commitDiet}
-                onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-              />
-              <span className="dl-pct-sign">%</span>
-              <CommentButton
-                value={dietNote}
-                placeholder="observação (opcional)"
-                ariaLabel="Observação da dieta"
-                onSave={(text) => board.updateDailyLog(selectedDate, { dietNote: text || null })}
-              />
-            </div>
-            {/* Refeições embaixo, numa grade arrumada: cada uma é uma linha com a caixinha e,
-                ao lado (não por cima), o balão de observação. Antes tudo corria numa linha só
-                com bolinhas e balões sobrepostos nos nomes. */}
-            {activeMeals.length > 0 && (
-              <div className="dl-diet-meals-box">
-                <div className="dl-diet-meals-head">
-                  <span>Refeições</span>
-                  <span className="dl-diet-meals-count mono">
-                    {dietMealsChecked.length}/{activeMeals.length}
-                  </span>
-                </div>
-                <div className="dl-diet-meals">
-                  {activeMeals.map((m) => {
-                    const checked = dietMealsChecked.includes(m.id);
-                    return (
-                      <span key={m.id} className="dl-diet-meal-group">
-                        <button
-                          type="button"
-                          className={"dl-diet-meal-chip" + (checked ? " checked" : "")}
-                          onClick={() => board.toggleDietMealChecked(selectedDate, m.id)}
-                        >
-                          {checked && <CheckIcon />}
-                          {m.name}
-                        </button>
-                        <CommentButton
-                          value={dietMealNotes[m.id] ?? null}
-                          placeholder="peguei nisso, comi mais disso..."
-                          ariaLabel={`Observação — ${m.name}`}
-                          onSave={(text) => board.setDietMealNote(selectedDate, m.id, text)}
-                        />
-                      </span>
-                    );
-                  })}
-                </div>
+          {dietOn && (
+            <div className="dl-row" data-dl="diet">
+              <div className="dl-row-top">
+                <span className="dl-label">
+                  <MealIcon /> Fidelidade à dieta {label}
+                </span>
               </div>
-            )}
-          </div>
-        )}
-
-        {sleepOn && (
-          <div className="dl-row" data-dl="sleep">
-            <div className="dl-row-top">
-              <span className="dl-label">
-                <MoonIcon /> Sono
-              </span>
-            </div>
-            <div className="dl-sleep-inputs">
-              <label className="dl-sleep-field">
-                <span>Acordou</span>
-                <TimePicker
-                  value={wokeAt}
-                  onChange={(v) => board.updateDailyLog(selectedDate, { wokeAt: v || null })}
+              <div className="dl-diet-input">
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  placeholder="—"
+                  className="dl-pct-input mono"
+                  value={dietInput ?? (dietPct ?? "")}
+                  onChange={(e) => setDietInput(e.target.value)}
+                  onBlur={commitDiet}
+                  onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
                 />
-              </label>
-              <label className="dl-sleep-field">
-                <span>Dormiu</span>
-                <TimePicker
-                  value={sleptAt}
-                  onChange={(v) => board.updateDailyLog(selectedDate, { sleptAt: v || null })}
+                <span className="dl-pct-sign">%</span>
+                <CommentButton
+                  value={dietNote}
+                  placeholder="observação (opcional)"
+                  ariaLabel="Observação da dieta"
+                  onSave={(text) => board.updateDailyLog(selectedDate, { dietNote: text || null })}
                 />
-              </label>
-            </div>
-            {sono && (
-              <div className="dl-sleep-insight">
-                De acordo com os dados que você tem enviado, você tem dormido em média{" "}
-                <strong>{fmtHorasMin(sono.mediaMin)}</strong> por noite (últimos 14 dias, {sono.noites} noites).
-                <span className="dl-sleep-tip">{sono.dica}</span>
               </div>
-            )}
-          </div>
-        )}
-
-        {moodOn && (
-          <div className="dl-row" data-dl="mood">
-            <div className="dl-row-top">
-              <span className="dl-label">
-                <MoodFaceIcon value={4} size={13} /> Humor {label}
-              </span>
-            </div>
-            <div className="dl-mood-options">
-              {MOODS.map((m) => (
-                <div className="dl-mood-item" key={m.v}>
-                  <button
-                    type="button"
-                    className={"dl-mood-btn" + (mood === m.v ? " active" : "")}
-                    aria-label={m.label}
-                    onClick={() => setMood(m.v)}
-                  >
-                    <span className="dl-mood-emoji">
-                      <MoodFaceIcon value={m.v} />
+              {/* Refeições embaixo, numa grade arrumada: cada uma é uma linha com a caixinha e,
+                  ao lado (não por cima), o balão de observação. Antes tudo corria numa linha só
+                  com bolinhas e balões sobrepostos nos nomes. */}
+              {activeMeals.length > 0 && (
+                <div className="dl-diet-meals-box">
+                  <div className="dl-diet-meals-head">
+                    <span>Refeições</span>
+                    <span className="dl-diet-meals-count mono">
+                      {dietMealsChecked.length}/{activeMeals.length}
                     </span>
-                    <span className="dl-mood-name">{m.label}</span>
-                  </button>
-                  {mood === m.v && (
-                    <CommentButton
-                      value={moodNote}
-                      placeholder="Quer comentar por que está se sentindo assim?"
-                      ariaLabel="Comentário sobre o humor"
-                      onSave={(text) => board.updateDailyLog(selectedDate, { moodNote: text || null })}
-                    />
-                  )}
+                  </div>
+                  <div className="dl-diet-meals">
+                    {activeMeals.map((m) => {
+                      const checked = dietMealsChecked.includes(m.id);
+                      return (
+                        <span key={m.id} className="dl-diet-meal-group">
+                          <button
+                            type="button"
+                            className={"dl-diet-meal-chip" + (checked ? " checked" : "")}
+                            onClick={() => board.toggleDietMealChecked(selectedDate, m.id)}
+                          >
+                            {checked && <CheckIcon />}
+                            {m.name}
+                          </button>
+                          <CommentButton
+                            value={dietMealNotes[m.id] ?? null}
+                            placeholder="peguei nisso, comi mais disso..."
+                            ariaLabel={`Observação — ${m.name}`}
+                            onSave={(text) => board.setDietMealNote(selectedDate, m.id, text)}
+                          />
+                        </span>
+                      );
+                    })}
+                  </div>
                 </div>
-              ))}
+              )}
             </div>
-            <div className="dl-mood-emotion-row">
-              {emocoesEmUso(board.state.settings.dayOptions).map((m) => (
-                <button
-                  key={m.v}
-                  type="button"
-                  className={"dl-mood-emotion-chip" + (moodEmotion === m.v ? " active" : "")}
-                  onClick={() => setMoodEmotion(m.v)}
-                >
-                  {m.label}
-                </button>
-              ))}
+          )}
+
+          {waterOn && (
+            <div className="dl-row" data-dl="water">
+              <div className="dl-row-top">
+                <span className="dl-label">
+                  <WaterDropIcon /> Água
+                  <CommentButton
+                    icon={<WarningIcon />}
+                    value={board.state.settings.waterStrategies}
+                    placeholder="Ex.: garrafa de 1L com marcador de borracha — a cada litro bebido, reposiciono o marcador."
+                    ariaLabel="Estratégias pra manter o consumo de água"
+                    onSave={(text) => board.updateSettings({ waterStrategies: text || null })}
+                  />
+                </span>
+                <span className="mono dl-value">
+                  {waterMl} <span className="dl-of">/ {goalMl} ml</span>
+                </span>
+              </div>
+              <div className="hp-bar">
+                <div className="hp-bar-fill" style={{ width: `${pct}%` }} />
+              </div>
+              <div className="dl-water-actions">
+                {passosDeAgua(board.state.settings.dayOptions).map((ml) => (
+                  <button key={ml} type="button" className="btn btn-ghost dl-water-btn" onClick={() => addWater(ml)}>
+                    +{ml}ml
+                  </button>
+                ))}
+                {waterMl > 0 && (
+                  <button type="button" className="btn btn-ghost dl-water-btn" onClick={() => board.updateDailyLog(selectedDate, { waterMl: 0 })}>
+                    Zerar
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
+          </div>}
+        </div>
       </div>
     </div>
   );

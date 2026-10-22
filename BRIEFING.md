@@ -6083,3 +6083,6 @@ correto e já implementado).
 - Play da tarefa com tempo registrado: preenchido na cor da marca, tempo só no mouse por cima; relógio rodando não empurra o botão.
 - Lembretes: vencidos em vermelho suave de novo.
 - Registro do dia: versão em duas colunas de altura livre desenhada, aguardando "pode aplicar".
+
+## Registro do dia e saudação aplicados (22/10, noite)
+- Saudação menor (16/13 px). Registro do dia: Humor (maior) à esquerda; Sono, Dieta e Água à direita, cada bloco com sua altura. Ver `docs/LAYOUT-FARO.md`.

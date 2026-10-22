@@ -42,21 +42,24 @@ export function DayGreeting({ onAtrasadas }: { onAtrasadas?: () => void }) {
         {saudacao}
         {nome ? `, ${nome}` : ""}.{" "}
         {partes.length === 0 ? (
-          <span className="day-greeting-calma">Nada atrasado e nenhuma reunião hoje.</span>
+          <span className="day-greeting-resto day-greeting-calma">Nada atrasado e nenhuma reunião hoje.</span>
         ) : (
-          partes.map((p, i) => (
-            <span key={p.texto}>
-              {i > 0 && " e "}
-              {p.cor === "danger" && onAtrasadas ? (
-                <button type="button" className="day-greeting-atraso day-greeting-link" title="Ver as tarefas atrasadas no Dashboard" onClick={onAtrasadas}>
-                  {p.texto}
-                </button>
-              ) : (
-                <span className={p.cor === "danger" ? "day-greeting-atraso" : "day-greeting-reuniao"}>{p.texto}</span>
-              )}
-              {i === partes.length - 1 && "."}
-            </span>
-          ))
+          <span className="day-greeting-resto">
+            Você tem{" "}
+            {partes.map((p, i) => (
+              <span key={p.texto}>
+                {i > 0 && " e "}
+                {p.cor === "danger" && onAtrasadas ? (
+                  <button type="button" className="day-greeting-atraso day-greeting-link" title="Ver as tarefas atrasadas no Dashboard" onClick={onAtrasadas}>
+                    {p.texto}
+                  </button>
+                ) : (
+                  <span className={p.cor === "danger" ? "day-greeting-atraso" : "day-greeting-reuniao"}>{p.texto}</span>
+                )}
+                {i === partes.length - 1 && "."}
+              </span>
+            ))}
+          </span>
         )}
       </h1>
       {aniversarios.length > 0 && (
