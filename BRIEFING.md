@@ -132,6 +132,39 @@ Quando o push de um lembrete de **manutenção** (`source_kind='maintenance'`: c
 
 Antes dava para fugir da pergunta de adiar: cancelar a caixinha, desmarcar "Desafiadora" e mudar a data. Agora desligar o interruptor Desafiadora (editor da tarefa, `TaskRow.tsx`) abre o `PostponeModal` em `modo="desmarcar"` (as duas perguntas: motivo e historinha). "Manter desafiadora" cancela e deixa tudo como estava; "Tirar o desafio" desmarca e grava na **anotação da tarefa** a linha "Tirou o desafio em <data>. Motivo… · Historinha…" (não entra na contagem de adiamentos). Marcar como desafiadora continua direto.
 
+## Layout e funcionalidades inspirados no Skip da Adapta: aprovações (22/10)
+
+**Origem:** o Leandro mandou 4 imagens de painéis e pediu uma pesquisa do "Skip da Adapta". Resultado: o Skip (skip.it, comprado pela Adapta em março de 2026 por R$ 30 mi) é uma plataforma que **cria sistemas a partir de prompts** (tela, banco, login, hospedagem; "Skip Cloud" com tempo real, busca por significado, tarefas agendadas, e-mail próprio, modelos e exportação). As imagens são painéis de exemplo. O site e a documentação não abriram no ambiente (rede bloqueada); a pesquisa veio de resumos de busca.
+
+**Telas de layout para aprovar (somente desenho, nada aplicado):** canvas "Layouts FARO" — https://claude.ai/artifact/ALhRbpDjZWPHZVMey1pr7q (privado, só o Leandro abre). Os números e letras abaixo são os mesmos das bolinhas pretas nas telas.
+
+**Regra:** só entra no app o que o Leandro aprovar. Quando ele aprovar ou recusar, atualizar a coluna **Situação** desta tabela (e, ao implementar, trocar por "feito em dd/mm" e descrever em uma seção própria).
+
+| Item | O que é | Onde | Esforço | Situação |
+|---|---|---|---|---|
+| 1 | Números com variação (▲ 12% vs semana passada), mini gráfico e um cartão em destaque | Dashboard | Pequeno | Aguardando aprovação |
+| 2 | Saudação com frase viva ("2 reuniões hoje e 3 atrasadas"), seletor Hoje/Semana/Mês e botão Nova tarefa | Tela do dia | Pequeno | Aguardando aprovação |
+| 3 | Menu lateral agrupado: Hoje, Aprender, Pessoas, Saúde e casa | Menu | Pequeno | Aguardando aprovação |
+| 4 | Fileira de ações rápidas (Nova tarefa, Lembrete, Reunião, Ideia) | Tela do dia | Pequeno | Aguardando aprovação |
+| 5 | Coluna à direita com anel "concluídas × pendentes" e próximos compromissos | Tela do dia | Médio | Aguardando aprovação |
+| 6 | Etiquetas de status com nome e cor (em vez de só bolinha) | Clientes, Lembretes, Livros, Cadastros | Pequeno | Aguardando aprovação |
+| 7 | Barra "usado de" (teto do WhatsApp, meta de horas) | Dashboard | Pequeno | Aguardando aprovação |
+| 8 | Linha de busca com atalho ⌘K e filtro "Todos ▾" acima das listas | Listas | Pequeno | Aguardando aprovação |
+| 9 | Menu estreito só com ícones | Menu | Médio | Aguardando aprovação |
+| 10 | Menu escuro | Tema | Médio | Aguardando aprovação |
+| A | Busca por significado (acha pelo sentido, não pela palavra) | Busca | Grande | Aguardando aprovação |
+| B | Resumo da manhã (push + aviso com reuniões, atrasadas, aniversários, manutenção) | Avisos/push | Pequeno a médio | Aguardando aprovação |
+| C | Linha do tempo de atividade | Nova tela | Médio | Aguardando aprovação |
+| D | Metas com barra de progresso | Dashboard | Médio | Aguardando aprovação |
+| E | Quadro de etapas dos clientes (Novo, Em contato, Devolutiva marcada, Entregue) | Clientes | Médio | Aguardando aprovação |
+| F | Cartões do Dashboard escolhidos e ordenados pelo usuário | Dashboard | Médio | Aguardando aprovação |
+| G | Modelos de tarefa, projeto e formulário de cadastro | Geral | Médio | Aguardando aprovação |
+| H | Regras "se acontecer isso, faça aquilo" | Configurações | Grande | Aguardando aprovação |
+| I | Atualização ao vivo entre aparelhos (tira o aviso "tela desatualizada") | Geral | Médio | Aguardando aprovação |
+| J | Importar clientes e aniversários de planilha (CSV) | Cadastros/Aniversários | Pequeno | Aguardando aprovação |
+
+**Sugestão já dada ao Leandro:** layout 1, 2 e 6 juntas, depois 3 e 4; funcionalidades B, depois A e C. Opções 9 e 10 só se ele quiser mudar a cara do app inteira. As telas são exemplos: nomes, números e situações de cliente (E) são ilustrativos.
+
 ## ▶ RETOMAR AQUI (atualizado em 16/10/2026, noite)
 
 **Objetivo dele agora:** (A) **liberar o FARO para teste** com pessoas dele e (B) **sincronizar com o Google Agenda**.
