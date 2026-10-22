@@ -14,22 +14,29 @@ import { fmtShortDate } from "@/lib/date-utils";
 //
 // O texto não julga e não bloqueia — dá pra adiar de qualquer jeito. O que não
 // dá é adiar em silêncio.
+//
+// O mesmo pedido vale pra TIRAR o desafio (`modo="desmarcar"`): sem isso, quem
+// quer adiar sem explicar era só cancelar a pergunta, desmarcar "Desafiadora" e
+// mudar a data. Desmarcar passa a custar as mesmas duas respostas.
 export function PostponeModal({
   taskTitle,
   fromDate,
   toDate,
   jaAdiada,
+  modo = "adiar",
   onConfirm,
   onCancel,
 }: {
   taskTitle: string;
-  fromDate: string;
-  toDate: string | null;
+  fromDate?: string;
+  toDate?: string | null;
   /** Quantas vezes essa tarefa já foi adiada antes desta. */
   jaAdiada: number;
+  modo?: "adiar" | "desmarcar";
   onConfirm: (reason: string) => void;
   onCancel: () => void;
 }) {
+  const desmarcando = modo === "desmarcar";
   const [motivo, setMotivo] = useState("");
   const [historinha, setHistorinha] = useState("");
 
@@ -50,13 +57,13 @@ export function PostponeModal({
             <ShieldWarningIcon />
           </span>
           <div>
-            <div className="modal-title">Adiando uma tarefa desafiadora</div>
+            <div className="modal-title">{desmarcando ? "Tirando o desafio dessa tarefa" : "Adiando uma tarefa desafiadora"}</div>
             <div className="postpone-task">{taskTitle}</div>
           </div>
         </div>
 
         <div className="postpone-move">
-          {fmtShortDate(fromDate)} → {toDate ? fmtShortDate(toDate) : "sem data"}
+          {desmarcando ? "Deixar de ser desafiadora" : `${fmtShortDate(fromDate!)} → ${toDate ? fmtShortDate(toDate) : "sem data"}`}
           {jaAdiada > 0 && (
             <span className="postpone-count">
               {jaAdiada === 1 ? "já adiada 1 vez antes" : `já adiada ${jaAdiada} vezes antes`}
@@ -92,15 +99,17 @@ export function PostponeModal({
         </label>
 
         <p className="postpone-hint">
-          Fica registrado. Depois de algumas semanas isso mostra o padrão do que você adia e com que desculpa.
+          {desmarcando
+            ? "Fica registrado na anotação da tarefa. Tirar o desafio também é uma forma de fugir: por isso pede as mesmas respostas."
+            : "Fica registrado. Depois de algumas semanas isso mostra o padrão do que você adia e com que desculpa."}
         </p>
 
         <div className="edit-actions edit-actions-split">
           <button type="button" className="btn btn-ghost" onClick={onCancel}>
-            Deixar pra hoje mesmo
+            {desmarcando ? "Manter desafiadora" : "Deixar pra hoje mesmo"}
           </button>
           <button type="button" className="btn btn-accent" onClick={confirmar}>
-            Adiar assim mesmo
+            {desmarcando ? "Tirar o desafio" : "Adiar assim mesmo"}
           </button>
         </div>
       </div>

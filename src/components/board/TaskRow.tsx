@@ -40,7 +40,7 @@ import {
   WeekIcon,
   WhatsAppIcon,
 } from "./icons";
-import { fmtDayMonth, fmtTempoCurto, todayISO } from "@/lib/date-utils";
+import { fmtDayMonth, fmtShortDate, fmtTempoCurto, todayISO } from "@/lib/date-utils";
 import { taskEntriesOf } from "@/lib/board/task-time";
 import { PostponeModal } from "./PostponeModal";
 import { ToggleSwitch } from "./ToggleSwitch";
@@ -880,6 +880,10 @@ function TaskCodeField({ code }: { code: string }) {
   );
 }
 
+function escapeHtml(t: string): string {
+  return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
   const { board, askScope } = useBoardCtx();
   const currentSeries = t.seriesId ? board.state.taskSeries.find((s) => s.id === t.seriesId) : null;
@@ -889,6 +893,7 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
     new Set(board.state.tasks.filter((x) => x.client).map((x) => x.client as string))
   ).sort();
   const [postponing, setPostponing] = useState<TaskEditFields | null>(null);
+  const [tirandoDesafio, setTirandoDesafio] = useState(false);
   const adiamentos = board.state.taskPostponements.filter((p) => p.taskId === t.id).length;
   const [vals, setVals] = useState<TaskEditFields>({
     title: t.title,
@@ -1051,7 +1056,7 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
               <ToggleSwitch
                 checked={t.challenging}
                 ariaLabel="Marcar como tarefa desafiadora"
-                onChange={(v) => board.setChallenging(t.id, v)}
+                onChange={(v) => (v ? board.setChallenging(t.id, true) : setTirandoDesafio(true))}
               />
               <span className="challenging-hint">
                 {t.challenging
@@ -1212,6 +1217,24 @@ function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
           Salvar
         </button>
       </div>
+      {tirandoDesafio && (
+        <PostponeModal
+          modo="desmarcar"
+          taskTitle={t.title}
+          jaAdiada={adiamentos}
+          onCancel={() => setTirandoDesafio(false)}
+          onConfirm={(reason) => {
+            setTirandoDesafio(false);
+            board.setChallenging(t.id, false);
+            // O registro vai para a anotação (a que está aberta, com o que já foi digitado), na tela e no banco.
+            const nota = `${vals.note}<p><strong>Tirou o desafio em ${fmtShortDate(todayISO())}.</strong>${
+              reason ? ` ${escapeHtml(reason).replace(/\n/g, " · ")}` : ""
+            }</p>`;
+            setVals((v) => ({ ...v, note: nota }));
+            board.updateTaskNote(t.id, nota);
+          }}
+        />
+      )}
       {postponing && (
         <PostponeModal
           taskTitle={t.title}

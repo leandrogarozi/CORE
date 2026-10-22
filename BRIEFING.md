@@ -128,6 +128,10 @@ A tela **Livros** virou **Livros / Filmes e séries**: três abas (Livros, Filme
 
 Quando o push de um lembrete de **manutenção** (`source_kind='maintenance'`: comprar, antes, hoje, vencido 1/2/3) sai, o servidor grava também um aviso na caixa **Avisos** (`faro_avisos`, `tipo='manutencao'`, destino Manutenção) em `src/lib/push/dispatch.ts`, com o texto de `src/lib/push/aviso-manutencao.ts`. Nos de cobrança (vencido) o corpo pergunta "Você já fez?". Um aviso por momento (a marca `push_sent_for` já impede repetir). Sem aparelho inscrito o aviso vai igual. O título do push e do aviso sai sem as tags `<p>` da anotação. Se o item for marcado como feito, os próximos momentos somem sozinhos, então não há mais aviso. Obs.: existem dois itens de colchão na Manutenção ("Virar colchão Casal" e "Virar colchão casal").
 
+## Desmarcar "Desafiadora" pede as mesmas respostas (22/10)
+
+Antes dava para fugir da pergunta de adiar: cancelar a caixinha, desmarcar "Desafiadora" e mudar a data. Agora desligar o interruptor Desafiadora (editor da tarefa, `TaskRow.tsx`) abre o `PostponeModal` em `modo="desmarcar"` (as duas perguntas: motivo e historinha). "Manter desafiadora" cancela e deixa tudo como estava; "Tirar o desafio" desmarca e grava na **anotação da tarefa** a linha "Tirou o desafio em <data>. Motivo… · Historinha…" (não entra na contagem de adiamentos). Marcar como desafiadora continua direto.
+
 ## ▶ RETOMAR AQUI (atualizado em 16/10/2026, noite)
 
 **Objetivo dele agora:** (A) **liberar o FARO para teste** com pessoas dele e (B) **sincronizar com o Google Agenda**.
