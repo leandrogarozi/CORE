@@ -188,6 +188,10 @@ _Esta tabela é o histórico do que foi proposto em 22/10. **O status atual de c
 
 O Leandro aprovou o layout do canvas ("aplicar todo o layout igual você fez, sem perder o que já está em uso") e ele foi aplicado em fases, todas no ar: menu agrupado, tela do dia (saudação, atalhos, status com nome, faixa Seu dia / Horas / Agenda, Registro do dia em colunas, Hábitos e Dia a Dia), Configurações em blocos com painéis que ligam e desligam, cadastro de hábitos e de emoções do humor e dos botões de água em Configurações (coluna nova `settings.day_options`), e Dashboard com variação e gráfico por dia. **A tabela de status completa e as regras de layout ficam em `docs/LAYOUT-FARO.md`; atualize lá a cada mudança.** Não foram aplicados: itens A a J (funcionalidades novas), etiquetas de status em Clientes/Lembretes/Livros/Cadastros, busca/filtro nas listas, menu estreito e menu escuro.
 
+## Demais telas desenhadas no layout novo (22/10, aguardando aprovação)
+
+Livros, Manutenção, Lembretes, Reuniões, Ideias e Estudos, Novas Sinapses, Conhecendo você, Aniversários, Cadastros, Plano de Estudo, Medicamentos, Dieta, Checklists, Projetos, Compras, Semana e Lixeira foram desenhadas no canvas (último bloco, "Demais telas no layout novo"). Nada foi aplicado no app ainda. A tabela com arquivo, situação e observação de cada uma está em `docs/LAYOUT-FARO.md`. Faltam desenhar Calendário e Perfil.
+
 ## ▶ RETOMAR AQUI (atualizado em 16/10/2026, noite)
 
 **Objetivo dele agora:** (A) **liberar o FARO para teste** com pessoas dele e (B) **sincronizar com o Google Agenda**.

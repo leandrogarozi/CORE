@@ -54,6 +54,31 @@ Legenda: **Feito** (no ar), **Parcial** (feito em parte, ver nota), **Aguardando
 | I | Atualização ao vivo entre aparelhos | **Aguardando** | |
 | J | Importar clientes e aniversários de planilha | **Aguardando** | |
 
+## Demais telas desenhadas no canvas (22/10) — aguardando aprovação
+
+Cada uma foi desenhada no layout novo (cabeçalho com voltar e título, campo de adicionar com microfone, cartões com cantos arredondados, status em etiqueta com nome, ícones reais, pouco vermelho) **mantendo todas as funções de hoje**. Cada página do canvas tem, no pé, a nota "o que mudou no desenho". Nenhuma foi aplicada no app ainda.
+
+| Tela | Arquivo no canvas | Situação | Observação |
+|---|---|---|---|
+| Livros / Filmes e séries | `Livros.dc.html` | **Aguardando** | status em etiqueta (Para assistir, Assistindo, Assistido); registro "Enviado para…" |
+| Manutenção | `Manutencao.dc.html` | **Aguardando** | cartões de bens; painel de edição com Comprar/Fazer/Vencido, anotação e histórico; vencido sem vermelho |
+| Lembretes | `Lembretes.dc.html` | **Aguardando** | seções Atrasados/Hoje/Próximos; "Vindos de outras telas" separado |
+| Reuniões | `Reunioes.dc.html` | **Aguardando** | reunião continua sendo tarefa com a tag Reunião |
+| Ideias e Estudos | `Ideias.dc.html` | **Aguardando** | tag IDEIA/ESTUDO, ditar ideia, anexar documento |
+| Novas Sinapses | `Sinapses.dc.html` | **Aguardando** | |
+| Conhecendo você | `Conhecendo.dc.html` | **Aguardando** | Aprovar/Recusar, resumo, trazer da IA |
+| Aniversários | `Aniversarios.dc.html` | **Aguardando** | a faixa de cadastro novo mantém o vermelho pedido para aquele fluxo |
+| Cadastros | `Cadastros.dc.html` | **Aguardando** | |
+| Plano de Estudo | `PlanoEstudo.dc.html` | **Aguardando** | |
+| Medicamentos | `Medicamentos.dc.html` | **Aguardando** | |
+| Dieta | `Dieta.dc.html` | **Aguardando** | |
+| Checklists | `Checklists.dc.html` | **Aguardando** | |
+| Projetos | `Projetos.dc.html` | **Aguardando** | etapas usam a linha de tarefa |
+| Compras | `Compras.dc.html` | **Aguardando** | |
+| Semana | `Semana.dc.html` | **Aguardando** | sem bloco de horas, como pedido |
+| Lixeira | `Lixeira.dc.html` | **Aguardando** | |
+| Calendário, Perfil | — | **Fora** | ainda não desenhados |
+
 ## Pendências conhecidas
 
 - Print do painel de Configurações do app financeiro do Leandro: **ele ainda vai mandar**, para a tela de Configurações ficar parecida com a dele (hoje é a primeira proposta, feita só com os blocos do FARO).
