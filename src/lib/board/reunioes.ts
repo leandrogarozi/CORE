@@ -56,16 +56,22 @@ export function dataDaReuniao(date: string | null): string {
 }
 
 /**
- * As tags que a tarefa passa a ter quando o aviso "falta a tag Reunião" é aceito.
+ * As tags que a tarefa passa a ter quando o aviso "falta a tag" é aceito (Reunião ou Evento).
  * Usa a segunda tag se estiver livre, depois a primeira se for "sem categoria".
  * Se as duas estão ocupadas, troca a segunda (trocaDe diz qual) e quem chama confirma.
  */
-export function tagsParaReuniao(t: Pick<Task, "category" | "category2">): {
+export function tagsParaCompromisso(
+  t: Pick<Task, "category" | "category2">,
+  tag: "reuniao" | "evento" = "reuniao"
+): {
   category: Category;
   category2: Category | null;
   trocaDe: Category | null;
 } {
-  if (t.category2 === null) return { category: t.category, category2: "reuniao", trocaDe: null };
-  if (t.category === "sem_categoria") return { category: "reuniao", category2: t.category2, trocaDe: null };
-  return { category: t.category, category2: "reuniao", trocaDe: t.category2 };
+  if (t.category2 === null) return { category: t.category, category2: tag, trocaDe: null };
+  if (t.category === "sem_categoria") return { category: tag, category2: t.category2, trocaDe: null };
+  return { category: t.category, category2: tag, trocaDe: t.category2 };
 }
+
+/** Atalho mantido para quem só quer a tag Reunião. */
+export const tagsParaReuniao = (t: Pick<Task, "category" | "category2">) => tagsParaCompromisso(t, "reuniao");

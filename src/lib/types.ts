@@ -1,4 +1,4 @@
-export type Category = "trabalho" | "estudo" | "dev" | "saude" | "pessoal" | "familia" | "reuniao" | "sem_categoria";
+export type Category = "trabalho" | "estudo" | "dev" | "saude" | "pessoal" | "familia" | "reuniao" | "evento" | "sem_categoria";
 export type Priority = "alta" | "media" | "baixa";
 export type Repeat = "none" | "daily" | "weekly" | "monthly" | "yearly";
 export type TimerKind = "task" | "habit" | "block";
@@ -12,6 +12,7 @@ export const CATEGORY_LABEL: Record<Category, string> = {
   pessoal: "Pessoal",
   familia: "Família",
   reuniao: "Reunião",
+  evento: "Evento",
   sem_categoria: "Sem categoria",
 };
 
@@ -25,6 +26,7 @@ export const DEFAULT_TAG_COLORS: Record<Category, { hex: string; alpha: number }
   pessoal: { hex: "#5C6B8A", alpha: 0.5 },
   familia: { hex: "#1B7F79", alpha: 0.5 },
   reuniao: { hex: "#4A5FC1", alpha: 0.5 },
+  evento: { hex: "#A47A0D", alpha: 0.5 },
   sem_categoria: { hex: "#E5484D", alpha: 0.6 },
 };
 
@@ -84,9 +86,14 @@ export function entraEmReunioes(t: Pick<Task, "category" | "category2" | "isEven
   return isMeetingTask(t) || t.isEvent;
 }
 
-// Compromisso que ainda não tem a tag Reunião: a linha mostra um aviso para marcar.
+// Evento = tag "Evento" (workshop, palestra, lançamento): é compromisso, mas não é reunião.
+export function isEventTagTask(t: Pick<Task, "category" | "category2">): boolean {
+  return t.category === "evento" || t.category2 === "evento";
+}
+
+// Compromisso que ainda não tem a tag Reunião NEM a tag Evento: a linha mostra um aviso para escolher.
 export function faltaTagReuniao(t: Pick<Task, "category" | "category2" | "isEvent">): boolean {
-  return t.isEvent && !isMeetingTask(t);
+  return t.isEvent && !isMeetingTask(t) && !isEventTagTask(t);
 }
 
 // Tempo trabalhado numa tarefa em UM dia. O tempo mora no dia, não na tarefa:

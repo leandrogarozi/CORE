@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
-import { tagsParaReuniao } from "@/lib/board/reunioes";
+import { tagsParaCompromisso } from "@/lib/board/reunioes";
 import { AttachmentsButton } from "./AttachmentsButton";
 import { TimerButton } from "./TimerButton";
 import { StatusPicker } from "./StatusPicker";
@@ -404,27 +404,32 @@ export function TaskRow({
                 <CalendarCheckIcon />
               </span>
             )}
-            {/* Compromisso sem a tag Reunião: ele entra na tela Reuniões do mesmo jeito,
-                mas a linha avisa e um clique completa a tag. */}
+            {/* Compromisso sem a tag Reunião nem Evento: ele entra na tela Reuniões do mesmo jeito,
+                mas a linha avisa e um clique escolhe qual é (workshop é Evento, não Reunião). */}
             {faltaTagReuniao(t) && (
-              <button
-                type="button"
-                className="task-badge task-falta-reuniao"
-                title="Compromisso sem a tag Reunião. Clique para marcar."
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const nova = tagsParaReuniao(t);
-                  const aplicar = () => board.setCategory(t.id, nova.category, nova.category2);
-                  if (nova.trocaDe) {
-                    askConfirm(`Trocar a tag "${CATEGORY_LABEL[nova.trocaDe]}" por "Reunião" em "${t.title}"?`, aplicar);
-                  } else {
-                    aplicar();
-                  }
-                }}
-              >
+              <span className="task-badge task-falta-reuniao" title="Compromisso sem tag. Escolha: Reunião ou Evento.">
                 <UsersGroupIcon />
-                <span className="task-client-name">falta a tag Reunião</span>
-              </button>
+                <span className="task-client-name">falta a tag:</span>
+                {(["reuniao", "evento"] as const).map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    className="falta-tag-opcao"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const nova = tagsParaCompromisso(t, tag);
+                      const aplicar = () => board.setCategory(t.id, nova.category, nova.category2);
+                      if (nova.trocaDe) {
+                        askConfirm(`Trocar a tag "${CATEGORY_LABEL[nova.trocaDe]}" por "${CATEGORY_LABEL[tag]}" em "${t.title}"?`, aplicar);
+                      } else {
+                        aplicar();
+                      }
+                    }}
+                  >
+                    {CATEGORY_LABEL[tag]}
+                  </button>
+                ))}
+              </span>
             )}
             {/* Mesma pílula do cliente, mas com livrinho e em amarelo: olhando o
                 dia ele vê de relance que ali tem hora marcada pra estudar. */}

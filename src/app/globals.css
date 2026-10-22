@@ -3365,3 +3365,8 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .cli-origem{ display:block; }
 .cli-lancar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:10px 0; }
 .bday-busca{ margin-bottom:var(--sp-3); }
+.task-falta-reuniao .falta-tag-opcao{
+  background:color-mix(in srgb, currentColor 14%, transparent); border:0; border-radius:999px; color:inherit;
+  font:inherit; font-weight:700; padding:1px 7px; margin-left:3px; cursor:pointer;
+}
+.task-falta-reuniao .falta-tag-opcao:hover{ background:color-mix(in srgb, currentColor 28%, transparent); }

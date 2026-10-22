@@ -116,6 +116,10 @@ Quando o Leandro perguntar "quanto custa e quanto tempo leva", responder com ist
 
 **Fora da conta:** revisão jurídica dos termos e da política de privacidade.
 
+## Tag "Evento" para compromissos que não são reunião (22/10)
+
+Nova tag **Evento** (`Category = "evento"`, cor ocre; liberada nas constraints `tasks_category_check` e `task_series_category_check`). Compromisso com hora marcada que tem a tag Reunião **ou** Evento não mostra mais o aviso; sem nenhuma das duas, a linha mostra "falta a tag: Reunião | Evento" (`faltaTagReuniao`, `tagsParaCompromisso` em `reunioes.ts`). Evento continua aparecendo na tela Reuniões como compromisso (`entraEmReunioes` não mudou): se ele preferir que Evento saia dessa tela, é uma linha em `types.ts`.
+
 ## ▶ RETOMAR AQUI (atualizado em 16/10/2026, noite)
 
 **Objetivo dele agora:** (A) **liberar o FARO para teste** com pessoas dele e (B) **sincronizar com o Google Agenda**.
