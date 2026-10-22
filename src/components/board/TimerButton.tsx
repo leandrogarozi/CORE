@@ -48,8 +48,14 @@ export function TimerButton({ kind, id, logDate }: { kind: TimerKind; id: string
     <span className="timer-wrap">
       <button
         type="button"
-        className={"icon-btn timer-btn" + (running ? " running" : "")}
-        title={running ? "Pausar cronômetro" : "Iniciar cronômetro"}
+        className={"icon-btn timer-btn" + (running ? " running" : "") + (!running && totalElapsed > 0 ? " has-time" : "")}
+        title={
+          running
+            ? "Pausar cronômetro"
+            : totalElapsed > 0
+              ? `Tempo de hoje nesta linha: ${fmtTempoCurto(totalElapsed)}. Clique para continuar o cronômetro.`
+              : "Iniciar cronômetro"
+        }
         onClick={(e) => {
           e.stopPropagation();
           board.toggleTimer(kind, id, logDate);
@@ -57,14 +63,9 @@ export function TimerButton({ kind, id, logDate }: { kind: TimerKind; id: string
       >
         {running ? <PauseIcon /> : <PlayIcon />}
       </button>
+      {/* Relógio rodando aparece ao lado, mas fora do fluxo (ver .timer-live): o play nunca sai do lugar.
+          Parado com tempo registrado: não escreve nada, o play fica preenchido e o tempo aparece ao passar o mouse. */}
       {running && <span className="timer-live mono">{fmtClock(totalElapsed)}</span>}
-      {/* Parou? Mostra quanto já tem no dia. Sem isso, a linha ficava muda e
-          parecia que o tempo da sessão não tinha entrado. */}
-      {!running && totalElapsed > 0 && (
-        <span className="timer-parado mono" title="Tempo de hoje nesta linha">
-          {fmtTempoCurto(totalElapsed)}
-        </span>
-      )}
     </span>
   );
 }

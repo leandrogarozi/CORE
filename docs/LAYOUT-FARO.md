@@ -83,6 +83,13 @@ Se o Leandro quiser algum desenho ao pé da letra além disto (ex.: cartões de 
 - **Aparência > Cor do fundo ganhou "Salvar cor"** (e "Descartar"): a cor escolhida é só prévia até salvar; ao salvar, o app relê do banco e avisa se gravou ou não.
 - **Desenhos reorganizados em 5 páginas** (Tela do dia e Dashboard / Menu e listas / Funcionalidades / Configurações / Demais telas) para dar para conferir tela por tela.
 
+## Ajustes de 22/10 (noite)
+
+- **Lembretes:** vencidos voltam a ter um vermelho suave (data, etiqueta "Vencido", sino e leve tom na linha), a pedido do Leandro. Isso substitui a regra anterior de deixar os vencidos neutros só em Lembretes.
+- **Play da tarefa:** com tempo registrado o play fica preenchido na cor da marca e o tempo aparece ao passar o mouse (não escreve mais o tempo ao lado, que desalinhava a coluna). O relógio rodando fica fora do fluxo, o botão não sai do lugar.
+- **Lista compacta:** colunas alinhadas, descrição longa cortada com "…".
+- **Registro do dia e saudação:** desenho aprovado em partes (saudação menor + 4 blocos); última versão em duas colunas de altura livre aguarda o OK para aplicar.
+
 ## Pendências conhecidas
 
 - Print do painel de Configurações do app financeiro do Leandro: **ele ainda vai mandar**, para a tela de Configurações ficar parecida com a dele (hoje é a primeira proposta, feita só com os blocos do FARO).

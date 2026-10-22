@@ -6078,3 +6078,8 @@ correto e já implementado).
 ## Lista de tarefas compacta: colunas alinhadas (22/10, noite)
 - Antes, uma descrição longa alargava a própria linha e empurrava bandeira, play, copiar e excluir para fora de prumo. Agora a descrição (`.row-desc-cell`, `contain:inline-size`) não entra no cálculo da largura: todas as linhas têm as mesmas colunas, o título longo é cortado com "…" e aparece inteiro ao passar o mouse (title) ou ao clicar. No celular continua quebrando em linhas.
 - Desenho novo, aguardando aprovação (nada aplicado): "Registro do dia e saudação (proposta A/B)" na página 1 do canvas. A saudação menor também só depois do OK.
+
+## Play preenchido e vencidos em Lembretes (22/10, noite)
+- Play da tarefa com tempo registrado: preenchido na cor da marca, tempo só no mouse por cima; relógio rodando não empurra o botão.
+- Lembretes: vencidos em vermelho suave de novo.
+- Registro do dia: versão em duas colunas de altura livre desenhada, aguardando "pode aplicar".

@@ -670,7 +670,7 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .reminders-btn:hover{ color:var(--text); }
 .reminders-btn-bell{ position:relative; display:flex; align-items:center; justify-content:center; flex:none; }
 .reminders-btn-bell.due-today{ color:var(--book-yellow); }
-.reminders-btn-bell.overdue{ color:var(--text); }
+.reminders-btn-bell.overdue{ color:color-mix(in srgb, var(--danger) 78%, var(--text)); }
 /* Contagem vermelha de atrasadas no botão Dashboard — mesmo selo do sininho */
 .view-toggle-btn{ position:relative; }
 .view-toggle-count{
@@ -2099,8 +2099,8 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 }
 .reminder-row:last-child{ border-bottom:none; }
 .reminder-row.done .reminder-title-input{ color:var(--text-faint); text-decoration:line-through; }
-.reminder-row.overdue{ background:var(--surface); }
-.reminder-row.overdue .reminder-date-btn{ color:var(--text); font-weight:var(--fw-forte); }
+.reminder-row.overdue{ background:color-mix(in srgb, var(--danger) 5%, var(--surface)); }
+.reminder-row.overdue .reminder-date-btn{ color:color-mix(in srgb, var(--danger) 78%, var(--text)); font-weight:var(--fw-forte); }
 .reminder-row.due-today{ background:color-mix(in srgb, var(--book-yellow) 8%, var(--surface)); }
 .reminder-row.due-today .reminder-date-btn{ color:var(--book-yellow); font-weight:600; }
 /* Virou coluna: nome e contagem em cima, barra embaixo. Era uma linha só, e a
@@ -2276,7 +2276,7 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 }
 .reminder-table-row:last-child{ border-bottom:none; }
 .reminder-table-row.done .reminder-title-input{ color:var(--text-faint); text-decoration:line-through; }
-.reminder-table-row.overdue{ background:var(--surface); }
+.reminder-table-row.overdue{ background:color-mix(in srgb, var(--danger) 5%, var(--surface)); }
 .reminder-table-row.due-today{ background:color-mix(in srgb, var(--book-yellow) 8%, var(--surface)); }
 .reminder-table-row .comment-btn, .reminder-table-row > .icon-btn{ justify-self:center; padding:2px; }
 .reminder-table-row .comment-btn svg, .reminder-table-row > .icon-btn svg{ width:12px; height:12px; }
@@ -2288,7 +2288,7 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 }
 .reminder-status-chip svg{ width:9px; height:9px; }
 .reminder-status-chip.status-today{ background:var(--accent-soft); color:var(--accent); }
-.reminder-status-chip.status-overdue{ background:var(--surface-2); color:var(--text); }
+.reminder-status-chip.status-overdue{ background:color-mix(in srgb, var(--danger) 12%, var(--surface)); color:color-mix(in srgb, var(--danger) 78%, var(--text)); }
 .reminder-status-chip.status-done{ background:color-mix(in srgb, var(--success) 16%, var(--surface)); color:var(--success); }
 .reminder-status-chip.status-waiting{ background:color-mix(in srgb, var(--book-yellow) 22%, var(--surface)); color:color-mix(in srgb, var(--book-yellow) 45%, var(--text)); }
 .chip-oneoff{ background:var(--surface-2); color:var(--text-faint); }
@@ -2615,8 +2615,9 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .faro-chat-enviar:disabled{ opacity:.45; cursor:default; }
 
 /* timer */
-.timer-wrap{ display:flex; align-items:center; gap:4px; }
+.timer-wrap{ display:flex; align-items:center; gap:4px; position:relative; }
 .timer-live{ font-size:10.5px; color:var(--accent); min-width:36px; text-align:right; }
+.task-row .timer-wrap .timer-live{ position:absolute; left:100%; margin-left:4px; text-align:left; white-space:nowrap; pointer-events:none; }
 .study-modulos{ display:flex; flex-direction:column; gap:6px; margin:12px 0; }
 .study-modulo{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
 .study-modulo-nome{ flex:1 1 140px; min-width:0; background:var(--surface); border:1px solid var(--border-strong); border-radius:7px; padding:5px 8px; font-size:13px; color:var(--text); }
@@ -2626,7 +2627,8 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .study-ligar-linha{ display:flex; align-items:center; gap:8px; }
 .study-ligar-data{ font-size:11.5px; width:48px; color:var(--text-muted); }
 .study-ligar-tempo{ font-size:11.5px; width:64px; color:var(--text-muted); }
-.timer-parado{ font-size:10.5px; color:var(--text-faint); margin-left:4px; }
+.timer-btn.has-time{ color:var(--accent); }
+.timer-btn.has-time svg{ fill:currentColor; }
 .timer-btn:hover{ color:var(--accent); }
 .timer-btn.running{ color:var(--accent); }
 
