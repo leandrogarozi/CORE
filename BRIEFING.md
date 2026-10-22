@@ -171,6 +171,13 @@ Antes dava para fugir da pergunta de adiar: cancelar a caixinha, desmarcar "Desa
 
 **Configurações em blocos (22/10, primeira proposta no canvas):** o Leandro quer o painel de Configurações do FARO parecido com o do app financeiro dele (blocos que se abrem para configurar). Não há acesso a esse app: a proposta foi feita pelos blocos que o FARO já tem (Cor do fundo, Tags da tarefa, Status, Painel do dia, Painel de horas, Notificações push, Custo do WhatsApp e da IA, Backups, Conector, Módulos), agrupados em Aparência, Tarefas e dia, Avisos e custos, Dados e backup, Conexões e Módulos, com resumo em cada bloco. **Pendente:** o Leandro mandar um print do painel do app financeiro para ajustar o desenho.
 
+**Dashboard completo no canvas (22/10):** o desenho anterior estava incompleto. Agora traz **todos** os cartões atuais (Concluídas, Atrasadas, Tópicos abertos, Tempo total, Horas trabalhadas, Estudo e dev. pessoal; Tarefas por status com Concluídas × pendentes e Prioridade das pendentes; Onde foi o tempo; Humor; Sono; Hábitos e Dia a Dia em resumo; Horas por cliente; Custo do WhatsApp; Custo da IA), mais o que é novo (variação vs período anterior e gráfico por dia).
+
+**Cadastrar e desligar painéis (pedido do Leandro, 22/10) — desenhado, ainda não implementado:**
+- **Configurações → Painel do dia:** interruptores de Água, Sono, Humor e Dieta (já existem), meta de água e **botões rápidos de água editáveis**, **carinhas de humor** (hoje 6 fixas em `src/lib/mood.ts`: Péssimo, Ruim, Neutro, Bom, Ótimo, Doente; precisa de lista editável por usuário, com nome e cor) e **emoções** (hoje fixas: Estressado, Ansioso, Nervoso, Desmotivado, Confiante, Em paz; precisa permitir cadastrar novas, ex.: Grato). Guardar em coluna nova de `settings` (jsonb) com os valores atuais como padrão; o histórico antigo continua valendo.
+- **Configurações → Painéis da tela do dia:** "usar / não usar" para Horas, Agenda, Registro do dia, Hábitos, Dia a Dia e Sem data. Desligado = some da tela do dia e do Dashboard; os dados ficam guardados. Mesma ação no menu "⋯" de cada painel ("Não usar este painel").
+- **Dentro dos painéis:** Hábitos e Dia a Dia ganham "+ Novo hábito / Novo item" com formulário curto (nome, minutos, categoria); no Humor, "+ Nova emoção" e "+ Nova carinha"; na água, "+ botão".
+
 **Sugestão já dada ao Leandro:** layout 1, 2 e 6 juntas, depois 3 e 4; funcionalidades B, depois A e C. Opções 9 e 10 só se ele quiser mudar a cara do app inteira. As telas são exemplos: nomes, números e situações de cliente (E) são ilustrativos.
 
 ## ▶ RETOMAR AQUI (atualizado em 16/10/2026, noite)
