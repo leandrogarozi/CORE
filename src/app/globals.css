@@ -3371,10 +3371,12 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .book-kind-abas{ margin:0 0 var(--sp-3); }
 .book-enviar{ position:relative; display:inline-flex; align-items:center; gap:6px; flex:none; }
 .book-enviar-btn{ font-size:11.5px; padding:4px 10px; white-space:nowrap; }
-.book-enviar-menu{
-  position:absolute; right:0; top:calc(100% + 4px); z-index:30; display:flex; flex-direction:column; min-width:170px;
-  background:var(--surface); border:1px solid var(--border); border-radius:10px; box-shadow:var(--sh-2); padding:4px;
+.book-enviar-opcoes{ display:flex; flex-direction:column; gap:8px; margin:10px 0 4px; }
+.book-enviar-opcao{
+  display:flex; flex-direction:column; align-items:flex-start; justify-content:flex-start; gap:2px; width:100%; text-align:left; padding:12px 14px; border-radius:10px;
+  border:1px solid var(--border-strong); background:var(--surface); color:var(--text); cursor:pointer;
 }
-.book-enviar-menu button{ background:none; border:0; text-align:left; padding:8px 10px; border-radius:8px; font-size:13px; cursor:pointer; color:var(--text); }
-.book-enviar-menu button:hover{ background:var(--accent-soft); }
+.book-enviar-opcao strong{ font-size:14px; }
+.book-enviar-opcao span{ display:block; font-size:12px; color:var(--text-muted); }
+.book-enviar-opcao:hover{ background:var(--accent-soft); }
 .book-enviar-aviso{ font-size:11px; color:var(--success); white-space:nowrap; }

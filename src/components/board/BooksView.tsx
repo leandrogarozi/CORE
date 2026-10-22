@@ -307,27 +307,42 @@ function BookPriorityFlag({ book }: { book: Book }) {
  */
 function BookEnviarAnotacoes({ book }: { book: Book }) {
   const { board } = useBoardCtx();
-  const [aberto, setAberto] = useState(false);
+  // "escolher": para onde? · "perguntas": só para Nova Sinapse, lembra de anotar as perguntas.
+  const [etapa, setEtapa] = useState<"fechado" | "escolher" | "perguntas">("fechado");
+  const [perguntas, setPerguntas] = useState("");
   const [aviso, setAviso] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
   const info = BOOK_KIND_INFO[book.kind];
   const fonte = `${book.kind === "livro" ? "Livro" : book.kind === "filme" ? "Filme" : "Série"}: ${book.title}`;
   if (!stripHtml(book.insights ?? "").trim()) return null;
 
+  function jaEnviado(para: "estudo" | "sinapse") {
+    return board.state.synapses.some((s) => s.source === fonte && (para === "estudo" ? s.kind === "ideia" : s.kind === "sinapse"));
+  }
+
+  function fechar() {
+    setEtapa("fechado");
+    setPerguntas("");
+  }
+
   async function enviar(para: "estudo" | "sinapse") {
-    setAberto(false);
-    const jaFoi = board.state.synapses.some((s) => s.source === fonte && (para === "estudo" ? s.kind === "ideia" : s.kind === "sinapse"));
-    if (jaFoi) {
+    if (jaEnviado(para)) {
+      fechar();
       setAviso(`Já enviado para ${para === "estudo" ? "Estudos" : "Nova Sinapse"}.`);
+      setTimeout(() => setAviso(null), 4000);
       return;
     }
+    setEnviando(true);
     const id = await board.addSynapse(
       book.title,
       para === "estudo"
         ? { kind: "ideia", tag: "estudo", learning: book.insights ?? "", source: fonte }
-        : { kind: "sinapse", learning: book.insights ?? "", source: fonte }
+        : { kind: "sinapse", learning: book.insights ?? "", questions: perguntas, source: fonte }
     );
+    setEnviando(false);
+    fechar();
     setAviso(id ? `Enviado para ${para === "estudo" ? "Estudos (Ideias e Estudos)" : "Nova Sinapse"}.` : "Não consegui enviar agora.");
-    if (id) setTimeout(() => setAviso(null), 4000);
+    setTimeout(() => setAviso(null), 4000);
   }
 
   return (
@@ -336,23 +351,59 @@ function BookEnviarAnotacoes({ book }: { book: Book }) {
         type="button"
         className="btn btn-ghost book-enviar-btn"
         title={`Levar as anotações deste ${info.um} para Estudos ou Nova Sinapse`}
-        aria-haspopup="menu"
-        aria-expanded={aberto}
-        onClick={() => setAberto((v) => !v)}
+        onClick={() => setEtapa("escolher")}
       >
         Enviar anotações
       </button>
-      {aberto && (
-        <span className="book-enviar-menu" role="menu">
-          <button type="button" role="menuitem" onClick={() => void enviar("estudo")}>
-            Para Estudos
-          </button>
-          <button type="button" role="menuitem" onClick={() => void enviar("sinapse")}>
-            Para Nova Sinapse
-          </button>
-        </span>
-      )}
       {aviso && <span className="book-enviar-aviso">{aviso}</span>}
+      {etapa !== "fechado" &&
+        createPortal(
+          <>
+            <div className="modal-backdrop" onClick={fechar} />
+            <div className="modal-panel book-sheet" role="dialog" aria-label={`Enviar anotações de ${book.title}`}>
+              <div className="modal-head">
+                <span className="modal-title">Enviar anotações: {book.title}</span>
+              </div>
+              {etapa === "escolher" ? (
+                <>
+                  <div className="hint-text">Para onde você quer levar as anotações?</div>
+                  <div className="book-enviar-opcoes">
+                    <button type="button" className="book-enviar-opcao" disabled={enviando} onClick={() => void enviar("estudo")}>
+                      <strong>Para Estudos</strong>
+                      <span>Entra em Ideias e Estudos, com a tag Estudo.</span>
+                    </button>
+                    <button type="button" className="book-enviar-opcao" onClick={() => setEtapa("perguntas")}>
+                      <strong>Para Nova Sinapse</strong>
+                      <span>Vira um aprendizado, com as perguntas que reconectam você a ele.</span>
+                    </button>
+                  </div>
+                  <div className="edit-actions" style={{ marginTop: 10 }}>
+                    <button type="button" className="btn btn-ghost" onClick={fechar}>
+                      Cancelar
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="hint-text">
+                    Não esqueça: anote as perguntas ligadas {book.kind === "serie" ? "a esta série" : book.kind === "filme" ? "a este filme" : "a este livro"}. É a pergunta que te reconecta com o aprendizado
+                    depois. (Dá para completar na Nova Sinapse também.)
+                  </div>
+                  <RichTextEditor value={perguntas} onChange={setPerguntas} placeholder="Que perguntas esse estudo gera?" autoFocus />
+                  <div className="edit-actions" style={{ marginTop: 10 }}>
+                    <button type="button" className="btn btn-ghost" onClick={() => setEtapa("escolher")}>
+                      Voltar
+                    </button>
+                    <button type="button" className="btn btn-accent" disabled={enviando} onClick={() => void enviar("sinapse")}>
+                      Enviar para Nova Sinapse
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </>,
+          document.body
+        )}
     </span>
   );
 }

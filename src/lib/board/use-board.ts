@@ -1087,14 +1087,14 @@ export function useBoard(userId: string | null) {
   const addSynapse = useCallback(
     async (
       title: string,
-      extra: { kind?: Synapse["kind"]; tag?: Synapse["tag"]; learning?: string; source?: string | null; titleAuto?: boolean } = {}
+      extra: { kind?: Synapse["kind"]; tag?: Synapse["tag"]; learning?: string; questions?: string; source?: string | null; titleAuto?: boolean } = {}
     ): Promise<string | null> => {
       if (!userId || !title.trim()) return null;
       const sy: Synapse = {
         id: uid(),
         title: title.trim(),
         learning: extra.learning ?? "",
-        questions: "",
+        questions: extra.questions ?? "",
         source: extra.source ?? null,
         createdAt: new Date().toISOString(),
         kind: extra.kind ?? "sinapse",
