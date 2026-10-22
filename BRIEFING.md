@@ -140,6 +140,8 @@ Antes dava para fugir da pergunta de adiar: cancelar a caixinha, desmarcar "Desa
 
 **Regra:** só entra no app o que o Leandro aprovar. Quando ele aprovar ou recusar, atualizar a coluna **Situação** desta tabela (e, ao implementar, trocar por "feito em dd/mm" e descrever em uma seção própria).
 
+_Esta tabela é o histórico do que foi proposto em 22/10. **O status atual de cada item está em `docs/LAYOUT-FARO.md`.**_
+
 | Item | O que é | Onde | Esforço | Situação |
 |---|---|---|---|---|
 | 1 | Números com variação (▲ 12% vs semana passada), mini gráfico e um cartão em destaque | Dashboard | Pequeno | Aguardando aprovação |
