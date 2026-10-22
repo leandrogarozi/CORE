@@ -78,12 +78,20 @@ export function StatusPicker({
       <button
         ref={btnRef}
         type="button"
-        className={"status-dot" + (current?.isDone ? " done" : "")}
+        className={"status-pill" + (current?.isDone ? " done" : "")}
         style={{ "--status-color": current?.color ?? "var(--text-faint)" } as React.CSSProperties}
         title={current?.label ?? "Status"}
         onClick={toggleOpen}
       >
-        {current?.isDone && <CheckIcon />}
+        {/* Mesmo controle e mesmo menu de antes; a bolinha agora vem com o nome do status. */}
+        {current?.isDone ? (
+          <span className="status-pill-check">
+            <CheckIcon />
+          </span>
+        ) : (
+          <span className="status-pill-dot" />
+        )}
+        <span className="status-pill-label">{current?.label ?? "Status"}</span>
       </button>
       {anchorRect && (
         <StatusMenu

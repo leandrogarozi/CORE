@@ -694,7 +694,8 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .aviso-icon-btn{ position:relative; }
 .aviso-icon-btn.aviso-novo{ color:var(--accent); }
 .aviso-icon-btn .reminders-btn-count{ top:-3px; right:-3px; }
-.reminders-btn-count.aviso-count{ background:var(--accent); }
+/* Aviso e aniversário no mesmo padrão do contador do Dashboard: vermelho, número branco. */
+.reminders-btn-count.aviso-count{ background:var(--danger); color:#fff; }
 .know-feito{ margin:0 0 8px; font-size:12px; color:var(--text-muted); }
 .know-feito-aviso{ color:var(--accent); font-weight:var(--fw-medio); }
 .avisos-popover{ width:min(360px, 92vw); }
@@ -719,6 +720,7 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .section{ margin-bottom:22px; }
 .habits-blocks-row{ display:grid; grid-template-columns:1fr 1fr; gap:22px; align-items:start; }
 .habits-blocks-row .section{ margin-bottom:0; }
+.habits-blocks-row.solo{ grid-template-columns:1fr; }
 @media (max-width:640px){
   .habits-blocks-row{ grid-template-columns:1fr; gap:0; }
   .habits-blocks-row .section:first-child{ margin-bottom:22px; }
@@ -838,8 +840,17 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 /* daily log panel (água, dieta, sono) */
 .daily-log-panel{
   background:var(--surface); border:1px solid var(--linha); border-radius:var(--r-3);
-  box-shadow:var(--sh-1); padding:12px 14px; display:flex; flex-direction:column; gap:14px;
+  box-shadow:var(--sh-1); padding:16px 18px;
+  /* Quatro colunas lado a lado em tela larga (Humor, Sono, Água, Dieta) e empilha sozinho
+     em tela estreita. A ordem visual é a do desenho; o texto do aviso ocupa a linha toda. */
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:18px 28px; align-items:start;
 }
+.daily-log-panel > .dl-reminder{ grid-column:1 / -1; order:0; }
+.dl-row[data-dl="mood"]{ order:1; }
+.dl-row[data-dl="sleep"]{ order:2; }
+.dl-row[data-dl="water"]{ order:3; }
+.dl-row[data-dl="diet"]{ order:4; }
+@media (min-width:1000px){ .dl-row[data-dl="mood"]{ grid-column:span 2; } }
 .dl-reminder{
   display:flex; align-items:center; gap:7px;
   font-size:11.5px; border-radius:8px; padding:8px 10px; border:none;
@@ -847,7 +858,7 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   background:color-mix(in srgb, var(--book-yellow) 18%, var(--surface));
 }
 .dl-reminder svg{ flex:none; width:13px; height:13px; }
-.dl-row + .dl-row{ padding-top:14px; border-top:1px solid var(--linha); }
+.dl-row{ min-width:0; }
 .daily-log-panel .hp-bar{ margin-left:0; margin-right:0; }
 .dl-row-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; }
 .dl-label{ font-size:12.5px; font-weight:var(--fw-medio); display:inline-flex; align-items:center; gap:6px; }
@@ -1219,7 +1230,8 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
    reagiam, e não dava pra saber que a linha era uma unidade. */
 .task-row:hover{ background:var(--segmento-fundo); }
 .task-row.dragging{ opacity:0.35; }
-.task-row.overdue{ background:color-mix(in srgb, var(--danger) 6%, var(--surface)); }
+/* Sem fundo avermelhado: o vermelho ficou só na frase de atrasadas e nas bolinhas de aviso (pedido de 22/10). */
+.task-row.overdue{ background:var(--surface); }
 .drag-handle{
   display:grid; grid-template-columns:repeat(2,3px); grid-template-rows:repeat(3,3px); gap:2px;
   width:12px; height:14px; cursor:grab; align-content:center; justify-self:start;
@@ -1242,6 +1254,23 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
   display:flex; align-items:center; justify-content:center; color:#fff; justify-self:start;
 }
 .status-dot svg{ width:9px; height:9px; }
+/* Status com nome: a mesma cor do status, em fundo suave. O texto escurece a cor
+   para passar de 4,5:1 sobre o fundo claro e clareia no escuro (via --text). */
+.status-pill{
+  display:inline-flex; align-items:center; gap:6px; min-width:0; max-width:100%; box-sizing:border-box;
+  padding:3px 10px 3px 8px; border-radius:var(--r-full); justify-self:start;
+  background:color-mix(in srgb, var(--status-color) 15%, var(--surface));
+  color:color-mix(in srgb, var(--status-color) 55%, var(--text));
+  font-size:11.5px; font-weight:var(--fw-forte); line-height:1.3;
+}
+.status-pill:hover{ background:color-mix(in srgb, var(--status-color) 24%, var(--surface)); }
+.status-pill-dot{ width:8px; height:8px; border-radius:50%; background:var(--status-color); flex:none; }
+.status-pill-check{
+  width:14px; height:14px; border-radius:50%; background:var(--status-color); color:#fff; flex:none;
+  display:inline-flex; align-items:center; justify-content:center;
+}
+.status-pill-check svg{ width:9px; height:9px; }
+.status-pill-label{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
 .status-menu{
   position:fixed; z-index:50; min-width:150px;
   background:var(--surface); border:1px solid var(--linha); border-radius:var(--r-3); box-shadow:var(--sh-2);
@@ -2781,7 +2810,13 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
      uma faixa de informação. Sem isso, o título dividia a primeira linha com a
      tag e o tempo, ficava espremido em 290px, e a hora caía sozinha numa
      terceira linha — tecnicamente dentro da tela, visualmente quebrado. */
-  .task-row > .status-dot{ order:0; }
+  .task-row > .status-dot, .task-row > .status-pill{ order:0; }
+  /* No celular o status volta a ser só a bolinha (como antes): a etiqueta com nome
+     empurraria o título para a linha de baixo. O nome continua no balão (title) e no menu. */
+  .task-row .status-pill{ padding:0; background:transparent; }
+  .task-row .status-pill:hover{ background:transparent; }
+  .task-row .status-pill-label{ display:none; }
+  .task-row .status-pill-dot, .task-row .status-pill-check{ width:15px; height:15px; }
   /* A base é "a linha toda menos a bolinha": assim bolinha + título preenchem
      exatamente a primeira linha, e TUDO que vem depois (raios, tempo, tag,
      bandeirinha, anexo, excluir) cai junto numa faixa só embaixo. Com
@@ -3387,3 +3422,42 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
   font-size:11px; color:var(--success); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; padding:2px 8px; border-radius:999px;
   background:color-mix(in srgb, var(--success) 12%, var(--surface));
 }
+
+/* ============================================================
+   TELA DO DIA — saudação, atalhos e faixa Seu dia / Horas / Agenda
+   (layout aprovado em 22/10, ver docs/LAYOUT-FARO.md)
+   ============================================================ */
+.day-greeting{ margin:2px 0 14px; }
+.day-greeting-text{ margin:0; font-size:20px; line-height:1.3; font-weight:600; letter-spacing:var(--ls-titulo); text-wrap:balance; }
+.day-greeting-reuniao{ color:var(--accent); }
+.day-greeting-atraso{ color:color-mix(in srgb, var(--danger) 86%, var(--text)); }
+.day-greeting-calma{ color:var(--text-muted); font-weight:500; }
+.day-greeting-aniv{ display:flex; align-items:center; gap:8px; margin-top:6px; font-size:12.5px; color:var(--text-muted); flex-wrap:wrap; }
+.day-greeting-aniv svg{ width:14px; height:14px; flex:none; color:var(--text-faint); }
+.quick-actions{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+.quick-action{
+  flex:1 1 170px; min-width:0; display:flex; align-items:center; gap:12px; padding:11px 14px;
+  border-radius:var(--r-3); background:var(--surface); border:1px solid var(--linha); box-shadow:var(--sh-1);
+  font-size:13px; font-weight:var(--fw-forte); text-align:left;
+}
+.quick-action:hover{ border-color:var(--border-strong); }
+.quick-action-icon{
+  width:32px; height:32px; border-radius:50%; flex:none; background:var(--text); color:var(--surface);
+  display:inline-flex; align-items:center; justify-content:center;
+}
+.quick-action-icon.destaque{ background:var(--accent); color:var(--accent-contrast); }
+.quick-action-icon svg{ width:15px; height:15px; }
+.day-info-row{ display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:16px; align-items:stretch; }
+.day-info-row > .section{ margin-bottom:0; min-width:0; display:flex; flex-direction:column; }
+.day-info-row > .section > :last-child{ flex:1 1 auto; min-height:0; }
+.day-summary{
+  display:flex; align-items:center; gap:18px; flex-wrap:wrap; padding:16px;
+  background:var(--surface); border:1px solid var(--linha); border-radius:var(--r-3); box-shadow:var(--sh-1);
+}
+.day-ring{ position:relative; width:112px; height:112px; flex:none; }
+.day-ring-center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.day-ring-num{ font-size:22px; font-weight:650; letter-spacing:var(--ls-apertado); }
+.day-ring-label{ font-size:11px; color:var(--text-faint); }
+.day-summary-legend{ display:flex; flex-direction:column; gap:8px; font-size:12.5px; min-width:0; }
+.day-summary-legend span{ display:flex; align-items:center; gap:8px; }
+.day-summary-legend i{ width:10px; height:10px; border-radius:3px; display:inline-block; flex:none; }

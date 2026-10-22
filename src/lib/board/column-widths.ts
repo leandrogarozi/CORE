@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 export const TASK_COLUMNS = [
-  { key: "status", label: "Status", defaultWidth: 36, minWidth: 30 },
+  { key: "status", label: "Status", defaultWidth: 122, minWidth: 40 },
   { key: "quick", label: "Vel.Ex", defaultWidth: 50, minWidth: 36 },
   { key: "desc", label: "Descrição", defaultWidth: 230, minWidth: 100 },
   { key: "category", label: "Categoria", defaultWidth: 100, minWidth: 60 },
@@ -24,7 +24,11 @@ function loadStoredWidths(): Partial<Record<ColumnKey, number>> {
   if (typeof window === "undefined") return {};
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
+    const guardado: Partial<Record<ColumnKey, number>> = raw ? JSON.parse(raw) : {};
+    // O status deixou de ser só a bolinha (36px) e passou a mostrar o nome. A largura
+    // antiga e estreita (<= 40px) não comporta a etiqueta: descarta e volta ao padrão novo.
+    if (guardado.status !== undefined && guardado.status <= 40) delete guardado.status;
+    return guardado;
   } catch {
     return {};
   }

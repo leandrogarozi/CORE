@@ -13,6 +13,9 @@ import { Dashboard } from "./Dashboard";
 import { HoursPanel } from "./HoursPanel";
 import { DailyLogPanel } from "./DailyLogPanel";
 import { DayAgendaPanel } from "./DayAgendaPanel";
+import { DayGreeting } from "./DayGreeting";
+import { DaySummary } from "./DaySummary";
+import { QuickActions } from "./QuickActions";
 import {
   INTENSIDADE_PADRAO,
   TOM_PADRAO,
@@ -54,7 +57,7 @@ import { BoltIcon, ChevronIcon, ExpandHorizontalIcon, MenuIcon, SettingsIcon, Us
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { dateFromISO, longLabel, mondayOf, todayISO } from "@/lib/date-utils";
 import { countOpenChecklistItems } from "@/lib/rich-text";
-import { entraEmReunioes, type Task } from "@/lib/types";
+import { entraEmReunioes, isFeatureEnabled, type Task } from "@/lib/types";
 
 function BoardShell() {
   const { board, sortByQuick, setSortByQuick, setOpenProjectHandler, setOpenTaskInDayHandler, requestFocus } =
@@ -193,6 +196,82 @@ function BoardShell() {
   // Reuniões com pauta em aberto: o número do botão "Reuniões" da home.
   const reunioesComPauta = board.state.tasks.filter((t) => entraEmReunioes(t) && countOpenChecklistItems(t.note) > 0).length;
 
+
+  // Cada painel da tela principal pode ser ligado ou desligado em Configurações
+  // (Painéis da tela principal). Desligado, ele some daqui e o dado fica guardado.
+  const painel = (chave: string) => isFeatureEnabled(board.state.settings.featureFlags, chave);
+
+  const semDataBlock = painel("panel_semdata") ? (
+    <>
+  <div className="section">
+    <button
+      type="button"
+      className="section-head backlog-toggle"
+      aria-expanded={backlogOpen}
+      onClick={() =>
+        setBacklogOpen((v) => {
+          try {
+            window.localStorage.setItem("faro-sem-data-aberto", v ? "0" : "1");
+          } catch {
+            // Navegador sem armazenamento: só não lembra da preferência.
+          }
+          return !v;
+        })
+      }
+    >
+      <span className="section-pill warning">
+        <WarningIcon /> Sem data<span className="count">{backlogTasks.length}</span>
+      </span>
+      <span className="backlog-summary">
+        {backlogTasks.length === 0
+          ? "nada esperando data"
+          : backlogTasks.length === 1
+            ? "1 tarefa esperando uma data"
+            : `${backlogTasks.length} tarefas esperando uma data`}
+      </span>
+      <span className={"chevron" + (backlogOpen ? " open" : " collapsed")}>
+        <ChevronIcon />
+      </span>
+    </button>
+    {backlogOpen && (
+      <>
+        <div className="hint-text">Coloque uma data pra essas tarefas não ficarem esquecidas por aqui.</div>
+        <TaskListCard bucketKey="" tasks={backlogTasks} emptyLabel="Backlog vazio." quickAddId="qa-backlog" />
+      </>
+    )}
+  </div>
+    </>
+  ) : null;
+
+  const habitosBlock =
+    painel("panel_habitos") || painel("panel_diadia") ? (
+      <>
+  <div className={"habits-blocks-row" + (painel("panel_habitos") && painel("panel_diadia") ? "" : " solo")}>
+    <div className="section">
+      <div className="section-head">
+        <span className="section-pill accent">Hábitos</span>
+      </div>
+      <div className="hint-text">
+        Aperte o play pra cronometrar em tempo real, ou preencha uma duração fixa e marque o check
+        manualmente.
+      </div>
+      <RecurringSection kind="habit" weekAnchor={weekAnchor} />
+    </div>
+
+    <div className="section">
+      <div className="section-head">
+        <span className="section-pill accent">Dia a Dia</span>
+      </div>
+      <div className="hint-text">
+        Coisas que costumam ocupar tempo todo dia (almoço, deslocamento, academia...). Aperte o play na hora
+        que for fazer, ou marque o dia manualmente pra usar uma duração fixa.
+      </div>
+      <RecurringSection kind="block" weekAnchor={weekAnchor} />
+    </div>
+  </div>
+      </>
+    ) : null;
+
   return (
     <div className={"wrap" + (wide ? " wide" : "")}>
       <SaveErrorToaster />
@@ -314,6 +393,7 @@ function BoardShell() {
         <CalendarView onBack={() => setViewMode("day")} onSelectWeek={() => setViewMode("week")} onSelectDay={goToDate} />
       ) : (
         <>
+          {viewMode === "day" && <DayGreeting />}
           <div className="day-strip-wrap">
             <button
               className="strip-nav"
@@ -386,6 +466,8 @@ function BoardShell() {
             </div>
           </div>
 
+          {viewMode === "day" && <QuickActions onOpen={setViewMode} />}
+
           {viewMode === "dashboard" ? (
             <Dashboard />
           ) : (
@@ -428,102 +510,38 @@ function BoardShell() {
                   tarefa"*. Sem o Horas, a linha inteira ficava vazia na Semana —
                   Agenda e Registro do dia já eram só do dia —, então a condição
                   subiu pra linha toda em vez de ficar repetida em cada bloco. */}
+              {semDataBlock}
               {viewMode === "day" && (
-              <div className="day-below-row">
-                <div className="day-below-col">
-                  <HoursPanel selectedDate={selectedDate} />
-                  <DayAgendaPanel
-                    selectedDate={selectedDate}
-                    // Mesma navegação da busca: leva pro dia da tarefa e
-                    // acende a linha dela. Reaproveitar isso é o que faz a
-                    // agenda abrir o item no lugar certo em vez de só rolar.
-                    onAbrirTarefa={(task) => {
-                      goToTask(task);
-                      requestFocus({ kind: "task", id: task.id });
-                    }}
-                    onAbrirLembrete={(id) => {
-                      setViewMode("reminders");
-                      requestFocus({ kind: "reminder", id });
-                    }}
-                  />
-                </div>
-                <DailyLogPanel selectedDate={selectedDate} />
-              </div>
+                <>
+                  {/* Faixa embaixo das tarefas: a lista de tarefas fica com a largura toda e
+                      Seu dia, Horas e Agenda dividem a linha de baixo. */}
+                  <div className="day-info-row">
+                    {painel("panel_resumo") && <DaySummary selectedDate={selectedDate} />}
+                    {painel("panel_horas") && <HoursPanel selectedDate={selectedDate} />}
+                    {painel("panel_agenda") && (
+                      <DayAgendaPanel
+                        selectedDate={selectedDate}
+                        // Mesma navegação da busca: leva pro dia da tarefa e
+                        // acende a linha dela. Reaproveitar isso é o que faz a
+                        // agenda abrir o item no lugar certo em vez de só rolar.
+                        onAbrirTarefa={(task) => {
+                          goToTask(task);
+                          requestFocus({ kind: "task", id: task.id });
+                        }}
+                        onAbrirLembrete={(id) => {
+                          setViewMode("reminders");
+                          requestFocus({ kind: "reminder", id });
+                        }}
+                      />
+                    )}
+                  </div>
+                  <DailyLogPanel selectedDate={selectedDate} />
+                </>
               )}
+              {habitosBlock}
             </div>
           )}
 
-          {/* Sem data, Hábitos e Dia a Dia são da tela do DIA.
-              Eles ficavam fora do if acima, então apareciam embaixo do Dashboard
-              também — e era por isso que os cartões continuavam na tela depois de
-              eu tirá-los de dentro do Dashboard: estes aqui vêm de fora dele. */}
-          {viewMode !== "dashboard" && (
-            <>
-          {/* Recolhido por padrão: a lista sem data cresce sem parar e empurrava
-              hábitos e blocos pra fora da tela. */}
-          <div className="section">
-            <button
-              type="button"
-              className="section-head backlog-toggle"
-              aria-expanded={backlogOpen}
-              onClick={() =>
-                setBacklogOpen((v) => {
-                  try {
-                    window.localStorage.setItem("faro-sem-data-aberto", v ? "0" : "1");
-                  } catch {
-                    // Navegador sem armazenamento: só não lembra da preferência.
-                  }
-                  return !v;
-                })
-              }
-            >
-              <span className="section-pill warning">
-                <WarningIcon /> Sem data<span className="count">{backlogTasks.length}</span>
-              </span>
-              <span className="backlog-summary">
-                {backlogTasks.length === 0
-                  ? "nada esperando data"
-                  : backlogTasks.length === 1
-                    ? "1 tarefa esperando uma data"
-                    : `${backlogTasks.length} tarefas esperando uma data`}
-              </span>
-              <span className={"chevron" + (backlogOpen ? " open" : " collapsed")}>
-                <ChevronIcon />
-              </span>
-            </button>
-            {backlogOpen && (
-              <>
-                <div className="hint-text">Coloque uma data pra essas tarefas não ficarem esquecidas por aqui.</div>
-                <TaskListCard bucketKey="" tasks={backlogTasks} emptyLabel="Backlog vazio." quickAddId="qa-backlog" />
-              </>
-            )}
-          </div>
-
-          <div className="habits-blocks-row">
-            <div className="section">
-              <div className="section-head">
-                <span className="section-pill accent">Hábitos</span>
-              </div>
-              <div className="hint-text">
-                Aperte o play pra cronometrar em tempo real, ou preencha uma duração fixa e marque o check
-                manualmente.
-              </div>
-              <RecurringSection kind="habit" weekAnchor={weekAnchor} />
-            </div>
-
-            <div className="section">
-              <div className="section-head">
-                <span className="section-pill accent">Dia a Dia</span>
-              </div>
-              <div className="hint-text">
-                Coisas que costumam ocupar tempo todo dia (almoço, deslocamento, academia...). Aperte o play na hora
-                que for fazer, ou marque o dia manualmente pra usar uma duração fixa.
-              </div>
-              <RecurringSection kind="block" weekAnchor={weekAnchor} />
-            </div>
-          </div>
-            </>
-          )}
         </>
       )}
 

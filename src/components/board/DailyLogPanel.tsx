@@ -88,7 +88,7 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
           </div>
         )}
         {waterOn && (
-          <div className="dl-row">
+          <div className="dl-row" data-dl="water">
             <div className="dl-row-top">
               <span className="dl-label">
                 <WaterDropIcon /> Água
@@ -123,7 +123,7 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
         )}
 
         {dietOn && (
-          <div className="dl-row">
+          <div className="dl-row" data-dl="diet">
             <div className="dl-row-top">
               <span className="dl-label">
                 <MealIcon /> Fidelidade à dieta {label}
@@ -181,7 +181,7 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
         )}
 
         {sleepOn && (
-          <div className="dl-row">
+          <div className="dl-row" data-dl="sleep">
             <div className="dl-row-top">
               <span className="dl-label">
                 <MoonIcon /> Sono
@@ -214,7 +214,7 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
         )}
 
         {moodOn && (
-          <div className="dl-row">
+          <div className="dl-row" data-dl="mood">
             <div className="dl-row-top">
               <span className="dl-label">
                 <MoodFaceIcon value={4} size={13} /> Humor {label}

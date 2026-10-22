@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { BellIcon, BoltIcon, LinkIcon,
   BookOpenIcon, BookIcon, GiftIcon, CarIcon, CartIcon, ChartIcon, ChecklistIcon, FolderIcon, HomeIcon, MealIcon, PillIcon, SettingsIcon, TrashIcon, UserIcon, UsersGroupIcon, WeekIcon } from "./icons";
 
@@ -28,6 +28,56 @@ export type ViewMode =
   | "projects"
   | "meetings"
   | "trash";
+
+type ItemDoMenu = {
+  modo: ViewMode;
+  rotulo: string;
+  icone: ReactNode;
+  destaque?: boolean;
+  selo?: "paraRevisar" | "aniversarios";
+};
+
+const GRUPOS: { titulo: string; itens: ItemDoMenu[] }[] = [
+  {
+    titulo: "Hoje",
+    itens: [
+      { modo: "day", rotulo: "Painel", icone: <HomeIcon /> },
+      { modo: "week", rotulo: "Semana", icone: <WeekIcon /> },
+      { modo: "dashboard", rotulo: "Dashboard", icone: <ChartIcon /> },
+      { modo: "reminders", rotulo: "Lembretes", icone: <BellIcon /> },
+      { modo: "meetings", rotulo: "Reuniões", icone: <UsersGroupIcon /> },
+      { modo: "projects", rotulo: "Projetos", icone: <FolderIcon /> },
+    ],
+  },
+  {
+    titulo: "Aprender",
+    itens: [
+      { modo: "conhecendo", rotulo: "Conhecendo você", icone: <UserIcon size={13} />, destaque: true, selo: "paraRevisar" },
+      { modo: "synapses", rotulo: "Novas Sinapses", icone: <BoltIcon /> },
+      { modo: "ideias", rotulo: "Ideias e Estudos", icone: <BoltIcon /> },
+      { modo: "books", rotulo: "Livros / Filmes e séries", icone: <BookIcon /> },
+      { modo: "estudo", rotulo: "Plano de Estudo", icone: <BookOpenIcon /> },
+    ],
+  },
+  {
+    titulo: "Pessoas",
+    itens: [
+      { modo: "aniversarios", rotulo: "Aniversários", icone: <GiftIcon />, selo: "aniversarios" },
+      { modo: "cadastros", rotulo: "Cadastros", icone: <LinkIcon /> },
+      { modo: "clientes", rotulo: "Clientes", icone: <UsersGroupIcon /> },
+    ],
+  },
+  {
+    titulo: "Saúde e casa",
+    itens: [
+      { modo: "medications", rotulo: "Medicamentos", icone: <PillIcon /> },
+      { modo: "diet", rotulo: "Dieta", icone: <MealIcon /> },
+      { modo: "manutencao", rotulo: "Manutenção", icone: <CarIcon /> },
+      { modo: "compras", rotulo: "Compras", icone: <CartIcon /> },
+      { modo: "checklists", rotulo: "Checklists", icone: <ChecklistIcon /> },
+    ],
+  },
+];
 
 export function Sidebar({
   open,
@@ -60,154 +110,35 @@ export function Sidebar({
       <nav className={"sidebar" + (open ? " open" : "")} aria-label="Menu principal">
         <div className="sidebar-brand">FARO</div>
 
-        <div className="sidebar-section">
-          <button
-            type="button"
-            className={"sidebar-item" + (viewMode === "day" ? " active" : "")}
-            onClick={() => onSelect("day")}
-          >
-            <HomeIcon /> Painel
-          </button>
-          <button
-            type="button"
-            className={"sidebar-item" + (viewMode === "week" ? " active" : "")}
-            onClick={() => onSelect("week")}
-          >
-            <WeekIcon /> Semana
-          </button>
-          <button
-            type="button"
-            className={"sidebar-item" + (viewMode === "dashboard" ? " active" : "")}
-            onClick={() => onSelect("dashboard")}
-          >
-            <ChartIcon /> Dashboard
-          </button>
-        </div>
-
-        <div className="sidebar-section">
-          <button
-            type="button"
-            className={"sidebar-item sidebar-item-destaque" + (viewMode === "conhecendo" ? " active" : "")}
-            onClick={() => onSelect("conhecendo")}
-          >
-            <UserIcon size={13} /> Conhecendo você
-            {paraRevisar > 0 && (
-              <span className="sidebar-badge" title="Aprendizados esperando você aprovar">
-                {paraRevisar}
-              </span>
-            )}
-          </button>
-          <button
-            type="button"
-            className={"sidebar-item" + (viewMode === "books" ? " active" : "")}
-            onClick={() => onSelect("books")}
-          >
-            <BookIcon /> Livros / Filmes e séries
-          </button>
-          <button
-            type="button"
-            className={"sidebar-item" + (viewMode === "reminders" ? " active" : "")}
-            onClick={() => onSelect("reminders")}
-          >
-            <BellIcon /> Lembretes
-          </button>
-          <button
-            type="button"
-            className={"sidebar-item" + (viewMode === "synapses" ? " active" : "")}
-            onClick={() => onSelect("synapses")}
-          >
-            <BoltIcon /> Novas Sinapses
-          </button>
-          <button
-            type="button"
-            className={"sidebar-item" + (viewMode === "ideias" ? " active" : "")}
-            onClick={() => onSelect("ideias")}
-          >
-            <BoltIcon /> Ideias e Estudos
-          </button>
-          <button
-            type="button"
-            className={"sidebar-item" + (viewMode === "compras" ? " active" : "")}
-            onClick={() => onSelect("compras")}
-          >
-            <CartIcon /> Compras
-          </button>
-          <button
-            type="button"
-            className={"sidebar-item" + (viewMode === "aniversarios" ? " active" : "")}
-            onClick={() => onSelect("aniversarios")}
-          >
-            <GiftIcon /> Aniversários
-            {aniversariosPendentes > 0 && (
-              <span className="sidebar-badge" title="Cadastros do site aguardando confirmação">
-                {aniversariosPendentes}
-              </span>
-            )}
-          </button>
-          <button
-            type="button"
-            className={"sidebar-item" + (viewMode === "cadastros" ? " active" : "")}
-            onClick={() => onSelect("cadastros")}
-          >
-            <LinkIcon /> Cadastros
-          </button>
-          <button
-            type="button"
-            className={"sidebar-item" + (viewMode === "clientes" ? " active" : "")}
-            onClick={() => onSelect("clientes")}
-          >
-            <UsersGroupIcon /> Clientes
-          </button>
-          <button
-            type="button"
-            className={"sidebar-item" + (viewMode === "estudo" ? " active" : "")}
-            onClick={() => onSelect("estudo")}
-          >
-            <BookOpenIcon /> Plano de Estudo
-          </button>
-          <button
-            type="button"
-            className={"sidebar-item" + (viewMode === "manutencao" ? " active" : "")}
-            onClick={() => onSelect("manutencao")}
-          >
-            <CarIcon /> Manutenção
-          </button>
-          <button
-            type="button"
-            className={"sidebar-item" + (viewMode === "medications" ? " active" : "")}
-            onClick={() => onSelect("medications")}
-          >
-            <PillIcon /> Medicamentos
-          </button>
-          <button
-            type="button"
-            className={"sidebar-item" + (viewMode === "checklists" ? " active" : "")}
-            onClick={() => onSelect("checklists")}
-          >
-            <ChecklistIcon /> Checklists
-          </button>
-          <button
-            type="button"
-            className={"sidebar-item" + (viewMode === "diet" ? " active" : "")}
-            onClick={() => onSelect("diet")}
-          >
-            <MealIcon /> Dieta
-          </button>
-          <button
-            type="button"
-            className={"sidebar-item" + (viewMode === "projects" ? " active" : "")}
-            onClick={() => onSelect("projects")}
-          >
-            <FolderIcon /> Projetos
-          </button>
-          <button
-            type="button"
-            className={"sidebar-item" + (viewMode === "meetings" ? " active" : "")}
-            onClick={() => onSelect("meetings")}
-          >
-            <UsersGroupIcon /> Reuniões
-          </button>
-        </div>
+        {/* Agrupado por assunto: antes era uma fila única de 20 itens e achar Clientes
+            ou Dieta pedia ler a lista inteira. Os itens e a ordem dentro de cada grupo
+            são os mesmos de antes. */}
+        {GRUPOS.map((grupo) => (
+          <div className="sidebar-section" key={grupo.titulo}>
+            <div className="sidebar-section-label">{grupo.titulo}</div>
+            {grupo.itens.map((item) => {
+              const numero = item.selo === "paraRevisar" ? paraRevisar : item.selo === "aniversarios" ? aniversariosPendentes : 0;
+              return (
+                <button
+                  key={item.modo}
+                  type="button"
+                  className={"sidebar-item" + (item.destaque ? " sidebar-item-destaque" : "") + (viewMode === item.modo ? " active" : "")}
+                  onClick={() => onSelect(item.modo)}
+                >
+                  {item.icone} {item.rotulo}
+                  {numero > 0 && (
+                    <span
+                      className="sidebar-badge"
+                      title={item.selo === "paraRevisar" ? "Aprendizados esperando você aprovar" : "Cadastros do site aguardando confirmação"}
+                    >
+                      {numero}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        ))}
 
         <div className="sidebar-section sidebar-section-bottom">
           <button
