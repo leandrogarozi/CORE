@@ -1149,11 +1149,11 @@ export function useBoard(userId: string | null) {
   );
 
   const addBook = useCallback(
-    (title: string) => {
+    (title: string, kind: Book["kind"] = "livro") => {
       if (!userId || !title.trim()) return;
-      const siblings = stateRef.current.books.filter((b) => b.status === "para_ler");
+      const siblings = stateRef.current.books.filter((b) => b.status === "para_ler" && b.kind === kind);
       const order = siblings.length ? Math.max(...siblings.map((b) => b.order || 0)) + 1 : 0;
-      const b: Book = { id: uid(), title: title.trim(), status: "para_ler", priority: "media", insights: null, startedAt: null, order };
+      const b: Book = { id: uid(), kind, title: title.trim(), status: "para_ler", priority: "media", insights: null, startedAt: null, order };
       apply((s) => ({ ...s, books: [...s.books, b] }));
       supabase.from("books").insert(bookToInsertRow(b, userId)).then(({ error }) => {
         if (error) reportSaveError("addBook", error);

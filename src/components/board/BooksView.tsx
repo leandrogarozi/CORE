@@ -26,11 +26,12 @@ import { listaReordenada } from "@/lib/board/reordenar";
 import { arquivoDoLivro } from "@/lib/learning-export";
 import { baixarTexto, soONome } from "@/lib/baixar";
 import {
-  BOOK_GROUP_LABEL,
+  BOOK_KIND_INFO,
+  BOOK_KIND_ORDER,
   BOOK_STATUS_COLOR,
-  BOOK_STATUS_LABEL,
   BOOK_STATUS_ORDER,
   type Book,
+  type BookKind,
   type BookStatus,
 } from "@/lib/types";
 
@@ -136,11 +137,13 @@ function BookStartDateButton({ book }: { book: Book }) {
 function BookStatusMenu({
   anchorRect,
   currentStatus,
+  kind,
   onSelect,
   onClose,
 }: {
   anchorRect: DOMRect;
   currentStatus: BookStatus;
+  kind: BookKind;
   onSelect: (status: BookStatus) => void;
   onClose: () => void;
 }) {
@@ -165,7 +168,7 @@ function BookStatusMenu({
           onClick={() => onSelect(s)}
         >
           <span className="status-menu-dot" style={{ background: BOOK_STATUS_COLOR[s] }} />
-          {BOOK_STATUS_LABEL[s]}
+          {BOOK_KIND_INFO[kind].status[s]}
         </button>
       ))}
     </div>,
@@ -194,12 +197,13 @@ function BookStatusPicker({ book }: { book: Book }) {
         type="button"
         className="book-status-dot"
         style={{ "--pill-color": BOOK_STATUS_COLOR[book.status] } as React.CSSProperties}
-        title={BOOK_STATUS_LABEL[book.status]}
+        title={BOOK_KIND_INFO[book.kind].status[book.status]}
         onClick={toggleOpen}
       />
       {anchorRect && (
         <BookStatusMenu
           anchorRect={anchorRect}
+          kind={book.kind}
           currentStatus={book.status}
           onSelect={(status) => {
             board.updateBook(book.id, { status });
@@ -245,7 +249,7 @@ function BookInsightsButton({ book }: { book: Book }) {
       <button
         type="button"
         className={"comment-btn" + (book.insights ? " has-comment" : "")}
-        aria-label="Resumo e insights do livro"
+        aria-label={`Resumo e insights do ${BOOK_KIND_INFO[book.kind].um}`}
         title={stripHtml(book.insights ?? "") || "Resumo / insights"}
         onClick={openSheet}
       >
@@ -259,7 +263,7 @@ function BookInsightsButton({ book }: { book: Book }) {
               <div className="modal-head">
                 <span className="modal-title">{book.title}</span>
               </div>
-              <div className="hint-text">Resumo, trechos marcantes, insights — o que quiser guardar sobre esse livro.</div>
+              <div className="hint-text">Resumo, trechos marcantes, insights — o que quiser guardar sobre {book.kind === "livro" ? "esse livro" : book.kind === "filme" ? "esse filme" : "essa série"}.</div>
               <RichTextEditor value={draft} onChange={setDraft} placeholder="Escreva aqui..." autoFocus />
               <div className="edit-actions" style={{ marginTop: 10 }}>
                 <button type="button" className="btn btn-ghost" onClick={() => setOpen(false)}>
@@ -291,6 +295,62 @@ function BookPriorityFlag({ book }: { book: Book }) {
     >
       <FlagIcon color={priorityColor(book.priority)} />
     </button>
+  );
+}
+
+/**
+ * Depois de concluir (assistido/lido), as anotações podem ir para onde viram aprendizado:
+ * Estudos (Ideias e Estudos) ou Nova Sinapse. Assim as anotações do filme/série não ficam soltas aqui.
+ */
+function BookEnviarAnotacoes({ book }: { book: Book }) {
+  const { board } = useBoardCtx();
+  const [aberto, setAberto] = useState(false);
+  const [aviso, setAviso] = useState<string | null>(null);
+  const info = BOOK_KIND_INFO[book.kind];
+  const fonte = `${book.kind === "livro" ? "Livro" : book.kind === "filme" ? "Filme" : "Série"}: ${book.title}`;
+  if (!stripHtml(book.insights ?? "").trim()) return null;
+
+  async function enviar(para: "estudo" | "sinapse") {
+    setAberto(false);
+    const jaFoi = board.state.synapses.some((s) => s.source === fonte && (para === "estudo" ? s.kind === "ideia" : s.kind === "sinapse"));
+    if (jaFoi) {
+      setAviso(`Já enviado para ${para === "estudo" ? "Estudos" : "Nova Sinapse"}.`);
+      return;
+    }
+    const id = await board.addSynapse(
+      book.title,
+      para === "estudo"
+        ? { kind: "ideia", tag: "estudo", learning: book.insights ?? "", source: fonte }
+        : { kind: "sinapse", learning: book.insights ?? "", source: fonte }
+    );
+    setAviso(id ? `Enviado para ${para === "estudo" ? "Estudos (Ideias e Estudos)" : "Nova Sinapse"}.` : "Não consegui enviar agora.");
+    if (id) setTimeout(() => setAviso(null), 4000);
+  }
+
+  return (
+    <span className="book-enviar">
+      <button
+        type="button"
+        className="btn btn-ghost book-enviar-btn"
+        title={`Levar as anotações deste ${info.um} para Estudos ou Nova Sinapse`}
+        aria-haspopup="menu"
+        aria-expanded={aberto}
+        onClick={() => setAberto((v) => !v)}
+      >
+        Enviar anotações
+      </button>
+      {aberto && (
+        <span className="book-enviar-menu" role="menu">
+          <button type="button" role="menuitem" onClick={() => void enviar("estudo")}>
+            Para Estudos
+          </button>
+          <button type="button" role="menuitem" onClick={() => void enviar("sinapse")}>
+            Para Nova Sinapse
+          </button>
+        </span>
+      )}
+      {aviso && <span className="book-enviar-aviso">{aviso}</span>}
+    </span>
   );
 }
 
@@ -371,7 +431,8 @@ function BookRow({
       <BookStatusPicker book={book} />
       <BookPriorityFlag book={book} />
       <BookInsightsButton book={book} />
-      <AttachmentsButton entityType="book" entityId={book.id} ariaLabel="Anexos do livro" />
+      {book.status === "finalizado" && <BookEnviarAnotacoes book={book} />}
+      <AttachmentsButton entityType="book" entityId={book.id} ariaLabel={`Anexos do ${BOOK_KIND_INFO[book.kind].um}`} />
       {(() => {
         const arquivo = arquivoDoLivro(book);
         return arquivo ? (
@@ -399,6 +460,8 @@ function BookRow({
 
 export function BooksView({ onBack }: { onBack: () => void }) {
   const { board } = useBoardCtx();
+  const [kind, setKind] = useState<BookKind>("livro");
+  const info = BOOK_KIND_INFO[kind];
   const [newTitle, setNewTitle] = useState("");
   const [search, setSearch] = useState("");
   const [collapsed, setCollapsed] = useState<Partial<Record<BookStatus, boolean>>>({});
@@ -409,7 +472,7 @@ export function BooksView({ onBack }: { onBack: () => void }) {
   function handleAdd() {
     const title = newTitle.trim();
     if (!title) return;
-    board.addBook(title);
+    board.addBook(title, kind);
     setNewTitle("");
   }
 
@@ -433,11 +496,31 @@ export function BooksView({ onBack }: { onBack: () => void }) {
         <button className="strip-nav" type="button" aria-label="Voltar" onClick={onBack}>
           ‹
         </button>
-        <span className="dash-range-label">Livros</span>
+        <span className="dash-range-label">Livros / Filmes e séries</span>
         <span style={{ width: 32 }} />
       </div>
 
       <div className="narrow-list">
+        <div className="note-options-chips book-kind-abas" role="tablist" aria-label="Escolha a lista">
+          {BOOK_KIND_ORDER.map((k) => (
+            <button
+              key={k}
+              type="button"
+              role="tab"
+              aria-selected={kind === k}
+              className={"note-chip" + (kind === k ? " active" : "")}
+              onClick={() => {
+                setKind(k);
+                setSearch("");
+                setNewTitle("");
+              }}
+            >
+              {BOOK_KIND_INFO[k].aba}
+              <span className="bday-filtro-n">{board.state.books.filter((b) => b.kind === k).length}</span>
+            </button>
+          ))}
+        </div>
+
         <div className="list-quickadd-card">
           <div className="quickadd-row">
             <span className="quickadd-plus" aria-hidden="true">
@@ -446,7 +529,7 @@ export function BooksView({ onBack }: { onBack: () => void }) {
             <input
               type="text"
               className="quickadd-input"
-              placeholder="+ Adicionar livro e pressionar Enter"
+              placeholder={`+ Adicionar ${info.um} e pressionar Enter`}
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
@@ -462,7 +545,7 @@ export function BooksView({ onBack }: { onBack: () => void }) {
             <input
               type="text"
               className="quickadd-input"
-              placeholder="Buscar livro pelo título..."
+              placeholder={`Buscar ${info.um} pelo título...`}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -471,7 +554,7 @@ export function BooksView({ onBack }: { onBack: () => void }) {
 
         {BOOK_STATUS_ORDER.map((status) => {
           const books = board.state.books
-            .filter((b) => b.status === status)
+            .filter((b) => b.kind === kind && b.status === status)
             .filter((b) => !searchTerm || b.title.toLowerCase().includes(searchTerm))
             .sort((a, b) => (a.order || 0) - (b.order || 0));
           const isCollapsed = !!collapsed[status];
@@ -493,7 +576,7 @@ export function BooksView({ onBack }: { onBack: () => void }) {
                   style={{ "--group-color": BOOK_STATUS_COLOR[status] } as React.CSSProperties}
                 >
                   <GroupIcon />
-                  <span className="book-group-name">{BOOK_GROUP_LABEL[status]}</span>
+                  <span className="book-group-name">{info.grupo[status]}</span>
                 </span>
                 <span className="book-group-count">{books.length}</span>
               </button>

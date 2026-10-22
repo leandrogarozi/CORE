@@ -858,7 +858,7 @@ function BackupDeAprendizadoBox() {
   const nome = nomeDraft ?? backupName ?? "";
 
   const dados: DadosDoBackup = {
-    livros: board.state.books,
+    livros: board.state.books.filter((b) => b.kind === "livro"),
     sinapses: board.state.synapses.filter((s) => s.kind !== "ideia"),
     ideias: board.state.synapses.filter((s) => s.kind === "ideia"),
     conhecendo: board.state.knowledgeItems.filter((k) => k.status === "aprovado").map(conhecimentoParaExportar),

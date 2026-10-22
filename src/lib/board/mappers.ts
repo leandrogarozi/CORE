@@ -660,6 +660,7 @@ export function shoppingToUpdateRow(i: Partial<ShoppingItem>): TablesUpdate<"sho
 export function rowToBook(row: BookRow): Book {
   return {
     id: row.id,
+    kind: row.kind === "filme" || row.kind === "serie" ? row.kind : "livro",
     title: row.title,
     status: row.status as BookStatus,
     priority: row.priority as Priority,
@@ -673,6 +674,7 @@ export function bookToInsertRow(b: Book, userId: string): TablesInsert<"books"> 
   return {
     id: b.id,
     user_id: userId,
+    kind: b.kind,
     title: b.title,
     status: b.status,
     priority: b.priority,

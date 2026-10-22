@@ -102,7 +102,7 @@ export function Sidebar({
             className={"sidebar-item" + (viewMode === "books" ? " active" : "")}
             onClick={() => onSelect("books")}
           >
-            <BookIcon /> Livros
+            <BookIcon /> Livros / Filmes e séries
           </button>
           <button
             type="button"

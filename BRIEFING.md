@@ -120,6 +120,10 @@ Quando o Leandro perguntar "quanto custa e quanto tempo leva", responder com ist
 
 Nova tag **Evento** (`Category = "evento"`, cor ocre; liberada nas constraints `tasks_category_check` e `task_series_category_check`). Compromisso com hora marcada que tem a tag Reunião **ou** Evento não mostra mais o aviso; sem nenhuma das duas, a linha mostra "falta a tag: Reunião | Evento" (`faltaTagReuniao`, `tagsParaCompromisso` em `reunioes.ts`). Evento continua aparecendo na tela Reuniões como compromisso (`entraEmReunioes` não mudou): se ele preferir que Evento saia dessa tela, é uma linha em `types.ts`.
 
+## Livros / Filmes e séries (22/10)
+
+A tela **Livros** virou **Livros / Filmes e séries**: três abas (Livros, Filmes, Séries) na mesma tela, com os mesmos grupos de status, que mudam de nome por tipo (Para assistir / Assistindo / Assistido). Coluna nova `books.kind` (`livro` padrão, `filme`, `serie`); as listas de backup e do conector do Claude continuam só com livros (o backup completo em JSON leva tudo). As anotações de cada item usam o botão de comentário (editor com microfone). Quando o item está concluído e tem anotações, aparece **Enviar anotações** → **Para Estudos** (Ideias e Estudos, tag Estudo) ou **Para Nova Sinapse**, com a fonte "Série: nome" (não envia duas vezes para o mesmo destino). Já cadastradas em Séries: Arnold (2023), Beckham (2023) e Ted Lasso.
+
 ## ▶ RETOMAR AQUI (atualizado em 16/10/2026, noite)
 
 **Objetivo dele agora:** (A) **liberar o FARO para teste** com pessoas dele e (B) **sincronizar com o Google Agenda**.

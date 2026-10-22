@@ -374,6 +374,33 @@ export interface ActiveTimer {
 
 export type BookStatus = "para_ler" | "lendo" | "finalizado";
 
+/** A mesma tela guarda três listas: livros, filmes e séries. O status é o mesmo; só o nome muda. */
+export type BookKind = "livro" | "filme" | "serie";
+export const BOOK_KIND_ORDER: BookKind[] = ["livro", "filme", "serie"];
+export const BOOK_KIND_INFO: Record<
+  BookKind,
+  { aba: string; um: string; status: Record<BookStatus, string>; grupo: Record<BookStatus, string> }
+> = {
+  livro: {
+    aba: "Livros",
+    um: "livro",
+    status: { para_ler: "Para ler", lendo: "Lendo", finalizado: "Finalizado" },
+    grupo: { para_ler: "Para ler", lendo: "Em leitura", finalizado: "Concluído" },
+  },
+  filme: {
+    aba: "Filmes",
+    um: "filme",
+    status: { para_ler: "Para assistir", lendo: "Assistindo", finalizado: "Assistido" },
+    grupo: { para_ler: "Para assistir", lendo: "Assistindo agora", finalizado: "Já assisti" },
+  },
+  serie: {
+    aba: "Séries",
+    um: "série",
+    status: { para_ler: "Para assistir", lendo: "Assistindo", finalizado: "Assistida" },
+    grupo: { para_ler: "Para assistir", lendo: "Assistindo agora", finalizado: "Já assisti" },
+  },
+};
+
 export const BOOK_STATUS_ORDER: BookStatus[] = ["lendo", "para_ler", "finalizado"];
 
 export const BOOK_STATUS_LABEL: Record<BookStatus, string> = {
@@ -396,6 +423,7 @@ export const BOOK_GROUP_LABEL: Record<BookStatus, string> = {
 
 export interface Book {
   id: string;
+  kind: BookKind;
   title: string;
   status: BookStatus;
   priority: Priority;

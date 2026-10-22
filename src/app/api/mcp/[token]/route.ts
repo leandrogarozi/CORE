@@ -40,7 +40,7 @@ async function donoDoConector(token: string): Promise<string | null> {
 async function carregarAcervo(usuario: string): Promise<AcervoDoFaro> {
   const supabase = createServiceClient();
   const [livros, sinapses, conhecimento, config] = await Promise.all([
-    supabase.from("books").select("id, title, status, insights, created_at").eq("user_id", usuario),
+    supabase.from("books").select("id, title, status, insights, created_at").eq("user_id", usuario).eq("kind", "livro"),
     supabase.from("synapses").select("*").eq("user_id", usuario).is("deleted_at", null),
     supabase
       .from("knowledge_items")
