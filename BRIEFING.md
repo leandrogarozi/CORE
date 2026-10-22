@@ -124,6 +124,10 @@ Nova tag **Evento** (`Category = "evento"`, cor ocre; liberada nas constraints `
 
 A tela **Livros** virou **Livros / Filmes e séries**: três abas (Livros, Filmes, Séries) na mesma tela, com os mesmos grupos de status, que mudam de nome por tipo (Para assistir / Assistindo / Assistido). Coluna nova `books.kind` (`livro` padrão, `filme`, `serie`); as listas de backup e do conector do Claude continuam só com livros (o backup completo em JSON leva tudo). As anotações de cada item usam o botão de comentário (editor com microfone). Quando o item está concluído e tem anotações, aparece **Enviar anotações** → **Para Estudos** (Ideias e Estudos, tag Estudo) ou **Para Nova Sinapse**, com a fonte "Série: nome" (não envia duas vezes para o mesmo destino). Já cadastradas em Séries: Arnold (2023), Beckham (2023) e Ted Lasso.
 
+## Lembrete de manutenção também vira aviso (22/10)
+
+Quando o push de um lembrete de **manutenção** (`source_kind='maintenance'`: comprar, antes, hoje, vencido 1/2/3) sai, o servidor grava também um aviso na caixa **Avisos** (`faro_avisos`, `tipo='manutencao'`, destino Manutenção) em `src/lib/push/dispatch.ts`, com o texto de `src/lib/push/aviso-manutencao.ts`. Nos de cobrança (vencido) o corpo pergunta "Você já fez?". Um aviso por momento (a marca `push_sent_for` já impede repetir). Sem aparelho inscrito o aviso vai igual. O título do push e do aviso sai sem as tags `<p>` da anotação. Se o item for marcado como feito, os próximos momentos somem sozinhos, então não há mais aviso. Obs.: existem dois itens de colchão na Manutenção ("Virar colchão Casal" e "Virar colchão casal").
+
 ## ▶ RETOMAR AQUI (atualizado em 16/10/2026, noite)
 
 **Objetivo dele agora:** (A) **liberar o FARO para teste** com pessoas dele e (B) **sincronizar com o Google Agenda**.

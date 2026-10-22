@@ -5,6 +5,8 @@ import { rowToReminder } from "@/lib/board/mappers";
 import { pushDevido } from "@/lib/board/reminder-alerts";
 import { semLembreteDeTarefaApagada } from "@/lib/board/zap-engine";
 import { fmtDayMonth } from "@/lib/date-utils";
+import { stripHtml } from "@/lib/rich-text";
+import { avisoDaManutencao } from "./aviso-manutencao";
 
 const DEFAULT_TIME_ZONE = "America/Sao_Paulo";
 
@@ -85,7 +87,9 @@ export async function enviarPushesDosLembretes(
 
   for (const { row, chave } of devidos) {
     const aparelhos = (subs ?? []).filter((s) => s.user_id === row.user_id);
-    if (aparelhos.length === 0) {
+    const ehManutencao = row.source_kind === "maintenance";
+    // Sem aparelho não há push, mas o aviso da manutenção vai para a caixa do mesmo jeito.
+    if (aparelhos.length === 0 && !ehManutencao) {
       out.semAparelho++;
       continue;
     }
@@ -103,8 +107,20 @@ export async function enviarPushesDosLembretes(
     }
     if (!marcou || marcou.length === 0) continue;
 
+    // Lembrete de manutenção também cai na caixa Avisos (a marca acima garante um só por momento).
+    // Falha aqui não pode impedir o push.
+    if (ehManutencao) {
+      const aviso = avisoDaManutencao(row);
+      const { error: erroAviso } = await supabase
+        .from("faro_avisos")
+        .insert({ user_id: row.user_id, tipo: "manutencao", ...aviso });
+      if (erroAviso) out.erros.push(`${row.id}: aviso na caixa falhou (${erroAviso.message})`);
+    }
+
     const quando = `${row.remind_date ? fmtDayMonth(row.remind_date) : ""}${row.remind_time ? ` às ${row.remind_time}` : ""}`.trim();
-    const payload = JSON.stringify({ title: row.title, body: quando, url: "/" });
+    // A anotação da manutenção é texto rico e o título do lembrete herda o <p>…</p>: o celular mostraria as tags.
+    const titulo = ehManutencao ? stripHtml(row.title) : row.title;
+    const payload = JSON.stringify({ title: titulo, body: quando, url: "/" });
 
     const mortos: string[] = [];
     let chegouEmAlgum = false;
