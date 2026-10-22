@@ -1293,6 +1293,12 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .quick-bolt svg{ width:10px; height:10px; }
 .quick-bolt.filled{ color:var(--book-yellow); opacity:1; }
 .row-desc-cell{ display:flex; align-items:center; gap:8px; min-width:0; }
+/* No computador (modo compacto inclusive) o texto da descrição NÃO empurra as outras colunas:
+   `contain:inline-size` tira o tamanho do texto do cálculo da largura da linha, então toda linha
+   tem as mesmas colunas (bandeira, play, copiar, excluir alinhados). Título longo é cortado com
+   "…" e aparece inteiro ao passar o mouse (title) ou ao clicar. */
+.row-desc-cell{ contain:inline-size; overflow:hidden; }
+.row-desc-cell .row-title{ flex:1 1 0; min-width:48px; }
 .row-title{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; cursor:text; font-size:var(--fs-3); background:none; border:none; text-align:left; padding:0; }
 .task-row.done .row-title{ text-decoration:line-through; color:var(--text-muted); }
 .row-category-cell{ display:flex; align-items:center; gap:6px; min-width:0; }
@@ -2827,7 +2833,7 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
      bandeirinha, anexo, excluir) cai junto numa faixa só embaixo. Com
      `flex-basis:100%` nos raios eles ganhavam uma linha inteira só pra si, e a
      tarefa ficava com três linhas de altura. */
-  .row-desc-cell{ order:1; flex:1 1 calc(100% - 23px); min-width:0; align-items:flex-start; }
+  .row-desc-cell{ order:1; flex:1 1 calc(100% - 23px); min-width:0; align-items:flex-start; contain:none; overflow:visible; }
   .task-row > .quick-bolts{ margin-top:1px; }
   /* O título quebra em quantas linhas precisar; o `overflow:hidden` com
      reticências que serve no desktop é justamente o que escondia o texto. */

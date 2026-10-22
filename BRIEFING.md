@@ -6074,3 +6074,7 @@ correto e já implementado).
 - "N tarefas atrasadas" (tela do dia) abre o Dashboard com a lista das atrasadas.
 - Aparência: cor do fundo só vale ao clicar em "Salvar cor" (relê do banco e confirma). Se ainda voltar ao azul, investigar `settings.bg_tone` no Supabase.
 - Canvas "Layouts FARO" agora em 5 páginas. Detalhes em `docs/LAYOUT-FARO.md`.
+
+## Lista de tarefas compacta: colunas alinhadas (22/10, noite)
+- Antes, uma descrição longa alargava a própria linha e empurrava bandeira, play, copiar e excluir para fora de prumo. Agora a descrição (`.row-desc-cell`, `contain:inline-size`) não entra no cálculo da largura: todas as linhas têm as mesmas colunas, o título longo é cortado com "…" e aparece inteiro ao passar o mouse (title) ou ao clicar. No celular continua quebrando em linhas.
+- Desenho novo, aguardando aprovação (nada aplicado): "Registro do dia e saudação (proposta A/B)" na página 1 do canvas. A saudação menor também só depois do OK.
