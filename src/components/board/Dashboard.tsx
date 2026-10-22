@@ -94,6 +94,48 @@ function eachDateInRange(fromISO: string, toISO: string): string[] {
   return out;
 }
 
+/** O período imediatamente anterior, do mesmo tamanho: ontem, a semana passada ou o mês passado. */
+function intervaloAnterior(period: Period, fromISO: string, toISO: string) {
+  if (period === "day") return { fromISO: isoAddDays(fromISO, -1), toISO: isoAddDays(toISO, -1) };
+  if (period === "week") return { fromISO: isoAddDays(fromISO, -7), toISO: isoAddDays(toISO, -7) };
+  const d = dateFromISO(fromISO);
+  const y = d.getFullYear();
+  const m = d.getMonth() - 1;
+  const ultimo = new Date(y, m + 1, 0).getDate();
+  return { fromISO: isoFromDate(new Date(y, m, 1)), toISO: isoFromDate(new Date(y, m, ultimo)) };
+}
+
+/**
+ * Os números que ganham comparação (concluídas, tempo total, trabalho, estudo) para um
+ * intervalo qualquer. Mesma conta do período atual: o tempo vem da regra única de task-time.ts e
+ * hábito ou bloco com tag soma na categoria dele (sem contar duas vezes no total).
+ */
+function numerosDoIntervalo(s: ReturnType<typeof useBoardCtx>["board"]["state"], fromISO: string, toISO: string) {
+  const days = eachDateInRange(fromISO, toISO);
+  const taskTime = taskMinutesInRange(s, fromISO, toISO);
+  const byCategory: Partial<Record<Category, number>> = { ...taskTime.byCategory };
+  let extra = 0;
+  for (const item of [...s.habits, ...s.fixedBlocks]) {
+    const min = days.reduce((sum, iso) => sum + (item.logs[iso]?.checked ? Math.round(item.logs[iso].trackedSeconds / 60) : 0), 0);
+    extra += min;
+    if (item.category && min > 0) byCategory[item.category] = (byCategory[item.category] || 0) + min;
+  }
+  return {
+    done: s.tasks.filter((t) => t.done && t.date && t.date >= fromISO && t.date <= toISO).length,
+    totalMin: taskTime.total + extra,
+    workMin: (byCategory.trabalho || 0) + (byCategory.pessoal || 0),
+    studyMin: (byCategory.estudo || 0) + (byCategory.dev || 0),
+  };
+}
+
+/** "▲ 12%" / "▼ 5%" em relação ao período anterior; sem pílula quando não há com o que comparar. */
+function Variacao({ atual, antes }: { atual: number; antes: number }) {
+  if (antes <= 0) return null;
+  const pct = Math.round(((atual - antes) / antes) * 100);
+  if (pct === 0) return <span className="dsh-delta igual">= igual</span>;
+  return <span className={"dsh-delta " + (pct > 0 ? "sobe" : "desce")}>{pct > 0 ? "▲" : "▼"} {Math.abs(pct)}%</span>;
+}
+
 export function Dashboard() {
   const { board, openTaskInDay } = useBoardCtx();
   const [period, setPeriod] = useState<Period>("week");
@@ -191,6 +233,14 @@ export function Dashboard() {
       statusBuckets[st.id] = s.tasks.filter((t) => t.statusId === st.id);
     });
 
+    const ant = intervaloAnterior(period, fromISO, toISO);
+    const anterior = numerosDoIntervalo(s, ant.fromISO, ant.toISO);
+    const porDia = days.map((iso) => ({
+      iso,
+      done: s.tasks.filter((t) => t.date === iso && t.done).length,
+      pending: s.tasks.filter((t) => t.date === iso && !t.done).length,
+    }));
+
     const moodDays = days.map((iso) => ({ iso, mood: s.dailyLogs[iso]?.mood ?? null }));
     // "Doente" (v:0) é um estado físico, não um nível de humor — fica fora da média.
     const moodValues = moodDays.map((d) => d.mood).filter((v): v is number => v !== null && v !== 0);
@@ -219,8 +269,10 @@ export function Dashboard() {
       taskStatuses: [...s.taskStatuses].sort((a, b) => a.order - b.order),
       moodDays,
       moodAvg,
+      anterior,
+      porDia,
     };
-  }, [board.state, fromISO, toISO, today]);
+  }, [board.state, fromISO, toISO, today, period]);
 
   // A cor da fatia é a MESMA que o usuário configura nas tags, em Configurações
   // — antes a pizza tinha uma paleta própria, fixa no código, e não dava pra
@@ -275,6 +327,8 @@ export function Dashboard() {
     : 0;
 
   const doneTotal = stats.doneCount + stats.pendingCount;
+  const rotuloAnterior = period === "day" ? "vs dia anterior" : period === "week" ? "vs semana passada" : "vs mês passado";
+  const maxPorDia = Math.max(1, ...stats.porDia.map((d) => d.done + d.pending));
 
   const moodOn = isFeatureEnabled(board.state.settings.featureFlags, "mood");
   const sleepOn = isFeatureEnabled(board.state.settings.featureFlags, "sleep");
@@ -327,6 +381,14 @@ export function Dashboard() {
           Os números são irmãos: separá-los em cartões fazia cada um pedir
           atenção por conta própria. */}
       <div className="dsh-kpis">
+        <div className="dsh-kpi destaque">
+          <span className="dsh-kpi-n">{stats.doneCount}</span>
+          <span className="dsh-kpi-l">Concluídas no período</span>
+          <span className="dsh-kpi-cmp">
+            <Variacao atual={stats.doneCount} antes={stats.anterior.done} />
+            {stats.anterior.done > 0 && <em>{rotuloAnterior}</em>}
+          </span>
+        </div>
         <button
           type="button"
           className={"dsh-kpi" + (stats.overdueCount > 0 ? " alerta" : "")}
@@ -352,26 +414,34 @@ export function Dashboard() {
           <span className="dsh-kpi-l">Tópicos abertos</span>
         </button>
         <div className="dsh-kpi">
-          <span className="dsh-kpi-n">{stats.doneCount}</span>
-          <span className="dsh-kpi-l">Concluídas no período</span>
-        </div>
-        <div className="dsh-kpi">
           <span className="dsh-kpi-n">
             <Tempo min={stats.totalMin} />
           </span>
           <span className="dsh-kpi-l">Tempo total</span>
+          <span className="dsh-kpi-cmp">
+            <Variacao atual={stats.totalMin} antes={stats.anterior.totalMin} />
+            {stats.anterior.totalMin > 0 && <em>{rotuloAnterior}</em>}
+          </span>
         </div>
         <div className="dsh-kpi">
           <span className="dsh-kpi-n">
             <Tempo min={stats.workMin} />
           </span>
           <span className="dsh-kpi-l">Horas trabalhadas</span>
+          <span className="dsh-kpi-cmp">
+            <Variacao atual={stats.workMin} antes={stats.anterior.workMin} />
+            {stats.anterior.workMin > 0 && <em>{rotuloAnterior}</em>}
+          </span>
         </div>
         <div className="dsh-kpi">
           <span className="dsh-kpi-n">
             <Tempo min={stats.studyMin} />
           </span>
           <span className="dsh-kpi-l">Estudo e dev. pessoal</span>
+          <span className="dsh-kpi-cmp">
+            <Variacao atual={stats.studyMin} antes={stats.anterior.studyMin} />
+            {stats.anterior.studyMin > 0 && <em>{rotuloAnterior}</em>}
+          </span>
         </div>
       </div>
 
@@ -433,6 +503,33 @@ export function Dashboard() {
             </div>
           ))}
         </div>
+
+        {stats.porDia.length > 1 && (
+          <div className="dsh-card">
+            <div className="dsh-card-title">
+              Concluídas e pendentes por dia
+            </div>
+            <div className="dsh-dia-chart" role="img" aria-label="Tarefas concluídas e pendentes em cada dia do período">
+              {stats.porDia.map((d) => (
+                <div className="dsh-dia-col" key={d.iso} title={`${fmtDayMonth(d.iso)}: ${d.done} concluídas, ${d.pending} pendentes`}>
+                  <span className="dsh-dia-n">{d.done + d.pending > 0 ? d.done + d.pending : ""}</span>
+                  <span className="dsh-dia-pend" style={{ height: `${(d.pending / maxPorDia) * 96}px` }} />
+                  <span className="dsh-dia-done" style={{ height: `${(d.done / maxPorDia) * 96}px` }} />
+                </div>
+              ))}
+            </div>
+            <div className="dsh-dia-eixo">
+              {stats.porDia.map((d) => (
+                <span key={d.iso} className={d.iso === today ? "hoje" : undefined}>
+                  {period === "month" ? dateFromISO(d.iso).getDate() : DAY_NAMES[dateFromISO(d.iso).getDay()].slice(0, 3)}
+                </span>
+              ))}
+            </div>
+            <div className="dsh-hint">
+              <span className="dsh-legenda-quad done" /> concluídas <span className="dsh-legenda-quad pend" /> pendentes
+            </div>
+          </div>
+        )}
 
         <div className="dsh-card">
           {moodOn && (
