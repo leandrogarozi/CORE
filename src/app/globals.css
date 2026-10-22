@@ -3380,3 +3380,10 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .book-enviar-opcao span{ display:block; font-size:12px; color:var(--text-muted); }
 .book-enviar-opcao:hover{ background:var(--accent-soft); }
 .book-enviar-aviso{ font-size:11px; color:var(--success); white-space:nowrap; }
+
+.book-enviado{ display:inline-flex; gap:6px; flex:0 1 auto; min-width:0; }
+.book-row .book-title-input{ min-width:90px; }
+.book-enviado-tag{
+  font-size:11px; color:var(--success); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; padding:2px 8px; border-radius:999px;
+  background:color-mix(in srgb, var(--success) 12%, var(--surface));
+}

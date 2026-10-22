@@ -20,7 +20,7 @@ import {
 } from "./icons";
 import { RichTextEditor } from "./RichTextEditor";
 import { priorityColor, priorityLabel, nextPriority } from "./TaskRow";
-import { fmtShortDate } from "@/lib/date-utils";
+import { fmtDayMonth, fmtShortDate, isoFromDate } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 import { stripHtml } from "@/lib/rich-text";
 import { listaReordenada } from "@/lib/board/reordenar";
@@ -314,6 +314,20 @@ function BookEnviarAnotacoes({ book }: { book: Book }) {
   const [enviando, setEnviando] = useState(false);
   const info = BOOK_KIND_INFO[book.kind];
   const fonte = `${book.kind === "livro" ? "Livro" : book.kind === "filme" ? "Filme" : "Série"}: ${book.title}`;
+  // O registro vem das próprias sinapses/estudos criados (fonte = este item): não precisa de coluna nova
+  // e some sozinho se ele apagar o que foi enviado — aí o botão volta.
+  const enviados = board.state.synapses.filter((x) => x.source === fonte);
+  if (enviados.length > 0) {
+    return (
+      <span className="book-enviado" title="As anotações já foram levadas para lá">
+        {enviados.map((x) => (
+          <span key={x.id} className="book-enviado-tag">
+            ✓ Enviado para {x.kind === "ideia" ? "Estudos" : "Nova Sinapse"} · {fmtDayMonth(isoFromDate(new Date(x.createdAt)))}
+          </span>
+        ))}
+      </span>
+    );
+  }
   if (!stripHtml(book.insights ?? "").trim()) return null;
 
   function jaEnviado(para: "estudo" | "sinapse") {
@@ -341,8 +355,10 @@ function BookEnviarAnotacoes({ book }: { book: Book }) {
     );
     setEnviando(false);
     fechar();
-    setAviso(id ? `Enviado para ${para === "estudo" ? "Estudos (Ideias e Estudos)" : "Nova Sinapse"}.` : "Não consegui enviar agora.");
-    setTimeout(() => setAviso(null), 4000);
+    if (!id) {
+      setAviso("Não consegui enviar agora.");
+      setTimeout(() => setAviso(null), 4000);
+    }
   }
 
   return (
