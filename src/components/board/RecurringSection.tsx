@@ -13,7 +13,16 @@ import { CATEGORY_LABEL } from "@/lib/types";
 
 type Kind = "habit" | "block";
 
-export function RecurringSection({ kind, weekAnchor }: { kind: Kind; weekAnchor: Date }) {
+export function RecurringSection({
+  kind,
+  weekAnchor,
+  podeCadastrar = true,
+}: {
+  kind: Kind;
+  weekAnchor: Date;
+  /** Falso na tela principal: lá só se preenche. Cadastrar fica em Configurações → Painéis da tela principal. */
+  podeCadastrar?: boolean;
+}) {
   const { board } = useBoardCtx();
   const list = kind === "habit" ? board.state.habits : board.state.fixedBlocks;
   const [newName, setNewName] = useState("");
@@ -35,6 +44,10 @@ export function RecurringSection({ kind, weekAnchor }: { kind: Kind; weekAnchor:
           <RecurringRow key={item.id} kind={kind} item={item} weekAnchor={weekAnchor} />
         ))}
       </div>
+      {!podeCadastrar && sorted.length === 0 && (
+        <div className="hint-text">Nada cadastrado ainda. Cadastre em Configurações, no bloco deste painel.</div>
+      )}
+      {podeCadastrar && (
       <div className="habit-add">
         <input
           type="text"
@@ -48,6 +61,7 @@ export function RecurringSection({ kind, weekAnchor }: { kind: Kind; weekAnchor:
           Add
         </button>
       </div>
+      )}
     </div>
   );
 }
@@ -396,7 +410,7 @@ function RecurringRow({ kind, item, weekAnchor }: { kind: Kind; item: RecurringI
 // Mesma derivação usada nas Configurações: a ordem do rótulo é a ordem da tela.
 const CATEGORIAS = (Object.keys(CATEGORY_LABEL) as Category[]).filter((c) => c !== "sem_categoria");
 
-function RecurringEditRow({ kind, item, onDone }: { kind: Kind; item: RecurringItem; onDone: () => void }) {
+export function RecurringEditRow({ kind, item, onDone }: { kind: Kind; item: RecurringItem; onDone: () => void }) {
   const { board } = useBoardCtx();
   const [name, setName] = useState(item.name);
   const [duration, setDuration] = useState<number | null>(item.durationMin);

@@ -298,6 +298,11 @@ export interface RecurringItem {
   category: Category | null;
 }
 
+export interface OpcoesDoDia {
+  emotions: { v: string; label: string }[] | null;
+  waterSteps: number[] | null;
+}
+
 export interface Settings {
   tagColors: Record<Category, { hex: string; alpha: number }>;
   dailyBudgetHours: number;
@@ -329,6 +334,8 @@ export interface Settings {
   backupName: string | null; // vira o título do índice e o nome do .zip
   // Frases prontas de aniversário (a fila do rodízio); {nome} vira o primeiro nome. null = as 4 padrão.
   birthdayMessages: BirthdayPhrase[] | null;
+  // Opções do Registro do dia cadastradas em Configurações (emoções do Humor e botões de água). Null = de fábrica.
+  dayOptions: OpcoesDoDia | null;
 }
 
 // Funcionalidades opcionais que podem ser ligadas/desligadas em Configurações.

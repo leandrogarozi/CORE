@@ -154,6 +154,7 @@ const EMPTY_STATE: BoardState = {
     backupAreas: null,
     backupName: null,
     birthdayMessages: null,
+    dayOptions: null,
     tagColors: DEFAULT_TAG_COLORS,
     dailyBudgetHours: 12,
     waterGoalMl: 2000,
@@ -3760,6 +3761,7 @@ export function useBoard(userId: string | null) {
           backup_areas: merged.backupAreas,
           backup_name: merged.backupName,
           birthday_messages: merged.birthdayMessages as never,
+          day_options: merged.dayOptions as never,
         })
         .then(({ error }) => {
           if (error) reportSaveError("updateSettings", error);

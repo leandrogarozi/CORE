@@ -1023,6 +1023,7 @@ export type Database = {
           backup_name: string | null
           birthday_message: string | null
           birthday_messages: Json | null
+          day_options: Json | null
           bg_intensity: number | null
           bg_tone: string | null
           avatar_url: string | null
@@ -1052,6 +1053,7 @@ export type Database = {
           backup_name?: string | null
           birthday_message?: string | null
           birthday_messages?: Json | null
+          day_options?: Json | null
           bg_intensity?: number | null
           bg_tone?: string | null
           avatar_url?: string | null
@@ -1081,6 +1083,7 @@ export type Database = {
           backup_name?: string | null
           birthday_message?: string | null
           birthday_messages?: Json | null
+          day_options?: Json | null
           bg_intensity?: number | null
           bg_tone?: string | null
           avatar_url?: string | null

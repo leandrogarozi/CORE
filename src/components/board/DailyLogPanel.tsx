@@ -7,10 +7,9 @@ import { BellIcon, CheckIcon, MealIcon, MoodFaceIcon, MoonIcon, WarningIcon, Wat
 import { TimePicker } from "./TimePicker";
 import { dateFromISO, todayISO } from "@/lib/date-utils";
 import { isFeatureEnabled } from "@/lib/types";
-import { MOOD_EMOTIONS, MOODS } from "@/lib/mood";
+import { MOODS } from "@/lib/mood";
+import { emocoesEmUso, passosDeAgua } from "@/lib/board/opcoes-do-dia";
 import { fmtHorasMin, resumoDoSono } from "@/lib/board/sono";
-
-const WATER_STEPS = [200, 500];
 
 export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
   const { board } = useBoardCtx();
@@ -108,7 +107,7 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
               <div className="hp-bar-fill" style={{ width: `${pct}%` }} />
             </div>
             <div className="dl-water-actions">
-              {WATER_STEPS.map((ml) => (
+              {passosDeAgua(board.state.settings.dayOptions).map((ml) => (
                 <button key={ml} type="button" className="btn btn-ghost dl-water-btn" onClick={() => addWater(ml)}>
                   +{ml}ml
                 </button>
@@ -246,7 +245,7 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
               ))}
             </div>
             <div className="dl-mood-emotion-row">
-              {MOOD_EMOTIONS.map((m) => (
+              {emocoesEmUso(board.state.settings.dayOptions).map((m) => (
                 <button
                   key={m.v}
                   type="button"

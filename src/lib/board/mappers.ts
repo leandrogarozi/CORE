@@ -1,3 +1,4 @@
+import { lerOpcoesDoDia } from "./opcoes-do-dia";
 import type { Json, Tables, TablesInsert, TablesUpdate } from "@/lib/database.types";
 import type {
   ActiveTimer,
@@ -468,6 +469,7 @@ export function rowToSettings(row: SettingsRow | null): Settings {
     backupAreas: row?.backup_areas ?? null,
     backupName: row?.backup_name ?? null,
     birthdayMessages: lerFrases(row?.birthday_messages),
+    dayOptions: lerOpcoesDoDia(row?.day_options),
   };
 }
 

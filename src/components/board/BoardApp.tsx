@@ -255,7 +255,7 @@ function BoardShell() {
         Aperte o play pra cronometrar em tempo real, ou preencha uma duração fixa e marque o check
         manualmente.
       </div>
-      <RecurringSection kind="habit" weekAnchor={weekAnchor} />
+      <RecurringSection kind="habit" weekAnchor={weekAnchor} podeCadastrar={false} />
     </div>
 
     <div className="section">
@@ -266,7 +266,7 @@ function BoardShell() {
         Coisas que costumam ocupar tempo todo dia (almoço, deslocamento, academia...). Aperte o play na hora
         que for fazer, ou marque o dia manualmente pra usar uma duração fixa.
       </div>
-      <RecurringSection kind="block" weekAnchor={weekAnchor} />
+      <RecurringSection kind="block" weekAnchor={weekAnchor} podeCadastrar={false} />
     </div>
   </div>
       </>

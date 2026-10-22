@@ -32,39 +32,98 @@ import {
   BellIcon,
   BoltIcon,
   BookOpenIcon,
+  ChecklistIcon,
   ChevronIcon,
   ClockIcon,
   FlagIcon,
   HomeIcon,
   LinkIcon,
+  MealIcon,
+  MoodFaceIcon,
+  MoonIcon,
   TagIcon,
   TrashIcon,
   WarningIcon,
   WaterDropIcon,
   WhatsAppIcon,
   PaletteIcon,
+  WeekIcon,
 } from "./icons";
 import { fmtBRL } from "@/lib/money";
+import { RecurringManager } from "./RecurringManager";
+import { emocoesEmUso, passosDeAgua, valorDaEmocao, type Emocao } from "@/lib/board/opcoes-do-dia";
 import { ToggleSwitch } from "./ToggleSwitch";
-import { CATEGORY_LABEL, OPTIONAL_FEATURES, isFeatureEnabled, type Category, type TaskStatus } from "@/lib/types";
+import { CATEGORY_LABEL, isFeatureEnabled, type Category, type TaskStatus } from "@/lib/types";
 import type { UseBoard } from "@/lib/board/use-board";
 
 const CATEGORIES = Object.keys(CATEGORY_LABEL) as Category[];
 
-function CollapsibleBox({ title, icon, children }: { title: string; icon?: ReactNode; children: ReactNode }) {
-  const [open, setOpen] = useState(true);
+/**
+ * Bloco de configuração: ícone, nome, um resumo do que está valendo e a seta para abrir.
+ * Fecha por padrão (o resumo já diz o essencial) e lembra, neste aparelho, quais ficaram abertos.
+ * Os blocos dos painéis da tela principal levam também o interruptor "Mostrar na tela / Não usar".
+ */
+function CollapsibleBox({
+  title,
+  icon,
+  children,
+  resumo,
+  ligado,
+  onLigar,
+  abertoInicial = false,
+}: {
+  title: string;
+  icon?: ReactNode;
+  children: ReactNode;
+  resumo?: string;
+  ligado?: boolean;
+  onLigar?: (ligado: boolean) => void;
+  abertoInicial?: boolean;
+}) {
+  const chave = "faro-cfg-aberto:" + title;
+  const [open, setOpen] = useState(() => {
+    if (typeof window === "undefined") return abertoInicial;
+    try {
+      const v = window.localStorage.getItem(chave);
+      return v === null ? abertoInicial : v === "1";
+    } catch {
+      return abertoInicial;
+    }
+  });
+  function alternar() {
+    setOpen((v) => {
+      try {
+        window.localStorage.setItem(chave, v ? "0" : "1");
+      } catch {
+        // Sem armazenamento: só não lembra.
+      }
+      return !v;
+    });
+  }
+  const desligado = onLigar !== undefined && !ligado;
   return (
-    <div className="dash-box">
-      <button type="button" className="dash-box-toggle" onClick={() => setOpen((v) => !v)}>
-        <span className="dash-box-title">
-          {icon && <span className="dash-box-icon">{icon}</span>}
-          {title}
-        </span>
-        <span className={"chevron" + (open ? " open" : "")}>
-          <ChevronIcon />
-        </span>
-      </button>
-      {open && <div className="dash-box-body">{children}</div>}
+    <div className={"cfg-bloco" + (open ? " aberto" : "") + (desligado ? " desligado" : "")}>
+      <div className="cfg-bloco-cab">
+        <button type="button" className="cfg-bloco-abrir" aria-expanded={open} onClick={alternar}>
+          {icon && <span className="cfg-bloco-icone">{icon}</span>}
+          <span className="cfg-bloco-nome">
+            <b>{title}</b>
+            {resumo && <span className="cfg-bloco-resumo">{resumo}</span>}
+          </span>
+        </button>
+        {onLigar && (
+          <span className="cfg-bloco-liga">
+            <span>{ligado ? "Mostrar na tela" : "Não usar"}</span>
+            <ToggleSwitch checked={!!ligado} onChange={onLigar} ariaLabel={`${title}: mostrar na tela principal`} />
+          </span>
+        )}
+        <button type="button" className="cfg-bloco-seta" aria-label={open ? "Recolher" : "Abrir"} aria-expanded={open} onClick={alternar}>
+          <span className={"chevron" + (open ? " open" : "")}>
+            <ChevronIcon />
+          </span>
+        </button>
+      </div>
+      {open && <div className="cfg-bloco-corpo">{children}</div>}
     </div>
   );
 }
@@ -262,7 +321,7 @@ function PushNotificationsBox() {
   }
 
   return (
-    <CollapsibleBox title="Notificações push" icon={<BellIcon />}>
+    <CollapsibleBox title="Notificações push" icon={<BellIcon />} resumo="Avisos do FARO no celular">
       <div className="hint-text">
         O lembrete chega na tela do celular, mesmo com o FARO fechado — como a notificação de qualquer app. Vale pra todo
         lembrete que tenha data e hora, mesmo sem o zap aceso; o WhatsApp fica só pros que você acender.
@@ -414,7 +473,7 @@ function BackupBox() {
   }
 
   return (
-    <CollapsibleBox title="Backup completo do app (.json)" icon={<ArchiveIcon />}>
+    <CollapsibleBox title="Backup completo do app (.json)" icon={<ArchiveIcon />} resumo="Todas as áreas, para guardar ou restaurar">
       {/* O formato entra no título e no botão porque foi exatamente o que o
           confundiu: ele clicou no bloco chamado "Backup" esperando o .zip dos
           textos e baixou um .json. Dois blocos começando com a mesma palavra,
@@ -554,7 +613,7 @@ function BackupAutomaticoBox() {
   const mb = estado?.ultimoBytes ? (estado.ultimoBytes / 1048576).toFixed(2).replace(".", ",") : null;
 
   return (
-    <CollapsibleBox title="Backup automático no meu computador" icon={<ArchiveIcon />}>
+    <CollapsibleBox title="Backup automático no meu computador" icon={<ArchiveIcon />} resumo="Cópia diária feita no seu computador">
       <div className="hint-text" style={{ marginTop: 0, marginBottom: 8 }}>
         Todo dia o seu computador busca o backup completo (guarda os 7 últimos) e os textos de aprendizado, e
         grava tudo na pasta do Drive. Se o computador estiver desligado e o dia passar sem backup, o FARO avisa no
@@ -748,7 +807,7 @@ function ConectorFaroBox() {
   }
 
   return (
-    <CollapsibleBox title="Conector FARO (minha IA lê o FARO)" icon={<LinkIcon />}>
+    <CollapsibleBox title="Conector FARO (minha IA lê o FARO)" icon={<LinkIcon />} resumo="Sua IA lê o FARO, somente leitura">
       <div className="hint-text" style={{ marginTop: 0, marginBottom: 8 }}>
         Liga o Claude ao FARO: ele passa a buscar e ler o que você aprovou em Conhecendo você, as sinapses, as ideias
         e as anotações dos livros, sem você precisar apontar pasta nenhuma. Ele também pode criar aniversários, tarefas
@@ -927,7 +986,7 @@ function BackupDeAprendizadoBox() {
   }
 
   return (
-    <CollapsibleBox title="Backup de aprendizado (.zip de textos)" icon={<BookOpenIcon />}>
+    <CollapsibleBox title="Backup de aprendizado (.zip de textos)" icon={<BookOpenIcon />} resumo="Sinapses, ideias, estudos e livros em Markdown">
       <div className="settings-row-standalone">
         <span className="settings-label">Nome do backup</span>
         <input
@@ -1029,7 +1088,7 @@ function IaCostBox() {
   }
 
   return (
-    <CollapsibleBox title="Custo da IA" icon={<BoltIcon />}>
+    <CollapsibleBox title="Custo da IA" icon={<BoltIcon />} resumo="O que a IA do app gastou no mês">
       <div className="hint-text" style={{ marginTop: 0, marginBottom: 8 }}>
         Quanto a conversa do FARO (o mascote) gastou com a API da Anthropic. O servidor soma cada fala e{" "}
         <strong>para de responder ao chegar no teto</strong>; o resto do app não depende disso.
@@ -1135,7 +1194,7 @@ function WhatsAppCostBox() {
   }
 
   return (
-    <CollapsibleBox title="Custo do WhatsApp" icon={<WhatsAppIcon />}>
+    <CollapsibleBox title="Custo do WhatsApp" icon={<WhatsAppIcon />} resumo="Mensagens, custo e teto do mês">
       {resumo === null ? (
         <div className="hint-text">Carregando os envios...</div>
       ) : (
@@ -1317,7 +1376,7 @@ function CorDoFundoBox() {
   }
 
   return (
-    <CollapsibleBox title="Cor do fundo" icon={<PaletteIcon />}>
+    <CollapsibleBox title="Cor do fundo" icon={<PaletteIcon />} resumo="Tom e intensidade do degradê, claro e escuro">
       <span className="edit-field-label">Tom</span>
       <div className="note-options-chips fundo-tons">
         {TONS_DO_FUNDO.map((t) => (
@@ -1385,20 +1444,303 @@ function CorDoFundoBox() {
   );
 }
 
-export function SettingsView({ onBack }: { onBack: () => void }) {
+/** Humor: as 6 carinhas são fixas (alimentam o gráfico e a média do Dashboard); as emoções são dele. */
+function HumorConfig() {
+  const { board } = useBoardCtx();
+  const [nova, setNova] = useState("");
+  const opcoes = board.state.settings.dayOptions;
+  const emocoes = emocoesEmUso(opcoes);
+  const personalizada = !!opcoes?.emotions;
+
+  function gravar(lista: Emocao[] | null) {
+    board.updateSettings({ dayOptions: { emotions: lista, waterSteps: opcoes?.waterSteps ?? null } });
+  }
+  function adicionar() {
+    const label = nova.trim();
+    const v = valorDaEmocao(label);
+    if (!label || !v) return;
+    if (emocoes.some((e) => e.v === v)) {
+      setNova("");
+      return;
+    }
+    gravar([...emocoes, { v, label }]);
+    setNova("");
+  }
+
+  return (
+    <>
+      <div className="settings-toggle-hint" style={{ marginBottom: 8 }}>
+        As carinhas (Péssimo, Ruim, Neutro, Bom, Ótimo e Doente) são fixas. As emoções que aparecem embaixo delas são suas:
+        cadastre e apague aqui. Na tela principal só se escolhe.
+      </div>
+      <div className="cfg-chips">
+        {emocoes.map((e) => (
+          <span className="cfg-chip" key={e.v}>
+            {e.label}
+            <button
+              type="button"
+              aria-label={`Remover ${e.label}`}
+              onClick={() => gravar(emocoes.filter((x) => x.v !== e.v))}
+            >
+              ×
+            </button>
+          </span>
+        ))}
+        {emocoes.length === 0 && <span className="settings-toggle-hint">Nenhuma emoção. Cadastre abaixo.</span>}
+      </div>
+      <div className="note-options-add" style={{ marginTop: 10 }}>
+        <input
+          type="text"
+          placeholder="Nova emoção (ex.: Grato)"
+          value={nova}
+          onChange={(e) => setNova(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && adicionar()}
+        />
+        <button type="button" className="btn btn-accent" onClick={adicionar}>
+          Adicionar
+        </button>
+      </div>
+      {personalizada && (
+        <button type="button" className="btn btn-ghost" style={{ marginTop: 10 }} onClick={() => gravar(null)}>
+          Voltar às emoções de fábrica
+        </button>
+      )}
+    </>
+  );
+}
+
+/** Água: meta do dia, botões rápidos de adicionar e o texto de estratégias. */
+function AguaConfig() {
+  const { board } = useBoardCtx();
+  const [metaInput, setMetaInput] = useState<string | null>(null);
+  const [passoInput, setPassoInput] = useState("");
+  const [estrategias, setEstrategias] = useState<string | null>(null);
+  const opcoes = board.state.settings.dayOptions;
+  const passos = passosDeAgua(opcoes);
+
+  function gravarPassos(lista: number[] | null) {
+    board.updateSettings({ dayOptions: { emotions: opcoes?.emotions ?? null, waterSteps: lista } });
+  }
+  function adicionarPasso() {
+    const ml = parseInt(passoInput, 10);
+    if (isNaN(ml) || ml <= 0 || ml > 5000 || passos.includes(ml)) {
+      setPassoInput("");
+      return;
+    }
+    gravarPassos([...passos, ml].sort((a, b) => a - b));
+    setPassoInput("");
+  }
+
+  return (
+    <>
+      <div className="settings-row-standalone" style={{ marginTop: 0 }}>
+        <span className="settings-label">Meta diária de água (ml)</span>
+        <input
+          type="number"
+          min={0}
+          step={100}
+          className="budget-input"
+          value={metaInput ?? board.state.settings.waterGoalMl}
+          onChange={(e) => setMetaInput(e.target.value)}
+          onBlur={() => {
+            if (metaInput === null) return;
+            const v = parseInt(metaInput, 10);
+            if (!isNaN(v) && v >= 0) board.updateSettings({ waterGoalMl: v });
+            setMetaInput(null);
+          }}
+        />
+      </div>
+      <div className="settings-subblock">
+        <span className="settings-label">Botões rápidos</span>
+        <span className="settings-toggle-hint">Quanto cada botão soma quando você bebe água na tela principal.</span>
+        <div className="cfg-chips">
+          {passos.map((ml) => (
+            <span className="cfg-chip" key={ml}>
+              +{ml} ml
+              <button type="button" aria-label={`Remover +${ml} ml`} onClick={() => gravarPassos(passos.filter((x) => x !== ml))}>
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+        <div className="note-options-add">
+          <input
+            type="number"
+            min={50}
+            step={50}
+            placeholder="Novo botão, em ml (ex.: 300)"
+            value={passoInput}
+            onChange={(e) => setPassoInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && adicionarPasso()}
+          />
+          <button type="button" className="btn btn-accent" onClick={adicionarPasso}>
+            Adicionar
+          </button>
+        </div>
+        {opcoes?.waterSteps && (
+          <button type="button" className="btn btn-ghost" style={{ marginTop: 8 }} onClick={() => gravarPassos(null)}>
+            Voltar aos botões de fábrica
+          </button>
+        )}
+      </div>
+      <div className="settings-subblock">
+        <span className="settings-label">
+          <WaterDropIcon /> Ideias para manter o consumo de água
+        </span>
+        <span className="settings-toggle-hint">
+          Guarde aqui as estratégias que funcionam pra você — pra poder revisitar sempre que perder a rota.
+        </span>
+        <textarea
+          className="settings-subblock-textarea"
+          placeholder="Ex.: garrafa de 1L com marcador de borracha — a cada litro bebido, reposiciono o marcador na garrafa."
+          value={estrategias ?? board.state.settings.waterStrategies ?? ""}
+          onChange={(e) => setEstrategias(e.target.value)}
+          onBlur={() => {
+            if (estrategias === null) return;
+            board.updateSettings({ waterStrategies: estrategias || null });
+            setEstrategias(null);
+          }}
+          rows={3}
+        />
+      </div>
+    </>
+  );
+}
+
+function HorasConfig() {
   const { board } = useBoardCtx();
   const [budgetInput, setBudgetInput] = useState<string | null>(null);
-  const [waterGoalInput, setWaterGoalInput] = useState<string | null>(null);
-  const [waterStrategiesInput, setWaterStrategiesInput] = useState<string | null>(null);
+  return (
+    <div className="settings-row-standalone" style={{ marginTop: 0 }}>
+      <span className="settings-label">Teto diário de horas</span>
+      <input
+        type="number"
+        min={0}
+        step={0.5}
+        className="budget-input"
+        value={budgetInput ?? board.state.settings.dailyBudgetHours}
+        onChange={(e) => setBudgetInput(e.target.value)}
+        onBlur={() => {
+          if (budgetInput === null) return;
+          const v = parseFloat(budgetInput);
+          if (!isNaN(v) && v >= 0) board.updateSettings({ dailyBudgetHours: v });
+          setBudgetInput(null);
+        }}
+      />
+    </div>
+  );
+}
+
+/**
+ * Um bloco por painel da tela principal. Aqui se cadastra e se liga ou desliga: a tela principal
+ * só preenche. Desligado, o painel some da tela do dia e do Dashboard e os dados ficam guardados.
+ */
+function PaineisDaTela() {
+  const { board } = useBoardCtx();
+  const flags = board.state.settings.featureFlags;
+  const ligado = (k: string) => isFeatureEnabled(flags, k);
+  const ligar = (k: string) => (v: boolean) => board.updateSettings({ featureFlags: { ...flags, [k]: v } });
+  const opcoes = board.state.settings.dayOptions;
+  const nHabitos = board.state.habits.length;
+  const nDiaADia = board.state.fixedBlocks.length;
+  const texto = (t: string) => <div className="settings-toggle-hint">{t}</div>;
+
+  return (
+    <>
+      <CollapsibleBox
+        title="Humor"
+        icon={<MoodFaceIcon value={4} size={15} />}
+        resumo={`6 carinhas · ${emocoesEmUso(opcoes).length} emoções`}
+        ligado={ligado("mood")}
+        onLigar={ligar("mood")}
+      >
+        <HumorConfig />
+      </CollapsibleBox>
+      <CollapsibleBox
+        title="Água"
+        icon={<WaterDropIcon />}
+        resumo={`Meta de ${board.state.settings.waterGoalMl} ml · ${passosDeAgua(opcoes).length} botões rápidos`}
+        ligado={ligado("water")}
+        onLigar={ligar("water")}
+      >
+        <AguaConfig />
+      </CollapsibleBox>
+      <CollapsibleBox title="Sono" icon={<MoonIcon />} resumo="Hora de dormir e de acordar, com a dica" ligado={ligado("sleep")} onLigar={ligar("sleep")}>
+        {texto("Na tela principal você preenche a hora em que dormiu e a hora em que acordou. O FARO calcula as horas de sono e a dica.")}
+      </CollapsibleBox>
+      <CollapsibleBox title="Fidelidade à dieta" icon={<MealIcon />} resumo="Percentual do dia" ligado={ligado("diet")} onLigar={ligar("diet")}>
+        {texto("Na tela principal você preenche o percentual do dia. As refeições e o plano ficam na tela Dieta.")}
+      </CollapsibleBox>
+      <CollapsibleBox
+        title="Hábitos"
+        icon={<ChecklistIcon />}
+        resumo={`${nHabitos} ${nHabitos === 1 ? "hábito cadastrado" : "hábitos cadastrados"}`}
+        ligado={ligado("panel_habitos")}
+        onLigar={ligar("panel_habitos")}
+      >
+        {texto("Os hábitos aparecem na grade da semana, com cronômetro. Cadastre, edite e apague aqui.")}
+        <RecurringManager kind="habit" />
+      </CollapsibleBox>
+      <CollapsibleBox
+        title="Dia a Dia"
+        icon={<ClockIcon />}
+        resumo={`${nDiaADia} ${nDiaADia === 1 ? "item cadastrado" : "itens cadastrados"}`}
+        ligado={ligado("panel_diadia")}
+        onLigar={ligar("panel_diadia")}
+      >
+        {texto("Coisas que ocupam tempo todo dia (almoço, deslocamento, academia). Cadastre, edite e apague aqui.")}
+        <RecurringManager kind="block" />
+      </CollapsibleBox>
+      <CollapsibleBox
+        title="Horas"
+        icon={<ClockIcon />}
+        resumo={`Teto de ${board.state.settings.dailyBudgetHours} h por dia`}
+        ligado={ligado("panel_horas")}
+        onLigar={ligar("panel_horas")}
+      >
+        <HorasConfig />
+      </CollapsibleBox>
+      <CollapsibleBox title="Agenda" icon={<WeekIcon />} resumo="Compromissos e lembretes do dia" ligado={ligado("panel_agenda")} onLigar={ligar("panel_agenda")}>
+        {texto("Mostra os compromissos com horário e os lembretes do dia escolhido. Nada para cadastrar aqui: vem das tarefas e dos lembretes.")}
+      </CollapsibleBox>
+      <CollapsibleBox title="Seu dia" icon={<HomeIcon />} resumo="Anel de tarefas concluídas" ligado={ligado("panel_resumo")} onLigar={ligar("panel_resumo")}>
+        {texto("O anel com quantas tarefas do dia já foram concluídas.")}
+      </CollapsibleBox>
+      <CollapsibleBox title="Sem data" icon={<WarningIcon />} resumo="Lista recolhida embaixo das tarefas" ligado={ligado("panel_semdata")} onLigar={ligar("panel_semdata")}>
+        {texto("As tarefas que ainda esperam uma data.")}
+      </CollapsibleBox>
+    </>
+  );
+}
+
+const GRUPOS_DE_CONFIGURACAO = [
+  { id: "aparencia", titulo: "Aparência", sub: "Como o app aparece neste aparelho" },
+  { id: "tarefas", titulo: "Tarefas", sub: "Como as tarefas são organizadas" },
+  { id: "paineis", titulo: "Painéis da tela principal", sub: "Cada painel tem a sua configuração. Aqui você cadastra e liga ou desliga; na tela principal só se preenche." },
+  { id: "avisos", titulo: "Avisos e custos", sub: "Quando o FARO avisa e quanto custa" },
+  { id: "dados", titulo: "Dados e backup", sub: "Cópias de segurança do que você escreveu" },
+  { id: "conexoes", titulo: "Conexões", sub: "O FARO falando com outras ferramentas" },
+] as const;
+
+function GrupoDeConfiguracao({ id, children }: { id: (typeof GRUPOS_DE_CONFIGURACAO)[number]["id"]; children: ReactNode }) {
+  const g = GRUPOS_DE_CONFIGURACAO.find((x) => x.id === id)!;
+  return (
+    <section className="cfg-grupo" id={"cfg-" + id}>
+      <div className="cfg-grupo-cab">
+        <h2>{g.titulo}</h2>
+        <span>{g.sub}</span>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+export function SettingsView({ onBack }: { onBack: () => void }) {
+  const { board } = useBoardCtx();
   const [newStatusLabel, setNewStatusLabel] = useState("");
 
   const tagColors = board.state.settings.tagColors;
-  const featureFlags = board.state.settings.featureFlags;
-  const waterEnabled = isFeatureEnabled(featureFlags, "water");
 
-  function toggleFeature(key: string, checked: boolean) {
-    board.updateSettings({ featureFlags: { ...featureFlags, [key]: checked } });
-  }
 
   const statuses = [...board.state.taskStatuses].sort((a, b) => a.order - b.order);
 
@@ -1428,11 +1770,28 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
         <span style={{ width: 32 }} />
       </div>
 
-      {/* Duas colunas: empilhado, cada cartão ocupava a largura toda e a tela
-          virava uma fita vertical sem fim. */}
-      <div className="settings-grade">
+      {/* Trilho de grupos à esquerda e, ao lado, os blocos de cada grupo (pedido de 22/10:
+          blocos que se abrem para configurar). Os blocos são os mesmos de antes, só reagrupados. */}
+      <div className="cfg-pagina">
+        <nav className="cfg-trilho" aria-label="Grupos de configurações">
+          {GRUPOS_DE_CONFIGURACAO.map((g) => (
+            <button
+              key={g.id}
+              type="button"
+              className="cfg-trilho-item"
+              onClick={() => document.getElementById("cfg-" + g.id)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+            >
+              {g.titulo}
+            </button>
+          ))}
+        </nav>
+        <div className="cfg-conteudo">
+          <GrupoDeConfiguracao id="aparencia">
+            <CorDoFundoBox />
+          </GrupoDeConfiguracao>
 
-      <CollapsibleBox title="Tags da tarefa" icon={<TagIcon />}>
+          <GrupoDeConfiguracao id="tarefas">
+            <CollapsibleBox title="Tags da tarefa" icon={<TagIcon />} resumo="Cor e força de cada tag">
         <div className="settings-rows">
           {CATEGORIES.filter((cat) => cat !== "sem_categoria").map((cat) => {
             const cfg = tagColors[cat];
@@ -1477,7 +1836,7 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
         </div>
       </CollapsibleBox>
 
-      <CollapsibleBox title="Status de tarefa" icon={<FlagIcon color="currentColor" />}>
+            <CollapsibleBox title="Status de tarefa" icon={<FlagIcon color="currentColor" />} resumo={statuses.map((x) => x.label).join(", ")}>
         <div className="status-rows">
           {statuses.map((s, i) => (
             <StatusRow
@@ -1504,114 +1863,48 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
           </button>
         </div>
       </CollapsibleBox>
+          </GrupoDeConfiguracao>
 
-      <CollapsibleBox title="Painel de horas" icon={<ClockIcon />}>
-        <div className="settings-row-standalone">
-          <span className="settings-label">Teto diário de horas</span>
-          <input
-            type="number"
-            min={0}
-            step={0.5}
-            className="budget-input"
-            value={budgetInput ?? board.state.settings.dailyBudgetHours}
-            onChange={(e) => setBudgetInput(e.target.value)}
-            onBlur={() => {
-              if (budgetInput === null) return;
-              const v = parseFloat(budgetInput);
-              if (!isNaN(v) && v >= 0) board.updateSettings({ dailyBudgetHours: v });
-              setBudgetInput(null);
-            }}
-          />
-        </div>
-      </CollapsibleBox>
+          <GrupoDeConfiguracao id="paineis">
+            <PaineisDaTela />
+          </GrupoDeConfiguracao>
 
-      <CollapsibleBox title="Painel do dia" icon={<HomeIcon />}>
-        <div className="settings-rows">
-          {OPTIONAL_FEATURES.map((f) => (
-            <div className="settings-toggle-row" key={f.key}>
-              <span>
-                <span className="settings-label">{f.label}</span>
-                <span className="settings-toggle-hint">{f.hint}</span>
-              </span>
-              <ToggleSwitch
-                checked={isFeatureEnabled(featureFlags, f.key)}
-                onChange={(v) => toggleFeature(f.key, v)}
-                ariaLabel={f.label}
-              />
+          <GrupoDeConfiguracao id="avisos">
+            <PushNotificationsBox />
+            <WhatsAppCostBox />
+            <IaCostBox />
+          </GrupoDeConfiguracao>
+
+          <GrupoDeConfiguracao id="dados">
+            {/* Bloco só do Leandro: segurança dele, não é função de cliente. Fica
+                separado dos backups manuais (que servem a qualquer usuário) para
+                ele saber o que é o quê. */}
+            <div className="settings-particular">
+              <div className="settings-particular-titulo">
+                <span className="settings-particular-selo">Particular do Leandro</span>
+                Segurança minha. Não vai para os clientes.
+              </div>
+              <BackupAutomaticoBox />
             </div>
-          ))}
+
+            <div className="settings-particular-titulo settings-particular-titulo-geral">
+              Backups manuais (valem para qualquer usuário)
+            </div>
+            <BackupDeAprendizadoBox />
+
+            <BackupBox />
+          </GrupoDeConfiguracao>
+
+          <GrupoDeConfiguracao id="conexoes">
+            <div className="settings-particular">
+              <div className="settings-particular-titulo">
+                <span className="settings-particular-selo">Particular do Leandro</span>
+                Conector da minha IA. Não vai para os clientes.
+              </div>
+              <ConectorFaroBox />
+            </div>
+          </GrupoDeConfiguracao>
         </div>
-        {waterEnabled && (
-          <div className="settings-row-standalone">
-            <span className="settings-label">Meta diária de água (ml)</span>
-            <input
-              type="number"
-              min={0}
-              step={100}
-              className="budget-input"
-              value={waterGoalInput ?? board.state.settings.waterGoalMl}
-              onChange={(e) => setWaterGoalInput(e.target.value)}
-              onBlur={() => {
-                if (waterGoalInput === null) return;
-                const v = parseInt(waterGoalInput, 10);
-                if (!isNaN(v) && v >= 0) board.updateSettings({ waterGoalMl: v });
-                setWaterGoalInput(null);
-              }}
-            />
-          </div>
-        )}
-        {waterEnabled && (
-          <div className="settings-subblock">
-            <span className="settings-label">
-              <WaterDropIcon /> Ideias para manter o consumo de água
-            </span>
-            <span className="settings-toggle-hint">
-              Guarde aqui as estratégias que funcionam pra você — pra poder revisitar sempre que perder a rota.
-            </span>
-            <textarea
-              className="settings-subblock-textarea"
-              placeholder="Ex.: garrafa de 1L com marcador de borracha — a cada litro bebido, reposiciono o marcador na garrafa."
-              value={waterStrategiesInput ?? board.state.settings.waterStrategies ?? ""}
-              onChange={(e) => setWaterStrategiesInput(e.target.value)}
-              onBlur={() => {
-                if (waterStrategiesInput === null) return;
-                board.updateSettings({ waterStrategies: waterStrategiesInput || null });
-                setWaterStrategiesInput(null);
-              }}
-              rows={3}
-            />
-          </div>
-        )}
-      </CollapsibleBox>
-
-        <CorDoFundoBox />
-
-        <PushNotificationsBox />
-
-        <WhatsAppCostBox />
-
-        <IaCostBox />
-
-        {/* Os dois backups ficam vizinhos, e nessa ordem: o de aprendizado é o
-            que ele vai usar, o cofre JSON é o que ele raramente toca. */}
-        {/* Bloco só do Leandro: segurança dele, não é função de cliente. Fica
-            separado dos backups manuais (que servem a qualquer usuário) para
-            ele saber o que é o quê. */}
-        <div className="settings-particular">
-          <div className="settings-particular-titulo">
-            <span className="settings-particular-selo">Particular do Leandro</span>
-            Segurança minha. Não vai para os clientes.
-          </div>
-          <BackupAutomaticoBox />
-          <ConectorFaroBox />
-        </div>
-
-        <div className="settings-particular-titulo settings-particular-titulo-geral">
-          Backups manuais (valem para qualquer usuário)
-        </div>
-        <BackupDeAprendizadoBox />
-
-        <BackupBox />
       </div>
     </div>
   );

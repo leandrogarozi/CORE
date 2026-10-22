@@ -278,6 +278,9 @@ export function Dashboard() {
 
   const moodOn = isFeatureEnabled(board.state.settings.featureFlags, "mood");
   const sleepOn = isFeatureEnabled(board.state.settings.featureFlags, "sleep");
+  // Painel desligado em Configurações some também daqui; os dados continuam guardados.
+  const habitosOn = isFeatureEnabled(board.state.settings.featureFlags, "panel_habitos");
+  const diaADiaOn = isFeatureEnabled(board.state.settings.featureFlags, "panel_diadia");
   const diasDeSono = period === "month" ? 30 : 14;
   const sono = useMemo(
     () => (sleepOn ? resumoDoSono(board.state.dailyLogs, board.state.tasks, today, diasDeSono) : null),
@@ -508,9 +511,9 @@ export function Dashboard() {
             continuam fora — ele foi explícito que ali no Dashboard não quer
             aquilo, e já tinha pedido pra remover. Resumo lê; a home é onde se
             mexe. */}
-        {(stats.habitStats.length > 0 || stats.blockStats.length > 0) && (
+        {((habitosOn && stats.habitStats.length > 0) || (diaADiaOn && stats.blockStats.length > 0)) && (
           <div className="dsh-card">
-            {stats.habitStats.length > 0 && (
+            {habitosOn && stats.habitStats.length > 0 && (
               <>
                 <div className="dsh-card-title">
                   Hábitos <span className="dsh-card-tag">tempo e dias ativos</span>
@@ -520,8 +523,8 @@ export function Dashboard() {
                 ))}
               </>
             )}
-            {stats.habitStats.length > 0 && stats.blockStats.length > 0 && <div className="dsh-sep" />}
-            {stats.blockStats.length > 0 && (
+            {habitosOn && diaADiaOn && stats.habitStats.length > 0 && stats.blockStats.length > 0 && <div className="dsh-sep" />}
+            {diaADiaOn && stats.blockStats.length > 0 && (
               <>
                 <div className="dsh-card-title">
                   Dia a Dia <span className="dsh-card-tag">tempo e dias ativos</span>
