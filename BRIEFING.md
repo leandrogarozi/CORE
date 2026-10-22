@@ -163,6 +163,8 @@ Antes dava para fugir da pergunta de adiar: cancelar a caixinha, desmarcar "Desa
 | I | Atualização ao vivo entre aparelhos (tira o aviso "tela desatualizada") | Geral | Médio | Aguardando aprovação |
 | J | Importar clientes e aniversários de planilha (CSV) | Cadastros/Aniversários | Pequeno | Aguardando aprovação |
 
+**Revisão da tela do dia (22/10, feedback do Leandro: "gostei; manter o que temos hoje"):** a tela do dia no canvas foi refeita mantendo o que o app já tem. Mantidos como hoje, só reorganizados: **faixa dos dias da semana** com ‹ › (11), em linha com **Hoje | Semana | Dashboard** e os atalhos Reuniões e Lembretes; **Registro do dia** com humor, sono, água e dieta (12); **Hábitos** e **Dia a Dia** com a grade da semana (13); **ícone de Aniversários** na barra de cima (14); **modo escuro** pelo botão de tema (15) com uma tela escura de exemplo; Horas, Agenda e Sem data recolhido. Novo na tela: saudação com frase viva (2), ações rápidas (4), anel "Seu dia" (5), etiquetas de status (6), busca ⌘K (8), menu agrupado (3) e uma linha discreta de aniversários sob a saudação (17). Observação: o canvas mostra o menu fixo à esquerda; hoje ele é uma gaveta aberta pelo botão de menu (decidir ao implementar).
+
 **Sugestão já dada ao Leandro:** layout 1, 2 e 6 juntas, depois 3 e 4; funcionalidades B, depois A e C. Opções 9 e 10 só se ele quiser mudar a cara do app inteira. As telas são exemplos: nomes, números e situações de cliente (E) são ilustrativos.
 
 ## ▶ RETOMAR AQUI (atualizado em 16/10/2026, noite)
