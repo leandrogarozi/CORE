@@ -136,7 +136,7 @@ function Variacao({ atual, antes }: { atual: number; antes: number }) {
   return <span className={"dsh-delta " + (pct > 0 ? "sobe" : "desce")}>{pct > 0 ? "▲" : "▼"} {Math.abs(pct)}%</span>;
 }
 
-export function Dashboard() {
+export function Dashboard({ abrirAtrasadas = false }: { abrirAtrasadas?: boolean }) {
   const { board, openTaskInDay } = useBoardCtx();
   const [period, setPeriod] = useState<Period>("week");
   const [dayAnchor, setDayAnchor] = useState(() => todayISO());
@@ -146,7 +146,12 @@ export function Dashboard() {
   const { fromISO, toISO } = rangeForPeriod(period, dayAnchor, weekAnchor, monthAnchor);
   const today = todayISO();
 
-  const [modal, setModal] = useState<{ title: string; tasks: Task[] } | null>(null);
+  // Vindo do "N tarefas atrasadas" da saudação, o Dashboard já abre com a lista das atrasadas.
+  const [modal, setModal] = useState<{ title: string; tasks: Task[] } | null>(() =>
+    abrirAtrasadas
+      ? { title: "Atrasadas", tasks: board.state.tasks.filter((t) => !t.done && t.date && t.date < todayISO()) }
+      : null
+  );
 
   const stats = useMemo(() => {
     const s = board.state;

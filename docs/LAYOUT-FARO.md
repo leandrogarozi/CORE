@@ -75,6 +75,14 @@ Ao conferir cada desenho contra o app, a maior parte já era igual (as telas já
 
 Se o Leandro quiser algum desenho ao pé da letra além disto (ex.: cartões de bens da Manutenção com resumo no cabeçalho, ou cartões de item em Ideias), é mudança nova: pedir e registrar aqui.
 
+## Ajustes depois da conferência do Leandro (22/10, tarde)
+
+- **Menu lateral rola** no computador (`.sidebar` com rolagem própria; Lixeira e Configurações ficam fixas embaixo).
+- **Registro do dia, bloco da dieta reorganizado** (`DailyLogPanel.tsx`): primeiro % e comentário; abaixo, caixa "Refeições" com uma grade de refeição + botão de comentário lado a lado.
+- **"N tarefas atrasadas" na tela do dia é clicável** (`DayGreeting` → `BoardApp` → `Dashboard`): abre o Dashboard já com a lista das atrasadas.
+- **Aparência > Cor do fundo ganhou "Salvar cor"** (e "Descartar"): a cor escolhida é só prévia até salvar; ao salvar, o app relê do banco e avisa se gravou ou não.
+- **Desenhos reorganizados em 5 páginas** (Tela do dia e Dashboard / Menu e listas / Funcionalidades / Configurações / Demais telas) para dar para conferir tela por tela.
+
 ## Pendências conhecidas
 
 - Print do painel de Configurações do app financeiro do Leandro: **ele ainda vai mandar**, para a tela de Configurações ficar parecida com a dele (hoje é a primeira proposta, feita só com os blocos do FARO).

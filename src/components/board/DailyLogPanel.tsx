@@ -147,11 +147,19 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
                 ariaLabel="Observação da dieta"
                 onSave={(text) => board.updateDailyLog(selectedDate, { dietNote: text || null })}
               />
-              {activeMeals.length > 0 && (
-                <>
-                  <span className="dl-diet-meals-count">
+            </div>
+            {/* Refeições embaixo, numa grade arrumada: cada uma é uma linha com a caixinha e,
+                ao lado (não por cima), o balão de observação. Antes tudo corria numa linha só
+                com bolinhas e balões sobrepostos nos nomes. */}
+            {activeMeals.length > 0 && (
+              <div className="dl-diet-meals-box">
+                <div className="dl-diet-meals-head">
+                  <span>Refeições</span>
+                  <span className="dl-diet-meals-count mono">
                     {dietMealsChecked.length}/{activeMeals.length}
                   </span>
+                </div>
+                <div className="dl-diet-meals">
                   {activeMeals.map((m) => {
                     const checked = dietMealsChecked.includes(m.id);
                     return (
@@ -173,9 +181,9 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
                       </span>
                     );
                   })}
-                </>
-              )}
-            </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

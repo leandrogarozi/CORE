@@ -335,7 +335,10 @@ a{ color:inherit; }
   background:var(--surface); border-right:1px solid var(--linha); z-index:61;
   transform:translateX(-100%); transition:transform 0.2s ease;
   display:flex; flex-direction:column; padding:16px 10px; box-shadow:var(--sh-2);
+  /* Com os itens agrupados o menu passa da altura da tela: rola por dentro (antes ficava cortado). */
+  overflow-y:auto; overscroll-behavior:contain;
 }
+.sidebar > *{ flex-shrink:0; }
 .sidebar.open{ transform:translateX(0); }
 .sidebar-brand{ font-weight:700; font-size:16px; letter-spacing:-0.01em; padding:4px 10px 16px; }
 .sidebar-section{ display:flex; flex-direction:column; gap:2px; }
@@ -350,7 +353,7 @@ a{ color:inherit; }
 .sidebar-item-destaque.active{ font-weight:600; box-shadow:inset 0 0 0 1px var(--accent); }
 .sidebar-badge{ margin-left:auto; min-width:18px; height:18px; padding:0 6px; border-radius:9px; background:var(--accent); color:#fff; font-size:11px; font-weight:700; line-height:18px; text-align:center; }
 .sidebar-item.disabled{ color:var(--text-faint); opacity:0.55; cursor:default; }
-.sidebar-section-bottom{ margin-top:auto; padding-top:12px; border-top:1px solid var(--border); }
+.sidebar-section-bottom{ margin-top:auto; padding-top:12px; border-top:1px solid var(--border); position:sticky; bottom:-16px; background:var(--surface); padding-bottom:16px; }
 .today-date{ font-size:12.5px; color:var(--text-faint); }
 .icon-btn{ color:var(--text-faint); padding:2px; line-height:1; display:inline-flex; align-items:center; justify-content:center; }
 .icon-btn:hover{ color:var(--text); }
@@ -873,23 +876,22 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
   padding:6px 8px; font-size:13px; color:var(--text);
 }
 .dl-pct-sign{ font-size:12.5px; color:var(--text-faint); }
-.dl-diet-meals-count{
-  font-size:10.5px; color:var(--text-faint); flex:none; margin-left:6px; padding-right:8px; border-right:1px solid var(--border);
-}
-.dl-diet-meal-chip{ display:inline-flex; align-items:center; gap:5px; }
-.dl-diet-meal-chip svg{ width:11px; height:11px; flex:none; }
+.dl-diet-meals-box{ margin-top:12px; padding-top:10px; border-top:1px solid var(--linha); }
+.dl-diet-meals-head{ display:flex; align-items:center; justify-content:space-between; font-size:11.5px; color:var(--text-muted); margin-bottom:8px; }
+.dl-diet-meals-count{ font-size:11px; color:var(--text-faint); }
+.dl-diet-meals{ display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px; }
+.dl-diet-meal-group{ display:flex; align-items:center; gap:6px; min-width:0; }
 .dl-diet-meal-chip{
-  font-size:11.5px; padding:3px 8px; border-radius:20px; border:1px solid var(--border-strong);
-  color:var(--text-muted); background:var(--surface); flex:none;
+  flex:1; min-width:0; display:inline-flex; align-items:center; justify-content:flex-start; gap:5px;
+  font-size:12px; padding:5px 10px; border-radius:var(--r-full); border:1px solid var(--border-strong);
+  color:var(--text-muted); background:var(--surface); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
+.dl-diet-meal-chip svg{ width:11px; height:11px; flex:none; }
 .dl-diet-meal-chip:hover{ border-color:var(--success); }
 .dl-diet-meal-chip.checked{ border-color:var(--success); color:var(--success); background:color-mix(in srgb, var(--success) 10%, var(--surface)); }
-.dl-diet-meal-group{ position:relative; display:inline-flex; flex:none; margin-right:6px; }
-.dl-diet-meal-group .comment-btn{
-  position:absolute; top:-7px; right:-7px; background:var(--surface); border:1px solid var(--border);
-  border-radius:50%; padding:2px; box-shadow:var(--shadow);
-}
-.dl-diet-meal-group .comment-btn svg{ width:9px; height:9px; }
+/* O balão de observação fica ao lado do nome, na mesma linha, em vez de por cima dele. */
+.dl-diet-meal-group .comment-btn{ flex:none; padding:3px; }
+.dl-diet-meal-group .comment-btn svg{ width:12px; height:12px; }
 .dl-mood-options{ display:flex; gap:6px; }
 .dl-mood-item{ position:relative; flex:1; }
 .dl-mood-btn{
@@ -3555,3 +3557,13 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
   .book-row .status-pill-label{ display:none; }
   .book-row .status-pill-dot, .book-row .status-pill-check{ width:15px; height:15px; }
 }
+
+/* "N tarefas atrasadas" na saudação é um botão: leva ao Dashboard, já com a lista das atrasadas aberta. */
+.day-greeting-link{ font:inherit; letter-spacing:inherit; padding:0; background:none; border:0; cursor:pointer; text-decoration:underline; text-decoration-color:color-mix(in srgb, var(--danger) 40%, transparent); text-underline-offset:3px; }
+.day-greeting-link:hover{ text-decoration-color:currentColor; }
+
+.fundo-salvar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:12px; padding:10px 12px; border-radius:var(--r-2); background:var(--accent-soft); }
+.fundo-salvar .settings-toggle-hint{ flex:1 1 180px; }
+.fundo-aviso{ margin-top:10px; font-size:12px; font-weight:var(--fw-medio); }
+.fundo-aviso.ok{ color:color-mix(in srgb, var(--success) 70%, var(--text)); }
+.fundo-aviso.erro{ color:var(--danger); }

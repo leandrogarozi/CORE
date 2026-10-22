@@ -16,7 +16,7 @@ const DIAS_NA_SAUDACAO = 3;
  *
  * Embaixo, uma linha discreta e cinza com quem faz aniversário hoje ou nos próximos dias.
  */
-export function DayGreeting() {
+export function DayGreeting({ onAtrasadas }: { onAtrasadas?: () => void }) {
   const { board } = useBoardCtx();
   const hoje = todayISO();
   const hora = new Date().getHours();
@@ -47,7 +47,13 @@ export function DayGreeting() {
           partes.map((p, i) => (
             <span key={p.texto}>
               {i > 0 && " e "}
-              <span className={p.cor === "danger" ? "day-greeting-atraso" : "day-greeting-reuniao"}>{p.texto}</span>
+              {p.cor === "danger" && onAtrasadas ? (
+                <button type="button" className="day-greeting-atraso day-greeting-link" title="Ver as tarefas atrasadas no Dashboard" onClick={onAtrasadas}>
+                  {p.texto}
+                </button>
+              ) : (
+                <span className={p.cor === "danger" ? "day-greeting-atraso" : "day-greeting-reuniao"}>{p.texto}</span>
+              )}
               {i === partes.length - 1 && "."}
             </span>
           ))

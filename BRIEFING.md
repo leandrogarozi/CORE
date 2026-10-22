@@ -6067,3 +6067,10 @@ campo próprio separado do humor 1-5) e o comportamento de arrasto com
 o filtro "⚡ Rápidas primeiro" (arrasto desativado pra lista toda
 enquanto esse modo está ativo, em `TaskListCard.tsx` — comportamento
 correto e já implementado).
+
+## Ajustes de 22/10 (tarde): menu rola, dieta, atrasadas clicável, salvar cor
+- Menu lateral com rolagem própria (computador); Lixeira/Configurações fixas embaixo.
+- Registro do dia: bloco da dieta reorganizado (percentual+comentário, depois caixa de refeições em grade).
+- "N tarefas atrasadas" (tela do dia) abre o Dashboard com a lista das atrasadas.
+- Aparência: cor do fundo só vale ao clicar em "Salvar cor" (relê do banco e confirma). Se ainda voltar ao azul, investigar `settings.bg_tone` no Supabase.
+- Canvas "Layouts FARO" agora em 5 páginas. Detalhes em `docs/LAYOUT-FARO.md`.

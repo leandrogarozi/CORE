@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useBoardCtx } from "./board-context";
 import { createClient } from "@/lib/supabase/client";
 import { conhecimentoParaExportar } from "@/lib/conhecimento";
@@ -13,7 +13,9 @@ import {
   SEM_COR,
   TOM_PADRAO,
   TONS_DO_FUNDO,
+  degradeDoFundo,
   ehCorPersonalizada,
+  tomPorId,
   type IntensidadeDoFundo,
 } from "@/lib/board/fundo";
 import {
@@ -1365,6 +1367,40 @@ function CorDoFundoBox() {
   const intensidadeAtual = salva === 0 ? INTENSIDADE_PADRAO : salva;
   const personalizada = ehCorPersonalizada(tomAtual);
 
+  // Cor personalizada: escolher no seletor só PRÉ-VISUALIZA. Ela só vale (e só fica guardada)
+  // quando aperta "Salvar cor". Antes cada movimento do seletor gravava na hora, e a escolha
+  // se perdia ao fechar e reabrir o FARO.
+  const supabase = useMemo(() => createClient(), []);
+  const [rascunho, setRascunho] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<{ tipo: "ok" | "erro"; texto: string } | null>(null);
+  useEffect(() => {
+    if (rascunho === null) return;
+    const n = intensidadeAtual;
+    const raiz = document.documentElement.style;
+    const tom = tomPorId(rascunho);
+    raiz.setProperty("--fundo-claro", degradeDoFundo(tom, n, "claro"));
+    raiz.setProperty("--fundo-escuro", degradeDoFundo(tom, n, "escuro"));
+    return () => {
+      // Sai do rascunho (salvou, descartou ou fechou a tela): volta ao que está guardado.
+      const guardado = tomPorId(bgTone ?? TOM_PADRAO);
+      raiz.setProperty("--fundo-claro", degradeDoFundo(guardado, n, "claro"));
+      raiz.setProperty("--fundo-escuro", degradeDoFundo(guardado, n, "escuro"));
+    };
+  }, [rascunho, intensidadeAtual, bgTone]);
+
+  async function salvarCor() {
+    if (rascunho === null) return;
+    const cor = rascunho;
+    escolherTom(cor);
+    setRascunho(null);
+    setAviso(null);
+    // Confere no banco: se não gravou, ele precisa saber na hora, não no dia seguinte.
+    await new Promise((r) => setTimeout(r, 900));
+    const { data, error } = await supabase.from("settings").select("bg_tone").maybeSingle();
+    if (error || data?.bg_tone !== cor) setAviso({ tipo: "erro", texto: "Não consegui guardar a cor. Tente de novo." });
+    else setAviso({ tipo: "ok", texto: "Cor guardada. Ela continua assim até você trocar." });
+  }
+
   // Escolher cor estando no 0 tem que pintar algo: sem isto o clique no tom
   // não muda nada na tela e parece quebrado.
   function escolherTom(id: string) {
@@ -1400,20 +1436,37 @@ function CorDoFundoBox() {
         {/* Cor livre, pro caso de nenhum dos tons servir. É um `label` com
             input de cor dentro: o seletor do sistema abre no clique, com a
             roda de cores que ele descreveu, e a escolha já vale ao mexer. */}
-        <label className={"note-chip" + (personalizada ? " active" : "")}>
+        <label className={"note-chip" + (personalizada || rascunho !== null ? " active" : "")}>
           <span
             className="fundo-amostra"
-            style={{ background: personalizada ? tomAtual : "linear-gradient(135deg,#f66,#6cf,#6f9)" }}
+            style={{ background: rascunho ?? (personalizada ? tomAtual : "linear-gradient(135deg,#f66,#6cf,#6f9)") }}
           />
           Personalizada
           <input
             type="color"
             className="fundo-seletor"
-            value={personalizada ? tomAtual : "#4A47D5"}
-            onChange={(e) => escolherTom(e.target.value)}
+            value={rascunho ?? (personalizada ? tomAtual : "#4A47D5")}
+            onChange={(e) => {
+              setAviso(null);
+              setRascunho(e.target.value);
+            }}
           />
         </label>
       </div>
+
+      {rascunho !== null && (
+        <div className="fundo-salvar">
+          <span className="fundo-amostra" style={{ background: rascunho }} />
+          <span className="settings-toggle-hint">Pré-visualização. Só vale depois de salvar.</span>
+          <button type="button" className="btn btn-ghost" onClick={() => setRascunho(null)}>
+            Descartar
+          </button>
+          <button type="button" className="btn btn-accent" onClick={salvarCor}>
+            Salvar cor
+          </button>
+        </div>
+      )}
+      {aviso && <div className={"fundo-aviso " + aviso.tipo}>{aviso.texto}</div>}
 
       <span className="edit-field-label" style={{ marginTop: 12 }}>
         Intensidade

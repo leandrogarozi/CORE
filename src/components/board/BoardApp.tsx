@@ -72,8 +72,11 @@ function BoardShell() {
   const [weekAnchor, setWeekAnchor] = useState(() => mondayOf(new Date()));
   const [selectedDate, setSelectedDate] = useState(() => todayISO());
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  // Marcado quando o Dashboard é aberto pela frase de atrasadas da saudação.
+  const [dashAtrasadas, setDashAtrasadas] = useState(false);
 
   function selectView(mode: ViewMode) {
+    setDashAtrasadas(false);
     if (mode === "day") {
       setWeekAnchor(mondayOf(new Date()));
       setSelectedDate(todayISO());
@@ -393,7 +396,14 @@ function BoardShell() {
         <CalendarView onBack={() => setViewMode("day")} onSelectWeek={() => setViewMode("week")} onSelectDay={goToDate} />
       ) : (
         <>
-          {viewMode === "day" && <DayGreeting />}
+          {viewMode === "day" && (
+            <DayGreeting
+              onAtrasadas={() => {
+                setDashAtrasadas(true);
+                setViewMode("dashboard");
+              }}
+            />
+          )}
           <div className="day-strip-wrap">
             <button
               className="strip-nav"
@@ -439,7 +449,10 @@ function BoardShell() {
                 type="button"
                 className={"view-toggle-btn" + (viewMode === "dashboard" ? " active" : "")}
                 title={overdueTaskCount > 0 ? `${overdueTaskCount} tarefa(s) atrasada(s)` : undefined}
-                onClick={() => setViewMode(viewMode === "dashboard" ? "day" : "dashboard")}
+                onClick={() => {
+                  setDashAtrasadas(false);
+                  setViewMode(viewMode === "dashboard" ? "day" : "dashboard");
+                }}
               >
                 Dashboard
                 {overdueTaskCount > 0 && (
@@ -469,7 +482,7 @@ function BoardShell() {
           {viewMode === "day" && <QuickActions onOpen={setViewMode} />}
 
           {viewMode === "dashboard" ? (
-            <Dashboard />
+            <Dashboard key={dashAtrasadas ? "atrasadas" : "normal"} abrirAtrasadas={dashAtrasadas} />
           ) : (
             <div className="day-layout">
               <div className="section">
