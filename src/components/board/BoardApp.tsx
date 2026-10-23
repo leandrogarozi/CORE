@@ -45,6 +45,7 @@ import { TrashView } from "./TrashView";
 import { ScopeModal } from "./ScopeModal";
 import { ConfirmModal } from "./ConfirmModal";
 import { FaroMascot } from "./FaroMascot";
+import { WelcomeModal } from "./WelcomeModal";
 import { ActiveTimerBadge } from "./TimerButton";
 import { ProfileView } from "./ProfileView";
 import { TimerNudges } from "./TimerNudges";
@@ -559,6 +560,7 @@ function BoardShell() {
       )}
 
       <FaroMascot />
+      <WelcomeModal onAbrirConfiguracoes={() => setViewMode("settings")} />
     </div>
   );
 }
