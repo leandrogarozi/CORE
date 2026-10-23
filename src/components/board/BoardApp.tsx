@@ -529,8 +529,6 @@ function BoardShell() {
                   {/* Faixa embaixo das tarefas: a lista de tarefas fica com a largura toda e
                       Seu dia, Horas e Agenda dividem a linha de baixo. */}
                   <div className="day-info-row">
-                    {painel("panel_resumo") && <DaySummary selectedDate={selectedDate} />}
-                    {painel("panel_horas") && <HoursPanel selectedDate={selectedDate} />}
                     {painel("panel_agenda") && (
                       <DayAgendaPanel
                         selectedDate={selectedDate}
@@ -547,6 +545,8 @@ function BoardShell() {
                         }}
                       />
                     )}
+                    {painel("panel_horas") && <HoursPanel selectedDate={selectedDate} />}
+                    {painel("panel_resumo") && <DaySummary selectedDate={selectedDate} />}
                   </div>
                   <DailyLogPanel selectedDate={selectedDate} />
                 </>

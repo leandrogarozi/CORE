@@ -90,6 +90,12 @@ Se o Leandro quiser algum desenho ao pé da letra além disto (ex.: cartões de 
 - **Lista compacta:** colunas alinhadas, descrição longa cortada com "…".
 - **Registro do dia e saudação (aplicado):** saudação em 16 px com o aviso em 13 px cinza (só "N tarefas atrasadas" tem cor e é clicável). Registro do dia em duas colunas, duas caixas de cada lado: Humor (carinhas maiores, sentimentos em grade) e Sono à esquerda; Dieta e Água à direita. Em painel estreito vira uma coluna.
 
+## Ajustes de 23/10
+
+- **Home:** na faixa embaixo das tarefas a ordem agora é Agenda | Horas | Seu dia (Agenda e Seu dia trocaram de lugar).
+- **Registro do dia:** grade 2 x 2 com blocos de mesma altura na mesma linha (Humor | Dieta, Sono | Água), conteúdo centralizado dentro de cada bloco. Bloco sem par ocupa a linha toda.
+- **Mascote FARO:** só o cachorrinho; o microfone fica dentro do balão.
+
 ## Pendências conhecidas
 
 - Print do painel de Configurações do app financeiro do Leandro: **ele ainda vai mandar**, para a tela de Configurações ficar parecida com a dele (hoje é a primeira proposta, feita só com os blocos do FARO).

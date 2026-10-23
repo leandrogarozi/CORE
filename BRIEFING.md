@@ -6089,3 +6089,6 @@ correto e já implementado).
 
 ## Mascote FARO: só o cachorrinho (23/10)
 - Saiu o microfone flutuante ao lado do cachorrinho. Agora é só o cachorrinho; ao abrir, o botão grande "Toque e fale" dentro do balão é o único microfone (e o campo de texto continua). Registrado a pedido do Leandro porque os dois microfones embolavam.
+
+## Home: Agenda e Seu dia trocados; Registro do dia em grade 2x2 (23/10)
+- Faixa de baixo das tarefas: Agenda | Horas | Seu dia. Registro do dia: Humor | Dieta e Sono | Água, mesma altura por linha, conteúdo centralizado.

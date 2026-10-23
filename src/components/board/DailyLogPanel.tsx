@@ -54,6 +54,11 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
 
   if (!waterOn && !dietOn && !sleepOn && !moodOn) return null;
 
+  // Ordem visual: Humor | Dieta, Sono | Água (cada linha com blocos do mesmo tamanho).
+  // Se sobrar um bloco sem par, ele ocupa a linha toda.
+  const ativos = [moodOn && "mood", dietOn && "diet", sleepOn && "sleep", waterOn && "water"].filter(Boolean) as string[];
+  const ultimoSozinho = ativos.length % 2 === 1 ? ativos[ativos.length - 1] : undefined;
+
   function setMood(v: number) {
     const next = mood === v ? null : v;
     board.updateDailyLog(selectedDate, next === null ? { mood: null, moodNote: null } : { mood: next });
@@ -86,7 +91,7 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
             <span>Ainda falta registrar hoje: {missing.join(", ")}.</span>
           </div>
         )}
-        <div className={"dl-cols" + (!(moodOn || sleepOn) || !(dietOn || waterOn) ? " solo" : "")}>
+        <div className="dl-cols" data-ultimo={ultimoSozinho}>
           {(moodOn || sleepOn) && <div className="dl-col">
           {moodOn && (
             <div className="dl-row" data-dl="mood">

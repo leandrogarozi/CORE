@@ -852,11 +852,18 @@ input[type="range"]::-moz-range-thumb{ width:12px; height:12px; border-radius:50
 .daily-log-panel > .dl-reminder{ order:0; }
 /* Duas colunas de altura livre: Humor e Sono à esquerda; Dieta e Água à direita (duas caixas de cada lado).
    Cada assunto é um bloco com borda e a altura que precisa. Em painel estreito vira uma coluna só. */
-.dl-cols{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; align-items:start; }
-.dl-cols.solo{ grid-template-columns:minmax(0,1fr); }
-.dl-col{ display:flex; flex-direction:column; gap:14px; min-width:0; }
-.dl-cols .dl-row{ border:1px solid var(--linha); border-radius:var(--r-3); padding:14px; }
-@container (max-width:620px){ .dl-cols{ grid-template-columns:minmax(0,1fr); } }
+/* Grade 2 x 2: Humor | Dieta na primeira linha, Sono | Água na segunda. Os blocos de uma mesma
+   linha têm a mesma altura (a linha fininha da borda alinha) e o conteúdo fica centralizado. */
+.dl-cols{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; align-items:stretch; }
+.dl-col{ display:contents; }
+.dl-cols .dl-row{ border:1px solid var(--linha); border-radius:var(--r-3); padding:14px; display:flex; flex-direction:column; justify-content:center; }
+.dl-cols .dl-row[data-dl="mood"]{ order:1; }
+.dl-cols .dl-row[data-dl="diet"]{ order:2; }
+.dl-cols .dl-row[data-dl="sleep"]{ order:3; }
+.dl-cols .dl-row[data-dl="water"]{ order:4; }
+.dl-cols[data-ultimo="mood"] .dl-row[data-dl="mood"], .dl-cols[data-ultimo="diet"] .dl-row[data-dl="diet"],
+.dl-cols[data-ultimo="sleep"] .dl-row[data-dl="sleep"], .dl-cols[data-ultimo="water"] .dl-row[data-dl="water"]{ grid-column:1 / -1; }
+@container (max-width:620px){ .dl-cols{ grid-template-columns:minmax(0,1fr); } .dl-cols .dl-row{ grid-column:auto !important; } }
 .dl-reminder{
   display:flex; align-items:center; gap:7px;
   font-size:11.5px; border-radius:8px; padding:8px 10px; border:none;
