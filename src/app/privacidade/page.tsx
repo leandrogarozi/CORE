@@ -86,7 +86,7 @@ export default function PrivacidadePage() {
       <p>
         <strong>Cópias de segurança:</strong> o FARO faz, uma vez por dia, uma cópia da sua conta dentro do mesmo banco de dados e guarda as
         últimas 14. Elas servem para recuperar dados apagados por engano ou por falha, só o servidor tem acesso e o responsável pelo FARO
-        só as usa para restaurar a sua conta. Você também pode baixar a sua própria cópia a qualquer momento em Configurações, grupo "Dados e backup", e guardá-la onde quiser.
+        só as usa para restaurar a sua conta. Você também pode baixar a sua própria cópia a qualquer momento em Configurações, grupo &quot;Dados e backup&quot;, e guardá-la onde quiser.
       </p>
 
       <h2>6. Seus direitos</h2>
