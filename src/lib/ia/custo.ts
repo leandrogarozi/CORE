@@ -27,6 +27,24 @@ export interface UsoDeTokens {
 /** Cotação de reserva quando a pessoa ainda não ajustou o dólar nas Configurações. */
 export const DOLAR_PADRAO = 5.1;
 export const TETO_PADRAO_BRL = 20;
+/** Quem não é dono usa a chave do dono: o teto que a pessoa escolhe nunca passa deste valor, e o dólar nunca vale menos que o padrão. */
+export const TETO_MAXIMO_DE_TESTADOR_BRL = 10;
+
+export function limitesDaIa(config: { ia_monthly_cap_brl?: unknown; whatsapp_usd_brl?: unknown; feature_flags?: unknown } | null): {
+  teto: number;
+  dolar: number;
+  dono: boolean;
+} {
+  const flags = (config?.feature_flags ?? {}) as Record<string, unknown>;
+  const dono = flags.modo_dono === true;
+  const capDaPessoa = Number(config?.ia_monthly_cap_brl ?? TETO_PADRAO_BRL);
+  const dolarDaPessoa = Number(config?.whatsapp_usd_brl ?? DOLAR_PADRAO);
+  return {
+    dono,
+    teto: dono ? capDaPessoa : Math.min(capDaPessoa, TETO_MAXIMO_DE_TESTADOR_BRL),
+    dolar: dono ? dolarDaPessoa : Math.max(dolarDaPessoa, DOLAR_PADRAO),
+  };
+}
 
 export function custoEmUsd(modelo: string, uso: UsoDeTokens): number {
   // Modelo que não conheço: cobra pelo preço do modelo atual em vez de dizer

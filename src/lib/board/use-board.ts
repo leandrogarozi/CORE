@@ -323,6 +323,19 @@ export function useBoard(userId: string | null) {
       supabase.from("attachments").select("entity_type, entity_id"),
     ]);
 
+    // Conta nova nasce sem nenhum status de tarefa (A iniciar, Concluída...). O banco semeia os cinco padrões,
+    // uma vez só (a função confere antes), e a gente relê a lista. Sem isso a coluna de status ficava vazia.
+    let statusRows = taskStatusesRes.data ?? [];
+    if (statusRows.length === 0 && !taskStatusesRes.error) {
+      const { error: erroSemente } = await supabase.rpc("faro_semear_conta");
+      if (!erroSemente) {
+        const { data: depois } = await supabase.from("task_statuses").select("*").order("sort_order");
+        statusRows = depois ?? [];
+      } else {
+        reportSaveError("faro_semear_conta", erroSemente);
+      }
+    }
+
     const dailyLogs: Record<string, DailyLog> = {};
     (dailyLogsRes.data ?? []).forEach((row) => {
       dailyLogs[row.log_date] = rowToDailyLog(row);
@@ -342,7 +355,7 @@ export function useBoard(userId: string | null) {
       habits: buildRecurring(habitsRes.data ?? [], habitLogsRes.data ?? [], "habit_id"),
       fixedBlocks: buildRecurring(blocksRes.data ?? [], blockLogsRes.data ?? [], "block_id", blockLogEntriesRes.data ?? []),
       taskSeries: (seriesRes.data ?? []).map(rowToSeries),
-      taskStatuses: (taskStatusesRes.data ?? []).map(rowToTaskStatus),
+      taskStatuses: statusRows.map(rowToTaskStatus),
       books: (booksRes.data ?? []).map(rowToBook),
       synapses: (synapsesRes.data ?? []).map(rowToSynapse),
       shoppingItems: (shoppingRes.data ?? []).map(rowToShoppingItem),

@@ -54,6 +54,7 @@ import {
 } from "./icons";
 import { fmtBRL } from "@/lib/money";
 import { CREDITO_INICIAL, PACOTES_DE_CREDITO, saldoDe } from "@/lib/whatsapp/credito";
+import { TETO_MAXIMO_DE_TESTADOR_BRL } from "@/lib/ia/custo";
 import { RecurringManager } from "./RecurringManager";
 import { emocoesEmUso, passosDeAgua, valorDaEmocao, type Emocao } from "@/lib/board/opcoes-do-dia";
 import { ToggleSwitch } from "./ToggleSwitch";
@@ -878,7 +879,8 @@ function ConectorFaroBox() {
         Liga o Claude ao FARO: ele passa a buscar e ler o que você aprovou em Conhecendo você, as sinapses, as ideias
         e as anotações dos livros, sem você precisar apontar pasta nenhuma. Ele também pode criar aniversários, tarefas
         e lembretes, mas só depois de mostrar o que vai criar e você confirmar. Nunca edita nem apaga o que já existe.
-        Saúde e medicamentos ficam de fora.
+        Saúde e medicamentos ficam de fora. É opcional: precisa de uma conta do Claude que aceite conectores
+        personalizados (planos pagos). Sem isso o FARO funciona normalmente.
       </div>
 
       {estado?.token ? (
@@ -1137,7 +1139,9 @@ function BackupDeAprendizadoBox() {
 
 function IaCostBox() {
   const { board } = useBoardCtx();
-  const { iaMonthlyCapBrl } = board.state.settings;
+  const { iaMonthlyCapBrl: capEscolhido } = board.state.settings;
+  // Quem não é dono usa a IA paga pelo dono: o servidor limita o teto (ver limitesDaIa) e a tela mostra o mesmo número.
+  const iaMonthlyCapBrl = board.state.settings.featureFlags.modo_dono === true ? capEscolhido : Math.min(capEscolhido, TETO_MAXIMO_DE_TESTADOR_BRL);
   const resumo = useIaCost();
   const [capInput, setCapInput] = useState<string | null>(null);
 
@@ -2076,7 +2080,7 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
           blocos que se abrem para configurar). Os blocos são os mesmos de antes, só reagrupados. */}
       <div className="cfg-pagina">
         <nav className="cfg-trilho" aria-label="Grupos de configurações">
-          {GRUPOS_DE_CONFIGURACAO.filter((g) => g.id !== "conexoes" || modoDono).map((g) => (
+          {GRUPOS_DE_CONFIGURACAO.map((g) => (
             <button
               key={g.id}
               type="button"
@@ -2200,17 +2204,9 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
             <BackupBox />
           </GrupoDeConfiguracao>
 
-          {modoDono && (
-            <GrupoDeConfiguracao id="conexoes">
-              <div className="settings-particular">
-                <div className="settings-particular-titulo">
-                  <span className="settings-particular-selo">Particular do dono</span>
-                  Conector da minha IA. Não vai para os clientes.
-                </div>
-                <ConectorFaroBox />
-              </div>
-            </GrupoDeConfiguracao>
-          )}
+          <GrupoDeConfiguracao id="conexoes">
+            <ConectorFaroBox />
+          </GrupoDeConfiguracao>
 
           <GrupoDeConfiguracao id="ajuda">
             <FeedbackBox />

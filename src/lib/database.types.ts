@@ -2228,6 +2228,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      faro_semear_conta: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       faro_outro_dispositivo_mexeu: {
         Args: { p_device: string; p_desde: string | null }
         Returns: Json

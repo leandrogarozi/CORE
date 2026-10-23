@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
-import { DOLAR_PADRAO, MODELO_DA_IA, TETO_PADRAO_BRL, custoEmUsd, inicioDoMesISO } from "@/lib/ia/custo";
+import { MODELO_DA_IA, limitesDaIa, custoEmUsd, inicioDoMesISO } from "@/lib/ia/custo";
 import { INSTRUCAO_DO_RESUMO, MAX_TOKENS_DO_RESUMO, materiaisParaResumir } from "@/lib/ia/resumo";
 import { usoDaMensagem } from "@/lib/ia/servidor";
 import { rowToKnowledgeItem } from "@/lib/board/mappers";
@@ -41,14 +41,13 @@ export async function POST() {
 
   const servico = createServiceClient();
   const [{ data: config }, { data: usos, error: erroUso }, { data: linhas, error: erroItens }] = await Promise.all([
-    servico.from("settings").select("ia_monthly_cap_brl, whatsapp_usd_brl").eq("user_id", user.id).maybeSingle(),
+    servico.from("settings").select("ia_monthly_cap_brl, whatsapp_usd_brl, feature_flags").eq("user_id", user.id).maybeSingle(),
     servico.from("ia_uso").select("custo_brl").eq("user_id", user.id).gte("created_at", inicioDoMesISO(new Date())),
     servico.from("knowledge_items").select("*").eq("user_id", user.id).eq("status", "aprovado").is("deleted_at", null),
   ]);
   if (erroUso || erroItens) return NextResponse.json({ erro: "indisponivel" }, { status: 502 });
 
-  const teto = Number(config?.ia_monthly_cap_brl ?? TETO_PADRAO_BRL);
-  const dolar = Number(config?.whatsapp_usd_brl ?? DOLAR_PADRAO);
+  const { teto, dolar } = limitesDaIa(config);
   const gasto = (usos ?? []).reduce((soma, u) => soma + Number(u.custo_brl), 0);
   if (gasto >= teto) return NextResponse.json({ erro: "teto", gasto, teto }, { status: 429 });
 

@@ -35,6 +35,8 @@ type ItemDoMenu = {
   icone: ReactNode;
   destaque?: boolean;
   selo?: "paraRevisar" | "aniversarios";
+  /** Só a conta dona vê (depende das páginas de cadastro do próprio dono). */
+  somenteDono?: boolean;
 };
 
 const GRUPOS: { titulo: string; itens: ItemDoMenu[] }[] = [
@@ -63,8 +65,8 @@ const GRUPOS: { titulo: string; itens: ItemDoMenu[] }[] = [
     titulo: "Pessoas",
     itens: [
       { modo: "aniversarios", rotulo: "Aniversários", icone: <GiftIcon />, selo: "aniversarios" },
-      { modo: "cadastros", rotulo: "Cadastros", icone: <LinkIcon /> },
-      { modo: "clientes", rotulo: "Clientes", icone: <UsersGroupIcon /> },
+      { modo: "cadastros", rotulo: "Cadastros", icone: <LinkIcon />, somenteDono: true },
+      { modo: "clientes", rotulo: "Clientes", icone: <UsersGroupIcon />, somenteDono: true },
     ],
   },
   {
@@ -86,6 +88,7 @@ export function Sidebar({
   onClose,
   paraRevisar = 0,
   aniversariosPendentes = 0,
+  modoDono = false,
 }: {
   open: boolean;
   viewMode: ViewMode;
@@ -94,6 +97,7 @@ export function Sidebar({
   /** Quantos itens de "Conhecendo você" esperam aprovação (a IA propôs). */
   paraRevisar?: number;
   aniversariosPendentes?: number;
+  modoDono?: boolean;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -116,7 +120,7 @@ export function Sidebar({
         {GRUPOS.map((grupo) => (
           <div className="sidebar-section" key={grupo.titulo}>
             <div className="sidebar-section-label">{grupo.titulo}</div>
-            {grupo.itens.map((item) => {
+            {grupo.itens.filter((item) => !item.somenteDono || modoDono).map((item) => {
               const numero = item.selo === "paraRevisar" ? paraRevisar : item.selo === "aniversarios" ? aniversariosPendentes : 0;
               return (
                 <button

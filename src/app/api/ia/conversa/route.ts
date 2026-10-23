@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
-import { DOLAR_PADRAO, MODELO_DA_IA, TETO_PADRAO_BRL, inicioDoMesISO } from "@/lib/ia/custo";
+import { MODELO_DA_IA, limitesDaIa, inicioDoMesISO } from "@/lib/ia/custo";
 import { prepararMensagens, sistemaDaConversa } from "@/lib/ia/conversa";
 import { iniciarConversa } from "@/lib/ia/servidor";
 
@@ -46,12 +46,11 @@ export async function POST(req: NextRequest) {
   // Teto do mês: soma do que já foi gasto + o limite que ele definiu.
   const servico = createServiceClient();
   const [{ data: config }, { data: usos, error: erroUso }] = await Promise.all([
-    servico.from("settings").select("ia_monthly_cap_brl, whatsapp_usd_brl, preferred_name").eq("user_id", user.id).maybeSingle(),
+    servico.from("settings").select("ia_monthly_cap_brl, whatsapp_usd_brl, preferred_name, feature_flags").eq("user_id", user.id).maybeSingle(),
     servico.from("ia_uso").select("custo_brl").eq("user_id", user.id).gte("created_at", inicioDoMesISO(new Date())),
   ]);
   if (erroUso) return NextResponse.json({ erro: "indisponivel" }, { status: 502 });
-  const teto = Number(config?.ia_monthly_cap_brl ?? TETO_PADRAO_BRL);
-  const dolar = Number(config?.whatsapp_usd_brl ?? DOLAR_PADRAO);
+  const { teto, dolar } = limitesDaIa(config);
   const gasto = (usos ?? []).reduce((soma, u) => soma + Number(u.custo_brl), 0);
   if (gasto >= teto) {
     return NextResponse.json({ erro: "teto", gasto, teto }, { status: 429 });

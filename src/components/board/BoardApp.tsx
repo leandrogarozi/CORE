@@ -287,6 +287,7 @@ function BoardShell() {
         onClose={() => setSidebarOpen(false)}
         paraRevisar={board.state.knowledgeItems.filter((k) => k.status === "pendente").length}
         aniversariosPendentes={board.state.birthdays.filter((b) => b.pending).length}
+        modoDono={board.state.settings.featureFlags.modo_dono === true}
       />
 
       <div className="topbar">
