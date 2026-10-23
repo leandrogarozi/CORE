@@ -126,13 +126,13 @@ export function WelcomeModal({ onAbrirConfiguracoes }: { onAbrirConfiguracoes: (
                 <b>Android:</b> no Chrome, menu (três pontinhos) e &quot;Instalar app&quot; ou &quot;Adicionar à tela inicial&quot;.
               </li>
               <li>
-                <b>Depois:</b> em Configurações, grupo Avisos, toque em &quot;Ativar notificações&quot; para o celular te avisar dos lembretes.
+                <b>Depois:</b> em Configurações, grupo &quot;Avisos e custos&quot;, toque em &quot;Ativar notificações&quot; para o celular te avisar dos lembretes.
               </li>
             </ul>
             <p className="welcome-texto">No computador não precisa instalar nada: os avisos funcionam com o FARO aberto no navegador.</p>
             <p className="welcome-texto">
               <b>Seus dados:</b> o FARO guarda uma cópia diária da sua conta por 14 dias. Mesmo assim, de vez em quando baixe a sua em Configurações,
-              grupo Dados, &quot;Backup&quot;, e guarde no seu computador ou no seu Drive.
+              grupo &quot;Dados e backup&quot;, e guarde no seu computador ou no seu Drive.
             </p>
           </>
         )}
