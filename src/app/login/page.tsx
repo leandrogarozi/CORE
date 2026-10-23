@@ -40,7 +40,11 @@ export default function LoginPage() {
     });
     setLoading(false);
     if (error) {
-      setError(error.message);
+      setError(
+        (error as { code?: string }).code === "weak_password"
+          ? "Essa senha é muito comum ou já apareceu em vazamentos. Escolha outra, com pelo menos 8 caracteres."
+          : error.message
+      );
       return;
     }
     if (data.session) {
@@ -108,7 +112,7 @@ export default function LoginPage() {
             <input
               type="password"
               required
-              minLength={6}
+              minLength={mode === "signup" ? 8 : 1}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete={mode === "signin" ? "current-password" : "new-password"}
