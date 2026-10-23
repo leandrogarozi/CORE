@@ -5,12 +5,13 @@ import { enviarPushAoUsuario } from "@/lib/push/enviar";
 
 export const dynamic = "force-dynamic";
 
-const TIPOS = ["problema", "ideia", "duvida", "elogio"] as const;
+const TIPOS = ["problema", "ideia", "duvida", "elogio", "credito"] as const;
 const ROTULO: Record<(typeof TIPOS)[number], string> = {
   problema: "Problema",
   ideia: "Ideia",
   duvida: "Dúvida",
   elogio: "Elogio",
+  credito: "Pedido de crédito de WhatsApp",
 };
 // Anti-spam simples: no máximo 10 mensagens por pessoa por dia.
 const LIMITE_POR_DIA = 10;

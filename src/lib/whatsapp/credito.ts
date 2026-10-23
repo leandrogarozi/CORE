@@ -10,8 +10,15 @@
  * Quem concede por enquanto é o dono, por SQL; pagamento pelo app é um passo futuro.
  */
 
+/** Quem ainda não tem linha em `whatsapp_creditos` começa com este crédito de boas-vindas (para poder testar logo). */
+export const CREDITO_INICIAL = 20;
 export const AVISO_DE_CREDITO_BAIXO = 5; // avisa a pessoa (uma vez) quando restarem tantas mensagens
 export const TETO_GLOBAL_PADRAO = 2000; // mensagens por mês, somando todo mundo
+
+/** concedidas: o que está na tabela (undefined = pessoa sem linha, vale o crédito inicial). */
+export function saldoDe(concedidas: number | undefined | null, enviadas: number): number {
+  return (concedidas ?? CREDITO_INICIAL) - enviadas;
+}
 
 export type MotivoDoBloqueio = "sem_aceite" | "sem_credito" | "teto_global";
 

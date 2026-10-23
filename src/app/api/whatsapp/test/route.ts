@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendWhatsAppTestMessage } from "@/lib/whatsapp/send";
-import { decidirEnvio, tetoGlobalDoAmbiente, textoDoBloqueio } from "@/lib/whatsapp/credito";
+import { decidirEnvio, saldoDe, tetoGlobalDoAmbiente, textoDoBloqueio } from "@/lib/whatsapp/credito";
 
 export async function POST() {
   const supabase = await createClient();
@@ -28,7 +28,7 @@ export async function POST() {
   const decisao = decidirEnvio({
     dono: flags.modo_dono === true,
     aceitou: flags.whatsapp_aceite === true,
-    saldo: Number(cred?.mensagens_concedidas ?? 0) - (usadas ?? 0),
+    saldo: saldoDe(cred?.mensagens_concedidas, usadas ?? 0),
     enviadasNoMesGeral: geral ?? 0,
     tetoGlobal: tetoGlobalDoAmbiente(),
   });

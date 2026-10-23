@@ -5,9 +5,10 @@ import { isReminderAlertingInZone, zonedDateTimeToMs } from "@/lib/board/reminde
 import { proximaOcorrencia, semLembreteDeTarefaApagada } from "@/lib/board/zap-engine";
 import { avisarBackupAtrasado } from "@/lib/backup/aviso";
 import { sendWhatsAppReminderMessage } from "@/lib/whatsapp/send";
-import { AVISO_DE_CREDITO_BAIXO, decidirEnvio, tetoGlobalDoAmbiente } from "@/lib/whatsapp/credito";
+import { AVISO_DE_CREDITO_BAIXO, CREDITO_INICIAL, decidirEnvio, saldoDe, tetoGlobalDoAmbiente } from "@/lib/whatsapp/credito";
 import { fmtDayMonth } from "@/lib/date-utils";
 import { enviarPushesDosLembretes } from "@/lib/push/dispatch";
+import { espelharNoGoogle } from "@/lib/google/agenda";
 
 export const dynamic = "force-dynamic";
 
@@ -67,9 +68,16 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     backup = { erro: e instanceof Error ? e.message : "falha no aviso de backup" };
   }
+  // Espelho da agenda no Google (só liga com a credencial na Vercel). Canal próprio: falha aqui não derruba o resto.
+  let google: Awaited<ReturnType<typeof espelharNoGoogle>> | { erro: string };
+  try {
+    google = await espelharNoGoogle(createServiceClient());
+  } catch (e) {
+    google = { erro: e instanceof Error ? e.message : "falha no espelho do Google" };
+  }
   const resposta = await dispararWhatsApp();
   const corpo = await resposta.json();
-  return NextResponse.json({ ...corpo, push, backup }, { status: resposta.status });
+  return NextResponse.json({ ...corpo, push, backup, google }, { status: resposta.status });
 }
 
 async function dispararWhatsApp(): Promise<NextResponse> {
@@ -241,7 +249,7 @@ async function dispararWhatsApp(): Promise<NextResponse> {
     const decisao = decidirEnvio({
       dono: ehDono,
       aceitou: flagsByUser.get(userId)?.whatsapp_aceite === true,
-      saldo: (concedidasByUser.get(userId) ?? 0) - (enviadasTotal.get(userId) ?? 0),
+      saldo: saldoDe(concedidasByUser.get(userId), enviadasTotal.get(userId) ?? 0),
       enviadasNoMesGeral,
       tetoGlobal,
     });
@@ -311,11 +319,11 @@ async function dispararWhatsApp(): Promise<NextResponse> {
       if (!ehDono) {
         const usadas = (enviadasTotal.get(userId) ?? 0) + 1;
         enviadasTotal.set(userId, usadas);
-        const restante = (concedidasByUser.get(userId) ?? 0) - usadas;
+        const restante = saldoDe(concedidasByUser.get(userId), usadas);
         // Avisa a pessoa (uma vez por faixa de crédito) quando está acabando ou acabou.
         if (restante <= AVISO_DE_CREDITO_BAIXO && !avisoBaixoByUser.get(userId)) {
           avisoBaixoByUser.set(userId, new Date().toISOString());
-          await supabase.from("whatsapp_creditos").update({ aviso_baixo_em: new Date().toISOString() }).eq("user_id", userId);
+          await supabase.from("whatsapp_creditos").upsert({ user_id: userId, mensagens_concedidas: concedidasByUser.get(userId) ?? CREDITO_INICIAL, aviso_baixo_em: new Date().toISOString() });
           await supabase.from("faro_avisos").insert({
             user_id: userId,
             tipo: "sistema",

@@ -3615,3 +3615,12 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .wa-credito-saldo{ font-size:12.5px; font-weight:var(--fw-medio); }
 .welcome-aceite{ display:flex; align-items:flex-start; gap:8px; font-size:12px; line-height:1.45; color:var(--text-muted); }
 .welcome-aceite input{ margin-top:2px; flex:none; }
+.wa-credito-pedir{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.wa-credito-pedir small{ font-size:11.5px; color:var(--text-faint); }
+.cred-lista{ display:flex; flex-direction:column; gap:10px; margin-top:10px; }
+.cred-linha{ display:grid; grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) auto; gap:12px; align-items:center; padding:10px 0; border-top:1px solid var(--linha); }
+.cred-quem, .cred-saldo{ display:flex; flex-direction:column; gap:2px; min-width:0; font-size:12.5px; }
+.cred-quem small, .cred-saldo small{ font-size:11px; color:var(--text-faint); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cred-dar{ display:flex; gap:6px; align-items:center; }
+.cred-dar .budget-input{ width:72px; }
+@media (max-width:640px){ .cred-linha{ grid-template-columns:1fr; } }

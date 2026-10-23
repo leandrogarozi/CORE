@@ -315,6 +315,33 @@ export type Database = {
           },
         ]
       }
+      google_eventos: {
+        Row: {
+          assinatura: string
+          atualizado_em: string
+          calendar_id: string
+          event_id: string
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          assinatura: string
+          atualizado_em?: string
+          calendar_id: string
+          event_id: string
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          assinatura?: string
+          atualizado_em?: string
+          calendar_id?: string
+          event_id?: string
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       habit_logs: {
         Row: {
           checked: boolean

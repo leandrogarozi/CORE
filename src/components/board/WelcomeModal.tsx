@@ -45,7 +45,7 @@ export function WelcomeModal({ onAbrirConfiguracoes }: { onAbrirConfiguracoes: (
   const [telefone, setTelefone] = useState("");
   const [aceitaZap, setAceitaZap] = useState(false);
 
-  const mostrar = !board.loading && !s.preferredName?.trim() && s.featureFlags[FLAG_BOAS_VINDAS] !== true;
+  const mostrar = !board.loading && !s.preferredName?.trim() && s.featureFlags[FLAG_BOAS_VINDAS] !== true && s.featureFlags.modo_dono !== true;
   if (!mostrar) return null;
 
   const fusos = FUSOS_DO_BRASIL.includes(fuso) ? FUSOS_DO_BRASIL : [fuso, ...FUSOS_DO_BRASIL];

@@ -53,6 +53,7 @@ import {
   WeekIcon,
 } from "./icons";
 import { fmtBRL } from "@/lib/money";
+import { CREDITO_INICIAL, saldoDe } from "@/lib/whatsapp/credito";
 import { RecurringManager } from "./RecurringManager";
 import { emocoesEmUso, passosDeAgua, valorDaEmocao, type Emocao } from "@/lib/board/opcoes-do-dia";
 import { ToggleSwitch } from "./ToggleSwitch";
@@ -1219,6 +1220,7 @@ function WhatsAppCreditoBlock() {
   const dono = flags.modo_dono === true;
   const aceitou = flags.whatsapp_aceite === true;
   const [saldo, setSaldo] = useState<number | null>(null);
+  const [pedido, setPedido] = useState<"" | "enviando" | "enviado" | "erro">("");
 
   useEffect(() => {
     if (dono) return;
@@ -1228,7 +1230,7 @@ function WhatsAppCreditoBlock() {
         supabase.from("whatsapp_creditos").select("mensagens_concedidas").maybeSingle(),
         supabase.from("whatsapp_sends").select("id", { count: "exact", head: true }).eq("ok", true),
       ]);
-      if (vivo) setSaldo(Number(cred?.mensagens_concedidas ?? 0) - (count ?? 0));
+      if (vivo) setSaldo(saldoDe(cred?.mensagens_concedidas, count ?? 0));
     })();
     return () => {
       vivo = false;
@@ -1251,7 +1253,129 @@ function WhatsAppCreditoBlock() {
       <div className="wa-credito-saldo">
         {saldo === null ? "Conferindo seu crédito…" : saldo > 0 ? `Seu crédito: ${saldo} mensagens.` : "Você está sem crédito de mensagens. Os lembretes continuam chegando por notificação no celular."}
       </div>
+      <div className="wa-credito-pedir">
+        <button
+          type="button"
+          className="btn btn-ghost"
+          disabled={pedido === "enviando" || pedido === "enviado"}
+          onClick={async () => {
+            setPedido("enviando");
+            try {
+              const res = await fetch("/api/feedback", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ tipo: "credito", texto: `Quero mais crédito de WhatsApp. Saldo atual: ${saldo ?? "?"} mensagens.`, pagina: "configuracoes" }),
+              });
+              setPedido(res.ok ? "enviado" : "erro");
+            } catch {
+              setPedido("erro");
+            }
+          }}
+        >
+          {pedido === "enviado" ? "Pedido enviado" : "Pedir mais crédito"}
+        </button>
+        <small>
+          {pedido === "enviado"
+            ? "Quem te convidou recebe o pedido e combina o pagamento (Pix) com você."
+            : pedido === "erro"
+              ? "Não deu para enviar agora."
+              : "O crédito é somado depois de combinar o pagamento (Pix) com quem te convidou."}
+        </small>
+      </div>
     </div>
+  );
+}
+
+/** Só o dono: crédito de WhatsApp de cada pessoa. Soma mensagens depois de combinar (Pix etc.). */
+function CreditosDoZapBox() {
+  type Pessoa = { user_id: string; email: string; nome: string; telefone: boolean; aceitou: boolean; dono: boolean; concedidas: number; usadas: number; saldo: number };
+  const [pessoas, setPessoas] = useState<Pessoa[] | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
+  const [qtd, setQtd] = useState<Record<string, string>>({});
+  const [ocupado, setOcupado] = useState<string | null>(null);
+
+  async function carregar() {
+    try {
+      const res = await fetch("/api/admin/creditos", { cache: "no-store" });
+      if (!res.ok) throw new Error();
+      setPessoas(((await res.json()) as { pessoas: Pessoa[] }).pessoas);
+      setErro(null);
+    } catch {
+      setErro("Não consegui carregar a lista.");
+    }
+  }
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial da lista
+    void carregar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- só na primeira vez
+  }, []);
+
+  async function dar(p: Pessoa) {
+    const n = parseInt(qtd[p.user_id] ?? "", 10);
+    if (!Number.isInteger(n) || n < 1) return;
+    setOcupado(p.user_id);
+    try {
+      const res = await fetch("/api/admin/creditos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: p.user_id, mensagens: n }),
+      });
+      if (!res.ok) throw new Error();
+      setQtd((q) => ({ ...q, [p.user_id]: "" }));
+      await carregar();
+    } catch {
+      setErro("Não consegui somar o crédito.");
+    } finally {
+      setOcupado(null);
+    }
+  }
+
+  return (
+    <CollapsibleBox title="Créditos de WhatsApp das pessoas" icon={<WhatsAppIcon />} resumo="Somar mensagens depois do Pix combinado">
+      <div className="hint-text" style={{ marginTop: 0 }}>
+        Cada pessoa começa com {CREDITO_INICIAL} mensagens. Quando ela pagar (Pix etc.), some aqui a quantidade combinada.
+      </div>
+      {erro && <div className="auth-error">{erro}</div>}
+      {pessoas === null ? (
+        <div className="hint-text">Carregando…</div>
+      ) : (
+        <div className="cred-lista">
+          {pessoas
+            .filter((p) => !p.dono)
+            .map((p) => (
+              <div key={p.user_id} className="cred-linha">
+                <div className="cred-quem">
+                  <b>{p.nome || p.email || p.user_id.slice(0, 8)}</b>
+                  <small>
+                    {p.email} · {p.aceitou ? "aceitou" : "não aceitou"} · {p.telefone ? "com telefone" : "sem telefone"}
+                  </small>
+                </div>
+                <div className="cred-saldo">
+                  <b>{p.saldo}</b> restantes
+                  <small>
+                    {p.usadas} usadas de {p.concedidas}
+                  </small>
+                </div>
+                <div className="cred-dar">
+                  <input
+                    type="number"
+                    min={1}
+                    max={1000}
+                    className="budget-input"
+                    placeholder="+50"
+                    value={qtd[p.user_id] ?? ""}
+                    onChange={(e) => setQtd((q) => ({ ...q, [p.user_id]: e.target.value }))}
+                  />
+                  <button type="button" className="btn btn-accent" disabled={ocupado === p.user_id} onClick={() => void dar(p)}>
+                    Somar
+                  </button>
+                </div>
+              </div>
+            ))}
+          {pessoas.filter((p) => !p.dono).length === 0 && <div className="hint-text">Ainda não há outras pessoas.</div>}
+        </div>
+      )}
+    </CollapsibleBox>
   );
 }
 
@@ -2036,6 +2160,7 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
           <GrupoDeConfiguracao id="avisos">
             <PushNotificationsBox />
             <WhatsAppCostBox />
+            {modoDono && <CreditosDoZapBox />}
             <IaCostBox />
           </GrupoDeConfiguracao>
 
