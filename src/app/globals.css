@@ -3580,3 +3580,22 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .fundo-aviso{ margin-top:10px; font-size:12px; font-weight:var(--fw-medio); }
 .fundo-aviso.ok{ color:color-mix(in srgb, var(--success) 70%, var(--text)); }
 .fundo-aviso.erro{ color:var(--danger); }
+
+/* Termos de uso e Política de privacidade (páginas públicas) */
+.legal-wrap{ min-height:100vh; padding:32px 16px 64px; display:flex; justify-content:center; background:var(--bg); }
+.legal-card{ width:100%; max-width:760px; background:var(--surface); border:1px solid var(--linha); border-radius:var(--r-3); box-shadow:var(--sh-1); padding:28px clamp(18px,4vw,40px) 32px; color:var(--text); line-height:1.6; font-size:14px; }
+.legal-card h2{ font-size:16px; font-weight:650; margin:26px 0 6px; letter-spacing:-.01em; }
+.legal-card p{ margin:8px 0; color:var(--text); }
+.legal-card ul{ margin:8px 0 8px 18px; padding:0; display:flex; flex-direction:column; gap:6px; }
+.legal-titulo{ font-size:26px; font-weight:650; letter-spacing:-.02em; margin:14px 0 2px; }
+.legal-meta{ margin:0 0 12px; font-size:12.5px; color:var(--text-muted); }
+.legal-rascunho{ font-size:12.5px; padding:8px 12px; border-radius:8px; color:color-mix(in srgb, var(--book-yellow) 55%, var(--warn-text-mix)); background:color-mix(in srgb, var(--book-yellow) 18%, var(--surface)); }
+.legal-voltar{ font-size:13px; color:var(--text-muted); text-decoration:none; }
+.legal-voltar:hover{ color:var(--text); }
+.legal-rodape{ margin-top:32px; padding-top:14px; border-top:1px solid var(--linha); display:flex; gap:18px; font-size:12.5px; }
+.legal-rodape a{ color:var(--text-muted); }
+.auth-legal{ font-size:12px; color:var(--text-muted); line-height:1.5; margin:14px 0 0; }
+.auth-legal a{ color:var(--accent); }
+.auth-form .auth-consent{ display:flex; flex-direction:row; align-items:flex-start; gap:8px; font-size:12px; color:var(--text-muted); line-height:1.45; }
+.auth-consent input{ margin-top:2px; flex:none; }
+.auth-consent a{ color:var(--accent); }

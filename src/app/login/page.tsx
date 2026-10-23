@@ -10,6 +10,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [aceito, setAceito] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -113,6 +114,22 @@ export default function LoginPage() {
               autoComplete={mode === "signin" ? "current-password" : "new-password"}
             />
           </label>
+          {mode === "signup" && (
+            <label className="auth-consent">
+              <input type="checkbox" required checked={aceito} onChange={(e) => setAceito(e.target.checked)} />
+              <span>
+                Li e aceito os{" "}
+                <a href="/termos" target="_blank" rel="noreferrer">
+                  Termos de uso
+                </a>{" "}
+                e a{" "}
+                <a href="/privacidade" target="_blank" rel="noreferrer">
+                  Política de privacidade
+                </a>
+                , inclusive o tratamento dos dados de saúde que eu registrar (humor, sono, dieta etc.).
+              </span>
+            </label>
+          )}
           {error && <div className="auth-error">{error}</div>}
           {message && <div className="auth-message">{message}</div>}
           <button type="submit" className="auth-submit" disabled={loading}>
@@ -124,6 +141,9 @@ export default function LoginPage() {
             </button>
           )}
         </form>
+        <p className="auth-legal">
+          <a href="/termos">Termos de uso</a> · <a href="/privacidade">Política de privacidade</a>
+        </p>
       </div>
     </div>
   );

@@ -6092,3 +6092,7 @@ correto e já implementado).
 
 ## Home: Agenda e Seu dia trocados; Registro do dia em grade 2x2 (23/10)
 - Faixa de baixo das tarefas: Agenda | Horas | Seu dia. Registro do dia: Humor | Dieta e Sono | Água, mesma altura por linha, conteúdo centralizado.
+
+## Preparação para terceiros: o que foi feito em 23/10 (sem o Leandro por perto)
+- **Nome fixo "Leandro" saiu** da instrução da IA do app (agora usa o nome do Perfil; sem nome fala "quem usa o app"), da saudação do mascote, do texto do conector (viram "o usuário") e do fallback do conector. Falta: o bloco "Particular do Leandro" nas Configurações (backup automático do Mac Mini e pastas do Drive) ainda aparece para qualquer conta; precisa esconder de quem não é o dono. Os caminhos do Drive em `faro-mcp.ts` e `SettingsView.tsx` são dele.
+- **Termos de uso e Política de privacidade** publicados como páginas abertas (`/termos`, `/privacidade`), com rascunho em português, aceite obrigatório (com consentimento para dados de saúde) ao criar conta e links na tela de entrada. **Falta o Leandro** preencher `[nome do responsável / CNPJ]` e `[e-mail de contato]` nas duas páginas e mandar para revisão jurídica. Esse endereço serve para o pedido de verificação do Google.

@@ -31,8 +31,10 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const isAuthRoute = request.nextUrl.pathname.startsWith("/login");
+  // Termos e Privacidade são públicos (o Google e o WhatsApp exigem o endereço aberto, e quem vai criar conta precisa ler).
+  const isPublicPage = ["/termos", "/privacidade"].some((p) => request.nextUrl.pathname === p);
 
-  if (!user && !isAuthRoute) {
+  if (!user && !isAuthRoute && !isPublicPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
