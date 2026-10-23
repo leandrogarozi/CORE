@@ -12,6 +12,12 @@
 
 /** Quem ainda não tem linha em `whatsapp_creditos` começa com este crédito de boas-vindas (para poder testar logo). */
 export const CREDITO_INICIAL = 20;
+/** Pacotes de crédito mostrados às pessoas (preço em reais; o custo real é ~R$ 0,035 por mensagem). */
+export const PACOTES_DE_CREDITO = [
+  { mensagens: 50, preco: 5, dura: "cerca de 1 mês de uso leve" },
+  { mensagens: 150, preco: 12, dura: "2 a 3 meses" },
+  { mensagens: 300, preco: 20, dura: "4 a 6 meses" },
+] as const;
 export const AVISO_DE_CREDITO_BAIXO = 5; // avisa a pessoa (uma vez) quando restarem tantas mensagens
 export const TETO_GLOBAL_PADRAO = 2000; // mensagens por mês, somando todo mundo
 

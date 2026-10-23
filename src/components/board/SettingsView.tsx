@@ -53,7 +53,7 @@ import {
   WeekIcon,
 } from "./icons";
 import { fmtBRL } from "@/lib/money";
-import { CREDITO_INICIAL, saldoDe } from "@/lib/whatsapp/credito";
+import { CREDITO_INICIAL, PACOTES_DE_CREDITO, saldoDe } from "@/lib/whatsapp/credito";
 import { RecurringManager } from "./RecurringManager";
 import { emocoesEmUso, passosDeAgua, valorDaEmocao, type Emocao } from "@/lib/board/opcoes-do-dia";
 import { ToggleSwitch } from "./ToggleSwitch";
@@ -1253,33 +1253,42 @@ function WhatsAppCreditoBlock() {
       <div className="wa-credito-saldo">
         {saldo === null ? "Conferindo seu crédito…" : saldo > 0 ? `Seu crédito: ${saldo} mensagens.` : "Você está sem crédito de mensagens. Os lembretes continuam chegando por notificação no celular."}
       </div>
-      <div className="wa-credito-pedir">
-        <button
-          type="button"
-          className="btn btn-ghost"
-          disabled={pedido === "enviando" || pedido === "enviado"}
-          onClick={async () => {
-            setPedido("enviando");
-            try {
-              const res = await fetch("/api/feedback", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ tipo: "credito", texto: `Quero mais crédito de WhatsApp. Saldo atual: ${saldo ?? "?"} mensagens.`, pagina: "configuracoes" }),
-              });
-              setPedido(res.ok ? "enviado" : "erro");
-            } catch {
-              setPedido("erro");
-            }
-          }}
-        >
-          {pedido === "enviado" ? "Pedido enviado" : "Pedir mais crédito"}
-        </button>
-        <small>
+      <div className="wa-pacotes">
+        <div className="wa-pacotes-titulo">Quer mais mensagens? Pacotes:</div>
+        {PACOTES_DE_CREDITO.map((p) => (
+          <div key={p.mensagens} className="wa-pacote">
+            <span>
+              <b>{p.mensagens} mensagens</b> · R$ {p.preco}
+              <small>{p.dura}</small>
+            </span>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              disabled={pedido === "enviando"}
+              onClick={async () => {
+                setPedido("enviando");
+                try {
+                  const res = await fetch("/api/feedback", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ tipo: "credito", texto: `Quero o pacote de ${p.mensagens} mensagens (R$ ${p.preco}). Saldo atual: ${saldo ?? "?"}.`, pagina: "configuracoes" }),
+                  });
+                  setPedido(res.ok ? "enviado" : "erro");
+                } catch {
+                  setPedido("erro");
+                }
+              }}
+            >
+              Pedir
+            </button>
+          </div>
+        ))}
+        <small className="wa-pacotes-nota">
           {pedido === "enviado"
-            ? "Quem te convidou recebe o pedido e combina o pagamento (Pix) com você."
+            ? "Pedido enviado. Quem te convidou combina o Pix com você e soma o crédito."
             : pedido === "erro"
               ? "Não deu para enviar agora."
-              : "O crédito é somado depois de combinar o pagamento (Pix) com quem te convidou."}
+              : "Ao pedir, quem te convidou combina o pagamento (Pix) com você e soma o crédito."}
         </small>
       </div>
     </div>
@@ -1310,8 +1319,8 @@ function CreditosDoZapBox() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- só na primeira vez
   }, []);
 
-  async function dar(p: Pessoa) {
-    const n = parseInt(qtd[p.user_id] ?? "", 10);
+  async function dar(p: Pessoa, fixo?: number) {
+    const n = fixo ?? parseInt(qtd[p.user_id] ?? "", 10);
     if (!Number.isInteger(n) || n < 1) return;
     setOcupado(p.user_id);
     try {
@@ -1369,6 +1378,11 @@ function CreditosDoZapBox() {
                   <button type="button" className="btn btn-accent" disabled={ocupado === p.user_id} onClick={() => void dar(p)}>
                     Somar
                   </button>
+                  {PACOTES_DE_CREDITO.map((k) => (
+                    <button key={k.mensagens} type="button" className="btn btn-ghost" disabled={ocupado === p.user_id} title={`Pacote de R$ ${k.preco}`} onClick={() => void dar(p, k.mensagens)}>
+                      +{k.mensagens}
+                    </button>
+                  ))}
                 </div>
               </div>
             ))}
