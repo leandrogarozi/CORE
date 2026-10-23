@@ -43,6 +43,7 @@ export function WelcomeModal({ onAbrirConfiguracoes }: { onAbrirConfiguracoes: (
   const [nome, setNome] = useState("");
   const [fuso, setFuso] = useState(detectado);
   const [telefone, setTelefone] = useState("");
+  const [aceitaZap, setAceitaZap] = useState(false);
 
   const mostrar = !board.loading && !s.preferredName?.trim() && s.featureFlags[FLAG_BOAS_VINDAS] !== true;
   if (!mostrar) return null;
@@ -54,7 +55,7 @@ export function WelcomeModal({ onAbrirConfiguracoes }: { onAbrirConfiguracoes: (
       preferredName: nome.trim() || s.preferredName,
       timezone: fuso || s.timezone,
       notifyPhone: telefone.trim() || s.notifyPhone,
-      featureFlags: { ...s.featureFlags, [FLAG_BOAS_VINDAS]: true },
+      featureFlags: { ...s.featureFlags, [FLAG_BOAS_VINDAS]: true, ...(telefone.trim() && aceitaZap ? { whatsapp_aceite: true } : {}) },
     });
     if (irParaConfiguracoes) onAbrirConfiguracoes();
   }
@@ -111,6 +112,12 @@ export function WelcomeModal({ onAbrirConfiguracoes }: { onAbrirConfiguracoes: (
                 onChange={(e) => setTelefone(e.target.value)}
               />
               <small>Pode deixar em branco e pular. Dá para colocar depois em Perfil.</small>
+            </label>
+            <label className="welcome-aceite">
+              <input type="checkbox" checked={aceitaZap} onChange={(e) => setAceitaZap(e.target.checked)} />
+              <span>
+                Aceito receber lembretes por WhatsApp neste número. Cada mensagem usa um crédito que o FARO te dá; sem crédito, o lembrete segue chegando por notificação.
+              </span>
             </label>
           </>
         )}

@@ -1211,6 +1211,50 @@ function IaCostBox() {
   );
 }
 
+/** Aceite de receber WhatsApp e saldo de mensagens. O dono não depende de crédito (ver lib/whatsapp/credito.ts). */
+function WhatsAppCreditoBlock() {
+  const { board } = useBoardCtx();
+  const supabase = useMemo(() => createClient(), []);
+  const flags = board.state.settings.featureFlags;
+  const dono = flags.modo_dono === true;
+  const aceitou = flags.whatsapp_aceite === true;
+  const [saldo, setSaldo] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (dono) return;
+    let vivo = true;
+    (async () => {
+      const [{ data: cred }, { count }] = await Promise.all([
+        supabase.from("whatsapp_creditos").select("mensagens_concedidas").maybeSingle(),
+        supabase.from("whatsapp_sends").select("id", { count: "exact", head: true }).eq("ok", true),
+      ]);
+      if (vivo) setSaldo(Number(cred?.mensagens_concedidas ?? 0) - (count ?? 0));
+    })();
+    return () => {
+      vivo = false;
+    };
+  }, [dono, supabase]);
+
+  if (dono) return null;
+  return (
+    <div className="wa-credito">
+      <label className="wa-credito-aceite">
+        <ToggleSwitch
+          checked={aceitou}
+          ariaLabel="Aceito receber lembretes por WhatsApp"
+          onChange={(v) => board.updateSettings({ featureFlags: { ...flags, whatsapp_aceite: v } })}
+        />
+        <span>
+          Aceito receber lembretes por WhatsApp no número do meu Perfil. O FARO só manda do que eu ligar com o ícone do zap, e eu posso desligar quando quiser.
+        </span>
+      </label>
+      <div className="wa-credito-saldo">
+        {saldo === null ? "Conferindo seu crédito…" : saldo > 0 ? `Seu crédito: ${saldo} mensagens.` : "Você está sem crédito de mensagens. Os lembretes continuam chegando por notificação no celular."}
+      </div>
+    </div>
+  );
+}
+
 function WhatsAppCostBox() {
   const { board } = useBoardCtx();
   const { whatsappMsgCostUsd, whatsappMonthlyCapBrl, whatsappUsdBrl } = board.state.settings;
@@ -1260,6 +1304,7 @@ function WhatsAppCostBox() {
 
   return (
     <CollapsibleBox title="Custo do WhatsApp" icon={<WhatsAppIcon />} resumo="Mensagens, custo e teto do mês">
+      <WhatsAppCreditoBlock />
       {resumo === null ? (
         <div className="hint-text">Carregando os envios...</div>
       ) : (

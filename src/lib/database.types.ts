@@ -1110,6 +1110,27 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_creditos: {
+        Row: {
+          atualizado_em: string
+          aviso_baixo_em: string | null
+          mensagens_concedidas: number
+          user_id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          aviso_baixo_em?: string | null
+          mensagens_concedidas?: number
+          user_id: string
+        }
+        Update: {
+          atualizado_em?: string
+          aviso_baixo_em?: string | null
+          mensagens_concedidas?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       whatsapp_sends: {
         Row: {
           delivery_error: string | null

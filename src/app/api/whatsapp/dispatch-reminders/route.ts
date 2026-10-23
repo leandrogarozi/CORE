@@ -5,6 +5,7 @@ import { isReminderAlertingInZone, zonedDateTimeToMs } from "@/lib/board/reminde
 import { proximaOcorrencia, semLembreteDeTarefaApagada } from "@/lib/board/zap-engine";
 import { avisarBackupAtrasado } from "@/lib/backup/aviso";
 import { sendWhatsAppReminderMessage } from "@/lib/whatsapp/send";
+import { AVISO_DE_CREDITO_BAIXO, decidirEnvio, tetoGlobalDoAmbiente } from "@/lib/whatsapp/credito";
 import { fmtDayMonth } from "@/lib/date-utils";
 import { enviarPushesDosLembretes } from "@/lib/push/dispatch";
 
@@ -136,7 +137,7 @@ async function dispararWhatsApp(): Promise<NextResponse> {
   // conta: aqui no servidor (UTC) "10:00" sem fuso viraria 07:00 de Brasília.
   const { data: settingsRows, error: settingsError } = await supabase
     .from("settings")
-    .select("user_id, notify_phone, timezone, whatsapp_msg_cost_usd, whatsapp_monthly_cap_brl, whatsapp_usd_brl")
+    .select("user_id, notify_phone, timezone, whatsapp_msg_cost_usd, whatsapp_monthly_cap_brl, whatsapp_usd_brl, feature_flags")
     .in("user_id", userIds);
   if (settingsError) return NextResponse.json({ error: settingsError.message }, { status: 500 });
 
@@ -205,6 +206,28 @@ async function dispararWhatsApp(): Promise<NextResponse> {
     enviadasNoMes.set(uid, count ?? 0);
   }
 
+  // Crédito por pessoa (ver lib/whatsapp/credito.ts): dono não depende de crédito; os demais precisam de aceite e saldo.
+  const flagsByUser = new Map(
+    (settingsRows ?? []).map((s) => [s.user_id, (s.feature_flags ?? {}) as Record<string, unknown>])
+  );
+  const idsDue = [...new Set(due.map((r) => userIdById.get(r.id)!))];
+  const { data: creditosRows } = await supabase.from("whatsapp_creditos").select("user_id, mensagens_concedidas, aviso_baixo_em").in("user_id", idsDue);
+  const concedidasByUser = new Map((creditosRows ?? []).map((c) => [c.user_id, Number(c.mensagens_concedidas)]));
+  const avisoBaixoByUser = new Map((creditosRows ?? []).map((c) => [c.user_id, c.aviso_baixo_em as string | null]));
+  const enviadasTotal = new Map<string, number>();
+  for (const uid of idsDue) {
+    if (flagsByUser.get(uid)?.modo_dono === true) continue;
+    const { count } = await supabase.from("whatsapp_sends").select("id", { count: "exact", head: true }).eq("user_id", uid).eq("ok", true);
+    enviadasTotal.set(uid, count ?? 0);
+  }
+  const { count: geralNoMes } = await supabase
+    .from("whatsapp_sends")
+    .select("id", { count: "exact", head: true })
+    .eq("ok", true)
+    .gte("sent_at", monthStartISO(DEFAULT_TIME_ZONE));
+  let enviadasNoMesGeral = geralNoMes ?? 0;
+  const tetoGlobal = tetoGlobalDoAmbiente();
+
   let notified = 0;
   let blocked = 0;
   const errors: string[] = [];
@@ -213,6 +236,20 @@ async function dispararWhatsApp(): Promise<NextResponse> {
     const userId = userIdById.get(reminder.id)!;
     const phone = phoneByUser.get(userId);
     if (!phone) continue;
+
+    const ehDono = flagsByUser.get(userId)?.modo_dono === true;
+    const decisao = decidirEnvio({
+      dono: ehDono,
+      aceitou: flagsByUser.get(userId)?.whatsapp_aceite === true,
+      saldo: (concedidasByUser.get(userId) ?? 0) - (enviadasTotal.get(userId) ?? 0),
+      enviadasNoMesGeral,
+      tetoGlobal,
+    });
+    if (!decisao.pode) {
+      blocked++;
+      errors.push(`${reminder.id}: ${decisao.motivo} — mensagem não enviada`);
+      continue;
+    }
 
     // Trava de gasto ANTES de reservar o lembrete: se estourou o teto do mês, a
     // mensagem não sai e o lembrete continua não-notificado. Não vira enxurrada
@@ -270,6 +307,24 @@ async function dispararWhatsApp(): Promise<NextResponse> {
     if (result.ok) {
       notified++;
       enviadasNoMes.set(userId, (enviadasNoMes.get(userId) ?? 0) + 1);
+      enviadasNoMesGeral++;
+      if (!ehDono) {
+        const usadas = (enviadasTotal.get(userId) ?? 0) + 1;
+        enviadasTotal.set(userId, usadas);
+        const restante = (concedidasByUser.get(userId) ?? 0) - usadas;
+        // Avisa a pessoa (uma vez por faixa de crédito) quando está acabando ou acabou.
+        if (restante <= AVISO_DE_CREDITO_BAIXO && !avisoBaixoByUser.get(userId)) {
+          avisoBaixoByUser.set(userId, new Date().toISOString());
+          await supabase.from("whatsapp_creditos").update({ aviso_baixo_em: new Date().toISOString() }).eq("user_id", userId);
+          await supabase.from("faro_avisos").insert({
+            user_id: userId,
+            tipo: "sistema",
+            titulo: restante <= 0 ? "Seu crédito de WhatsApp acabou" : "Seu crédito de WhatsApp está acabando",
+            corpo: restante <= 0 ? "Você usou todas as mensagens. Os lembretes continuam chegando por notificação no celular." : `Restam ${restante} mensagens de WhatsApp.`,
+            destino: null,
+          });
+        }
+      }
     } else {
       errors.push(`${reminder.id}: ${result.error}`);
     }
