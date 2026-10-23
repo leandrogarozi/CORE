@@ -61,6 +61,23 @@ O que está aqui é a palavra dele: prefira isso ao que você supõe. Responda e
 
 Agenda: faro_ver_agenda mostra o que ele tem (tarefas, reuniões, lembretes, atrasadas) com o id de cada item. Você também pode CRIAR no FARO: faro_criar_aniversarios (lista de Aniversários), faro_criar_tarefas (reunião é tarefa com tag reuniao) e faro_criar_lembretes; e fazer dois ajustes leves em tarefas que já existem: faro_concluir_tarefas (marcar como feita) e faro_anotar_em_tarefa (só ACRESCENTA texto na anotação, ótimo para pauta e decisões de reunião). Você nunca apaga nem reescreve nada. Regra de ouro: toda escrita (criar, concluir, anotar) tem 2 passos. Primeiro chame a ferramenta sem "confirmado": ela NÃO grava e devolve a prévia. Mostre a prévia ao Leandro, espere ele dizer que pode, e só então chame de novo, com os mesmos dados, e confirmado=true. Nunca confirme por conta própria. Se faltar um dado (dia, hora, mês), pergunte; não invente. APRENDIZADOS: quando o Leandro revelar algo novo e durável sobre si (valor, objetivo, preferência, decisão, projeto), ou decidir algo importante, proponha registrar com faro_propor_aprendizado. Vai como proposta para a aba "Para revisar"; o FARO avisa o Leandro e só vale depois que ele aprovar. Antes, confira com faro_buscar para não repetir; não invente; nunca mande saúde, medicamentos, senhas ou dados bancários. Depois de propor, diga a ele em uma linha o que você enviou.`;
 
+/**
+ * Os textos do conector foram escritos quando o FARO tinha um dono só. Para ele servir a outras pessoas
+ * sem reescrever cada descrição, todo texto que sai pelo conector passa por aqui: "Leandro" vira "o usuário".
+ * (O nome de verdade continua aparecendo onde o conector lê dados: "Sobre <nome>" em faro_sobre_mim.)
+ */
+export function neutro(texto: string): string {
+  return texto
+    .replaceAll("do Leandro Garozi", "de quem usa o app")
+    .replaceAll("Leandro Garozi", "o usuário")
+    .replaceAll("ao Leandro", "ao usuário")
+    .replaceAll("pelo Leandro", "pelo usuário")
+    .replaceAll("do Leandro", "do usuário")
+    .replaceAll("o Leandro", "o usuário")
+    .replaceAll("O Leandro", "O usuário")
+    .replaceAll("Leandro", "o usuário");
+}
+
 /** Dia de hoje na zona do Leandro, para a IA calcular "amanhã", "sexta" etc. sem errar. */
 export function hojeNoBrasil(agora: Date): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(agora);
@@ -285,7 +302,7 @@ function cortar(texto: string): string {
 }
 
 function sobreMim(a: AcervoDoFaro, itens: Item[]): string {
-  const partes = [`# Sobre ${a.nome || "o Leandro"} (aprovado por ele no FARO)`, ""];
+  const partes = [`# Sobre ${a.nome || "o usuário"} (aprovado por ele no FARO)`, ""];
   if (a.resumo) partes.push("## Resumo geral (escrito pela IA a partir do que ele aprovou)", "", a.resumo, "");
   const doPerfil = itens.filter((i) => TIPOS_DO_PERFIL.includes(i.tipo));
   if (!doPerfil.length) {
@@ -445,13 +462,14 @@ export async function responderMensagem(
         protocolVersion: VERSOES_ACEITAS.includes(pedida) ? pedida : VERSAO_DO_PROTOCOLO,
         capabilities: { tools: { listChanged: false } },
         serverInfo: { name: "faro", title: "FARO", version: versao },
-        instructions: `${INSTRUCOES}\n\nHoje é ${dataPorExtenso(hojeNoBrasil(agora))} (horário de Brasília).`,
+        instructions: neutro(`${INSTRUCOES}\n\nHoje é ${dataPorExtenso(hojeNoBrasil(agora))} (horário de Brasília).`),
       });
     }
     case "ping":
       return resultado(msg.id, {});
     case "tools/list":
-      return resultado(msg.id, { tools: escrever ? [...FERRAMENTAS, ...FERRAMENTAS_DE_ESCRITA] : FERRAMENTAS });
+      const todas = escrever ? [...FERRAMENTAS, ...FERRAMENTAS_DE_ESCRITA] : FERRAMENTAS;
+      return resultado(msg.id, { tools: JSON.parse(neutro(JSON.stringify(todas))) });
     case "tools/call": {
       const nome = typeof msg.params?.name === "string" ? msg.params.name : "";
       const args = (msg.params?.arguments ?? {}) as Record<string, unknown>;

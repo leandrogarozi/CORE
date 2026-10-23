@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Painel FARO",
-  description: "Foco, Ação, Rotina e Objetivos — painel de produtividade do Leandro",
+  description: "Foco, Ação, Rotina e Objetivos — painel de produtividade pessoal",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

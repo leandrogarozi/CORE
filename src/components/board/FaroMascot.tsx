@@ -13,12 +13,13 @@ import { descreverAcao, type AcaoProposta } from "@/lib/ia/ferramentas";
 import { executarAcao } from "@/lib/ia/executar";
 import type { EventoDaConversa } from "@/lib/ia/servidor";
 
-function greetingMessage(mood: number | null | undefined): string {
-  if (mood === 0) return "Melhoras, Leandro! Espero que fique bem logo.";
+function greetingMessage(mood: number | null | undefined, nome?: string | null): string {
+  const quem = nome?.trim() ? `, ${nome.trim()}` : "";
+  if (mood === 0) return `Melhoras${quem}! Espero que fique bem logo.`;
   const hour = new Date().getHours();
-  if (hour < 12) return "Bom dia, Leandro!";
-  if (hour < 18) return "Boa tarde, Leandro!";
-  return "Boa noite, Leandro!";
+  if (hour < 12) return `Bom dia${quem}!`;
+  if (hour < 18) return `Boa tarde${quem}!`;
+  return `Boa noite${quem}!`;
 }
 
 type Cartao = {
@@ -37,7 +38,7 @@ const ATALHOS = ["O que estou esquecendo?", "Como foi minha semana?", "Por onde 
 function paraHistorico(f: Fala): { role: "user" | "assistant"; content: string } {
   const desfechos = (f.cartoes ?? []).map((c) => {
     const quando =
-      c.estado === "feito" ? "FEITO" : c.estado === "cancelado" ? "CANCELADO pelo Leandro" : c.estado === "erro" ? `NÃO GRAVOU (${c.msg ?? "erro"})` : "aguardando confirmação";
+      c.estado === "feito" ? "FEITO" : c.estado === "cancelado" ? "CANCELADO pelo usuário" : c.estado === "erro" ? `NÃO GRAVOU (${c.msg ?? "erro"})` : "aguardando confirmação";
     return `[Ação proposta: ${descreverAcao(c.acao)} → ${quando}]`;
   });
   return { role: f.role, content: [f.content, ...desfechos].filter(Boolean).join("\n") };
@@ -271,7 +272,7 @@ export function FaroMascot() {
             </div>
           ) : (
             <div className="faro-bubble-text">
-              {avisoFeito ?? `${greetingMessage(mood)} ${falas.length === 0 ? "O que você precisa?" : ""}`}
+              {avisoFeito ?? `${greetingMessage(mood, board.state.settings.preferredName)} ${falas.length === 0 ? "O que você precisa?" : ""}`}
             </div>
           )}
           {falas.length === 0 && !aviso && (

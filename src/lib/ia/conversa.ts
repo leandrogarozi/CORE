@@ -13,9 +13,16 @@ export const LIMITE_DE_TEXTO = 2000; // por mensagem
 export const LIMITE_DO_RESUMO = 8000; // caracteres do resumo do dia
 export const MAX_TOKENS_DA_RESPOSTA = 1024; // resposta de chat é curta; também limita o custo de cada fala
 
-export const INSTRUCAO_DO_FARO = `Você é o FARO, o assistente pessoal do Leandro Garozi dentro do app FARO (produtividade, rotina e aprendizados). Português do Brasil, tom direto e próximo.
+/**
+ * A instrução fixa do FARO. `nome` é como a pessoa pediu para ser chamada (Configurações > Perfil);
+ * sem nome, o texto fala de "quem usa o app". Nada aqui é de uma pessoa específica: o app vai para outras pessoas.
+ */
+export function instrucaoDoFaro(nome?: string | null): string {
+  const n = (nome ?? "").trim() || "quem usa o app";
+  const N = n.charAt(0).toUpperCase() + n.slice(1);
+  return `Você é o FARO, o assistente pessoal de ${n} dentro do app FARO (produtividade, rotina e aprendizados). Português do Brasil, tom direto e próximo.
 
-COMO FALAR (regra mais importante): seja BREVE. Em geral 1 a 3 frases. O Leandro já vê as tarefas, os lembretes e os números na tela: NUNCA repita nem recite listas que ele já enxerga. Sem elogio, sem enrolação, sem "claro!" nem "ótima pergunta". Se a conversa acabou de abrir e ele não perguntou nada, pergunte só: "O que você precisa?".
+COMO FALAR (regra mais importante): seja BREVE. Em geral 1 a 3 frases. ${N} já vê as tarefas, os lembretes e os números na tela: NUNCA repita nem recite listas que ele já enxerga. Sem elogio, sem enrolação, sem "claro!" nem "ótima pergunta". Se a conversa acabou de abrir e ele não perguntou nada, pergunte só: "O que você precisa?".
 
 PARA QUE VOCÊ SERVE:
 1. Lembrar o que está sendo ESQUECIDO: tarefa atrasada sem retorno, hábito que não foi feito, dia sem registro, lembrete vencido, algo que apareceu várias vezes e nunca andou.
@@ -30,7 +37,11 @@ AÇÕES: quando ele pedir algo que uma ferramenta faz, CHAME a ferramenta (não 
 REGRAS:
 - Não invente tarefa, horário, número ou compromisso fora do resumo. Se não souber, diga.
 - Você não vê medicamentos, tratamentos nem anotações de saúde, e não dá orientação médica. Os números do registro do dia (humor, sono, água, dieta) você vê e pode usar.
-- O Leandro prefere saídas concisas, estruturadas, com opções claras para escolher.`;
+- ${N} prefere saídas concisas, estruturadas, com opções claras para escolher.`;
+}
+
+/** Versão sem nome, para quem só precisa do texto base. */
+export const INSTRUCAO_DO_FARO = instrucaoDoFaro(null);
 
 /** Mantém só mensagens válidas, as últimas N, cada uma no tamanho máximo. A primeira é sempre do usuário. */
 export function prepararMensagens(entrada: unknown): MensagemDaConversa[] {
@@ -51,7 +62,7 @@ export function prepararMensagens(entrada: unknown): MensagemDaConversa[] {
   return ultimas;
 }
 
-export function sistemaDaConversa(resumo: string): string {
+export function sistemaDaConversa(resumo: string, nome?: string | null): string {
   const corte = resumo.slice(0, LIMITE_DO_RESUMO);
-  return `${INSTRUCAO_DO_FARO}\n\n=== RESUMO DO DIA ===\n${corte}`;
+  return `${instrucaoDoFaro(nome)}\n\n=== RESUMO DO DIA ===\n${corte}`;
 }

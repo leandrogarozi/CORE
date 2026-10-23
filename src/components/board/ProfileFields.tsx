@@ -124,7 +124,7 @@ export function ProfileFields({ board }: { board: UseBoard }) {
           <span className="settings-label">Como quer ser chamado?</span>
           <input
             type="text"
-            placeholder="Leandro"
+            placeholder="Seu nome ou apelido"
             className="budget-input profile-name-input"
             value={nameInput ?? board.state.settings.preferredName ?? ""}
             onChange={(e) => setNameInput(e.target.value)}
