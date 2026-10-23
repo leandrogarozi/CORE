@@ -83,6 +83,11 @@ export default function PrivacidadePage() {
         Enquanto a sua conta existir. Itens que você apaga vão para a Lixeira e são excluídos de vez depois de um tempo ou quando você
         esvaziar. Ao excluir a conta, apagamos seus dados do banco; cópias de segurança podem levar mais algum tempo para expirar.
       </p>
+      <p>
+        <strong>Cópias de segurança:</strong> o FARO faz, uma vez por dia, uma cópia da sua conta dentro do mesmo banco de dados e guarda as
+        últimas 14. Elas servem para recuperar dados apagados por engano ou por falha, só o servidor tem acesso e o responsável pelo FARO
+        só as usa para restaurar a sua conta. Você também pode baixar a sua própria cópia a qualquer momento em Configurações e guardá-la onde quiser.
+      </p>
 
       <h2>6. Seus direitos</h2>
       <p>Pela LGPD você pode, a qualquer momento:</p>

@@ -130,6 +130,10 @@ export function WelcomeModal({ onAbrirConfiguracoes }: { onAbrirConfiguracoes: (
               </li>
             </ul>
             <p className="welcome-texto">No computador não precisa instalar nada: os avisos funcionam com o FARO aberto no navegador.</p>
+            <p className="welcome-texto">
+              <b>Seus dados:</b> o FARO guarda uma cópia diária da sua conta por 14 dias. Mesmo assim, de vez em quando baixe a sua em Configurações,
+              grupo Dados, &quot;Backup&quot;, e guarde no seu computador ou no seu Drive.
+            </p>
           </>
         )}
 
