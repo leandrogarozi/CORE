@@ -2577,15 +2577,6 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .faro-humor-btn{ width:34px; height:34px; border-radius:50%; border:1px solid var(--border-strong); display:flex; align-items:center; justify-content:center; background:var(--surface); }
 .faro-humor-btn:hover{ border-color:var(--accent); background:var(--accent-soft); }
 .faro-avatar-linha{ display:flex; align-items:flex-end; gap:10px; }
-/* O microfone do lado do mascote: um toque abre e já começa a ouvir. */
-.faro-mic-flutuante{
-  width:52px; height:52px; border-radius:50%; flex:none;
-  background:var(--surface); color:var(--accent); border:2px solid var(--accent);
-  box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; margin-bottom:6px;
-}
-.faro-mic-flutuante svg{ width:26px; height:26px; }
-.faro-mic-flutuante:hover{ background:var(--accent-soft); }
-.faro-mic-flutuante.ouvindo{ background:var(--accent); color:#fff; animation:faro-pulso 1.2s ease-in-out infinite; }
 /* O botão grande dentro do balão: é a ação principal da conversa. */
 .faro-mic-zona{ margin-top:10px; }
 .faro-mic-grande{

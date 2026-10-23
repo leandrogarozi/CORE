@@ -355,21 +355,6 @@ export function FaroMascot() {
         </div>
       )}
       <div className="faro-avatar-linha">
-        {ditado.supported && (
-          <button
-            type="button"
-            className={"faro-mic-flutuante" + (ditado.listening ? " ouvindo" : "")}
-            aria-label="Falar com o FARO"
-            title="Toque e fale"
-            onClick={() => {
-              setAviso(null);
-              setOpen(true);
-              ditado.toggle();
-            }}
-          >
-            <MicIcon />
-          </button>
-        )}
         <button
           type="button"
           className="faro-avatar"

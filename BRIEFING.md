@@ -6086,3 +6086,6 @@ correto e já implementado).
 
 ## Registro do dia e saudação aplicados (22/10, noite)
 - Saudação menor (16/13 px). Registro do dia: Humor (maior) e Sono à esquerda; Dieta e Água à direita, duas caixas de cada lado (sem sobra branca). Ver `docs/LAYOUT-FARO.md`.
+
+## Mascote FARO: só o cachorrinho (23/10)
+- Saiu o microfone flutuante ao lado do cachorrinho. Agora é só o cachorrinho; ao abrir, o botão grande "Toque e fale" dentro do balão é o único microfone (e o campo de texto continua). Registrado a pedido do Leandro porque os dois microfones embolavam.
