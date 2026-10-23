@@ -68,7 +68,7 @@ export default function TermosPage() {
 
       <h2>10. Contato e lei aplicável</h2>
       <p>
-        Dúvidas, pedidos e reclamações: <strong>[e-mail de contato a definir]</strong>. Estes termos seguem as leis do Brasil; o foro
+        Dúvidas, pedidos e reclamações para Leandro Garozi (CNPJ 22.605.063/0001-04): <strong>[e-mail de contato a definir]</strong>. Estes termos seguem as leis do Brasil; o foro
         é o do seu domicílio, quando a lei assim determinar.
       </p>
     </LegalPage>

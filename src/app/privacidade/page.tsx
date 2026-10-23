@@ -13,7 +13,7 @@ export default function PrivacidadePage() {
 
       <h2>1. Quem é o responsável</h2>
       <p>
-        <strong>[nome do responsável / CNPJ a definir]</strong>. Contato para assuntos de privacidade:{" "}
+        <strong>Leandro Garozi, CNPJ 22.605.063/0001-04</strong>. Contato para assuntos de privacidade:{" "}
         <strong>[e-mail de contato a definir]</strong>.
       </p>
 
