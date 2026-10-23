@@ -31,6 +31,7 @@ import {
 import { temConteudo } from "@/lib/html-para-markdown";
 import {
   ArchiveIcon,
+  CommentIcon,
   BellIcon,
   BoltIcon,
   BookOpenIcon,
@@ -205,6 +206,68 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const outputArray = new Uint8Array(rawData.length);
   for (let i = 0; i < rawData.length; i++) outputArray[i] = rawData.charCodeAt(i);
   return outputArray;
+}
+
+function FeedbackBox() {
+  const [tipo, setTipo] = useState<"problema" | "ideia" | "duvida" | "elogio">("problema");
+  const [texto, setTexto] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const [aviso, setAviso] = useState<{ ok: boolean; texto: string } | null>(null);
+
+  async function enviar() {
+    if (texto.trim().length < 3) return;
+    setEnviando(true);
+    setAviso(null);
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tipo, texto, pagina: typeof location !== "undefined" ? location.pathname : null }),
+      });
+      if (res.status === 429) throw new Error("Você já mandou várias mensagens hoje. Tente amanhã.");
+      if (!res.ok) throw new Error("Não consegui enviar agora. Tente de novo em instantes.");
+      setTexto("");
+      setAviso({ ok: true, texto: "Enviado. Obrigado! Isso chega direto para quem está construindo o FARO." });
+    } catch (e) {
+      setAviso({ ok: false, texto: e instanceof Error ? e.message : "Não consegui enviar." });
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  return (
+    <CollapsibleBox title="Mandar feedback" icon={<CommentIcon />} resumo="Problema, ideia, dúvida ou elogio" abertoInicial>
+      <div className="hint-text" style={{ marginTop: 0 }}>Achou um problema, tem uma ideia ou uma dúvida? Escreva aqui.</div>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: "8px 0" }}>
+        {(
+          [
+            ["problema", "Problema"],
+            ["ideia", "Ideia"],
+            ["duvida", "Dúvida"],
+            ["elogio", "Elogio"],
+          ] as const
+        ).map(([v, l]) => (
+          <button key={v} type="button" className={"dl-mood-emotion-chip" + (tipo === v ? " active" : "")} onClick={() => setTipo(v)}>
+            {l}
+          </button>
+        ))}
+      </div>
+      <textarea
+        className="budget-input"
+        style={{ width: "100%", boxSizing: "border-box", minHeight: 84 }}
+        placeholder="Conte o que aconteceu ou o que você gostaria. Se for um problema, diga em que tela estava."
+        value={texto}
+        maxLength={4000}
+        onChange={(e) => setTexto(e.target.value)}
+      />
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8 }}>
+        <button type="button" className="btn btn-accent" disabled={enviando || texto.trim().length < 3} onClick={enviar}>
+          {enviando ? "Enviando…" : "Enviar"}
+        </button>
+        {aviso && <span className={aviso.ok ? "hint-text" : "auth-error"}>{aviso.texto}</span>}
+      </div>
+    </CollapsibleBox>
+  );
 }
 
 function PushNotificationsBox() {
@@ -1773,6 +1836,7 @@ const GRUPOS_DE_CONFIGURACAO = [
   { id: "avisos", titulo: "Avisos e custos", sub: "Quando o FARO avisa e quanto custa" },
   { id: "dados", titulo: "Dados e backup", sub: "Cópias de segurança do que você escreveu" },
   { id: "conexoes", titulo: "Conexões", sub: "O FARO falando com outras ferramentas" },
+  { id: "ajuda", titulo: "Ajuda e feedback", sub: "Fale com quem está construindo o FARO" },
 ] as const;
 
 function GrupoDeConfiguracao({ id, children }: { id: (typeof GRUPOS_DE_CONFIGURACAO)[number]["id"]; children: ReactNode }) {
@@ -1790,6 +1854,8 @@ function GrupoDeConfiguracao({ id, children }: { id: (typeof GRUPOS_DE_CONFIGURA
 
 export function SettingsView({ onBack }: { onBack: () => void }) {
   const { board } = useBoardCtx();
+  // Conta do dono do FARO (marcada no banco). Só ela vê o que é particular dele: backup no Mac Mini e conector da IA dele.
+  const modoDono = board.state.settings.featureFlags.modo_dono === true;
   const [newStatusLabel, setNewStatusLabel] = useState("");
 
   const tagColors = board.state.settings.tagColors;
@@ -1827,7 +1893,7 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
           blocos que se abrem para configurar). Os blocos são os mesmos de antes, só reagrupados. */}
       <div className="cfg-pagina">
         <nav className="cfg-trilho" aria-label="Grupos de configurações">
-          {GRUPOS_DE_CONFIGURACAO.map((g) => (
+          {GRUPOS_DE_CONFIGURACAO.filter((g) => g.id !== "conexoes" || modoDono).map((g) => (
             <button
               key={g.id}
               type="button"
@@ -1932,13 +1998,15 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
             {/* Bloco só do Leandro: segurança dele, não é função de cliente. Fica
                 separado dos backups manuais (que servem a qualquer usuário) para
                 ele saber o que é o quê. */}
-            <div className="settings-particular">
-              <div className="settings-particular-titulo">
-                <span className="settings-particular-selo">Particular do Leandro</span>
-                Segurança minha. Não vai para os clientes.
+            {modoDono && (
+              <div className="settings-particular">
+                <div className="settings-particular-titulo">
+                  <span className="settings-particular-selo">Particular do dono</span>
+                  Segurança minha. Não vai para os clientes.
+                </div>
+                <BackupAutomaticoBox />
               </div>
-              <BackupAutomaticoBox />
-            </div>
+            )}
 
             <div className="settings-particular-titulo settings-particular-titulo-geral">
               Backups manuais (valem para qualquer usuário)
@@ -1948,14 +2016,20 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
             <BackupBox />
           </GrupoDeConfiguracao>
 
-          <GrupoDeConfiguracao id="conexoes">
-            <div className="settings-particular">
-              <div className="settings-particular-titulo">
-                <span className="settings-particular-selo">Particular do Leandro</span>
-                Conector da minha IA. Não vai para os clientes.
+          {modoDono && (
+            <GrupoDeConfiguracao id="conexoes">
+              <div className="settings-particular">
+                <div className="settings-particular-titulo">
+                  <span className="settings-particular-selo">Particular do dono</span>
+                  Conector da minha IA. Não vai para os clientes.
+                </div>
+                <ConectorFaroBox />
               </div>
-              <ConectorFaroBox />
-            </div>
+            </GrupoDeConfiguracao>
+          )}
+
+          <GrupoDeConfiguracao id="ajuda">
+            <FeedbackBox />
           </GrupoDeConfiguracao>
         </div>
       </div>

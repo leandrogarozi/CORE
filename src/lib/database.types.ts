@@ -1383,6 +1383,39 @@ export type Database = {
         }
         Relationships: []
       }
+      faro_feedback: {
+        Row: {
+          aparelho: string | null
+          criado_em: string
+          id: string
+          lido_em: string | null
+          pagina: string | null
+          texto: string
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          aparelho?: string | null
+          criado_em?: string
+          id?: string
+          lido_em?: string | null
+          pagina?: string | null
+          texto: string
+          tipo?: string
+          user_id: string
+        }
+        Update: {
+          aparelho?: string | null
+          criado_em?: string
+          id?: string
+          lido_em?: string | null
+          pagina?: string | null
+          texto?: string
+          tipo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       faro_avisos: {
         Row: {
           corpo: string
