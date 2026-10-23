@@ -12,7 +12,7 @@ export function LegalPage({ titulo, atualizado, children }: { titulo: string; at
         <h1 className="legal-titulo">{titulo}</h1>
         <p className="legal-meta">Atualizado em {atualizado}</p>
         <p className="legal-rascunho">
-          Versão preliminar, ainda em revisão jurídica. Pode mudar antes da abertura do FARO a outras pessoas.
+          Versão do teste fechado com pessoas próximas. Será revisada e completada antes da abertura do FARO ao público.
         </p>
         {children}
         <nav className="legal-rodape" aria-label="Outras páginas">

@@ -14,7 +14,7 @@ export default function PrivacidadePage() {
       <h2>1. Quem é o responsável</h2>
       <p>
         <strong>Leandro Garozi, CNPJ 22.605.063/0001-04</strong>. Contato para assuntos de privacidade:{" "}
-        <strong>[e-mail de contato a definir]</strong>.
+        <strong>quem te convidou para o teste (Leandro Garozi)</strong>.
       </p>
 
       <h2>2. Quais dados guardamos</h2>
@@ -99,7 +99,7 @@ export default function PrivacidadePage() {
         <li>reclamar à Autoridade Nacional de Proteção de Dados (ANPD).</li>
       </ul>
       <p>
-        Para exercer qualquer direito, escreva para <strong>[e-mail de contato a definir]</strong>.
+        Para exercer qualquer direito, escreva para <strong>quem te convidou para o teste (Leandro Garozi)</strong>.
       </p>
 
       <h2>7. Segurança</h2>
