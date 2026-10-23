@@ -6085,4 +6085,4 @@ correto e já implementado).
 - Registro do dia: versão em duas colunas de altura livre desenhada, aguardando "pode aplicar".
 
 ## Registro do dia e saudação aplicados (22/10, noite)
-- Saudação menor (16/13 px). Registro do dia: Humor (maior) à esquerda; Sono, Dieta e Água à direita, cada bloco com sua altura. Ver `docs/LAYOUT-FARO.md`.
+- Saudação menor (16/13 px). Registro do dia: Humor (maior) e Sono à esquerda; Dieta e Água à direita, duas caixas de cada lado (sem sobra branca). Ver `docs/LAYOUT-FARO.md`.

@@ -86,8 +86,8 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
             <span>Ainda falta registrar hoje: {missing.join(", ")}.</span>
           </div>
         )}
-        <div className={"dl-cols" + (!moodOn || !(sleepOn || dietOn || waterOn) ? " solo" : "")}>
-          {moodOn && <div className="dl-col">
+        <div className={"dl-cols" + (!(moodOn || sleepOn) || !(dietOn || waterOn) ? " solo" : "")}>
+          {(moodOn || sleepOn) && <div className="dl-col">
           {moodOn && (
             <div className="dl-row" data-dl="mood">
               <div className="dl-row-top">
@@ -134,8 +134,6 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
               </div>
             </div>
           )}
-          </div>}
-          {(sleepOn || dietOn || waterOn) && <div className="dl-col">
           {sleepOn && (
             <div className="dl-row" data-dl="sleep">
               <div className="dl-row-top">
@@ -168,7 +166,8 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
               )}
             </div>
           )}
-
+          </div>}
+          {(dietOn || waterOn) && <div className="dl-col">
           {dietOn && (
             <div className="dl-row" data-dl="diet">
               <div className="dl-row-top">
