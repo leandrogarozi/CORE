@@ -6138,3 +6138,19 @@ Pedido: o Tutorial também precisa **explicar os raiozinhos (trovõezinhos) das 
 - **"Farejar" = o botão "Rastrear" na edição da tarefa** (no app o nome é Rastrear, ícone de rastro; o Leandro chama de farejar): se o dia vira e a tarefa não foi concluída, o FARO a passa sozinho para hoje, mantendo status e horário, sem pedir justificativa. Para quando você conclui ou desliga. Avaliar se o botão deve passar a se chamar "Farejar" na tela, para combinar com o mascote.
 - **Ícones e marcas da linha** (todos já têm dica ao passar o mouse; a legenda reúne): bolinha/etiqueta de status · raios · categorias (até 2) · bandeira de prioridade (alta, média, baixa) · play (cronômetro) e o tempo do dia (play preenchido) · copiar · excluir · pasta (tarefa de um projeto) · calendário (evento) · "falta a tag" (compromisso sem Reunião ou Evento) · livro (sessão de plano de estudo) · rastro (o FARO está rastreando) · pessoa (cliente) · escudo (desafiadora) · lista com número (pautas em aberto da reunião) · sino (tem lembrete) · zap (avisa no WhatsApp) · balão (observação) · clipe (anexo) · setinhas de repetição (recorrente) · hora de término.
 - Sugestão de apoio extra, a decidir: um botão "?" no cabeçalho da lista de tarefas que abre só essa legenda.
+
+### Revisão de assuntos do Tutorial (24/10): o que o Leandro não lembrou e vale entrar
+**Essenciais (primeira versão):**
+1. **Buscar em tudo** (campo do topo) e o **código curto de 6 caracteres** de cada tarefa (copiar o ID na edição para colar numa anotação ou lembrete e achar depois pela busca).
+2. **Cronômetro e avisos na tela:** play, tempo por dia, e os avisos que aparecem sozinhos (tarefa passando do tempo previsto, tarefa atrasada, lembrete tocando, "Foco na dieta").
+3. **O mascote FARO (cachorrinho):** o que ele faz (cria tarefa, lembrete e reunião, marca como feita, anota gasto, humor, sono, água), que **sempre mostra um cartão para você confirmar** antes de gravar, e o "Toque e fale" (e o ditado por voz nos campos).
+4. **Tarefa que se repete e "esta, as próximas ou todas"** ao editar uma tarefa recorrente.
+5. **Lixeira:** tudo que se exclui vai para lá e pode voltar.
+6. **Atrasadas:** o aviso "N tarefas atrasadas" na saudação abre a lista no Dashboard.
+7. **Sino de Avisos e notificações no celular** (instalar o FARO na tela inicial, ligar em Configurações, e o que fazer se não chegar).
+8. **Seus dados:** backup diário (14 dias), baixar o seu, "Mandar feedback", e o crédito de WhatsApp (20 de boas-vindas, pacotes, "Pedir").
+9. **Editor das anotações:** citação, pensamento, lista de tópicos (as pautas em aberto aparecem na linha da tarefa), destaque, anexos.
+10. **Aviso "Sua tela está desatualizada":** quando outro aparelho mexeu na sua conta, recarregar.
+
+**Por área (um bloco curto cada):** Painel (Seu dia, Horas, Agenda, Sem data, "Rápidas primeiro", arrastar para reordenar) · Semana e Calendário · Hábitos e Dia a Dia (play e horas) · Registro do dia · Projetos (tarefas como etapas) · Reuniões (cliente e pautas) · Plano de Estudo (sessões e reajuste pela IA) · Livros/Filmes e séries (Enviar anotações para Estudos ou Nova Sinapse) · Novas Sinapses e Ideias e Estudos · Conhecendo você ("Para revisar", trazer o que a sua IA já sabe) · Manutenção (comprar, fazer, vencido, odômetro) · Medicamentos e Dieta (refeições e lembretes) · Compras e Checklists (duplicar, marcar para comprar, enviar a lista por WhatsApp) · Aniversários (lembrete anual às 9h, WhatsApp opcional, mensagens prontas) · Configurações (ligar e desligar painéis, status e tags da tarefa, cor do fundo, tema claro e escuro, Perfil e fuso).
+**Deixar de fora do Tutorial por enquanto:** Cadastros e Clientes (só conta dona), Google Agenda (só conta dona até a verificação do Google), backup do Mac Mini.
