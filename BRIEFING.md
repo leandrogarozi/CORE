@@ -6123,3 +6123,10 @@ correto e já implementado).
 - **Proteção do custo da IA:** quem não é dono usa a chave Anthropic do Leandro. O servidor limita o teto de cada pessoa a R$ 10 por mês (`TETO_MAXIMO_DE_TESTADOR_BRL` em `src/lib/ia/custo.ts`, `limitesDaIa`) e não deixa o dólar de conversão cair abaixo de 5,10 (antes a pessoa podia subir o teto ou baixar o dólar na própria tela). A tela mostra o mesmo número.
 - **Teste de "conta nova" no ambiente de teste:** dia, Dashboard, Configurações, Livros, Manutenção, Aniversários, Cadastros, Clientes, Plano de Estudo, Menu e boas-vindas abrem sem erro com tudo vazio (harness em `scratchpad/rev`, `?vazio`).
 - **Também testado com tudo vazio, sem erro:** Lembretes, Semana, Reuniões, Projetos, Medicamentos, Dieta, Checklists, Compras, Conhecendo você, Sinapses, Ideias, Lixeira e Perfil. O que o ensaio com contas reais ainda precisa cobrir: o cadastro de verdade (e-mail de confirmação), a semente de status no banco real e o aceite/crédito do WhatsApp.
+
+## ANOTADO (24/10): item "Tutorial" no menu, versão simples (pedido do Leandro, ainda NÃO feito)
+- Um item novo no menu lateral (sugestão: grupo "Hoje", no fim, ou no rodapé perto de Configurações), chamado **Tutorial** ou **Como usar**.
+- Primeira versão simples: **uma tela só de texto**, com um bloco curto por assunto, das partes mais importantes para quem testa tirar dúvidas. Sem vídeo, sem passo a passo animado.
+- Assuntos sugeridos (a confirmar com ele): Painel do dia (Nova tarefa, status, bolinhas de velocidade/prioridade, play do cronômetro) · Registro do dia (humor, sono, água, dieta) · Lembretes e o ícone do zap (WhatsApp) e o crédito · Reuniões · Conhecendo você e o conector da IA · Backup (diário no banco + baixar o seu) · Configurações (painéis ligados e desligados, cor do fundo) · Onde mandar feedback.
+- Cada bloco: o que é, como usar em 2 ou 3 frases, e um atalho para abrir a tela. O texto deve usar os nomes exatos que aparecem na tela.
+- Ordem combinada: primeiro o ensaio com as 2 contas reais (ele vai mandar os e-mails), depois o Tutorial.
