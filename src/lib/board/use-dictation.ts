@@ -93,6 +93,10 @@ export function useDictation({
   // sozinho depois de um silêncio curto — sem religar, uma pausa pra pensar
   // no meio da frase mataria o ditado.
   const queroOuvirRef = useRef(false);
+  // Parar não apaga o "ouvindo" na hora: o navegador ainda entrega o último trecho depois do
+  // stop(), e quem guarda o texto precisa esperar o fim de verdade (onend). Este relógio só
+  // destrava a tela se o navegador nunca avisar o fim.
+  const paradaRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     onTextRef.current = onText;
@@ -101,10 +105,11 @@ export function useDictation({
 
   const stop = useCallback(() => {
     queroOuvirRef.current = false;
-    setListening(false);
     setPartial("");
     if (silencioRef.current) clearTimeout(silencioRef.current);
     recRef.current?.stop();
+    if (paradaRef.current) clearTimeout(paradaRef.current);
+    paradaRef.current = setTimeout(() => setListening(false), 3000);
   }, []);
 
   const start = useCallback(() => {
@@ -160,6 +165,13 @@ export function useDictation({
 
     rec.onend = () => {
       setPartial("");
+      if (paradaRef.current) clearTimeout(paradaRef.current);
+      // O que ainda estava em andamento (não marcado como fechado) é fala de verdade: sem isto,
+      // parar logo depois de falar guardava nada, porque só o trecho "fechado" era entregue.
+      if (!oneShot && parcialRef.current) {
+        onTextRef.current(parcialRef.current);
+        parcialRef.current = "";
+      }
       if (oneShot) {
         // Acabou a fala (silêncio ou toque no microfone): entrega a frase
         // inteira UMA vez. Nunca religa, senão a próxima conversa na sala
@@ -178,12 +190,20 @@ export function useDictation({
         return;
       }
       if (queroOuvirRef.current) {
-        // Religa depois de um silêncio, mantendo o ditado vivo.
+        // Religa depois de um silêncio, mantendo o ditado vivo. No computador o navegador às vezes
+        // ainda não liberou a sessão anterior: tenta de novo antes de desistir.
         try {
           rec.start();
         } catch {
-          queroOuvirRef.current = false;
-          setListening(false);
+          setTimeout(() => {
+            if (!queroOuvirRef.current) return;
+            try {
+              rec.start();
+            } catch {
+              queroOuvirRef.current = false;
+              setListening(false);
+            }
+          }, 300);
         }
       } else {
         setListening(false);
