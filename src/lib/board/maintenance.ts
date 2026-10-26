@@ -171,3 +171,50 @@ export function odometerCheckDue(
   if (!atual) return true; // nunca leu: precisa da primeira
   return daysBetween(atual.readOn, today) >= asset.odometerReminderDays;
 }
+
+// ---------- ciclos numerados (linha do item, "Ciclo atual" e "Rodadas já feitas") ----------
+
+export interface RodadaFeita {
+  n: number;
+  serviceId: string;
+  inicio: string | null; // quando o ciclo começou (estimado quando não há registro anterior)
+  fimPrevisto: string | null; // início + intervalo em meses
+  feitoEm: string;
+}
+
+export interface CicloAtual {
+  n: number;
+  inicio: string | null;
+  fim: string | null; // o vencimento calculado do item
+  sugestaoNovoInicio: string | null; // onde o próximo ciclo deveria começar: o fim deste
+}
+
+/**
+ * Os ciclos de um item, montados do que já existe: cada serviço registrado fecha uma rodada, e a próxima
+ * começa no dia em que ele foi feito. A primeira rodada começa no início do ciclo marcado no item (se for
+ * anterior ao primeiro serviço) ou, sem isso, o intervalo antes do primeiro serviço (estimado).
+ */
+export function ciclosDoItem(
+  item: Pick<MaintenanceItem, "intervalMonths" | "cycleStartOn" | "lastDoneOn" | "waiting">,
+  servicos: { id: string; doneOn: string }[],
+  dueDate: string | null
+): { feitas: RodadaFeita[]; atual: CicloAtual } {
+  const ordem = [...servicos].sort((a, b) => a.doneOn.localeCompare(b.doneOn));
+  const meses = item.intervalMonths && item.intervalMonths > 0 ? item.intervalMonths : null;
+  const fimDe = (inicio: string | null) => (inicio && meses ? isoAddMonths(inicio, meses) : null);
+  const feitas: RodadaFeita[] = ordem.map((s, i) => {
+    let inicio: string | null;
+    if (i > 0) inicio = ordem[i - 1].doneOn;
+    else if (item.cycleStartOn && item.cycleStartOn <= s.doneOn) inicio = item.cycleStartOn;
+    else inicio = meses ? isoAddMonths(s.doneOn, -meses) : null;
+    return { n: i + 1, serviceId: s.id, inicio, fimPrevisto: fimDe(inicio), feitoEm: s.doneOn };
+  });
+  const ultimo = ordem[ordem.length - 1];
+  const inicioAtual = ultimo
+    ? item.cycleStartOn && item.cycleStartOn > ultimo.doneOn
+      ? item.cycleStartOn
+      : ultimo.doneOn
+    : (item.cycleStartOn ?? item.lastDoneOn ?? null);
+  const fim = dueDate ?? fimDe(inicioAtual);
+  return { feitas, atual: { n: ordem.length + 1, inicio: inicioAtual, fim, sugestaoNovoInicio: fim } };
+}

@@ -7,6 +7,7 @@ import { MicButton } from "./MicButton";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { BellIcon, CarIcon, CheckIcon, ChevronIcon, EditIcon, HeartIcon, HomeIcon, SettingsIcon, TrashIcon, WarningIcon, WhatsAppIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
+import { ciclosDoItem } from "@/lib/board/maintenance";
 import {
   MAINTENANCE_SUGGESTIONS,
   distancePerDay,
@@ -61,6 +62,19 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
   const historico = board.state.maintenanceServices
     .filter((s) => s.itemId === item.id)
     .sort((a, b) => b.doneOn.localeCompare(a.doneOn));
+
+  const { feitas: rodadas, atual: cicloAtual } = ciclosDoItem(item, historico, st.dueDate);
+  // "Início do novo ciclo": a data já vem sugerida (o fim do ciclo atual) e dá pra mudar. O Feito ao lado
+  // registra o serviço nessa data e o ciclo seguinte começa nela.
+  const [novoInicioDraft, setNovoInicioDraft] = useState<string | null>(null);
+  const novoInicio = novoInicioDraft ?? cicloAtual.sugestaoNovoInicio ?? todayISO();
+  const rotuloDoCiclo = item.waiting
+    ? `Ciclo ${cicloAtual.n} · aguardando começar`
+    : cicloAtual.inicio && cicloAtual.fim
+      ? `Ciclo ${cicloAtual.n} · ${fmtShortDate(cicloAtual.inicio)} a ${fmtShortDate(cicloAtual.fim)}`
+      : cicloAtual.fim
+        ? `Ciclo ${cicloAtual.n} · até ${fmtShortDate(cicloAtual.fim)}`
+        : null;
 
   // Abre o formulário já com o que foi registrado: clicar em "Feito" de novo é
   // pra CORRIGIR, não pra criar outro registro. Sem serviço gravado mas com data
@@ -191,14 +205,25 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
         {/* O intervalo fica à vista: ele estava só dentro do item aberto, e o
             Leandro não achou onde trocar 10.000 por 16.000 km. Clicar abre
             direto o lugar de editar. */}
-        <button
-          type="button"
-          className={"maint-interval" + (intervalo === null ? " vazio" : "")}
-          title="Clique pra mudar o intervalo"
-          onClick={() => setAberto(true)}
-        >
-          {intervalo ?? "definir intervalo"}
-        </button>
+        {rotuloDoCiclo ? (
+          <button
+            type="button"
+            className={"maint-ciclo" + (item.waiting ? " espera" : "")}
+            title={`${intervalo ?? "Sem intervalo"}. Clique pra abrir o ciclo.`}
+            onClick={() => setAberto(true)}
+          >
+            {rotuloDoCiclo}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className={"maint-interval" + (intervalo === null ? " vazio" : "")}
+            title="Clique pra mudar o intervalo"
+            onClick={() => setAberto(true)}
+          >
+            {intervalo ?? "definir intervalo"}
+          </button>
+        )}
         <span className="maint-item-resumo">{resumo}</span>
         {/* Sem data de vencimento não há quando avisar — é o caso do item que
             vence por quilometragem e ainda não tem leituras pra estimar quando. */}
@@ -228,10 +253,10 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
           className={"btn btn-ghost maint-done-btn" + (item.lastDoneOn ? " concluido" : "")}
           title={
             item.lastDoneOn
-              ? `Último em ${fmtShortDate(item.lastDoneOn)}. Clique pra corrigir esse registro.`
+              ? `Último em ${fmtShortDate(item.lastDoneOn)}. Clique pra fechar este ciclo e começar o próximo. Pra corrigir uma rodada, abra o item e use o lápis em "Rodadas já feitas".`
               : "Registrar que essa manutenção foi feita"
           }
-          onClick={() => (registrando ? setRegistrando(false) : abrirForm(historico[0] ?? null))}
+          onClick={() => (registrando ? setRegistrando(false) : abrirForm(null, "novo"))}
         >
           <CheckIcon /> Feito
           {item.lastDoneOn && <span className="maint-done-data mono">{fmtShortDate(item.lastDoneOn)}</span>}
@@ -298,7 +323,9 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
                 Salvar muda este registro, não cria outro.
               </>
             ) : (
-              <>Novo serviço.</>
+              <>
+                Fechando o <strong>Ciclo {cicloAtual.n}</strong>: o <strong>Ciclo {cicloAtual.n + 1}</strong> começa na data abaixo.
+              </>
             )}
           </div>
           <div className="maint-register-row">
@@ -361,6 +388,47 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
 
       {aberto && (
         <div className="maint-item-body">
+          <div className="maint-secao maint-ciclo-atual">
+            <div className="maint-secao-titulo">Ciclo atual</div>
+            <div className="maint-ciclo-linha">
+              <strong>Ciclo {cicloAtual.n}</strong>
+              <span className="maint-ciclo-info">
+                {item.waiting
+                  ? "aguardando começar: nada conta nem avisa até você iniciar"
+                  : cicloAtual.inicio
+                    ? `começou em ${fmtShortDate(cicloAtual.inicio)}${intervalo ? ` · ${intervalo}` : ""}`
+                    : "sem data de início ainda: registre o último serviço ou defina o início abaixo"}
+              </span>
+            </div>
+            {!item.waiting && (
+              <div className="maint-ciclo-novo">
+                <span className="maint-ciclo-novo-rotulo">Início do novo ciclo (Ciclo {cicloAtual.n + 1})</span>
+                <input
+                  type="date"
+                  value={novoInicio}
+                  onChange={(e) => setNovoInicioDraft(e.target.value || null)}
+                  aria-label="Data de início do novo ciclo"
+                />
+                <button
+                  type="button"
+                  className="btn btn-ghost maint-done-btn"
+                  title="Registra que foi feito nessa data e começa o próximo ciclo a partir dela"
+                  onClick={() => {
+                    abrirForm(null, "novo");
+                    setDoneOn(novoInicio);
+                  }}
+                >
+                  <CheckIcon /> Feito
+                </button>
+              </div>
+            )}
+            {!item.waiting && (
+              <div className="maint-explain">
+                A data vem sugerida (o fim do ciclo atual) e pode ser mudada. Ao clicar em <strong>Feito</strong> o Ciclo {cicloAtual.n} fecha nessa
+                data e o Ciclo {cicloAtual.n + 1} começa a contar dela.
+              </div>
+            )}
+          </div>
           <div className="maint-secao">
           <div className="maint-secao-titulo">Prazo</div>
           <div className="prop-list">
@@ -425,7 +493,7 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
             </div>
             {!item.waiting && (
               <label className="prop-row">
-                <span className="prop-label">Início do ciclo</span>
+                <span className="prop-label">Início do ciclo atual</span>
                 <div className="prop-value">
                   <input
                     type="date"
@@ -653,45 +721,52 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
 
           {historico.length > 0 && (
             <div className="maint-history maint-secao">
-              <div className="maint-secao-titulo">Histórico</div>
-              {historico.slice(0, 6).map((s) => (
-                <div className="maint-history-row" key={s.id}>
-                  <span className="mono">{fmtShortDate(s.doneOn)}</span>
-                  {s.odometer !== null && (
-                    <span className="mono maint-history-km">
-                      {fmtKm(s.odometer)} {asset.odometerUnit}
+              <div className="maint-secao-titulo">Rodadas já feitas</div>
+              {[...rodadas].reverse().map((r) => {
+                const s = historico.find((h) => h.id === r.serviceId)!;
+                return (
+                  <div className="maint-history-row" key={r.serviceId}>
+                    <strong className="maint-rodada-n">Ciclo {r.n}</strong>
+                    {r.inicio && r.fimPrevisto && (
+                      <span className="mono maint-rodada-datas">
+                        {fmtShortDate(r.inicio)} a {fmtShortDate(r.fimPrevisto)}
+                      </span>
+                    )}
+                    <span className="mono maint-rodada-feito">feito em {fmtShortDate(s.doneOn)}</span>
+                    {s.odometer !== null && (
+                      <span className="mono maint-history-km">
+                        {fmtKm(s.odometer)} {asset.odometerUnit}
+                      </span>
+                    )}
+                    {s.costCents !== null && <span className="mono maint-history-cost">{fmtBRL(s.costCents)}</span>}
+                    {s.note && <span className="maint-history-note">{s.note}</span>}
+                    <span className="maint-history-actions">
+                      <button
+                        type="button"
+                        className="icon-btn"
+                        title="Corrigir este serviço"
+                        aria-label={`Corrigir o serviço de ${fmtShortDate(s.doneOn)}`}
+                        onClick={() => abrirForm(s)}
+                      >
+                        <EditIcon />
+                      </button>
+                      <button
+                        type="button"
+                        className="icon-btn danger-hover"
+                        title="Apagar este serviço do histórico"
+                        aria-label={`Apagar o serviço de ${fmtShortDate(s.doneOn)}`}
+                        onClick={() =>
+                          askConfirm(`Apagar o serviço de ${fmtShortDate(s.doneOn)} do histórico?`, () =>
+                            board.deleteMaintenanceService(s.id)
+                          )
+                        }
+                      >
+                        <TrashIcon />
+                      </button>
                     </span>
-                  )}
-                  {s.costCents !== null && (
-                    <span className="mono maint-history-cost">{fmtBRL(s.costCents)}</span>
-                  )}
-                  {s.note && <span className="maint-history-note">{s.note}</span>}
-                  <span className="maint-history-actions">
-                    <button
-                      type="button"
-                      className="icon-btn"
-                      title="Corrigir este serviço"
-                      aria-label={`Corrigir o serviço de ${fmtShortDate(s.doneOn)}`}
-                      onClick={() => abrirForm(s)}
-                    >
-                      <EditIcon />
-                    </button>
-                    <button
-                      type="button"
-                      className="icon-btn danger-hover"
-                      title="Apagar este serviço do histórico"
-                      aria-label={`Apagar o serviço de ${fmtShortDate(s.doneOn)}`}
-                      onClick={() =>
-                        askConfirm(`Apagar o serviço de ${fmtShortDate(s.doneOn)} do histórico?`, () =>
-                          board.deleteMaintenanceService(s.id)
-                        )
-                      }
-                    >
-                      <TrashIcon />
-                    </button>
-                  </span>
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           )}
 
