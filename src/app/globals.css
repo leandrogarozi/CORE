@@ -3706,3 +3706,18 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
   .bday-grupo .bday-nome{ flex-basis:100%; white-space:normal; }
 }
 .bday-form .quickadd-input{ flex:1 1 240px; }
+
+/* Medicamentos no layout do desenho: Temporários e Recorrentes em cartão, com contagem; tratamento com etiqueta de estado */
+.med-secao{ padding:4px 0 12px; margin-bottom:var(--sp-3); }
+.med-secao-head{ display:flex; align-items:baseline; gap:8px; padding:12px 16px 2px; font-size:15px; }
+.med-secao-n{ font-size:12px; color:var(--text-muted); font-weight:500; }
+.med-secao > .hint-text{ padding:0 16px 8px; }
+.med-secao > .list-quickadd-card{ margin:0 12px 8px; box-shadow:none; border:1px solid var(--linha); }
+.med-secao > .list-card{ margin:0 12px 8px; box-shadow:none; border:1px solid var(--linha); }
+.med-secao .med-group-card{ margin:0 12px 8px; box-shadow:none; border:1px solid var(--linha); }
+.med-recorrentes{ margin:0 12px; border:1px solid var(--linha); border-radius:14px; overflow:hidden; }
+.med-estado{ flex:none; font-size:11px; font-weight:700; padding:3px 10px; border-radius:999px; white-space:nowrap; }
+.med-estado.andamento{ background:color-mix(in srgb, var(--success) 14%, var(--surface)); color:var(--success); }
+.med-estado.inativo{ background:var(--surface-2, rgba(0,0,0,.06)); color:var(--text-muted); }
+.med-group-head .reminder-title-input{ flex:1 1 150px; min-width:130px; }
+.med-group-head{ background:transparent; }

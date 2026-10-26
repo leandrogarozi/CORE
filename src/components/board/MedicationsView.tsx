@@ -280,6 +280,12 @@ function MedicationGroupCard({ group, medications }: { group: MedicationGroup; m
   const [expandidoInativo, setExpandidoInativo] = useState(false);
 
   const showTime = group.timeMode === "individual";
+  const fim = group.startDate && group.durationDays ? isoAddDays(group.startDate, group.durationDays - 1) : null;
+  const estado = !group.active
+    ? { rotulo: "inativo", classe: "inativo" }
+    : fim && todayISO() > fim
+      ? { rotulo: "encerrado", classe: "inativo" }
+      : { rotulo: "em andamento", classe: "andamento" };
 
   return (
     <div className={"list-card med-group-card" + (!group.active ? " inactive" : "")}>
@@ -297,6 +303,7 @@ function MedicationGroupCard({ group, medications }: { group: MedicationGroup; m
           onBlur={commitName}
           onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
         />
+        <span className={"med-estado " + estado.classe}>{estado.rotulo}</span>
         <CommentButton
           value={group.notes}
           placeholder="Observação do tratamento..."
@@ -383,7 +390,7 @@ function MedicationGroupCard({ group, medications }: { group: MedicationGroup; m
             <input
               type="text"
               className="quickadd-input"
-              placeholder="+ Adicionar remédio desse tratamento"
+              placeholder="Adicionar remédio desse tratamento"
               value={newMedName}
               onChange={(e) => setNewMedName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddMedication()}
@@ -428,8 +435,10 @@ export function MedicationsView({ onBack }: { onBack: () => void }) {
       </div>
 
       <div className="narrow-list">
-        <div className="section-head">
-          <span className="section-pill accent">Temporários</span>
+        <section className="list-card med-secao">
+        <div className="med-secao-head">
+          <strong>Temporários</strong>
+          <span className="med-secao-n">{groups.length}</span>
         </div>
         <div className="hint-text">
           Tratamentos com prazo (ex.: antibiótico) — cadastra o motivo, depois os remédios dentro dele.
@@ -442,7 +451,7 @@ export function MedicationsView({ onBack }: { onBack: () => void }) {
             <input
               type="text"
               className="quickadd-input"
-              placeholder="+ Adicionar tratamento (ex.: Tratamento sinusite)"
+              placeholder="Adicionar tratamento (ex.: Tratamento sinusite)"
               value={newGroupName}
               onChange={(e) => setNewGroupName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddGroup()}
@@ -462,9 +471,12 @@ export function MedicationsView({ onBack }: { onBack: () => void }) {
             />
           ))
         )}
+        </section>
 
-        <div className="section-head" style={{ marginTop: 22 }}>
-          <span className="section-pill accent">Recorrentes</span>
+        <section className="list-card med-secao">
+        <div className="med-secao-head">
+          <strong>Recorrentes</strong>
+          <span className="med-secao-n">{recorrentes.length}</span>
         </div>
         <div className="hint-text">Remédios de uso contínuo, sem prazo pra parar.</div>
         <div className="list-quickadd-card">
@@ -475,20 +487,21 @@ export function MedicationsView({ onBack }: { onBack: () => void }) {
             <input
               type="text"
               className="quickadd-input"
-              placeholder="+ Adicionar medicamento recorrente"
+              placeholder="Adicionar medicamento recorrente"
               value={newMedName}
               onChange={(e) => setNewMedName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddMedication()}
             />
           </div>
         </div>
-        <div className="list-card">
+        <div className="med-recorrentes">
           {recorrentes.length === 0 ? (
             <div className="hp-empty">Nenhum medicamento recorrente cadastrado.</div>
           ) : (
             recorrentes.map((m) => <MedicationRow key={m.id} medication={m} showTime />)
           )}
         </div>
+        </section>
       </div>
     </div>
   );

@@ -498,7 +498,7 @@ export function StudyPlansView({ onBack }: { onBack: () => void }) {
             <input
               type="text"
               className="quickadd-input"
-              placeholder="+ Novo estudo (ex.: Pós — Gestão de Pessoas) e pressionar Enter"
+              placeholder="Novo estudo (ex.: Pós — Gestão de Pessoas) e pressionar Enter"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}

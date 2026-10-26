@@ -422,7 +422,7 @@ export function ConhecendoView({ onBack }: { onBack: () => void }) {
               <input
                 type="text"
                 className="quickadd-input"
-                placeholder="+ Escrever algo sobre você (título) e pressionar Enter"
+                placeholder="Escrever algo sobre você (título) e pressionar Enter"
                 value={novoTitulo}
                 onChange={(e) => setNovoTitulo(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && escrever()}

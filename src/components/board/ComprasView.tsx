@@ -317,7 +317,7 @@ function Listas({ aba, onAbrir }: { aba: Aba; onAbrir: (id: string) => void }) {
           <input
             type="text"
             className="quickadd-input"
-            placeholder="+ Nome da nova lista e pressionar Enter"
+            placeholder="Nome da nova lista e pressionar Enter"
             value={novaLista}
             onChange={(e) => setNovaLista(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && criar()}

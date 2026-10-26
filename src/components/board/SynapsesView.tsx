@@ -238,7 +238,7 @@ export function SynapsesView({ onBack }: { onBack: () => void }) {
             <input
               type="text"
               className="quickadd-input"
-              placeholder="+ Dar um nome pra nova sinapse e pressionar Enter"
+              placeholder="Dar um nome pra nova sinapse e pressionar Enter"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}

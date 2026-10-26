@@ -124,7 +124,7 @@ function ProjectListView({ onBack, onOpen }: { onBack: () => void; onOpen: (id: 
             <input
               type="text"
               className="quickadd-input"
-              placeholder="+ Novo projeto e pressionar Enter"
+              placeholder="Novo projeto e pressionar Enter"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
@@ -422,7 +422,7 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
               <input
                 type="text"
                 className="quickadd-input"
-                placeholder="+ Adicionar etapa e pressionar Enter"
+                placeholder="Adicionar etapa e pressionar Enter"
                 value={newStepTitle}
                 onChange={(e) => setNewStepTitle(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addStep()}

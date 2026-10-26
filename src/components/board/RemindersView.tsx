@@ -933,7 +933,7 @@ export function RemindersButton({ onOpenFull }: { onOpenFull: () => void }) {
               <input
                 type="text"
                 className="quickadd-input"
-                placeholder="+ Adicionar lembrete"
+                placeholder="Adicionar lembrete"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAdd()}
@@ -1075,7 +1075,7 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
             <input
               type="text"
               className="quickadd-input"
-              placeholder="+ Adicionar lembrete e pressionar Enter"
+              placeholder="Adicionar lembrete e pressionar Enter"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}

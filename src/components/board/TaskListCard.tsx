@@ -166,7 +166,7 @@ export function TaskListCard({
           id={quickAddId}
           type="text"
           className="quickadd-input"
-          placeholder="+ Adicionar tarefa e pressionar Enter"
+          placeholder="Adicionar tarefa e pressionar Enter"
           value={inputVal}
           onChange={(e) => setInputVal(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleAdd()}
