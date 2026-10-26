@@ -884,7 +884,7 @@ function escapeHtml(t: string): string {
   return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
+export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
   const { board, askScope } = useBoardCtx();
   const currentSeries = t.seriesId ? board.state.taskSeries.find((s) => s.id === t.seriesId) : null;
   const linkedReminder = board.state.reminders.find((r) => r.taskId === t.id) ?? null;

@@ -3659,3 +3659,21 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .maint-ciclo-novo-rotulo{ font-size:12px; color:var(--text-muted); min-width:190px; }
 .maint-rodada-n{ min-width:62px; }
 .maint-rodada-feito{ color:var(--success); font-weight:var(--fw-forte); }
+
+/* Reuniões: uma linha compacta por reunião (status, título, cliente, pautas, data/hora, editar, excluir) */
+.meeting-cards{ display:flex; flex-direction:column; }
+.meeting-card-row{ display:flex; align-items:center; gap:10px; padding:10px 14px; border-top:1px solid var(--border); min-height:46px; }
+.meeting-card-row:first-child{ border-top:0; }
+.meeting-card-title{ flex:1; min-width:0; text-align:left; background:none; border:0; padding:0; font:inherit; font-size:13.5px; color:var(--text); cursor:pointer; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.meeting-card-title:hover{ color:var(--accent); }
+.meeting-chip{ display:inline-flex; align-items:center; gap:4px; flex:none; font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px; background:var(--surface-2, rgba(0,0,0,.05)); color:var(--text-muted); max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.meeting-chip.pauta{ background:color-mix(in srgb, var(--accent) 12%, var(--surface)); color:var(--accent); }
+.meeting-when{ flex:none; font-size:11.5px; color:var(--text-muted); white-space:nowrap; }
+.meeting-when.hoje{ color:var(--accent); font-weight:700; }
+.meeting-icon-btn{ flex:none; display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border:0; background:none; border-radius:8px; color:var(--text-faint); cursor:pointer; }
+.meeting-icon-btn:hover{ background:color-mix(in srgb, var(--text) 8%, transparent); color:var(--text); }
+.meeting-icon-btn svg{ width:14px; height:14px; }
+@media (max-width:640px){
+  .meeting-card-row{ flex-wrap:wrap; row-gap:6px; }
+  .meeting-card-title{ flex-basis:calc(100% - 120px); }
+}

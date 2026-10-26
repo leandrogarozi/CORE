@@ -2,12 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { useBoardCtx } from "./board-context";
-import { TaskRow } from "./TaskRow";
+import { TaskEditRow } from "./TaskRow";
+import { StatusPicker } from "./StatusPicker";
+import { ToggleSwitch } from "./ToggleSwitch";
 import { TimePicker } from "./TimePicker";
-import { SearchIcon, UsersGroupIcon } from "./icons";
+import { EditIcon, SearchIcon, TrashIcon, UserIcon, UsersGroupIcon } from "./icons";
 import { countOpenChecklistItems } from "@/lib/rich-text";
 import { agruparReunioes, dataDaReuniao } from "@/lib/board/reunioes";
-import { todayISO } from "@/lib/date-utils";
+import { fmtDayMonth, todayISO } from "@/lib/date-utils";
 import { entraEmReunioes, type Task } from "@/lib/types";
 
 const NO_CLIENT_LABEL = "Sem cliente";
@@ -21,7 +23,8 @@ interface MeetingGroup {
 }
 
 export function MeetingsView({ onBack }: { onBack: () => void }) {
-  const { board, columns } = useBoardCtx();
+  const { board, askConfirm, askScope } = useBoardCtx();
+  const [editandoId, setEditandoId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [onlyPending, setOnlyPending] = useState(false);
   // Padrão por data (a mais recente em cima); "por cliente" continua disponível.
@@ -96,13 +99,42 @@ export function MeetingsView({ onBack }: { onBack: () => void }) {
 
   // Função e não componente: definir um componente aqui dentro o remontaria a cada
   // digitação e fecharia a reunião que estivesse aberta.
+  function excluir(t: Task) {
+    if (t.seriesId) askScope("Essa reunião faz parte de uma repetição. Apagar:", (scope) => board.deleteTask(t.id, scope));
+    else askConfirm(`Excluir a reunião "${t.title}"? Essa ação não pode ser desfeita.`, () => board.deleteTask(t.id, null));
+  }
+
   function renderLinha(task: Task) {
+    if (editandoId === task.id) return <TaskEditRow key={task.id} task={task} onDone={() => setEditandoId(null)} />;
+    const pautas = countOpenChecklistItems(task.note);
+    const quando = task.date ? `${fmtDayMonth(task.date)}${task.time ? ` · ${task.time}` : ""}` : "sem data";
     return (
-      <div className="meeting-line" key={task.id}>
-        <span className={"meeting-date mono" + (task.date === hoje ? " hoje" : "")}>{dataDaReuniao(task.date)}</span>
-        <div className="meeting-line-row">
-          <TaskRow task={task} draggable={false} gridTemplate={columns.gridTemplate} />
-        </div>
+      <div className="meeting-card-row" key={task.id}>
+        <StatusPicker
+          statuses={board.state.taskStatuses}
+          currentId={task.statusId}
+          onSelect={(statusId) => board.setTaskStatus(task.id, statusId)}
+        />
+        <button type="button" className="meeting-card-title" title={task.title} onClick={() => setEditandoId(task.id)}>
+          {task.title}
+        </button>
+        {task.client && (
+          <span className="meeting-chip">
+            <UserIcon size={11} /> {task.client}
+          </span>
+        )}
+        {pautas > 0 && (
+          <span className="meeting-chip pauta" title={`${pautas} pauta(s) em aberto`}>
+            <UsersGroupIcon /> {pautas} {pautas === 1 ? "pauta aberta" : "pautas abertas"}
+          </span>
+        )}
+        <span className={"meeting-when mono" + (task.date === hoje ? " hoje" : "")}>{quando}</span>
+        <button type="button" className="meeting-icon-btn" aria-label="Editar reunião" title="Editar" onClick={() => setEditandoId(task.id)}>
+          <EditIcon />
+        </button>
+        <button type="button" className="meeting-icon-btn" aria-label="Excluir reunião" title="Excluir" onClick={() => excluir(task)}>
+          <TrashIcon />
+        </button>
       </div>
     );
   }
@@ -175,7 +207,7 @@ export function MeetingsView({ onBack }: { onBack: () => void }) {
             </button>
           </div>
           <label className="meetings-pending-toggle">
-            <input type="checkbox" checked={onlyPending} onChange={(e) => setOnlyPending(e.target.checked)} />
+            <ToggleSwitch checked={onlyPending} onChange={setOnlyPending} ariaLabel="Só com pauta em aberto" />
             Só com pauta em aberto{totalPending > 0 && ` (${totalPending})`}
           </label>
         </div>
@@ -192,7 +224,7 @@ export function MeetingsView({ onBack }: { onBack: () => void }) {
                   {g.itens.length} {g.itens.length === 1 ? "reunião" : "reuniões"}
                 </span>
               </div>
-              <div className="task-table-scroll">
+              <div className="meeting-cards">
                 {g.itens.map(renderLinha)}
               </div>
             </div>
@@ -208,7 +240,7 @@ export function MeetingsView({ onBack }: { onBack: () => void }) {
                   {g.openCount > 0 && ` · ${g.openCount} com pauta em aberto`}
                 </span>
               </div>
-              <div className="task-table-scroll">
+              <div className="meeting-cards">
                 {g.items.map(({ task }) => renderLinha(task))}
               </div>
             </div>
