@@ -6158,3 +6158,11 @@ Pedido: o Tutorial também precisa **explicar os raiozinhos (trovõezinhos) das 
 ## Manutenção em ciclos numerados: proposta desenhada, aguardando aprovação (26/10)
 Pedido do Leandro (colchão): a linha do item e o item aberto estão embolados. Pediu: tirar o "a cada 3 meses" da linha; mostrar **Ciclo N com início e fim**; o "Início do novo ciclo" já com **data sugerida** (3 em 3 meses) e o botão **Feito** ao lado (Feito fecha o ciclo e cria o próximo); e uma lista **"Rodadas já feitas"** com as datas e o dia em que foi feito.
 Desenho: página "5. Demais telas" do canvas Layouts FARO, quadro "Manutenção: ciclos (proposta)". **Não aplicado.** Notas para quando aprovar: os ciclos antigos saem de `maintenance_services` (cada serviço = fim de um ciclo; início = fim do anterior ou `cycleStartOn`); o item "Aguardando começar" vira o estado "Ciclo 1 aguardando começar" (o campo `waiting` continua no banco); o bloco Prazo e avisos não muda. Arquivos: `MaintenanceView.tsx`, `lib/board/maintenance*`.
+
+## Estudos com partes (26/10)
+
+- Em Ideias e Estudos, um item com a tag **Estudo** ganha "Visão geral" e **Partes** (encontro, aula, módulo, atividade): cada uma com nome, data e texto próprio. Tabela `synapse_parts` (RLS por usuário). Nome sugerido ("Encontro 3"); roteiro opcional (O que vi · Atividade · O que vou aplicar).
+- Zip/backup de aprendizado: estudo com partes vira pasta `Estudos/<estudo>/00 - Visão geral.md`, `01 - <parte>.md`... O backup interno diário já pega a tabela sozinho.
+- Conector (MCP): o estudo e cada parte são itens separados (`parte_de_estudo` em `faro_listar`/`faro_buscar`/`faro_ler`).
+- Dados do Leandro: o item "Encontro MVE SOUL - Plano da Alme e Imersão VER" virou o estudo **MVE SOUL**, e o texto inteiro (10.521 caracteres) foi para a parte "Encontro 1 - Plano da Alme e Imersão VER" (17/10). Visão geral vazia, para ele preencher.
+- Para terceiros a IA aprende pelo **conector do FARO** (Configurações → Conector com a IA): cada pessoa tem o próprio link e a IA lê direto do FARO dela, sem Drive. O zip serve de cópia.
