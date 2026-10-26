@@ -67,10 +67,21 @@ Ao conferir cada desenho contra o app, a maior parte já era igual (as telas já
 | Tela | Situação | Nota |
 |---|---|---|
 | Livros / Filmes e séries | **Feito** | etiqueta de status + cabeçalho |
-| Manutenção | **Feito** | cabeçalho + vencido neutro; o resto já era igual ao desenho |
-| Lembretes | **Feito** | cabeçalho + status/atrasados sem vermelho |
-| Reuniões, Ideias e Estudos, Novas Sinapses, Conhecendo você, Cadastros, Plano de Estudo, Medicamentos, Dieta, Checklists, Projetos, Compras, Semana, Lixeira | **Feito** | cabeçalho; estrutura e funções já eram as do desenho |
-| Aniversários | **Feito** | cabeçalho; faixa vermelha de cadastro novo mantida |
+| Manutenção | **Feito (26/10)** | ciclos numerados: ciclo na linha, "Ciclo atual" com início do novo ciclo sugerido e botão Feito, "Rodadas já feitas" |
+| Lembretes | **Feito (26/10)** | seções Atrasados / Hoje / Próximos / Vindos de outras telas, linha em cartão |
+| Reuniões | **Feito (26/10)** | linha compacta: status, título, cliente, "N pautas abertas", data · hora, editar, excluir; interruptor de pauta; clicar abre o editor completo |
+| Aniversários | **Feito (26/10)** | grupos em cartão (aguardando confirmação, hoje, próximos 3 dias, todos), linha com categoria, sino, zap, editar, excluir; "Mandar parabéns agora" e "Frase N de 4" na linha de hoje; explicação virou "Como funciona" recolhido. Filtros por categoria mantidos (não estão no desenho) |
+| Medicamentos | **Feito (26/10)** | Temporários e Recorrentes em cartão com contagem; tratamento com etiqueta (em andamento / inativo / encerrado). **Não feito:** vários horários por remédio e "de 8 em 8 horas" do desenho (o app guarda um horário por remédio) |
+| Dieta | **Feito (26/10)** | interruptores No app / No WhatsApp, refeição em linha com dias e horário, editar abre o texto e os dias |
+| Checklists | **Feito em parte (26/10)** | progresso "3 de 6" com barra e "gasto R$" no cabeçalho. **Não feito:** valor por item (o app lança gastos numa aba própria) e nota aberta no topo (continuam nas abas Itens / Gastos / Notas) |
+| Compras | **Feito (26/10)** | cada lista é um cartão que abre no lugar (não troca mais de tela) |
+| Projetos | **Feito em parte (26/10)** | linha com pasta, "N de M etapas" e barra. **Não feito:** "prazo" do projeto (o projeto ainda não tem esse campo) |
+| Semana | **Feito (26/10)** | um cartão por dia em duas colunas, tarefas com status em etiqueta; clicar abre o editor; campo de nova tarefa por dia. Arrastar para reordenar dentro do dia saiu |
+| Lixeira | **Feito (26/10)** | tipo em etiqueta, quando foi apagado, Restaurar e Excluir de vez, Esvaziar no topo |
+| Conhecendo você | **Feito (26/10)** | "Recusar / Recusados" e etiqueta aprovado |
+| Novas Sinapses | **Feito (26/10)** | etiqueta SINAPSE no cartão |
+| Ideias e Estudos, Plano de Estudo, Cadastros | **Só cabeçalho** | a estrutura já era parecida com o desenho; não comparei item por item (Cadastros é só do dono) |
+| Aniversários (faixa vermelha) | mantida | pedido daquele fluxo |
 | Calendário, Perfil | **Feito** (só o cabeçalho) | não chegaram a ser desenhados |
 
 Se o Leandro quiser algum desenho ao pé da letra além disto (ex.: cartões de bens da Manutenção com resumo no cabeçalho, ou cartões de item em Ideias), é mudança nova: pedir e registrar aqui.

@@ -65,6 +65,7 @@ export function SynapseCard({ synapse, ideia = false }: { synapse: Synapse; idei
         >
           <ChevronIcon />
         </button>
+        <span className="synapse-etiqueta">SINAPSE</span>
         <div className="synapse-card-headings">
           <input
             type="text"
