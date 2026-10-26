@@ -1403,6 +1403,7 @@ export function useBoard(userId: string | null) {
           | "done"
           | "status"
           | "whatsapp"
+          | "inApp"
         >
       >
     ) => {

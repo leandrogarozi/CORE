@@ -14,7 +14,6 @@ import {
   RepeatIcon,
   TrashIcon,
   UsersGroupIcon,
-  WarningIcon,
   WeekIcon,
   WhatsAppIcon,
 } from "./icons";
@@ -359,7 +358,9 @@ function CollapsibleReminderSection({
   reminders,
   icon,
   defaultOpen = true,
+  nota,
 }: {
+  nota?: string;
   storageKey: string;
   label: string;
   labelClass: string;
@@ -395,8 +396,8 @@ function CollapsibleReminderSection({
         <ChevronIcon />
       </button>
       {open && (
-        <div className="task-table-scroll">
-          <ReminderTableHeader />
+        <div className="reminder-list">
+          {nota && <div className="reminder-list-nota">{nota}</div>}
           {reminders.map((r) => (
             <ReminderRow key={r.id} reminder={r} />
           ))}
@@ -488,23 +489,15 @@ function reminderStatus(reminder: Reminder, overdue: boolean, dueToday: boolean)
   return { label: "Pendente", cls: "status-pending" };
 }
 
-// Grid fixo (sem drag-to-resize), reaproveitando o mesmo visual da tabela de tarefas.
-const REMINDER_GRID = "36px 80px minmax(130px,1fr) 90px 150px 32px 32px 44px";
-
-function ReminderTableHeader() {
-  return (
-    <div className="task-list-header" style={{ gridTemplateColumns: REMINDER_GRID }}>
-      <span className="tlh-cell tlh-center">Abrir</span>
-      <span className="tlh-cell">Status</span>
-      <span className="tlh-cell">Descrição</span>
-      <span className="tlh-cell">Tipo</span>
-      <span className="tlh-cell">Data</span>
-      <span className="tlh-cell tlh-center">Obs</span>
-      <span className="tlh-cell tlh-center">Zap</span>
-      <span className="tlh-cell tlh-center">Excluir</span>
-    </div>
-  );
-}
+// Linha em formato de cartão (sem cabeçalho de tabela): status, texto, de onde veio, data e os ícones no fim.
+const ORIGEM_DO_LEMBRETE: Record<NonNullable<Reminder["sourceKind"]>, string> = {
+  maintenance: "Manutenção",
+  birthday: "Aniversário",
+  medication: "Medicamento",
+  diet_meal: "Dieta",
+  event: "Evento",
+  shopping: "Compras",
+};
 
 function ReminderDetailModal({ reminder, onClose }: { reminder: Reminder; onClose: () => void }) {
   const { board } = useBoardCtx();
@@ -650,25 +643,27 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
   // apagado mesmo que a coluna esteja true — o desenho não mente.
   const zapVaiSair = oZapVaiSair(reminder);
 
+  // De onde veio: automático (manutenção, aniversário...) ou ligado a uma tarefa (Reunião / Tarefa).
+  const tarefaLigada = reminder.taskId ? board.state.tasks.find((t) => t.id === reminder.taskId) : null;
+  const origem = reminder.sourceKind
+    ? ORIGEM_DO_LEMBRETE[reminder.sourceKind]
+    : tarefaLigada
+      ? entraEmReunioes(tarefaLigada)
+        ? "Reunião"
+        : "Tarefa"
+      : null;
+  const avisaNoApp = reminder.inApp !== false;
+
   return (
     <div
       data-id={reminder.id}
       className={
-        "reminder-table-row" +
+        "reminder-card-row" +
         (reminder.done ? " done" : "") +
         (overdue ? " overdue" : "") +
         (dueToday ? " due-today" : "")
       }
-      style={{ gridTemplateColumns: REMINDER_GRID }}
     >
-      <button
-        type="button"
-        className="icon-btn reminder-expand-btn"
-        title="Abrir lembrete completo (texto e observação)"
-        onClick={() => setDetailOpen(true)}
-      >
-        <ExpandIcon />
-      </button>
       <button
         ref={statusBtnRef}
         type="button"
@@ -676,7 +671,7 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
         title="Escolher status"
         onClick={() => setStatusAnchor(statusBtnRef.current?.getBoundingClientRect() ?? null)}
       >
-        {reminder.done && <CheckIcon />}
+        {reminder.done ? <CheckIcon /> : <span className="reminder-status-dot" aria-hidden="true" />}
         {status.label}
       </button>
       {statusAnchor && (
@@ -695,9 +690,12 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
         onBlur={commitTitle}
         onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
       />
-      <span className={"chip" + (isRecurring ? " chip-recurring" : " chip-oneoff")}>
-        {isRecurring && <RepeatIcon />} {isRecurring ? "Recorrente" : "Pontual"}
-      </span>
+      {origem && <span className="chip chip-oneoff reminder-origem">{origem}</span>}
+      {isRecurring && (
+        <span className="chip chip-recurring reminder-origem">
+          <RepeatIcon /> Recorrente
+        </span>
+      )}
       <ReminderDateButton
         date={reminder.date}
         time={reminder.time}
@@ -706,51 +704,65 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
         alertMinutesBefore={reminder.alertMinutesBefore}
         onSave={(fields) => board.updateReminder(reminder.id, fields)}
       />
-      <CommentButton
-        alwaysExpanded
-        value={reminder.note}
-        placeholder="Observação — cole um texto ou escreva algo..."
-        ariaLabel="Observação do lembrete"
-        onSave={(text) => board.updateReminder(reminder.id, { note: text || null })}
-      />
-      {/* Verde quer dizer uma coisa só: ESSA mensagem vai sair. Por isso o aceso
-          depende de ter data — sem data não há quando mandar. E o botão nunca
-          fica travado aceso: travado e verde era o estado em que ele não
-          conseguia desmarcar. Acender sem aviso marcado já põe o aviso padrão,
-          senão o verde seria promessa falsa. */}
-      <button
-        className={"icon-btn zap-btn" + (zapVaiSair ? " active" : "")}
-        type="button"
-        disabled={reminder.date === null}
-        title={
-          reminder.date === null
-            ? "Coloque uma data primeiro — sem data não há quando mandar"
-            : zapVaiSair
-              ? "Chega no WhatsApp. Clique pra desligar."
-              : "Só avisa dentro do app. Clique pra mandar no WhatsApp também."
-        }
-        onClick={() =>
-          board.updateReminder(
-            reminder.id,
-            zapVaiSair
-              ? { whatsapp: false }
-              : {
-                  whatsapp: true,
-                  alertMinutesBefore: reminder.alertMinutesBefore ?? ANTECEDENCIA_PADRAO_MIN,
-                }
-          )
-        }
-      >
-        <WhatsAppIcon filled={zapVaiSair} />
-      </button>
-      <button
-        className="icon-btn danger-hover"
-        type="button"
-        title="Excluir"
-        onClick={() => board.deleteReminder(reminder.id)}
-      >
-        <TrashIcon />
-      </button>
+      <span className="reminder-icones">
+        {/* Sino: avisa dentro do app (banner e Agenda). O push no celular continua chegando. */}
+        <button
+          type="button"
+          className={"icon-btn" + (avisaNoApp ? " active" : "")}
+          title={avisaNoApp ? "Avisa dentro do app. Clique pra desligar." : "Não avisa dentro do app (só no celular). Clique pra ligar."}
+          onClick={() => board.updateReminder(reminder.id, { inApp: !avisaNoApp })}
+        >
+          <BellIcon />
+        </button>
+        {/* Verde quer dizer uma coisa só: ESSA mensagem vai sair. Por isso o aceso
+            depende de ter data — sem data não há quando mandar. E o botão nunca
+            fica travado aceso: travado e verde era o estado em que ele não
+            conseguia desmarcar. Acender sem aviso marcado já põe o aviso padrão,
+            senão o verde seria promessa falsa. */}
+        <button
+          className={"icon-btn zap-btn" + (zapVaiSair ? " active" : "")}
+          type="button"
+          disabled={reminder.date === null}
+          title={
+            reminder.date === null
+              ? "Coloque uma data primeiro — sem data não há quando mandar"
+              : zapVaiSair
+                ? "Chega no WhatsApp. Clique pra desligar."
+                : "Só avisa dentro do app. Clique pra mandar no WhatsApp também."
+          }
+          onClick={() =>
+            board.updateReminder(
+              reminder.id,
+              zapVaiSair
+                ? { whatsapp: false }
+                : {
+                    whatsapp: true,
+                    alertMinutesBefore: reminder.alertMinutesBefore ?? ANTECEDENCIA_PADRAO_MIN,
+                  }
+            )
+          }
+        >
+          <WhatsAppIcon filled={zapVaiSair} />
+        </button>
+        <CommentButton
+          alwaysExpanded
+          value={reminder.note}
+          placeholder="Observação — cole um texto ou escreva algo..."
+          ariaLabel="Observação do lembrete"
+          onSave={(text) => board.updateReminder(reminder.id, { note: text || null })}
+        />
+        <button
+          type="button"
+          className="icon-btn"
+          title="Abrir lembrete completo (texto e observação)"
+          onClick={() => setDetailOpen(true)}
+        >
+          <ExpandIcon />
+        </button>
+        <button className="icon-btn danger-hover" type="button" title="Excluir" onClick={() => board.deleteReminder(reminder.id)}>
+          <TrashIcon />
+        </button>
+      </span>
       {detailOpen && <ReminderDetailModal reminder={reminder} onClose={() => setDetailOpen(false)} />}
     </div>
   );
@@ -1031,7 +1043,8 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
   const automaticos = sortByClosestDate(notDone.filter((r) => !!r.sourceKind));
 
   const overdue = sortByClosestDate(meus.filter((r) => isReminderOverdue(r)));
-  const pending = sortByClosestDate(meus.filter((r) => !isReminderOverdue(r)));
+  const hojeLista = sortByClosestDate(meus.filter((r) => !isReminderOverdue(r) && r.date === today));
+  const proximos = sortByClosestDate(meus.filter((r) => !isReminderOverdue(r) && r.date !== today));
   const done = filtered.filter((r) => r.done);
 
   return (
@@ -1115,7 +1128,7 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
           </div>
         </div>
 
-        {overdue.length === 0 && pending.length === 0 && done.length === 0 && automaticos.length === 0 && (
+        {overdue.length === 0 && hojeLista.length === 0 && proximos.length === 0 && done.length === 0 && automaticos.length === 0 && (
           <div className="list-card">
             <div className="hp-empty">
               {filter === "todos" ? "Nenhum lembrete ainda." : "Nenhum lembrete encontrado com esse filtro."}
@@ -1124,33 +1137,40 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
         )}
 
         {overdue.length > 0 && (
-          <div className="list-card">
-            <div className="list-card-section-label overdue-label">
-              <WarningIcon /> Vencidos
-            </div>
-            <div className="task-table-scroll">
-              <ReminderTableHeader />
-              {overdue.map((r) => (
-                <ReminderRow key={r.id} reminder={r} />
-              ))}
-            </div>
-          </div>
+          <CollapsibleReminderSection
+            storageKey="faro-lembretes-atrasados"
+            label="Atrasados"
+            labelClass="overdue-label"
+            count={overdue.length}
+            reminders={overdue}
+          />
         )}
 
-        {pending.length > 0 && (
+        {hojeLista.length > 0 && (
           <CollapsibleReminderSection
-            storageKey="faro-lembretes-agendados"
-            label="Agendados"
+            storageKey="faro-lembretes-hoje"
+            label="Hoje"
             labelClass="pending-label"
-            count={pending.length}
-            reminders={pending}
+            count={hojeLista.length}
+            reminders={hojeLista}
+          />
+        )}
+
+        {proximos.length > 0 && (
+          <CollapsibleReminderSection
+            storageKey="faro-lembretes-proximos"
+            label="Próximos"
+            labelClass="pending-label"
+            count={proximos.length}
+            reminders={proximos}
           />
         )}
 
         {automaticos.length > 0 && (
           <CollapsibleReminderSection
             storageKey="faro-lembretes-automaticos"
-            label="Criados por outras telas"
+            label="Vindos de outras telas"
+            nota="Lembretes criados por Manutenção, Aniversários, Medicamentos e Dieta ficam separados dos seus, para não misturar."
             labelClass="pending-label"
             count={automaticos.length}
             defaultOpen={false}
