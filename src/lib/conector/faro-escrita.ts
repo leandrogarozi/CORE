@@ -36,6 +36,9 @@ export interface Repositorio {
   anexarNota(id: string, notaNova: string): Promise<void>;
   /** "tipo|título" (normalizado) dos itens de Conhecendo você que não foram descartados. */
   conhecimentoExistente(): Promise<{ tipo: string; titulo: string }[]>;
+  /** Textos de todas as frases da Metanoia, inclusive as recusadas (para a IA não propor de novo). */
+  frasesExistentes(): Promise<string[]>;
+  inserirFrases(itens: { id: string; texto: string; autor: string | null; fonte: string | null; origemRef: string | null }[]): Promise<void>;
   inserirConhecimento(
     itens: { id: string; tipo: string; titulo: string; conteudo: string; dataRef: string | null; origem: string | null; tags: string[] }[]
   ): Promise<void>;
@@ -73,6 +76,7 @@ export const NOMES_DAS_FERRAMENTAS_DE_ESCRITA = [
   "faro_criar_tarefas",
   "faro_criar_lembretes",
   "faro_propor_aprendizado",
+  "faro_propor_frases",
   "faro_ver_agenda",
   "faro_concluir_tarefas",
   "faro_anotar_em_tarefa",
@@ -272,6 +276,35 @@ export const FERRAMENTAS_DE_ESCRITA = [
         },
       },
       required: ["itens"],
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  },
+  {
+    name: "faro_propor_frases",
+    title: "Propor frases para a Metanoia",
+    description:
+      "Envia ao FARO frases curtas para a Metanoia (as frases que o FARO manda para o usuário durante o dia): tiradas do que ele aprendeu, acredita e decidiu, ou que ele pediu para guardar. Vão como PROPOSTA para 'Para revisar' da Metanoia e só entram nos lembretes depois que ele aprovar. Regras: a frase tem de ser curta (até uns 220 caracteres), fiel ao que ele disse ou escreveu (use as palavras dele; se for de outro autor, informe o autor; nunca invente autoria), uma ideia por frase, sem saúde, senhas ou dados bancários. Confira com faro_buscar para não repetir e use 'fonte' para dizer de onde veio (ex.: 'Valores', 'Sinapse: Ted Lasso'). Depois de enviar, diga em uma linha quantas propôs.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        frases: {
+          type: "array",
+          minItems: 1,
+          maxItems: 30,
+          items: {
+            type: "object",
+            properties: {
+              texto: { type: "string", description: "A frase, pronta para ser lida numa notificação." },
+              autor: { type: "string", description: "Quem disse, se não for o próprio usuário. Deixe vazio se não souber." },
+              fonte: { type: "string", description: "De onde veio dentro do FARO ou da conversa." },
+            },
+            required: ["texto"],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ["frases"],
       additionalProperties: false,
     },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
@@ -705,6 +738,49 @@ export async function proporAprendizado(args: Args, repo: Repositorio, ctx: Cont
   };
 }
 
+export async function proporFrases(args: Args, repo: Repositorio, ctx: Contexto): Promise<Resposta> {
+  const norm = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/\s+/g, " ").trim();
+  const ja = new Set((await repo.frasesExistentes()).map(norm));
+  const novos: Parameters<Repositorio["inserirFrases"]>[0] = [];
+  const problemas: string[] = [];
+  for (const [i, bruto] of lista<Args>(args.frases).entries()) {
+    const t = texto(bruto.texto);
+    const rotulo = t ? `"${t.slice(0, 40)}…"` : `item ${i + 1}`;
+    if (!t) {
+      problemas.push(`${rotulo}: sem texto.`);
+      continue;
+    }
+    if (t.length > 400) {
+      problemas.push(`${rotulo}: longa demais para uma notificação (use até uns 220 caracteres).`);
+      continue;
+    }
+    if (PALAVRAS_DE_SAUDE.test(t)) {
+      problemas.push(`${rotulo}: parece conter saúde, senha ou dado bancário. Isso não vai para o FARO.`);
+      continue;
+    }
+    if (ja.has(norm(t))) {
+      problemas.push(`${rotulo}: já existe na Metanoia.`);
+      continue;
+    }
+    ja.add(norm(t));
+    novos.push({ id: ctx.novoId(), texto: t, autor: texto(bruto.autor) || null, fonte: texto(bruto.fonte) || "conector (IA)", origemRef: null });
+  }
+  if (!novos.length) return { texto: ["Nada foi enviado.", ...problemas.map((p) => `- ${p}`)].join("\n"), erro: true };
+  await repo.inserirFrases(novos);
+  return {
+    texto: [
+      `Enviado à Metanoia como PROPOSTA (${novos.length}). Está em "Para revisar"; só entra nos lembretes depois que o usuário aprovar, e o FARO já avisou ele.`,
+      ...novos.map((n) => `- ${n.texto}`),
+      ...(problemas.length ? ["", "Não enviadas:", ...problemas.map((p) => `- ${p}`)] : []),
+    ].join("\n"),
+    aviso: {
+      titulo: novos.length === 1 ? "Tem 1 frase nova na Metanoia para aprovar" : `Tem ${novos.length} frases novas na Metanoia para aprovar`,
+      corpo: "A IA sugeriu frases a partir do que você aprendeu. Abra Metanoia → Para revisar para aprovar, editar ou recusar.",
+      destino: "metanoia",
+    },
+  };
+}
+
 export async function executarEscrita(nome: string, args: Args, repo: Repositorio, ctx: Contexto): Promise<Resposta> {
   switch (nome) {
     case "faro_criar_aniversarios":
@@ -715,6 +791,8 @@ export async function executarEscrita(nome: string, args: Args, repo: Repositori
       return criarLembretes(args, repo, ctx);
     case "faro_propor_aprendizado":
       return proporAprendizado(args, repo, ctx);
+    case "faro_propor_frases":
+      return proporFrases(args, repo, ctx);
     case "faro_ver_agenda":
       return verAgenda(args, repo, ctx);
     case "faro_concluir_tarefas":

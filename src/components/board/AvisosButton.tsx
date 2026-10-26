@@ -25,6 +25,7 @@ interface Aviso {
 }
 
 const ONDE: Record<string, { rotulo: string; modo: ViewMode }> = {
+  metanoia: { rotulo: "Abrir Metanoia", modo: "metanoia" },
   conhecendo: { rotulo: "Abrir Conhecendo você", modo: "conhecendo" },
   aniversarios: { rotulo: "Abrir Aniversários", modo: "aniversarios" },
   cadastros: { rotulo: "Abrir Cadastros", modo: "cadastros" },

@@ -183,6 +183,26 @@ function repositorioDe(usuario: string): Repositorio {
       falhou("ler conhecimento", error);
       return data ?? [];
     },
+    async frasesExistentes() {
+      const { data, error } = await supabase.from("metanoia_frases").select("texto").eq("user_id", usuario);
+      falhou("ler frases", error);
+      return (data ?? []).map((f) => f.texto);
+    },
+    async inserirFrases(itens) {
+      const { error } = await supabase.from("metanoia_frases").insert(
+        itens.map((f) => ({
+          id: f.id,
+          user_id: usuario,
+          texto: f.texto,
+          autor: f.autor,
+          fonte: f.fonte,
+          origem: "ia",
+          origem_ref: f.origemRef,
+          status: "pendente",
+        }))
+      );
+      falhou("gravar frases", error);
+    },
     async inserirConhecimento(itens) {
       const lote = new Date().toISOString();
       const { error } = await supabase.from("knowledge_items").insert(
