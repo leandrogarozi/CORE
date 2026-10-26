@@ -2,11 +2,19 @@
 
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
-import { BellIcon, CheckIcon, TrashIcon, WhatsAppIcon } from "./icons";
+import { BellIcon, CheckIcon, EditIcon, TrashIcon, WhatsAppIcon } from "./icons";
+import { ToggleSwitch } from "./ToggleSwitch";
 import { TimePicker } from "./TimePicker";
 import { DAY_NAMES } from "@/lib/date-utils";
 import type { DietMeal } from "@/lib/types";
 import type { UseBoard } from "@/lib/board/use-board";
+
+function diasDaRefeicao(weekDays: number[] | null): string {
+  if (!weekDays || weekDays.length === 0 || weekDays.length === 7) return "todos os dias";
+  const dias = [...weekDays].sort((a, b) => a - b);
+  if (dias.join() === "1,2,3,4,5") return "seg a sex";
+  return dias.map((d) => DAY_NAMES[d].toLowerCase()).join(", ");
+}
 
 function DietMealRow({
   meal,
@@ -21,6 +29,7 @@ function DietMealRow({
 }) {
   const [nameDraft, setNameDraft] = useState<string | null>(null);
   const [messageDraft, setMessageDraft] = useState<string | null>(null);
+  const [aberto, setAberto] = useState(false);
 
   function commitName() {
     if (nameDraft === null) return;
@@ -44,14 +53,10 @@ function DietMealRow({
   return (
     <div className={"diet-meal-card" + (meal.active ? "" : " inactive")}>
       <div className="diet-meal-head">
-        <input
-          type="text"
-          className="diet-meal-name"
-          value={nameDraft ?? meal.name}
-          onChange={(e) => setNameDraft(e.target.value)}
-          onBlur={commitName}
-          onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-        />
+        <button type="button" className="diet-meal-titulo" onClick={() => setAberto((v) => !v)}>
+          <span className="diet-meal-nome-txt">{meal.name}</span>
+          <span className="diet-meal-sub">{diasDaRefeicao(meal.weekDays)}</span>
+        </button>
         <TimePicker value={meal.time} onChange={(v) => board.updateDietMeal(meal.id, { time: v })} />
         <button
           type="button"
@@ -88,6 +93,16 @@ function DietMealRow({
         </button>
         <button
           type="button"
+          className={"icon-btn" + (aberto ? " active" : "")}
+          aria-label="Editar refeição"
+          aria-expanded={aberto}
+          title="Editar nome, texto e dias"
+          onClick={() => setAberto((v) => !v)}
+        >
+          <EditIcon />
+        </button>
+        <button
+          type="button"
           className="icon-btn danger-hover"
           aria-label="Excluir refeição"
           onClick={() => board.deleteDietMeal(meal.id)}
@@ -95,6 +110,17 @@ function DietMealRow({
           <TrashIcon />
         </button>
       </div>
+      {aberto && (
+      <div className="diet-meal-body">
+      <input
+        type="text"
+        className="diet-meal-name"
+        aria-label="Nome da refeição"
+        value={nameDraft ?? meal.name}
+        onChange={(e) => setNameDraft(e.target.value)}
+        onBlur={commitName}
+        onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+      />
       <textarea
         className="diet-meal-message"
         placeholder="Escreva aqui como quer receber o texto do seu lembrete — pode ser só o título, as calorias, a divisão da dieta ou a refeição descrita para esse horário."
@@ -126,6 +152,8 @@ function DietMealRow({
           ))}
         </div>
       </div>
+      </div>
+      )}
     </div>
   );
 }
@@ -169,7 +197,8 @@ export function DietView({ onBack }: { onBack: () => void }) {
 
       <div className="narrow-list">
         <div className="diet-page-card">
-          <span className="settings-label">Meu plano (receitas, macros, o que quiser guardar)</span>
+          <span className="diet-card-titulo">Meu plano</span>
+          <span className="diet-card-sub">Receitas, macros, o que quiser guardar.</span>
           <textarea
             className="diet-plan-input"
             placeholder="Cole ou escreva aqui o plano/dieta que está seguindo..."
@@ -185,23 +214,15 @@ export function DietView({ onBack }: { onBack: () => void }) {
         </div>
 
         <div className="diet-page-card">
-          <span className="settings-label">Onde quer ser lembrado?</span>
+          <span className="diet-card-titulo">Onde quer ser lembrado?</span>
           <div className="diet-channel-options">
             <label className="diet-channel-option">
-              <input
-                type="checkbox"
-                checked={appOptIn}
-                onChange={(e) => board.updateSettings({ dietAppOptIn: e.target.checked })}
-              />
-              <BellIcon /> Notificação dentro do app
+              <ToggleSwitch checked={appOptIn} ariaLabel="Lembrar dentro do app" onChange={(v) => board.updateSettings({ dietAppOptIn: v })} />
+              No app
             </label>
             <label className="diet-channel-option">
-              <input
-                type="checkbox"
-                checked={whatsappOptIn}
-                onChange={(e) => board.updateSettings({ dietWhatsappOptIn: e.target.checked })}
-              />
-              <WhatsAppIcon /> Notificação via WhatsApp
+              <ToggleSwitch checked={whatsappOptIn} ariaLabel="Lembrar no WhatsApp" onChange={(v) => board.updateSettings({ dietWhatsappOptIn: v })} />
+              No WhatsApp
             </label>
           </div>
           {whatsappOptIn && (
@@ -232,7 +253,7 @@ export function DietView({ onBack }: { onBack: () => void }) {
         </div>
 
         <div className="diet-page-card">
-          <span className="settings-label">Lembretes de refeição</span>
+          <span className="diet-card-titulo">Lembretes de refeição <span className="diet-card-n">{dietMeals.length}</span></span>
           <div className="diet-meals-list">
             {dietMeals.length === 0 && <div className="hp-empty">Nenhuma refeição configurada ainda.</div>}
             {dietMeals.map((m) => (
@@ -240,9 +261,12 @@ export function DietView({ onBack }: { onBack: () => void }) {
             ))}
           </div>
           <div className="diet-meal-add">
+            <span className="quickadd-plus" aria-hidden="true">
+              +
+            </span>
             <input
               type="text"
-              placeholder="+ nome da refeição (ex.: Café da manhã)"
+              placeholder="Nome da refeição (ex.: Café da manhã)"
               value={newMealName}
               onChange={(e) => setNewMealName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addMeal()}
