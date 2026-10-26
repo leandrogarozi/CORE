@@ -3757,3 +3757,19 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .project-row-progress{ font-size:12px; color:var(--text-muted); }
 .project-row-barra{ flex:none; width:120px; }
 @media (max-width:640px){ .project-row-barra{ width:64px; } .project-row-topo{ flex-wrap:wrap; } }
+
+/* Semana no layout do desenho: um cartão por dia, tarefas com status em etiqueta */
+.week-grid{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px; align-items:start; }
+@media (max-width:900px){ .week-grid{ grid-template-columns:1fr; } }
+.week-card{ background:var(--surface); border:1px solid var(--linha); border-radius:16px; overflow:hidden; }
+.week-card.is-today{ border-color:color-mix(in srgb, var(--accent) 45%, var(--linha)); }
+.week-card-head{ display:flex; align-items:center; gap:8px; padding:12px 16px; font-size:14px; }
+.week-card-hoje{ font-size:11px; font-weight:700; padding:2px 9px; border-radius:999px; background:var(--accent-soft); color:var(--accent); }
+.week-card-n{ font-size:12px; color:var(--text-muted); }
+.week-task{ display:flex; align-items:center; gap:10px; padding:8px 14px; border-top:1px solid var(--linha); min-height:40px; }
+.week-task-title{ flex:1; min-width:0; text-align:left; background:none; border:0; padding:0; font:inherit; font-size:13.5px; color:var(--text); cursor:pointer; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.week-task.done .week-task-title{ text-decoration:line-through; color:var(--text-muted); }
+.week-task-time{ flex:none; font-size:12px; color:var(--text-muted); }
+.week-quickadd{ display:block; width:100%; border:0; border-top:1px solid var(--linha); background:transparent; padding:9px 16px; font:inherit; font-size:12.5px; color:var(--text); }
+.week-quickadd::placeholder{ color:var(--text-faint); }
+.week-quickadd:focus{ outline:none; background:var(--surface-2, rgba(0,0,0,.03)); }
