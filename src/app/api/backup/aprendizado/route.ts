@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import JSZip from "jszip";
 import { createServiceClient } from "@/lib/supabase/service";
 import { donoDaChave } from "@/lib/backup/dono-da-chave";
-import { rowToBirthday, rowToBook, rowToKnowledgeItem, rowToSynapse } from "@/lib/board/mappers";
+import { rowToBirthday, rowToBook, rowToKnowledgeItem, rowToSynapse, rowToSynapsePart } from "@/lib/board/mappers";
 import { AREAS_PADRAO, arquivosDoBackup, ehAreaDeBackup } from "@/lib/learning-export";
 import { conhecimentoParaExportar } from "@/lib/conhecimento";
 import { arquivoDoResumo } from "@/lib/ia/resumo";
@@ -23,10 +23,11 @@ export async function GET(req: NextRequest) {
   if (!usuario) return NextResponse.json({ error: "chave inválida" }, { status: 401 });
 
   const supabase = createServiceClient();
-  const [livros, sinapses, config, conhecimento, aniversarios, clientesCrm, linksCrm] = await Promise.all([
+  const [livros, sinapses, partesRes, config, conhecimento, aniversarios, clientesCrm, linksCrm] = await Promise.all([
     // A tabela de livros não tem exclusão suave (deleted_at): apagar é apagar.
     supabase.from("books").select("*").eq("user_id", usuario).eq("kind", "livro"),
     supabase.from("synapses").select("*").eq("user_id", usuario).is("deleted_at", null),
+    supabase.from("synapse_parts").select("*").eq("user_id", usuario).order("sort_order"),
     supabase.from("settings").select("backup_areas, backup_name, faro_resumo, faro_resumo_em").eq("user_id", usuario).maybeSingle(),
     supabase
       .from("knowledge_items")
@@ -38,7 +39,7 @@ export async function GET(req: NextRequest) {
     supabase.from("clientes_cadastro").select("*").eq("user_id", usuario).order("criado_em"),
     supabase.from("cadastro_links").select("*").eq("user_id", usuario).order("criado_em"),
   ]);
-  const erro = livros.error ?? sinapses.error ?? conhecimento.error ?? aniversarios.error ?? clientesCrm.error ?? linksCrm.error;
+  const erro = livros.error ?? sinapses.error ?? partesRes.error ?? conhecimento.error ?? aniversarios.error ?? clientesCrm.error ?? linksCrm.error;
   if (erro) return NextResponse.json({ error: erro.message }, { status: 500 });
 
   const areas = (config.data?.backup_areas ?? AREAS_PADRAO).filter(ehAreaDeBackup);
@@ -48,6 +49,7 @@ export async function GET(req: NextRequest) {
       livros: (livros.data ?? []).map(rowToBook),
       sinapses: todas.filter((s) => s.kind !== "ideia"),
       ideias: todas.filter((s) => s.kind === "ideia"),
+      partesDeEstudo: (partesRes.data ?? []).map(rowToSynapsePart),
       conhecendo: (conhecimento.data ?? []).map(rowToKnowledgeItem).map(conhecimentoParaExportar),
       aniversarios: (aniversarios.data ?? []).map(rowToBirthday),
       crm: { clientes: clientesCrm.data ?? [], links: linksCrm.data ?? [] },

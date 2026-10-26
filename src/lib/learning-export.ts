@@ -59,6 +59,16 @@ export interface SinapseParaExportar {
   tag?: string | null; // "ideia" | "estudo" (só nas ideias)
 }
 
+export interface ParteParaExportar {
+  id?: string;
+  synapseId: string;
+  title: string;
+  kind: string;
+  date: string | null;
+  body: string | null;
+  order: number;
+}
+
 export interface AniversarioParaExportar {
   id?: string;
   name: string;
@@ -304,10 +314,51 @@ export function arquivoDoConhecimento(k: ConhecimentoParaExportar): ArquivoDeApr
   return { nome: `${pastaDaArea("conhecendo")}/${nomeDeArquivo(k.titulo)}`, conteudo: partes.join("\n") };
 }
 
+/**
+ * Um estudo com partes vira uma pasta: `Estudos/Mentoria X/00 - Visão geral.md` e uma
+ * `NN - Encontro 1.md` por parte, na ordem em que aconteceram. Assim a IA (ou a pessoa)
+ * lê um encontro por vez, em vez de um texto único que só cresce.
+ */
+export function arquivosDoEstudo(estudo: SinapseParaExportar, partes: ParteParaExportar[]): ArquivoDeAprendizado[] {
+  const pasta = `Estudos/${nomeDeArquivo(estudo.title, "").replace(/\.$/, "")}`;
+  const ordenadas = [...partes].sort(
+    (a, b) => (a.date ?? "9999").localeCompare(b.date ?? "9999") || a.order - b.order
+  );
+  const arquivos: ArquivoDeAprendizado[] = [];
+  const geral = [
+    cabecalho({ tipo: "estudo", data: estudo.createdAt?.slice(0, 10), id: estudo.id, partes: String(ordenadas.length), origem: "FARO" }),
+    `# ${estudo.title.trim()}`,
+    "",
+  ];
+  if (estudo.source?.trim()) geral.push(`**Fonte:** ${estudo.source.trim()}`, "");
+  if (ordenadas.length) {
+    geral.push("## Partes", "");
+    ordenadas.forEach((p, i) => geral.push(`${i + 1}. ${p.title.trim()}${p.date ? ` (${p.date})` : ""}`));
+    geral.push("");
+  }
+  geral.push("## Visão geral", "", temConteudo(estudo.learning) ? htmlParaMarkdown(estudo.learning) : "_Ainda sem resumo._", "");
+  arquivos.push({ nome: `${pasta}/00 - Visão geral.md`, conteudo: geral.join("\n") });
+  ordenadas.forEach((p, i) => {
+    const corpo = [
+      cabecalho({ tipo: "estudo-parte", estudo: estudo.title.trim(), parte: p.kind, data: p.date, id: p.id, origem: "FARO" }),
+      `# ${p.title.trim()}`,
+      "",
+      `**Estudo:** ${estudo.title.trim()}`,
+      "",
+    ];
+    if (p.date) corpo.push(`**Data:** ${p.date}`, "");
+    corpo.push(temConteudo(p.body) ? htmlParaMarkdown(p.body) : "_Ainda sem anotações._", "");
+    arquivos.push({ nome: `${pasta}/${nomeDeArquivo(`${String(i + 1).padStart(2, "0")} - ${p.title}`)}`, conteudo: corpo.join("\n") });
+  });
+  return arquivos;
+}
+
 export interface DadosDoBackup {
   livros: LivroParaExportar[];
   sinapses: SinapseParaExportar[];
   ideias: SinapseParaExportar[];
+  /** Partes (encontros, aulas, módulos) dos estudos; cada estudo com partes vira uma pasta. */
+  partesDeEstudo?: ParteParaExportar[];
   conhecendo: ConhecimentoParaExportar[];
   aniversarios?: AniversarioParaExportar[];
   crm?: { clientes: Tables<"clientes_cadastro">[]; links: Tables<"cadastro_links">[] };
@@ -335,10 +386,14 @@ export function indiceDoBackup(
   }
 
   if (areas.includes("ideias")) {
-    const comTexto = dados.ideias.filter((s) => temConteudo(s.learning));
-    linhas.push(`## Ideias (${comTexto.length})`, "");
+    const partesDe = (id?: string) => (id ? (dados.partesDeEstudo ?? []).filter((p) => p.synapseId === id).length : 0);
+    const comTexto = dados.ideias.filter((s) => temConteudo(s.learning) || partesDe(s.id) > 0);
+    linhas.push(`## Ideias e estudos (${comTexto.length})`, "");
     if (!comTexto.length) linhas.push("_Nenhuma ideia com texto ainda._", "");
-    for (const s of comTexto) linhas.push(`- ${s.title.trim()}`);
+    for (const s of comTexto) {
+      const n = partesDe(s.id);
+      linhas.push(`- ${s.title.trim()}${n ? ` — pasta com ${n} ${n === 1 ? "parte" : "partes"} em \`Estudos/\`` : ""}`);
+    }
     linhas.push("");
   }
 
@@ -403,7 +458,14 @@ export function arquivosDoBackup(
     }
   }
   if (areas.includes("ideias")) {
+    const partes = dados.partesDeEstudo ?? [];
     for (const s of dados.ideias) {
+      // Estudo com partes vira pasta; ideia e estudo sem partes seguem como arquivo único.
+      const doEstudo = s.tag === "estudo" && s.id ? partes.filter((p) => p.synapseId === s.id) : [];
+      if (doEstudo.length) {
+        arquivos.push(...arquivosDoEstudo(s, doEstudo));
+        continue;
+      }
       const a = arquivoDaIdeia(s);
       if (a) arquivos.push(a);
     }

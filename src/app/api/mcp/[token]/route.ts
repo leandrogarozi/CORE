@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/service";
-import { rowToKnowledgeItem, rowToSynapse } from "@/lib/board/mappers";
+import { rowToKnowledgeItem, rowToSynapse, rowToSynapsePart } from "@/lib/board/mappers";
 import { hojeNoBrasil, responderMensagem, type AcervoDoFaro } from "@/lib/conector/faro-mcp";
 import { executarEscrita, type Repositorio } from "@/lib/conector/faro-escrita";
 import { enviarPushAoUsuario } from "@/lib/push/enviar";
@@ -39,9 +39,10 @@ async function donoDoConector(token: string): Promise<string | null> {
 
 async function carregarAcervo(usuario: string): Promise<AcervoDoFaro> {
   const supabase = createServiceClient();
-  const [livros, sinapses, conhecimento, config] = await Promise.all([
+  const [livros, sinapses, partes, conhecimento, config] = await Promise.all([
     supabase.from("books").select("id, title, status, insights, created_at").eq("user_id", usuario).eq("kind", "livro"),
     supabase.from("synapses").select("*").eq("user_id", usuario).is("deleted_at", null),
+    supabase.from("synapse_parts").select("*").eq("user_id", usuario).order("sort_order"),
     supabase
       .from("knowledge_items")
       .select("*")
@@ -50,7 +51,7 @@ async function carregarAcervo(usuario: string): Promise<AcervoDoFaro> {
       .is("deleted_at", null),
     supabase.from("settings").select("backup_name, preferred_name, faro_resumo").eq("user_id", usuario).maybeSingle(),
   ]);
-  const erro = livros.error ?? sinapses.error ?? conhecimento.error;
+  const erro = livros.error ?? sinapses.error ?? partes.error ?? conhecimento.error;
   if (erro) throw new Error(erro.message);
   return {
     nome: config.data?.preferred_name?.trim() || config.data?.backup_name?.trim() || "o usuário",
@@ -63,6 +64,7 @@ async function carregarAcervo(usuario: string): Promise<AcervoDoFaro> {
       createdAt: l.created_at,
     })),
     sinapses: (sinapses.data ?? []).map(rowToSynapse),
+    partes: (partes.data ?? []).map(rowToSynapsePart),
     conhecimento: (conhecimento.data ?? []).map(rowToKnowledgeItem),
   };
 }

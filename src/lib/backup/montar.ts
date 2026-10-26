@@ -25,6 +25,7 @@ export const TABELAS = [
   "daily_logs",
   "books",
   "synapses",
+  "synapse_parts",
   "shopping_items",
   "shopping_lists",
   "birthdays",

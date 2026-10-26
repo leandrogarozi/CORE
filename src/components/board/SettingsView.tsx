@@ -988,6 +988,7 @@ function BackupDeAprendizadoBox() {
     livros: board.state.books.filter((b) => b.kind === "livro"),
     sinapses: board.state.synapses.filter((s) => s.kind !== "ideia"),
     ideias: board.state.synapses.filter((s) => s.kind === "ideia"),
+    partesDeEstudo: board.state.synapseParts,
     conhecendo: board.state.knowledgeItems.filter((k) => k.status === "aprovado").map(conhecimentoParaExportar),
     aniversarios: board.state.birthdays,
     crm,

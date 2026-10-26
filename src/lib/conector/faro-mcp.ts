@@ -4,9 +4,10 @@ import {
   arquivoDaSinapse,
   arquivoDoConhecimento,
   arquivoDoLivro,
+  arquivosDoEstudo,
 } from "@/lib/learning-export";
 import { conhecimentoParaExportar, rotuloDoTipo, TIPOS_DE_CONHECIMENTO } from "@/lib/conhecimento";
-import type { KnowledgeItem, Synapse } from "@/lib/types";
+import type { KnowledgeItem, Synapse, SynapsePart } from "@/lib/types";
 import { FERRAMENTAS_DE_ESCRITA, ehFerramentaDeEscrita, dataPorExtenso, type Resposta } from "./faro-escrita";
 
 /**
@@ -41,6 +42,7 @@ export interface AcervoDoFaro {
   nome: string; // nome da pessoa (para a IA saber de quem é o acervo)
   resumo?: string; // "O que o FARO sabe sobre mim": texto corrido escrito pela IA e guardado
   sinapses: Synapse[]; // sinapses e ideias (kind)
+  partes?: SynapsePart[]; // partes (encontros, aulas, módulos) dos estudos
   livros: LivroDoAcervo[];
   conhecimento: KnowledgeItem[]; // só os aprovados
 }
@@ -86,7 +88,7 @@ export function hojeNoBrasil(agora: Date): string {
 // ---------------------------------------------------------------------------
 // Ferramentas
 
-const TIPOS_LISTAVEIS = ["sinapse", "ideia", "livro", "conhecimento", ...TIPOS_DE_CONHECIMENTO.map((t) => t.id)];
+const TIPOS_LISTAVEIS = ["sinapse", "ideia", "parte_de_estudo", "livro", "conhecimento", ...TIPOS_DE_CONHECIMENTO.map((t) => t.id)];
 
 export const FERRAMENTAS = [
   {
@@ -109,7 +111,7 @@ export const FERRAMENTAS = [
         tipo: {
           type: "string",
           enum: TIPOS_LISTAVEIS,
-          description: "Opcional: restringe a um tipo (sinapse, ideia, livro, conhecimento ou um tipo de Conhecendo você).",
+          description: "Opcional: restringe a um tipo (sinapse, ideia, parte_de_estudo, livro, conhecimento ou um tipo de Conhecendo você).",
         },
         limite: { type: "integer", minimum: 1, maximum: 50, description: "Máximo de resultados (padrão 15)." },
       },
@@ -134,7 +136,7 @@ export const FERRAMENTAS = [
     name: "faro_listar",
     title: "Listar por tipo",
     description:
-      "Lista os itens de um tipo, do mais novo para o mais antigo: sinapse, ideia, livro, conhecimento (tudo de Conhecendo você) ou um tipo específico de Conhecendo você (perfil, valor, objetivo, aprendizado, estudo, projeto, conteudo...).",
+      "Lista os itens de um tipo, do mais novo para o mais antigo: sinapse, ideia (inclui os estudos), parte_de_estudo (cada encontro, aula ou módulo de um estudo), livro, conhecimento (tudo de Conhecendo você) ou um tipo específico de Conhecendo você (perfil, valor, objetivo, aprendizado, estudo, projeto, conteudo...).",
     inputSchema: {
       type: "object",
       properties: {
@@ -184,6 +186,34 @@ function itensDoAcervo(a: AcervoDoFaro): Item[] {
   const itens: Item[] = [];
   for (const s of a.sinapses) {
     if (s.kind === "ideia") {
+      // Estudo com partes: o estudo vira um item (visão geral + lista de partes) e cada parte, outro,
+      // para a IA achar e ler um encontro por vez.
+      const partes = s.tag === "estudo" ? (a.partes ?? []).filter((p) => p.synapseId === s.id) : [];
+      if (partes.length) {
+        const exp = { id: s.id, title: s.title, learning: s.learning, questions: s.questions, source: s.source, createdAt: s.createdAt, tag: s.tag };
+        const paraExportar = (p: SynapsePart) => ({ id: p.id, synapseId: p.synapseId, title: p.title, kind: p.kind, date: p.date, body: p.body, order: p.order });
+        itens.push({
+          id: s.id,
+          tipo: "ideia",
+          rotulo: "Estudo",
+          titulo: s.title.trim() || "Estudo",
+          texto: [htmlParaMarkdown(s.learning), ...partes.map((p) => p.title)].join("\n"),
+          data: s.createdAt,
+          completo: () => arquivosDoEstudo(exp, partes.map(paraExportar))[0].conteudo,
+        });
+        for (const p of partes) {
+          itens.push({
+            id: p.id,
+            tipo: "parte_de_estudo",
+            rotulo: `Parte do estudo "${s.title.trim()}"`,
+            titulo: `${s.title.trim()} — ${p.title.trim()}`,
+            texto: htmlParaMarkdown(p.body),
+            data: p.date ? `${p.date}T12:00:00.000Z` : p.createdAt,
+            completo: () => arquivosDoEstudo(exp, [paraExportar(p)])[1].conteudo,
+          });
+        }
+        continue;
+      }
       const arq = arquivoDaIdeia(s);
       if (!arq) continue;
       itens.push({
@@ -243,7 +273,7 @@ const semAcento = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLo
 
 function filtraTipo(itens: Item[], tipo: string | undefined): Item[] {
   if (!tipo) return itens;
-  if (tipo === "conhecimento") return itens.filter((i) => !["sinapse", "ideia", "livro"].includes(i.tipo));
+  if (tipo === "conhecimento") return itens.filter((i) => !["sinapse", "ideia", "livro", "parte_de_estudo"].includes(i.tipo));
   return itens.filter((i) => i.tipo === tipo);
 }
 
