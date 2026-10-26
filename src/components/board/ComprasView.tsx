@@ -285,7 +285,7 @@ function ItemCard({ item }: { item: ShoppingItem }) {
   );
 }
 
-function Listas({ aba, onAbrir }: { aba: Aba; onAbrir: (id: string) => void }) {
+function Listas({ aba, aberta, onAbrir }: { aba: Aba; aberta: string | null; onAbrir: (id: string | null) => void }) {
   const { board } = useBoardCtx();
   const [novaLista, setNovaLista] = useState("");
   const hoje = todayISO();
@@ -335,19 +335,27 @@ function Listas({ aba, onAbrir }: { aba: Aba; onAbrir: (id: string) => void }) {
         {listas.map((l) => {
           const itens = board.state.shoppingItems.filter((i) => i.listId === l.id);
           const pend = itens.filter((i) => aba === "desejo" || compraPendente(i, hoje)).length;
+          const aberta1 = aberta === l.id;
           return (
-            <button key={l.id} type="button" className="shop-lista-card" onClick={() => onAbrir(l.id)}>
-              <span className={"shop-lista-ico " + (aba === "compra" ? "ico-compra" : "ico-desejo")} aria-hidden="true">
-                {aba === "compra" ? <CartIcon /> : <HeartIcon filled />}
-              </span>
-              <span className="shop-lista-nome">{l.name}</span>
-              <span className="shop-resumo">
-                {pend} {aba === "compra" ? (pend === 1 ? "item pra comprar" : "itens pra comprar") : pend === 1 ? "produto" : "produtos"}
-              </span>
-              <span className="shop-lista-seta" aria-hidden="true">
-                ›
-              </span>
-            </button>
+            <div key={l.id} className={"shop-lista-cartao" + (aberta1 ? " aberta" : "")}>
+              <button type="button" className="shop-lista-card" aria-expanded={aberta1} onClick={() => onAbrir(aberta1 ? null : l.id)}>
+                <span className={"shop-lista-ico " + (aba === "compra" ? "ico-compra" : "ico-desejo")} aria-hidden="true">
+                  {aba === "compra" ? <CartIcon /> : <HeartIcon filled />}
+                </span>
+                <span className="shop-lista-nome">{l.name}</span>
+                <span className="shop-resumo">
+                  {pend} {aba === "compra" ? (pend === 1 ? "item pra comprar" : "itens pra comprar") : pend === 1 ? "produto" : "produtos"}
+                </span>
+                <span className={"shop-lista-seta" + (aberta1 ? " aberta" : "")} aria-hidden="true">
+                  ›
+                </span>
+              </button>
+              {aberta1 && (
+                <div className="shop-lista-corpo">
+                  <ListaAberta listaId={l.id} onVoltar={() => onAbrir(null)} embutida />
+                </div>
+              )}
+            </div>
           );
         })}
       </div>
@@ -355,7 +363,7 @@ function Listas({ aba, onAbrir }: { aba: Aba; onAbrir: (id: string) => void }) {
   );
 }
 
-function ListaAberta({ listaId, onVoltar }: { listaId: string; onVoltar: () => void }) {
+function ListaAberta({ listaId, onVoltar, embutida = false }: { listaId: string; onVoltar: () => void; embutida?: boolean }) {
   const { board, askConfirm } = useBoardCtx();
   const lista = board.state.shoppingLists.find((l) => l.id === listaId);
   const [novo, setNovo] = useState("");
@@ -396,9 +404,11 @@ function ListaAberta({ listaId, onVoltar }: { listaId: string; onVoltar: () => v
   return (
     <>
       <div className="shop-lista-topo">
-        <button type="button" className="btn btn-ghost" onClick={onVoltar}>
-          ‹ Listas
-        </button>
+        {!embutida && (
+          <button type="button" className="btn btn-ghost" onClick={onVoltar}>
+            ‹ Listas
+          </button>
+        )}
         <span className={"shop-lista-ico " + (aba === "compra" ? "ico-compra" : "ico-desejo")} aria-hidden="true">
           {aba === "compra" ? <CartIcon /> : <HeartIcon filled />}
         </span>
@@ -434,7 +444,7 @@ function ListaAberta({ listaId, onVoltar }: { listaId: string; onVoltar: () => v
           <input
             type="text"
             className="quickadd-input"
-            placeholder={aba === "compra" ? "+ Adicionar produto e pressionar Enter" : "+ Adicionar produto desejado e pressionar Enter"}
+            placeholder={aba === "compra" ? "Adicionar produto e pressionar Enter" : "Adicionar produto desejado e pressionar Enter"}
             value={novo}
             onChange={(e) => setNovo(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && adicionar()}
@@ -503,23 +513,21 @@ export function ComprasView({ onBack }: { onBack: () => void }) {
       </div>
 
       <div className={"narrow-list" + (wide ? " list-xl" : "")}>
-        {!aberta && (
           <div className="view-toggle">
-            <button type="button" className={"view-toggle-btn" + (aba === "compra" ? " active" : "")} onClick={() => setAba("compra")}>
+            <button type="button" className={"view-toggle-btn" + (aba === "compra" ? " active" : "")} onClick={() => { setAba("compra"); setAberta(null); }}>
               <span className="ico-compra">
                 <CartIcon />
               </span>{" "}
               Listas de compras ({totalCompra})
             </button>
-            <button type="button" className={"view-toggle-btn" + (aba === "desejo" ? " active" : "")} onClick={() => setAba("desejo")}>
+            <button type="button" className={"view-toggle-btn" + (aba === "desejo" ? " active" : "")} onClick={() => { setAba("desejo"); setAberta(null); }}>
               <span className="ico-desejo">
                 <HeartIcon filled />
               </span>{" "}
               Listas de desejos ({totalDesejo})
             </button>
           </div>
-        )}
-        {aberta ? <ListaAberta listaId={aberta} onVoltar={() => setAberta(null)} /> : <Listas aba={aba} onAbrir={setAberta} />}
+        <Listas aba={aba} aberta={aberta} onAbrir={setAberta} />
       </div>
     </div>
   );

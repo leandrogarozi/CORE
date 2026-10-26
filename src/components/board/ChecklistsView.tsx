@@ -379,11 +379,16 @@ function ChecklistRow({
           onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
         />
         <span className="checklist-progress">
-          {total > 0 ? `${done}/${total}` : "vazio"}
+          {total > 0 ? `${done} de ${total}` : "vazio"}
         </span>
+        {total > 0 && (
+          <span className="checklist-bar" aria-hidden="true">
+            <span className="checklist-bar-fill" style={{ width: `${Math.round((done / total) * 100)}%` }} />
+          </span>
+        )}
         {checklist.expensesEnabled && (
           <span className="checklist-spent mono" title="Total gasto nesse checklist">
-            {fmtBRL(spentCents)}
+            gasto {fmtBRL(spentCents)}
           </span>
         )}
       </button>
