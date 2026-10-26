@@ -11,6 +11,7 @@ import {
   ClockIcon,
   CloseCircleIcon,
   EditIcon,
+  FolderIcon,
   PlayCircleIcon,
 } from "./icons";
 import { RichTextEditor } from "./RichTextEditor";
@@ -51,31 +52,31 @@ function ProjectListRow({
   return (
     <button type="button" className={"project-row" + (project.status !== "active" ? " done" : "")} onClick={onOpen}>
       <span className="project-row-topo">
+        <span className="project-row-pasta" aria-hidden="true">
+          <FolderIcon />
+        </span>
         <span className="project-row-name">{project.name}</span>
         {progress.doing > 0 && <span className="project-row-doing">{progress.doing} em andamento</span>}
         <span className="project-row-progress mono">
-          {progress.total > 0 ? `${progress.done}/${progress.total}` : "sem etapas"}
+          {progress.total > 0 ? `${progress.done} de ${progress.total} etapas` : "sem etapas"}
         </span>
-      </span>
-      {/* A barra existia só DENTRO do projeto aberto, então a lista obrigava a
-          entrar em cada um pra saber como estava. É a mesma barra, com o mesmo
-          desenho de concluído + em andamento — não um gráfico novo.
-          Sem etapas não há o que medir, e uma barra vazia diria "não começou",
-          que é diferente de "não tem etapas". */}
-      {progress.total > 0 && (
-        <span className="project-row-barra">
-          <span className="hp-bar">
-            <span className="hp-bar-fill" style={{ width: `${(progress.done / progress.total) * 100}%` }} />
-            <span
-              className="hp-bar-doing"
-              style={{
-                left: `${(progress.done / progress.total) * 100}%`,
-                width: `${(progress.doing / progress.total) * 100}%`,
-              }}
-            />
+        {/* A barra existia só DENTRO do projeto aberto; aqui é o mesmo desenho (concluído + em andamento),
+            fino, como sinal de relance. Sem etapas não há o que medir, e uma barra vazia diria "não começou". */}
+        {progress.total > 0 && (
+          <span className="project-row-barra">
+            <span className="hp-bar">
+              <span className="hp-bar-fill" style={{ width: `${(progress.done / progress.total) * 100}%` }} />
+              <span
+                className="hp-bar-doing"
+                style={{
+                  left: `${(progress.done / progress.total) * 100}%`,
+                  width: `${(progress.doing / progress.total) * 100}%`,
+                }}
+              />
+            </span>
           </span>
-        </span>
-      )}
+        )}
+      </span>
     </button>
   );
 }

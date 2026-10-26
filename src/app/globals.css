@@ -3747,3 +3747,13 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .shop-lista-corpo .list-card{ box-shadow:none; border:0; background:transparent; margin-top:0 !important; }
 .shop-lista-corpo .shop-lista-topo{ padding:4px 6px 0; }
 .shop-lista-corpo .shop-lista-ico{ display:none; }
+
+/* Projetos no layout do desenho: uma linha por projeto, com pasta, "N de M etapas" e barra */
+.project-row-pasta{ flex:none; display:inline-flex; color:var(--accent); }
+.project-row-pasta svg{ width:16px; height:16px; }
+.project-row{ padding:14px 16px; font-size:13.5px; }
+.project-row-topo{ gap:12px; }
+.project-row-name{ font-weight:600; }
+.project-row-progress{ font-size:12px; color:var(--text-muted); }
+.project-row-barra{ flex:none; width:120px; }
+@media (max-width:640px){ .project-row-barra{ width:64px; } .project-row-topo{ flex-wrap:wrap; } }
