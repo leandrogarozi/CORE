@@ -9,7 +9,7 @@ import { ToggleSwitch } from "./ToggleSwitch";
 import { TimePicker } from "./TimePicker";
 import { DAY_NAMES, daysBetweenInclusive, fmtShortDate, isoAddDays, todayISO } from "@/lib/date-utils";
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
-import { horarioDaMedicacao } from "@/lib/board/zap-engine";
+import { horarioDaMedicacao, temposDaMedicacao } from "@/lib/board/zap-engine";
 import type { Medication, MedicationGroup } from "@/lib/types";
 
 function scheduleLabel(
@@ -38,6 +38,9 @@ function ScheduleButton({
   durationDays,
   weekDays,
   showWeekDays,
+  extraTimes,
+  intervalHours,
+  showMulti,
   title,
   onSave,
 }: {
@@ -47,12 +50,17 @@ function ScheduleButton({
   durationDays: number | null;
   weekDays?: number[] | null;
   showWeekDays?: boolean;
+  extraTimes?: string[];
+  intervalHours?: number | null;
+  showMulti?: boolean;
   title: string;
   onSave: (patch: {
     time?: string | null;
     startDate: string | null;
     durationDays: number | null;
     weekDays?: number[] | null;
+    extraTimes?: string[];
+    intervalHours?: number | null;
   }) => void;
 }) {
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
@@ -61,6 +69,9 @@ function ScheduleButton({
   const [startDraft, setStartDraft] = useState(startDate ?? "");
   const [endDraft, setEndDraft] = useState(startDate && durationDays ? isoAddDays(startDate, durationDays - 1) : "");
   const [weekDraft, setWeekDraft] = useState<number[]>(weekDays ?? []);
+  const [extrasDraft, setExtrasDraft] = useState<string[]>(extraTimes ?? []);
+  const [intervaloDraft, setIntervaloDraft] = useState(intervalHours ? String(intervalHours) : "");
+  const [novoExtra, setNovoExtra] = useState("");
   const btnRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
   const pos = useClampedPopoverPos(anchorRect, popRef);
@@ -86,6 +97,9 @@ function ScheduleButton({
     setStartDraft(startDate ?? "");
     setEndDraft(startDate && durationDays ? isoAddDays(startDate, durationDays - 1) : "");
     setWeekDraft(weekDays ?? []);
+    setExtrasDraft(extraTimes ?? []);
+    setIntervaloDraft(intervalHours ? String(intervalHours) : "");
+    setNovoExtra("");
     if (btnRef.current) {
       setAnchorRect(btnRef.current.getBoundingClientRect());
     }
@@ -103,6 +117,16 @@ function ScheduleButton({
       durationDays: hasPeriod ? Math.max(1, daysBetweenInclusive(startDraft, endDraft)) : null,
       ...(showWeekDays
         ? { weekDays: weekDraft.length > 0 && weekDraft.length < 7 ? [...weekDraft].sort((a, b) => a - b) : null }
+        : {}),
+      ...(showMulti
+        ? (() => {
+            const n = Math.round(Number(intervaloDraft));
+            const intervalo = Number.isFinite(n) && n >= 1 && n < 24 ? n : null;
+            return {
+              intervalHours: intervalo,
+              extraTimes: intervalo ? [] : Array.from(new Set(extrasDraft.filter((t) => t && t !== timeDraft))).sort(),
+            };
+          })()
         : {}),
     });
     setAnchorRect(null);
@@ -126,6 +150,54 @@ function ScheduleButton({
         createPortal(
           <div className="daylog-popover" ref={popRef} style={{ top: pos.top, left: pos.left }}>
             {showTime && <TimePicker value={timeDraft} onChange={setTimeDraft} autoFocus />}
+            {showTime && showMulti && (
+              <>
+                <div className="edit-field">
+                  <span className="edit-field-label">De quantas em quantas horas? (opcional)</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={23}
+                    placeholder="ex.: 8"
+                    value={intervaloDraft}
+                    onChange={(e) => setIntervaloDraft(e.target.value)}
+                  />
+                  <span className="hint-text">
+                    Parte do horário acima e repete no mesmo dia (07:00 de 8 em 8 horas: 07:00, 15:00 e 23:00).
+                  </span>
+                </div>
+                {!intervaloDraft.trim() && (
+                  <div className="edit-field">
+                    <span className="edit-field-label">Outros horários no dia</span>
+                    <div className="med-extras">
+                      {extrasDraft.map((t) => (
+                        <button
+                          key={t}
+                          type="button"
+                          className="med-extra-chip"
+                          title="Tirar esse horário"
+                          onClick={() => setExtrasDraft((cur) => cur.filter((x) => x !== t))}
+                        >
+                          {t} ×
+                        </button>
+                      ))}
+                      <TimePicker value={novoExtra} placeholder="+ horário" onChange={setNovoExtra} />
+                      <button
+                        type="button"
+                        className="btn btn-ghost"
+                        disabled={!novoExtra}
+                        onClick={() => {
+                          setExtrasDraft((cur) => (cur.includes(novoExtra) ? cur : [...cur, novoExtra].sort()));
+                          setNovoExtra("");
+                        }}
+                      >
+                        Adicionar
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
             {showWeekDays && (
               <div className="edit-field">
                 <span className="edit-field-label">Dias da semana (vazio = todo dia)</span>
@@ -194,6 +266,12 @@ function MedicationRow({ medication, showTime }: { medication: Medication; showT
     ? board.state.medicationGroups.find((g) => g.id === medication.groupId) ?? null
     : null;
   const temQuando = !!horarioDaMedicacao(medication, grupo);
+  const tempos = temposDaMedicacao(medication, grupo);
+  const resumoDeHorarios = medication.intervalHours
+    ? `de ${medication.intervalHours} em ${medication.intervalHours} horas · ${tempos.join(", ")}`
+    : tempos.length > 1
+      ? `${tempos.length} vezes ao dia · ${tempos.join(", ")}`
+      : "";
 
   return (
     <div className={"reminder-row" + (!medication.active ? " done" : "")}>
@@ -202,14 +280,17 @@ function MedicationRow({ medication, showTime }: { medication: Medication; showT
         onChange={(v) => board.updateMedication(medication.id, { active: v })}
         ariaLabel={medication.active ? "Desativar" : "Ativar"}
       />
-      <input
-        type="text"
-        className="reminder-title-input"
-        value={nameDraft ?? medication.name}
-        onChange={(e) => setNameDraft(e.target.value)}
-        onBlur={commitName}
-        onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-      />
+      <div className="med-nome-col">
+        <input
+          type="text"
+          className="reminder-title-input"
+          value={nameDraft ?? medication.name}
+          onChange={(e) => setNameDraft(e.target.value)}
+          onBlur={commitName}
+          onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+        />
+        {resumoDeHorarios && <span className="med-resumo-horarios">{resumoDeHorarios}</span>}
+      </div>
       <CommentButton
         value={medication.notes}
         placeholder="Observação (dosagem, instruções...)"
@@ -223,6 +304,9 @@ function MedicationRow({ medication, showTime }: { medication: Medication; showT
         durationDays={medication.durationDays}
         weekDays={medication.weekDays}
         showWeekDays
+        extraTimes={medication.extraTimes}
+        intervalHours={medication.intervalHours}
+        showMulti={showTime}
         title="Horário/duração do remédio"
         onSave={(patch) => board.updateMedication(medication.id, patch)}
       />

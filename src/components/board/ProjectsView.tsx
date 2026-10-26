@@ -15,7 +15,7 @@ import {
   PlayCircleIcon,
 } from "./icons";
 import { RichTextEditor } from "./RichTextEditor";
-import { fmtHM } from "@/lib/date-utils";
+import { fmtHM, fmtShortDate } from "@/lib/date-utils";
 import { CATEGORY_LABEL, PROJECT_NAMING_TEMPLATE_DEFAULT, type Category, type Project } from "@/lib/types";
 
 const CATEGORIES = Object.keys(CATEGORY_LABEL) as Category[];
@@ -55,7 +55,10 @@ function ProjectListRow({
         <span className="project-row-pasta" aria-hidden="true">
           <FolderIcon />
         </span>
-        <span className="project-row-name">{project.name}</span>
+        <span className="project-row-nome-col">
+          <span className="project-row-name">{project.name}</span>
+          <span className="project-row-prazo">{project.deadline ? `prazo ${fmtShortDate(project.deadline)}` : "sem prazo"}</span>
+        </span>
         {progress.doing > 0 && <span className="project-row-doing">{progress.doing} em andamento</span>}
         <span className="project-row-progress mono">
           {progress.total > 0 ? `${progress.done} de ${progress.total} etapas` : "sem etapas"}
@@ -325,6 +328,20 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
             </span>
             <AttachmentsButton entityType="project" entityId={project.id} ariaLabel="Anexos do projeto" />
           </div>
+          <label className="project-prazo-row">
+            <span className="project-prazo-label">Prazo</span>
+            <input
+              type="date"
+              value={project.deadline ?? ""}
+              aria-label="Prazo do projeto"
+              onChange={(e) => board.updateProject(project.id, { deadline: e.target.value || null })}
+            />
+            {project.deadline && (
+              <button type="button" className="btn btn-ghost" onClick={() => board.updateProject(project.id, { deadline: null })}>
+                Tirar prazo
+              </button>
+            )}
+          </label>
           <RichTextEditor
             value={descDraft ?? project.description}
             onChange={setDescDraft}

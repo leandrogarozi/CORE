@@ -38,6 +38,28 @@ export function horarioDaMedicacao(med: Medication, grupo: MedicationGroup | nul
   return med.time;
 }
 
+/**
+ * Todos os horários do dia em que um remédio é tomado.
+ *
+ * "De X em X horas" parte do primeiro horário e anda de X em X dentro do mesmo dia
+ * (07:00 de 8 em 8 vira 07:00, 15:00 e 23:00; a dose da madrugada seguinte não entra,
+ * porque o lembrete é diário e já cai no dia seguinte). Sem intervalo, valem o horário
+ * principal e os extras. Sem horário principal, não há horário nenhum.
+ */
+export function temposDaMedicacao(med: Medication, grupo: MedicationGroup | null): string[] {
+  const base = horarioDaMedicacao(med, grupo);
+  if (!base) return [];
+  if (med.intervalHours && med.intervalHours > 0 && med.intervalHours < 24) {
+    const [h, m] = base.split(":").map(Number);
+    const saida: string[] = [];
+    for (let t = h * 60 + m; t < 24 * 60; t += med.intervalHours * 60) {
+      saida.push(`${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`);
+    }
+    return saida;
+  }
+  return Array.from(new Set([base, ...med.extraTimes.filter(Boolean)])).sort();
+}
+
 /** Último dia de um tratamento com duração definida. Sem duração, não tem fim. */
 export function ultimoDia(startDate: string | null, durationDays: number | null): string | null {
   if (!startDate || !durationDays || durationDays <= 0) return null;
@@ -108,9 +130,10 @@ export type CamposDoLembrete = Pick<
 export function lembreteDaMedicacao(
   med: Medication,
   grupo: MedicationGroup | null,
-  hojeISO: string
+  hojeISO: string,
+  horaEscolhida?: string
 ): CamposDoLembrete | null {
-  const hora = horarioDaMedicacao(med, grupo);
+  const hora = horaEscolhida ?? horarioDaMedicacao(med, grupo);
   if (!hora) return null;
   const data = proximaDataDaMedicacao(med, grupo, hojeISO);
   if (!data) return null;
@@ -126,6 +149,13 @@ export function lembreteDaMedicacao(
     weekDays: dias,
     alertMinutesBefore: ANTECEDENCIA_PADRAO_MIN,
   };
+}
+
+/** Um lembrete por horário do dia (um remédio de 8 em 8 horas gera três). */
+export function lembretesDaMedicacao(med: Medication, grupo: MedicationGroup | null, hojeISO: string): CamposDoLembrete[] {
+  return temposDaMedicacao(med, grupo)
+    .map((hora) => lembreteDaMedicacao(med, grupo, hojeISO, hora))
+    .filter((c): c is CamposDoLembrete => c !== null);
 }
 
 /**

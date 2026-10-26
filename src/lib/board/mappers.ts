@@ -773,6 +773,8 @@ export function rowToMedication(row: MedicationRow): Medication {
     startDate: row.start_date,
     durationDays: row.duration_days,
     weekDays: row.week_days,
+    extraTimes: row.extra_times ?? [],
+    intervalHours: row.interval_hours ?? null,
     active: row.active,
     // Coluna nova: linha antiga vem sem ela e o zap nasce apagado.
     whatsapp: row.whatsapp ?? false,
@@ -790,6 +792,8 @@ export function medicationToInsertRow(m: Medication, userId: string): TablesInse
     start_date: m.startDate,
     duration_days: m.durationDays,
     week_days: m.weekDays,
+    extra_times: m.extraTimes,
+    interval_hours: m.intervalHours,
     active: m.active,
     whatsapp: m.whatsapp,
   };
@@ -804,6 +808,8 @@ export function medicationToUpdateRow(m: Partial<Medication>): TablesUpdate<"med
   if (m.startDate !== undefined) row.start_date = m.startDate;
   if (m.durationDays !== undefined) row.duration_days = m.durationDays;
   if (m.weekDays !== undefined) row.week_days = m.weekDays;
+  if (m.extraTimes !== undefined) row.extra_times = m.extraTimes;
+  if (m.intervalHours !== undefined) row.interval_hours = m.intervalHours;
   if (m.active !== undefined) row.active = m.active;
   if (m.whatsapp !== undefined) row.whatsapp = m.whatsapp;
   return row;
@@ -902,6 +908,7 @@ export function rowToProject(row: ProjectRow): Project {
     defaultCategory: row.default_category as Category | null,
     defaultCategory2: row.default_category2 as Category | null,
     namingTemplate: row.naming_template,
+    deadline: row.deadline,
   };
 }
 
@@ -915,6 +922,7 @@ export function projectToInsertRow(p: Project, userId: string): TablesInsert<"pr
     default_category: p.defaultCategory,
     default_category2: p.defaultCategory2,
     naming_template: p.namingTemplate,
+    deadline: p.deadline,
   };
 }
 
@@ -926,6 +934,7 @@ export function projectToUpdateRow(p: Partial<Project>): TablesUpdate<"projects"
   if (p.defaultCategory !== undefined) row.default_category = p.defaultCategory;
   if (p.defaultCategory2 !== undefined) row.default_category2 = p.defaultCategory2;
   if (p.namingTemplate !== undefined) row.naming_template = p.namingTemplate;
+  if (p.deadline !== undefined) row.deadline = p.deadline;
   return row;
 }
 

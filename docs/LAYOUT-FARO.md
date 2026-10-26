@@ -71,11 +71,11 @@ Ao conferir cada desenho contra o app, a maior parte já era igual (as telas já
 | Lembretes | **Feito (26/10)** | seções Atrasados / Hoje / Próximos / Vindos de outras telas, linha em cartão |
 | Reuniões | **Feito (26/10)** | linha compacta: status, título, cliente, "N pautas abertas", data · hora, editar, excluir; interruptor de pauta; clicar abre o editor completo |
 | Aniversários | **Feito (26/10)** | grupos em cartão (aguardando confirmação, hoje, próximos 3 dias, todos), linha com categoria, sino, zap, editar, excluir; "Mandar parabéns agora" e "Frase N de 4" na linha de hoje; explicação virou "Como funciona" recolhido. Filtros por categoria mantidos (não estão no desenho) |
-| Medicamentos | **Feito (26/10)** | Temporários e Recorrentes em cartão com contagem; tratamento com etiqueta (em andamento / inativo / encerrado). **Não feito:** vários horários por remédio e "de 8 em 8 horas" do desenho (o app guarda um horário por remédio) |
+| Medicamentos | **Feito (26/10)** | Temporários e Recorrentes em cartão com contagem; etiqueta de estado do tratamento; **vários horários por remédio** ("2 vezes ao dia", "de 8 em 8 horas"): colunas `medications.extra_times` e `interval_hours`, um lembrete de zap por horário |
 | Dieta | **Feito (26/10)** | interruptores No app / No WhatsApp, refeição em linha com dias e horário, editar abre o texto e os dias |
-| Checklists | **Feito em parte (26/10)** | progresso "3 de 6" com barra e "gasto R$" no cabeçalho. **Não feito:** valor por item (o app lança gastos numa aba própria) e nota aberta no topo (continuam nas abas Itens / Gastos / Notas) |
+| Checklists | **Feito (26/10)** | progresso "3 de 6" com barra e "gasto R$" no cabeçalho; valor por item (guardado dentro do item, só aparece com "Registrar gastos" ligado; item marcado entra no gasto); anotações abertas no topo (a aba Anotações saiu) |
 | Compras | **Feito (26/10)** | cada lista é um cartão que abre no lugar (não troca mais de tela) |
-| Projetos | **Feito em parte (26/10)** | linha com pasta, "N de M etapas" e barra. **Não feito:** "prazo" do projeto (o projeto ainda não tem esse campo) |
+| Projetos | **Feito (26/10)** | linha com pasta, "prazo", "N de M etapas" e barra; prazo editável dentro do projeto (coluna `projects.deadline`) |
 | Semana | **Feito (26/10)** | um cartão por dia em duas colunas, tarefas com status em etiqueta; clicar abre o editor; campo de nova tarefa por dia. Arrastar para reordenar dentro do dia saiu |
 | Lixeira | **Feito (26/10)** | tipo em etiqueta, quando foi apagado, Restaurar e Excluir de vez, Esvaziar no topo |
 | Conhecendo você | **Feito (26/10)** | "Recusar / Recusados" e etiqueta aprovado |

@@ -117,7 +117,31 @@ function ExpenseRow({
   );
 }
 
-type ChecklistTab = "itens" | "gastos" | "notas";
+// Valor de um item, no lugar: vazio = sem valor.
+function ItemAmount({ item, onChange }: { item: ChecklistItem; onChange: (cents: number | null) => void }) {
+  const [draft, setDraft] = useState<string | null>(null);
+  function commit() {
+    if (draft === null) return;
+    const cents = draft.trim() === "" ? null : parseAmountToCents(draft);
+    if (cents !== undefined && (draft.trim() === "" || cents !== null) && cents !== (item.amountCents ?? null)) onChange(cents);
+    setDraft(null);
+  }
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      className="budget-input checklist-item-amount mono"
+      placeholder="R$"
+      aria-label={`Valor de ${item.text}`}
+      value={draft ?? (item.amountCents != null ? fmtAmount(item.amountCents) : "")}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+    />
+  );
+}
+
+type ChecklistTab = "itens" | "gastos";
 
 function ChecklistRow({
   checklist,
@@ -291,6 +315,9 @@ function ChecklistRow({
         ) : (
           <span className={"checklist-item-text" + (item.checked ? " checked" : "")}>{item.text}</span>
         )}
+        {checklist.expensesEnabled && (
+          <ItemAmount item={item} onChange={(cents) => setItems(checklist.items.map((i) => (i.id === item.id ? { ...i, amountCents: cents } : i)))} />
+        )}
         <button
           type="button"
           className="icon-btn"
@@ -320,7 +347,9 @@ function ChecklistRow({
 
   const toBuyItems = checklist.items.filter((i) => i.toBuy);
   const packItems = checklist.items.filter((i) => !i.toBuy);
-  const spentCents = totalCents(checklist.expenses);
+  // O gasto do checklist é o que foi lançado na aba Gastos mais o valor dos itens já marcados.
+  const itensCents = checklist.items.reduce((sum, i) => sum + (i.checked ? (i.amountCents ?? 0) : 0), 0);
+  const spentCents = totalCents(checklist.expenses) + itensCents;
   const leftCents = checklist.budgetCents != null ? checklist.budgetCents - spentCents : null;
 
   return (
@@ -395,6 +424,15 @@ function ChecklistRow({
       </div>
       {open && (
         <div className="checklist-body">
+          <div className="checklist-notas">
+            <NoteField
+              value={notaDraft}
+              placeholder="Reservas, endereços, o que lembrar, links..."
+              ariaLabel={`Anotações de ${checklist.title}`}
+              onChange={setNotaDraft}
+              onPersist={(html) => html !== checklist.notes && board.updateChecklist(checklist.id, { notes: html })}
+            />
+          </div>
           <div className="checklist-tabs">
             <button
               type="button"
@@ -414,27 +452,9 @@ function ChecklistRow({
                 <span className="checklist-tab-count mono">{fmtBRL(spentCents)}</span>
               )}
             </button>
-            <button
-              type="button"
-              className={"checklist-tab" + (tab === "notas" ? " active" : "")}
-              onClick={() => setTab("notas")}
-            >
-              <EditIcon /> Anotações
-              {checklist.notes.replace(/<[^>]*>/g, "").trim() && <span className="checklist-tab-count mono">•</span>}
-            </button>
           </div>
 
-          {tab === "notas" ? (
-            <div className="checklist-notas">
-              <NoteField
-                value={notaDraft}
-                placeholder="Reservas, endereços, o que lembrar, links..."
-                ariaLabel={`Anotações de ${checklist.title}`}
-                onChange={setNotaDraft}
-                onPersist={(html) => html !== checklist.notes && board.updateChecklist(checklist.id, { notes: html })}
-              />
-            </div>
-          ) : tab === "gastos" ? (
+          {tab === "gastos" ? (
             <div className="checklist-expenses">
               <label className="checklist-expenses-switch">
                 <ToggleSwitch
@@ -513,6 +533,9 @@ function ChecklistRow({
                     <span>Total gasto</span>
                     <strong className="mono">{fmtBRL(spentCents)}</strong>
                   </div>
+                  {itensCents > 0 && (
+                    <div className="hint-text">Inclui {fmtBRL(itensCents)} dos itens marcados na aba Itens.</div>
+                  )}
                   {leftCents !== null && (
                     <div className={"checklist-expense-left" + (leftCents < 0 ? " over" : "")}>
                       {leftCents < 0

@@ -65,7 +65,7 @@ import { isoAddDays, occurrenceDates, todayISO } from "@/lib/date-utils";
 import { studyDatesInRange } from "@/lib/board/study-plan";
 import { rolarTarefasQueSeguem } from "@/lib/board/seguir";
 import { frasesEmUso, lembreteDoAniversario, proximaFrase, textoComNome } from "@/lib/board/aniversarios";
-import { lembreteDaMedicacao, lembreteDaRefeicao, lembretesDaManutencao } from "@/lib/board/zap-engine";
+import { lembretesDaMedicacao, lembreteDaRefeicao, lembretesDaManutencao } from "@/lib/board/zap-engine";
 import { aoMarcarComprado, lembreteDaCompra } from "@/lib/board/compras";
 import { maintenanceStatus } from "@/lib/board/maintenance";
 import {
@@ -1228,6 +1228,7 @@ export function useBoard(userId: string | null) {
         defaultCategory: null,
         defaultCategory2: null,
         namingTemplate: null,
+        deadline: null,
       };
       apply((s) => ({ ...s, projects: [...s.projects, p] }));
       supabase.from("projects").insert(projectToInsertRow(p, userId)).then(({ error }) => {
@@ -1241,7 +1242,7 @@ export function useBoard(userId: string | null) {
     (
       id: string,
       patch: Partial<
-        Pick<Project, "name" | "description" | "status" | "defaultCategory" | "defaultCategory2" | "namingTemplate">
+        Pick<Project, "name" | "description" | "status" | "defaultCategory" | "defaultCategory2" | "namingTemplate" | "deadline">
       >
     ) => {
       apply((s) => ({ ...s, projects: s.projects.map((p) => (p.id === id ? { ...p, ...patch } : p)) }));
@@ -1572,6 +1573,8 @@ export function useBoard(userId: string | null) {
         startDate: null,
         durationDays: null,
         weekDays: null,
+        extraTimes: [],
+        intervalHours: null,
         active: true,
         whatsapp: false,
       };
@@ -1602,43 +1605,52 @@ export function useBoard(userId: string | null) {
       if (!userId) return;
       const atual = stateRef.current;
       const med = atual.medications.find((m) => m.id === medId) ?? null;
-      const existente = atual.reminders.find(
+      const existentes = atual.reminders.filter(
         (r) => r.sourceKind === "medication" && r.sourceId === medId && !r.deletedAt
       );
       const grupo = med?.groupId ? atual.medicationGroups.find((g) => g.id === med.groupId) ?? null : null;
 
       // Remédio apagado, desligado, inativo, sem horário ou com tratamento
       // encerrado: não há o que lembrar.
-      const campos =
-        med && med.whatsapp && med.active && (!grupo || grupo.active)
-          ? lembreteDaMedicacao(med, grupo, todayISO())
-          : null;
+      const desejados =
+        med && med.whatsapp && med.active && (!grupo || grupo.active) ? lembretesDaMedicacao(med, grupo, todayISO()) : [];
 
-      if (!campos) {
-        if (existente) deleteReminder(existente.id);
-        return;
+      // Um remédio pode ter vários horários, e cada um é um lembrete (source_id é o id do
+      // remédio nos dois). Casa pelo horário; o que sobrou de um lado reaproveita o do outro.
+      const livres = [...existentes];
+      const semPar: typeof desejados = [];
+      for (const campos of desejados) {
+        const i = livres.findIndex((r) => r.time === campos.time);
+        if (i >= 0) {
+          const [r] = livres.splice(i, 1);
+          updateReminder(r.id, campos);
+        } else semPar.push(campos);
       }
-      if (existente) {
-        updateReminder(existente.id, campos);
-        return;
+      for (const campos of semPar) {
+        const reaproveitado = livres.shift();
+        if (reaproveitado) {
+          updateReminder(reaproveitado.id, campos);
+          continue;
+        }
+        const r: Reminder = {
+          id: uid(),
+          ...campos,
+          note: null,
+          done: false,
+          status: "pending",
+          deletedAt: null,
+          taskId: null,
+          sourceKind: "medication",
+          sourceId: medId,
+          // Nasceu do ícone do zap: ligado é o que ele significa.
+          whatsapp: true,
+        };
+        apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
+        supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
+          if (error) reportSaveError("sincronizarZapDaMedicacao", error);
+        });
       }
-      const r: Reminder = {
-        id: uid(),
-        ...campos,
-        note: null,
-        done: false,
-        status: "pending",
-        deletedAt: null,
-        taskId: null,
-        sourceKind: "medication",
-        sourceId: medId,
-        // Nasceu do ícone do zap: ligado é o que ele significa.
-        whatsapp: true,
-      };
-      apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
-      supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
-        if (error) reportSaveError("sincronizarZapDaMedicacao", error);
-      });
+      for (const sobra of livres) deleteReminder(sobra.id);
     },
     [apply, deleteReminder, supabase, updateReminder, userId]
   );
@@ -1659,7 +1671,7 @@ export function useBoard(userId: string | null) {
   );
 
   const updateMedication = useCallback(
-    (id: string, patch: Partial<Pick<Medication, "name" | "time" | "notes" | "startDate" | "durationDays" | "weekDays" | "active">>) => {
+    (id: string, patch: Partial<Pick<Medication, "name" | "time" | "notes" | "startDate" | "durationDays" | "weekDays" | "extraTimes" | "intervalHours" | "active">>) => {
       apply((s) => ({ ...s, medications: s.medications.map((m) => (m.id === id ? { ...m, ...patch } : m)) }));
       supabase.from("medications").update(medicationToUpdateRow(patch)).eq("id", id).then(({ error }) => {
         if (error) reportSaveError("updateMedication", error);
@@ -1674,10 +1686,9 @@ export function useBoard(userId: string | null) {
     (id: string) => {
       // O lembrete sai ANTES: depois que o remédio some do estado, a sincronia
       // não teria mais como saber que ele existiu.
-      const orfao = stateRef.current.reminders.find(
-        (r) => r.sourceKind === "medication" && r.sourceId === id && !r.deletedAt
-      );
-      if (orfao) deleteReminder(orfao.id);
+      stateRef.current.reminders
+        .filter((r) => r.sourceKind === "medication" && r.sourceId === id && !r.deletedAt)
+        .forEach((orfao) => deleteReminder(orfao.id));
       apply((s) => ({ ...s, medications: s.medications.filter((m) => m.id !== id) }));
       supabase.from("medications").delete().eq("id", id).then(({ error }) => {
         if (error) reportSaveError("deleteMedication", error);

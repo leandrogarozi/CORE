@@ -229,6 +229,7 @@ export interface Project {
   // Template do título das etapas, com placeholders {projeto} e {etapa} (contador
   // zero-padded). Null = usa PROJECT_NAMING_TEMPLATE_DEFAULT (ver mappers/UI).
   namingTemplate: string | null;
+  deadline: string | null; // ISO date — prazo do projeto (opcional)
 }
 
 export const PROJECT_NAMING_TEMPLATE_DEFAULT = "[{projeto}] [Etapa_{etapa}] - ";
@@ -574,6 +575,8 @@ export interface Medication {
   startDate: string | null; // ISO date — duração própria do remédio (opcional, independente do grupo)
   durationDays: number | null;
   weekDays: number[] | null; // 0=DOM..6=SAB; null/vazio = todos os dias, senão só nesses dias da semana
+  extraTimes: string[]; // outros horários do mesmo dia, além de `time` ("HH:MM"); ignorado se intervalHours estiver preenchido
+  intervalHours: number | null; // "de X em X horas": a partir do primeiro horário, repete a cada X horas dentro do dia
   active: boolean;
   whatsapp: boolean; // ícone do zap aceso = o lembrete desse remédio chega no WhatsApp
 }
@@ -583,6 +586,7 @@ export interface ChecklistItem {
   text: string;
   checked: boolean;
   toBuy: boolean; // precisa comprar antes (ex.: supermercado) — separa da lista de itens pra levar/arrumar
+  amountCents?: number | null; // quanto custou/vai custar esse item (opcional); o item marcado entra no gasto do checklist
 }
 
 export interface ChecklistExpense {

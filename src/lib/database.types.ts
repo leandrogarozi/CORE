@@ -646,8 +646,10 @@ export type Database = {
           active: boolean
           created_at: string
           duration_days: number | null
+          extra_times: string[]
           group_id: string | null
           id: string
+          interval_hours: number | null
           med_time: string | null
           name: string
           notes: string | null
@@ -660,8 +662,10 @@ export type Database = {
           active?: boolean
           created_at?: string
           duration_days?: number | null
+          extra_times?: string[]
           group_id?: string | null
           id?: string
+          interval_hours?: number | null
           med_time?: string | null
           name: string
           notes?: string | null
@@ -674,8 +678,10 @@ export type Database = {
           active?: boolean
           created_at?: string
           duration_days?: number | null
+          extra_times?: string[]
           group_id?: string | null
           id?: string
+          interval_hours?: number | null
           med_time?: string | null
           name?: string
           notes?: string | null
@@ -2032,6 +2038,7 @@ export type Database = {
         Row: {
           created_at: string
           default_category: string | null
+          deadline: string | null
           default_category2: string | null
           description: string
           id: string
@@ -2043,6 +2050,7 @@ export type Database = {
         Insert: {
           created_at?: string
           default_category?: string | null
+          deadline?: string | null
           default_category2?: string | null
           description?: string
           id?: string
@@ -2054,6 +2062,7 @@ export type Database = {
         Update: {
           created_at?: string
           default_category?: string | null
+          deadline?: string | null
           default_category2?: string | null
           description?: string
           id?: string
