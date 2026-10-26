@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
-import { BellIcon, CheckIcon, GiftIcon, ChevronIcon, TrashIcon, WhatsAppIcon } from "./icons";
+import { BellIcon, CheckIcon, EditIcon, GiftIcon, TrashIcon, WhatsAppIcon } from "./icons";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { ConfirmarComSenha } from "./ConfirmarComSenha";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
@@ -53,19 +53,36 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
   return (
     <div className={"bday-card" + (pessoa.pending ? " pendente" : "") + (dias === 0 ? " hoje" : dias <= DIAS_DE_AVISO_DO_ANIVERSARIO ? " perto" : "")}>
       <div className="bday-head">
-        <button type="button" className="synapse-card-toggle" aria-expanded={aberto} onClick={() => setAberto((v) => !v)}>
-          <ChevronIcon />
-        </button>
-        <span className="bday-data mono">{dataCurta(pessoa)}</span>
         <button type="button" className="bday-nome" onClick={() => setAberto((v) => !v)}>
           {pessoa.name}
+          <span className="bday-sub">
+            {dataCurta(pessoa)}
+            {dias > 0 && dias <= DIAS_DE_AVISO_DO_ANIVERSARIO ? ` · ${rotuloDosDias(dias)}` : ""}
+            {idade !== null ? ` · ${idade} anos` : ""}
+          </span>
         </button>
         <span className={"bday-cat cat-" + pessoa.category}>{rotuloDaCategoria(pessoa.category)}</span>
-        {pessoa.pending && <span className="bday-pendente">Aguardando confirmação</span>}
-        <span className="bday-quando">
-          {rotuloDosDias(dias)}
-          {idade !== null ? ` · ${idade} anos` : ""}
-        </span>
+        {pessoa.pending && (
+          <button type="button" className="btn btn-ghost bday-confirmar-btn" onClick={() => board.confirmarCliente(pessoa.id)}>
+            Confirmar cliente
+          </button>
+        )}
+        {dias === 0 && zap && (
+          <a
+            className="btn btn-accent bday-parabens"
+            href={zap}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setTimeout(() => board.marcarParabensEnviado(pessoa.id), 0)}
+          >
+            <WhatsAppIcon /> Mandar parabéns agora
+          </a>
+        )}
+        {dias === 0 && zap && pessoa.messageSlot !== null && frases.length > 0 && (
+          <span className="bday-frase-chip">
+            Frase {pessoa.messageSlot + 1} de {frases.length}
+          </span>
+        )}
         {/* Sininho: lembrar de mandar a mensagem pessoal (lembrete anual às 9h). */}
         <button
           type="button"
@@ -77,7 +94,7 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
         >
           <BellIcon filled={pessoa.remind} />
         </button>
-        {/* Zap: o mesmo lembrete, também no WhatsApp do Leandro (10 min antes das 9h). */}
+        {/* Zap: o mesmo lembrete, também no WhatsApp do dono da conta (10 min antes das 9h). */}
         <button
           type="button"
           className={"icon-btn zap-btn" + (pessoa.remindWhatsapp ? " active" : "")}
@@ -91,6 +108,19 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
           }
         >
           <WhatsAppIcon filled={pessoa.remindWhatsapp} />
+        </button>
+        <button
+          type="button"
+          className={"icon-btn" + (aberto ? " active" : "")}
+          aria-expanded={aberto}
+          aria-label="Editar"
+          title="Editar"
+          onClick={() => setAberto((v) => !v)}
+        >
+          <EditIcon />
+        </button>
+        <button type="button" className="icon-btn" aria-label="Excluir" title="Excluir" onClick={() => setApagando(true)}>
+          <TrashIcon />
         </button>
       </div>
 
@@ -316,30 +346,27 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
                   : "Cadastre o telefone para poder mandar os parabéns pelo WhatsApp."}
               </span>
             )}
-            <button type="button" className="btn btn-ghost danger-hover" onClick={() => setApagando(true)}>
-              <TrashIcon /> Excluir
-            </button>
-            {apagando && (
-              <ConfirmarComSenha
-                titulo={`Excluir ${pessoa.name} da lista?`}
-                botao="Excluir"
-                onCancelar={() => setApagando(false)}
-                onConfirmar={async (senha) => {
-                  const r = await fetch("/api/senha/conferir", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ senha }),
-                  });
-                  if (!r.ok) return { ok: false, erro: r.status === 403 ? "Senha incorreta." : "Não foi possível conferir a senha agora." };
-                  board.deleteBirthday(pessoa.id);
-                  return { ok: true };
-                }}
-              >
-                O aniversário e o lembrete anual dessa pessoa saem da lista.
-              </ConfirmarComSenha>
-            )}
           </div>
         </div>
+      )}
+      {apagando && (
+            <ConfirmarComSenha
+              titulo={`Excluir ${pessoa.name} da lista?`}
+              botao="Excluir"
+              onCancelar={() => setApagando(false)}
+              onConfirmar={async (senha) => {
+                const r = await fetch("/api/senha/conferir", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ senha }),
+                });
+                if (!r.ok) return { ok: false, erro: r.status === 403 ? "Senha incorreta." : "Não foi possível conferir a senha agora." };
+                board.deleteBirthday(pessoa.id);
+                return { ok: true };
+              }}
+            >
+              O aniversário e o lembrete anual dessa pessoa saem da lista.
+            </ConfirmarComSenha>
       )}
     </div>
   );
@@ -400,16 +427,16 @@ export function BirthdaysView({ onBack }: { onBack: () => void }) {
       </div>
 
       <div className={"narrow-list" + (wide ? " list-xl" : "")}>
-        <div className="synapse-intro">
-          <div className="synapse-intro-title">
-            <GiftIcon /> Quem faz aniversário
-          </div>
+        <details className="synapse-intro bday-ajuda">
+          <summary className="synapse-intro-title">
+            <GiftIcon /> Como funciona
+          </summary>
           <p>
             Amigos, familiares e clientes, com a data de cada um. O <strong>sininho</strong> te lembra às 9h do dia de
             mandar uma mensagem mais pessoal. O <strong>zap</strong> faz o mesmo lembrete chegar no seu WhatsApp. Dentro de cada pessoa, o botão <strong>Mandar parabéns agora</strong> abre a conversa com ela já com a mensagem pronta.
             Quem se cadastra pelo site chega aqui <strong>aguardando confirmação</strong>: confira, ligue a mensagem e aperte <strong>Confirmar cliente</strong>. O envio automático ainda está por vir.
           </p>
-        </div>
+        </details>
 
         <details className="fm-card bday-modelo">
           <summary>
@@ -444,6 +471,7 @@ export function BirthdaysView({ onBack }: { onBack: () => void }) {
 
         <div className="list-card">
           <div className="bday-form">
+            <strong className="bday-form-titulo">Novo aniversário</strong>
             <input
               type="text"
               className="quickadd-input"
@@ -529,9 +557,23 @@ export function BirthdaysView({ onBack }: { onBack: () => void }) {
           </div>
         )}
 
+        {gruposResto.pendentes.length > 0 && (
+          <section className="bday-grupo aguardando">
+            <h3 className="bday-grupo-titulo">
+              Cadastro novo aguardando a sua confirmação <span className="bday-grupo-n">{gruposResto.pendentes.length}</span>
+            </h3>
+            <div className="bday-list">
+              {gruposResto.pendentes.map((p) => (
+                <PessoaCard key={p.id} pessoa={p} />
+              ))}
+            </div>
+          </section>
+        )}
         {grupos.hoje.length > 0 && (
           <section className="bday-grupo hoje">
-            <h3 className="bday-grupo-titulo">🎉 Faz aniversário hoje</h3>
+            <h3 className="bday-grupo-titulo">
+              Hoje <span className="bday-grupo-n">{grupos.hoje.length}</span>
+            </h3>
             <div className="bday-list">
               {grupos.hoje.map((p) => (
                 <PessoaCard key={p.id} pessoa={p} />
@@ -541,7 +583,9 @@ export function BirthdaysView({ onBack }: { onBack: () => void }) {
         )}
         {grupos.perto.length > 0 && (
           <section className="bday-grupo perto">
-            <h3 className="bday-grupo-titulo">Faz aniversário nos próximos {DIAS_DE_AVISO_DO_ANIVERSARIO} dias</h3>
+            <h3 className="bday-grupo-titulo">
+              Nos próximos {DIAS_DE_AVISO_DO_ANIVERSARIO} dias <span className="bday-grupo-n">{grupos.perto.length}</span>
+            </h3>
             <div className="bday-list">
               {grupos.perto.map((p) => (
                 <PessoaCard key={p.id} pessoa={p} />
@@ -549,21 +593,18 @@ export function BirthdaysView({ onBack }: { onBack: () => void }) {
             </div>
           </section>
         )}
-        {gruposResto.pendentes.length > 0 && (
-          <section className="bday-grupo aguardando">
-            <h3 className="bday-grupo-titulo">Aguardando a sua confirmação</h3>
+        {gruposResto.outros.length > 0 && (
+          <section className="bday-grupo">
+            <h3 className="bday-grupo-titulo">
+              Todos, em ordem alfabética <span className="bday-grupo-n">{gruposResto.outros.length}</span>
+            </h3>
             <div className="bday-list">
-              {gruposResto.pendentes.map((p) => (
+              {gruposResto.outros.map((p) => (
                 <PessoaCard key={p.id} pessoa={p} />
               ))}
             </div>
           </section>
         )}
-        <div className="bday-list">
-          {gruposResto.outros.map((p) => (
-            <PessoaCard key={p.id} pessoa={p} />
-          ))}
-        </div>
       </div>
     </div>
   );

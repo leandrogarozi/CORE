@@ -3677,3 +3677,32 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
   .meeting-card-row{ flex-wrap:wrap; row-gap:6px; }
   .meeting-card-title{ flex-basis:calc(100% - 120px); }
 }
+
+/* Aniversários no layout do desenho: cada grupo é um cartão, cada pessoa uma linha */
+.bday-grupo{ gap:0; padding:0; background:var(--surface); border:1px solid var(--linha); border-radius:16px; overflow:hidden; box-shadow:var(--shadow-card, none); }
+.bday-grupo-titulo{ margin:0; padding:12px 16px; font-size:14px; font-weight:700; letter-spacing:0; text-transform:none; color:var(--text); }
+.bday-grupo-n{ margin-left:6px; font-size:12px; font-weight:500; color:var(--text-muted); }
+.bday-grupo.hoje{ background:var(--surface); border-left:4px solid var(--success); }
+.bday-grupo.hoje .bday-grupo-titulo{ color:var(--text); }
+.bday-grupo.perto{ background:var(--surface); border-left:4px solid #e0a800; }
+.bday-grupo.perto .bday-grupo-titulo{ color:var(--text); }
+.bday-grupo.aguardando{ background:var(--surface); }
+.bday-grupo.aguardando .bday-grupo-titulo{ background:color-mix(in srgb, var(--danger) 10%, var(--surface)); color:var(--danger); font-size:13px; }
+.bday-grupo .bday-list{ gap:0; }
+.bday-grupo .bday-card{ border:0; border-top:1px solid var(--linha); border-radius:0; background:transparent; box-shadow:none; }
+.bday-grupo .bday-card.hoje, .bday-grupo .bday-card.perto, .bday-grupo .bday-card.pendente{ border:0; border-top:1px solid var(--linha); box-shadow:none; background:transparent; }
+.bday-grupo .bday-head{ padding:10px 16px; flex-wrap:nowrap; }
+.bday-grupo .bday-nome{ display:flex; align-items:baseline; gap:8px; flex:1 1 auto; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.bday-sub{ font-size:12px; font-weight:400; color:var(--text-muted); }
+.bday-form-titulo{ font-size:14px; flex:none; margin-right:4px; }
+.bday-parabens{ display:inline-flex; align-items:center; gap:6px; padding:6px 12px; font-size:12.5px; white-space:nowrap; }
+.bday-frase-chip{ flex:none; font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px; background:var(--accent-soft); color:var(--accent); white-space:nowrap; }
+.bday-confirmar-btn{ flex:none; font-size:12px; padding:5px 10px; }
+.bday-ajuda > summary{ cursor:pointer; list-style:none; }
+.bday-ajuda > summary::-webkit-details-marker{ display:none; }
+.bday-ajuda[open] > summary{ margin-bottom:8px; }
+@media (max-width:640px){
+  .bday-grupo .bday-head{ flex-wrap:wrap; }
+  .bday-grupo .bday-nome{ flex-basis:100%; white-space:normal; }
+}
+.bday-form .quickadd-input{ flex:1 1 240px; }
