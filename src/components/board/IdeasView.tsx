@@ -146,7 +146,7 @@ export function IdeasView({ onBack }: { onBack: () => void }) {
             <input
               type="text"
               className="quickadd-input"
-              placeholder={filtro === "estudo" ? "+ Escrever um estudo: dê um título e pressione Enter" : "+ Escrever uma ideia: dê um título e pressione Enter"}
+              placeholder={filtro === "estudo" ? "Escrever um estudo: dê um título e pressione Enter" : "Escrever uma ideia: dê um título e pressione Enter"}
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}

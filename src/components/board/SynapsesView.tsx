@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { NoteField } from "./NoteField";
+import { StudyParts } from "./StudyParts";
 import { MicButton } from "./MicButton";
 import { AttachmentsButton } from "./AttachmentsButton";
 import { BoltIcon, CheckIcon, ChevronIcon, DownloadIcon, TrashIcon } from "./icons";
@@ -65,7 +66,7 @@ export function SynapseCard({ synapse, ideia = false }: { synapse: Synapse; idei
         >
           <ChevronIcon />
         </button>
-        <span className="synapse-etiqueta">SINAPSE</span>
+        {!ideia && <span className="synapse-etiqueta">SINAPSE</span>}
         <div className="synapse-card-headings">
           <input
             type="text"
@@ -135,7 +136,9 @@ export function SynapseCard({ synapse, ideia = false }: { synapse: Synapse; idei
             </div>
           )}
           <label className="synapse-field">
-            <span className="synapse-field-label">{ideia ? "A ideia" : "Qual a nova sinapse — o aprendizado?"}</span>
+            <span className="synapse-field-label">
+              {ideia ? (synapse.tag === "estudo" ? "Visão geral do estudo" : "A ideia") : "Qual a nova sinapse — o aprendizado?"}
+            </span>
             <NoteField
               value={learning}
               placeholder={ideia ? "A ideia, do jeito que veio..." : "O que aconteceu e o que isso te ensinou..."}
@@ -144,6 +147,8 @@ export function SynapseCard({ synapse, ideia = false }: { synapse: Synapse; idei
               onPersist={(html) => board.updateSynapse(synapse.id, { learning: html })}
             />
           </label>
+
+          {ideia && synapse.tag === "estudo" && <StudyParts synapse={synapse} />}
 
           {!ideia && (
           <label className="synapse-field synapse-field-question">

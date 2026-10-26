@@ -23,6 +23,7 @@ import {
   rowToActiveTimer,
   rowToBook,
   rowToSynapse,
+  rowToSynapsePart,
   rowToShoppingItem,
   rowToShoppingList,
   rowToBirthday,
@@ -32,6 +33,7 @@ import {
   shoppingToInsertRow,
   shoppingToUpdateRow,
   synapseToInsertRow,
+  synapsePartToInsertRow,
   rowToChecklist,
   rowToTaskTimeEntry,
   rowToStudyPlan,
@@ -106,6 +108,7 @@ import type {
   ScopeChoice,
   Settings,
   Synapse,
+  SynapsePart,
   ShoppingItem,
   ShoppingList,
   Birthday,
@@ -135,6 +138,7 @@ const EMPTY_STATE: BoardState = {
   taskStatuses: [],
   books: [],
   synapses: [],
+  synapseParts: [],
   shoppingItems: [],
   shoppingLists: [],
   birthdays: [],
@@ -270,6 +274,7 @@ export function useBoard(userId: string | null) {
       taskStatusesRes,
       booksRes,
       synapsesRes,
+      synapsePartsRes,
       shoppingRes,
       shoppingListsRes,
       birthdaysRes,
@@ -304,6 +309,7 @@ export function useBoard(userId: string | null) {
       supabase.from("task_statuses").select("*").order("sort_order"),
       supabase.from("books").select("*").order("created_at"),
       supabase.from("synapses").select("*").is("deleted_at", null).order("created_at", { ascending: false }),
+      supabase.from("synapse_parts").select("*").order("sort_order"),
       supabase.from("shopping_items").select("*").is("deleted_at", null).order("sort_order"),
       supabase.from("shopping_lists").select("*").is("deleted_at", null).order("sort_order"),
       supabase.from("birthdays").select("*").is("deleted_at", null).order("sort_order"),
@@ -358,6 +364,7 @@ export function useBoard(userId: string | null) {
       taskStatuses: statusRows.map(rowToTaskStatus),
       books: (booksRes.data ?? []).map(rowToBook),
       synapses: (synapsesRes.data ?? []).map(rowToSynapse),
+      synapseParts: (synapsePartsRes.data ?? []).map(rowToSynapsePart),
       shoppingItems: (shoppingRes.data ?? []).map(rowToShoppingItem),
       shoppingLists: (shoppingListsRes.data ?? []).map(rowToShoppingList),
       birthdays: (birthdaysRes.data ?? []).map(rowToBirthday),
@@ -1158,6 +1165,63 @@ export function useBoard(userId: string | null) {
         .then(({ error }) => {
           if (error) reportSaveError("deleteSynapse", error);
         });
+    },
+    [apply, supabase]
+  );
+
+  // ---------- partes de um estudo ----------
+  const addSynapsePart = useCallback(
+    (synapseId: string, extra: { title: string; kind?: string; date?: string | null; body?: string }): string | null => {
+      if (!userId || !extra.title.trim()) return null;
+      const doEstudo = stateRef.current.synapseParts.filter((p) => p.synapseId === synapseId);
+      const part: SynapsePart = {
+        id: uid(),
+        synapseId,
+        title: extra.title.trim(),
+        kind: extra.kind ?? "encontro",
+        date: extra.date === undefined ? todayISO() : extra.date,
+        body: extra.body ?? "",
+        order: doEstudo.length ? Math.max(...doEstudo.map((p) => p.order)) + 1 : 0,
+        createdAt: new Date().toISOString(),
+      };
+      apply((s) => ({ ...s, synapseParts: [...s.synapseParts, part] }));
+      supabase.from("synapse_parts").insert(synapsePartToInsertRow(part, userId)).then(({ error }) => {
+        if (error) {
+          reportSaveError("addSynapsePart", error);
+          apply((s) => ({ ...s, synapseParts: s.synapseParts.filter((x) => x.id !== part.id) }));
+        }
+      });
+      return part.id;
+    },
+    [apply, supabase, userId]
+  );
+
+  const updateSynapsePart = useCallback(
+    (id: string, patch: Partial<Pick<SynapsePart, "title" | "kind" | "date" | "body">>) => {
+      apply((s) => ({ ...s, synapseParts: s.synapseParts.map((x) => (x.id === id ? { ...x, ...patch } : x)) }));
+      supabase
+        .from("synapse_parts")
+        .update({
+          ...(patch.title !== undefined ? { title: patch.title } : {}),
+          ...(patch.kind !== undefined ? { part_kind: patch.kind } : {}),
+          ...(patch.date !== undefined ? { part_date: patch.date } : {}),
+          ...(patch.body !== undefined ? { body: patch.body } : {}),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .then(({ error }) => {
+          if (error) reportSaveError("updateSynapsePart", error);
+        });
+    },
+    [apply, supabase]
+  );
+
+  const deleteSynapsePart = useCallback(
+    (id: string) => {
+      apply((s) => ({ ...s, synapseParts: s.synapseParts.filter((x) => x.id !== id) }));
+      supabase.from("synapse_parts").delete().eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("deleteSynapsePart", error);
+      });
     },
     [apply, supabase]
   );
@@ -4157,6 +4221,9 @@ export function useBoard(userId: string | null) {
     addSynapse,
     updateSynapse,
     deleteSynapse,
+    addSynapsePart,
+    updateSynapsePart,
+    deleteSynapsePart,
     addBook,
     updateBook,
     deleteBook,

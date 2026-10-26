@@ -1665,6 +1665,53 @@ export type Database = {
         }
         Relationships: []
       }
+      synapse_parts: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          part_date: string | null
+          part_kind: string
+          sort_order: number
+          synapse_id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          id?: string
+          part_date?: string | null
+          part_kind?: string
+          sort_order?: number
+          synapse_id: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          part_date?: string | null
+          part_kind?: string
+          sort_order?: number
+          synapse_id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "synapse_parts_synapse_id_fkey"
+            columns: ["synapse_id"]
+            isOneToOne: false
+            referencedRelation: "synapses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       synapses: {
         Row: {
           created_at: string

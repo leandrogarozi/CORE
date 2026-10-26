@@ -462,6 +462,19 @@ export interface Synapse {
   titleAuto: boolean;
 }
 
+// Uma parte de um Estudo (encontro, aula, módulo, atividade...): cada uma com o próprio texto,
+// para o estudo não virar um bloco só de texto. Só existe para sinapses kind "ideia" com tag "estudo".
+export interface SynapsePart {
+  id: string;
+  synapseId: string;
+  title: string; // ex.: "Encontro 3"
+  kind: string; // livre; sugestões: encontro, aula, módulo, atividade
+  date: string | null; // ISO date
+  body: string; // HTML
+  order: number;
+  createdAt: string;
+}
+
 // Lista de compras (kind "compra") e lista de desejos (kind "desejo", as oportunidades
 // de compra: produto que quer comprar ou comparar um dia, com anotações e links).
 export interface ShoppingLink {
@@ -654,6 +667,7 @@ export interface BoardState {
   taskStatuses: TaskStatus[];
   books: Book[];
   synapses: Synapse[];
+  synapseParts: SynapsePart[];
   shoppingItems: ShoppingItem[];
   shoppingLists: ShoppingList[];
   birthdays: Birthday[];

@@ -11,6 +11,7 @@ import type {
   Checklist,
   ChecklistExpense,
   ChecklistItem,
+  SynapsePart,
   DailyLog,
   DayLog,
   DietMeal,
@@ -559,6 +560,32 @@ export function synapseToInsertRow(sy: Synapse, userId: string): TablesInsert<"s
     kind: sy.kind,
     tag: sy.tag,
     title_auto: sy.titleAuto,
+  };
+}
+
+export function rowToSynapsePart(row: Tables<"synapse_parts">): SynapsePart {
+  return {
+    id: row.id,
+    synapseId: row.synapse_id,
+    title: row.title,
+    kind: row.part_kind,
+    date: row.part_date,
+    body: row.body,
+    order: row.sort_order,
+    createdAt: row.created_at,
+  };
+}
+
+export function synapsePartToInsertRow(p: SynapsePart, userId: string): TablesInsert<"synapse_parts"> {
+  return {
+    id: p.id,
+    user_id: userId,
+    synapse_id: p.synapseId,
+    title: p.title,
+    part_kind: p.kind,
+    part_date: p.date,
+    body: p.body,
+    sort_order: p.order,
   };
 }
 
