@@ -1063,6 +1063,9 @@ export type Database = {
           birth_date: string | null
           daily_budget_hours: number
           diet_app_opt_in: boolean
+          metanoia_horarios: string[]
+          metanoia_push: boolean
+          metanoia_vezes: number
           diet_plan: string | null
           diet_whatsapp_opt_in: boolean
           water_strategies: string | null
@@ -1093,6 +1096,9 @@ export type Database = {
           birth_date?: string | null
           daily_budget_hours?: number
           diet_app_opt_in?: boolean
+          metanoia_horarios?: string[]
+          metanoia_push?: boolean
+          metanoia_vezes?: number
           diet_plan?: string | null
           diet_whatsapp_opt_in?: boolean
           feature_flags?: Json
@@ -1123,6 +1129,9 @@ export type Database = {
           birth_date?: string | null
           daily_budget_hours?: number
           diet_app_opt_in?: boolean
+          metanoia_horarios?: string[]
+          metanoia_push?: boolean
+          metanoia_vezes?: number
           diet_plan?: string | null
           diet_whatsapp_opt_in?: boolean
           feature_flags?: Json
@@ -1662,6 +1671,72 @@ export type Database = {
           sort_order?: number
           user_id?: string
           whatsapp?: boolean
+        }
+        Relationships: []
+      }
+      metanoia_frases: {
+        Row: {
+          autor: string | null
+          created_at: string
+          favorita: boolean
+          fonte: string | null
+          id: string
+          origem: string
+          origem_ref: string | null
+          status: string
+          texto: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          autor?: string | null
+          created_at?: string
+          favorita?: boolean
+          fonte?: string | null
+          id?: string
+          origem?: string
+          origem_ref?: string | null
+          status?: string
+          texto: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          autor?: string | null
+          created_at?: string
+          favorita?: boolean
+          fonte?: string | null
+          id?: string
+          origem?: string
+          origem_ref?: string | null
+          status?: string
+          texto?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      metanoia_envios: {
+        Row: {
+          created_at: string
+          dia: string
+          frase_id: string | null
+          horario: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dia: string
+          frase_id?: string | null
+          horario: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dia?: string
+          frase_id?: string | null
+          horario?: string
+          user_id?: string
         }
         Relationships: []
       }

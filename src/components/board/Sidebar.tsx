@@ -2,7 +2,7 @@
 
 import { useEffect, type ReactNode } from "react";
 import { BellIcon, BoltIcon, LinkIcon,
-  BookOpenIcon, BookIcon, GiftIcon, CarIcon, CartIcon, ChartIcon, ChecklistIcon, FolderIcon, HomeIcon, MealIcon, PillIcon, SettingsIcon, TrashIcon, UserIcon, UsersGroupIcon, WeekIcon } from "./icons";
+  BookOpenIcon, BookIcon, GiftIcon, CarIcon, CartIcon, ChartIcon, ChecklistIcon, FolderIcon, HomeIcon, MealIcon, PillIcon, RtQuoteIcon, SettingsIcon, TrashIcon, UserIcon, UsersGroupIcon, WeekIcon } from "./icons";
 
 export type ViewMode =
   | "day"
@@ -27,6 +27,7 @@ export type ViewMode =
   | "diet"
   | "projects"
   | "meetings"
+  | "metanoia"
   | "trash";
 
 type ItemDoMenu = {
@@ -34,7 +35,7 @@ type ItemDoMenu = {
   rotulo: string;
   icone: ReactNode;
   destaque?: boolean;
-  selo?: "paraRevisar" | "aniversarios";
+  selo?: "paraRevisar" | "aniversarios" | "frases";
   /** Só a conta dona vê (depende das páginas de cadastro do próprio dono). */
   somenteDono?: boolean;
 };
@@ -55,6 +56,7 @@ const GRUPOS: { titulo: string; itens: ItemDoMenu[] }[] = [
     titulo: "Aprender",
     itens: [
       { modo: "conhecendo", rotulo: "Conhecendo você", icone: <UserIcon size={13} />, destaque: true, selo: "paraRevisar" },
+      { modo: "metanoia", rotulo: "Metanoia", icone: <RtQuoteIcon />, selo: "frases" },
       { modo: "synapses", rotulo: "Novas Sinapses", icone: <BoltIcon /> },
       { modo: "ideias", rotulo: "Ideias e Estudos", icone: <BoltIcon /> },
       { modo: "books", rotulo: "Livros / Filmes e séries", icone: <BookIcon /> },
@@ -88,6 +90,7 @@ export function Sidebar({
   onClose,
   paraRevisar = 0,
   aniversariosPendentes = 0,
+  frasesParaRevisar = 0,
   modoDono = false,
 }: {
   open: boolean;
@@ -97,6 +100,8 @@ export function Sidebar({
   /** Quantos itens de "Conhecendo você" esperam aprovação (a IA propôs). */
   paraRevisar?: number;
   aniversariosPendentes?: number;
+  /** Frases da Metanoia esperando aprovação. */
+  frasesParaRevisar?: number;
   modoDono?: boolean;
 }) {
   useEffect(() => {
@@ -121,7 +126,7 @@ export function Sidebar({
           <div className="sidebar-section" key={grupo.titulo}>
             <div className="sidebar-section-label">{grupo.titulo}</div>
             {grupo.itens.filter((item) => !item.somenteDono || modoDono).map((item) => {
-              const numero = item.selo === "paraRevisar" ? paraRevisar : item.selo === "aniversarios" ? aniversariosPendentes : 0;
+              const numero = item.selo === "paraRevisar" ? paraRevisar : item.selo === "aniversarios" ? aniversariosPendentes : item.selo === "frases" ? frasesParaRevisar : 0;
               return (
                 <button
                   key={item.modo}
@@ -133,7 +138,7 @@ export function Sidebar({
                   {numero > 0 && (
                     <span
                       className="sidebar-badge"
-                      title={item.selo === "paraRevisar" ? "Aprendizados esperando você aprovar" : "Cadastros do site aguardando confirmação"}
+                      title={item.selo === "paraRevisar" ? "Aprendizados esperando você aprovar" : item.selo === "frases" ? "Frases esperando você aprovar" : "Cadastros do site aguardando confirmação"}
                     >
                       {numero}
                     </span>

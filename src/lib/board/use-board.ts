@@ -24,6 +24,8 @@ import {
   rowToBook,
   rowToSynapse,
   rowToSynapsePart,
+  rowToMetanoiaFrase,
+  metanoiaFraseToInsertRow,
   rowToShoppingItem,
   rowToShoppingList,
   rowToBirthday,
@@ -109,6 +111,7 @@ import type {
   Settings,
   Synapse,
   SynapsePart,
+  MetanoiaFrase,
   ShoppingItem,
   ShoppingList,
   Birthday,
@@ -139,6 +142,7 @@ const EMPTY_STATE: BoardState = {
   books: [],
   synapses: [],
   synapseParts: [],
+  metanoiaFrases: [],
   shoppingItems: [],
   shoppingLists: [],
   birthdays: [],
@@ -170,6 +174,9 @@ const EMPTY_STATE: BoardState = {
     timezone: null,
     waterStrategies: null,
     dietPlan: null,
+    metanoiaVezes: 1,
+    metanoiaHorarios: ["09:00", "14:00", "20:00"],
+    metanoiaPush: true,
     dietAppOptIn: true,
     dietWhatsappOptIn: false,
   },
@@ -275,6 +282,7 @@ export function useBoard(userId: string | null) {
       booksRes,
       synapsesRes,
       synapsePartsRes,
+      metanoiaRes,
       shoppingRes,
       shoppingListsRes,
       birthdaysRes,
@@ -310,6 +318,7 @@ export function useBoard(userId: string | null) {
       supabase.from("books").select("*").order("created_at"),
       supabase.from("synapses").select("*").is("deleted_at", null).order("created_at", { ascending: false }),
       supabase.from("synapse_parts").select("*").order("sort_order"),
+      supabase.from("metanoia_frases").select("*").neq("status", "arquivada").order("created_at", { ascending: false }),
       supabase.from("shopping_items").select("*").is("deleted_at", null).order("sort_order"),
       supabase.from("shopping_lists").select("*").is("deleted_at", null).order("sort_order"),
       supabase.from("birthdays").select("*").is("deleted_at", null).order("sort_order"),
@@ -365,6 +374,7 @@ export function useBoard(userId: string | null) {
       books: (booksRes.data ?? []).map(rowToBook),
       synapses: (synapsesRes.data ?? []).map(rowToSynapse),
       synapseParts: (synapsePartsRes.data ?? []).map(rowToSynapsePart),
+      metanoiaFrases: (metanoiaRes.data ?? []).map(rowToMetanoiaFrase),
       shoppingItems: (shoppingRes.data ?? []).map(rowToShoppingItem),
       shoppingLists: (shoppingListsRes.data ?? []).map(rowToShoppingList),
       birthdays: (birthdaysRes.data ?? []).map(rowToBirthday),
@@ -1165,6 +1175,68 @@ export function useBoard(userId: string | null) {
         .then(({ error }) => {
           if (error) reportSaveError("deleteSynapse", error);
         });
+    },
+    [apply, supabase]
+  );
+
+  // ---------- metanoia (frases) ----------
+  // Arquivada some da tela mas continua no banco (a pessoa pode ter mudado de ideia e a frase já foi tirada uma vez).
+  const addMetanoiaFrase = useCallback(
+    (extra: { texto: string; autor?: string | null; fonte?: string | null; origem?: MetanoiaFrase["origem"]; status?: MetanoiaFrase["status"] }): string | null => {
+      const texto = extra.texto.trim();
+      if (!userId || !texto) return null;
+      const igual = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+      if (stateRef.current.metanoiaFrases.some((f) => igual(f.texto, texto))) return null;
+      const f: MetanoiaFrase = {
+        id: uid(),
+        texto,
+        autor: extra.autor?.trim() || null,
+        fonte: extra.fonte?.trim() || null,
+        origem: extra.origem ?? "minha",
+        origemRef: null,
+        status: extra.status ?? "aprovada",
+        favorita: false,
+        createdAt: new Date().toISOString(),
+      };
+      apply((s) => ({ ...s, metanoiaFrases: [f, ...s.metanoiaFrases] }));
+      supabase.from("metanoia_frases").insert(metanoiaFraseToInsertRow(f, userId)).then(({ error }) => {
+        if (error) {
+          reportSaveError("addMetanoiaFrase", error);
+          apply((s) => ({ ...s, metanoiaFrases: s.metanoiaFrases.filter((x) => x.id !== f.id) }));
+        }
+      });
+      return f.id;
+    },
+    [apply, supabase, userId]
+  );
+
+  const updateMetanoiaFrase = useCallback(
+    (id: string, patch: Partial<Pick<MetanoiaFrase, "texto" | "autor" | "fonte" | "status" | "favorita">>) => {
+      // Arquivar tira da lista da tela; as demais mudanças ficam no lugar.
+      apply((s) => ({
+        ...s,
+        metanoiaFrases:
+          patch.status === "arquivada"
+            ? s.metanoiaFrases.filter((x) => x.id !== id)
+            : s.metanoiaFrases.map((x) => (x.id === id ? { ...x, ...patch } : x)),
+      }));
+      supabase
+        .from("metanoia_frases")
+        .update({ ...patch, updated_at: new Date().toISOString() })
+        .eq("id", id)
+        .then(({ error }) => {
+          if (error) reportSaveError("updateMetanoiaFrase", error);
+        });
+    },
+    [apply, supabase]
+  );
+
+  const deleteMetanoiaFrase = useCallback(
+    (id: string) => {
+      apply((s) => ({ ...s, metanoiaFrases: s.metanoiaFrases.filter((x) => x.id !== id) }));
+      supabase.from("metanoia_frases").delete().eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("deleteMetanoiaFrase", error);
+      });
     },
     [apply, supabase]
   );
@@ -3840,6 +3912,9 @@ export function useBoard(userId: string | null) {
           water_strategies: merged.waterStrategies,
           diet_plan: merged.dietPlan,
           diet_app_opt_in: merged.dietAppOptIn,
+          metanoia_vezes: merged.metanoiaVezes,
+          metanoia_horarios: merged.metanoiaHorarios,
+          metanoia_push: merged.metanoiaPush,
           diet_whatsapp_opt_in: merged.dietWhatsappOptIn,
           whatsapp_msg_cost_usd: merged.whatsappMsgCostUsd,
           ia_monthly_cap_brl: merged.iaMonthlyCapBrl,
@@ -4222,6 +4297,9 @@ export function useBoard(userId: string | null) {
     updateSynapse,
     deleteSynapse,
     addSynapsePart,
+    addMetanoiaFrase,
+    updateMetanoiaFrase,
+    deleteMetanoiaFrase,
     updateSynapsePart,
     deleteSynapsePart,
     addBook,

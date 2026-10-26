@@ -12,6 +12,9 @@ import type {
   ChecklistExpense,
   ChecklistItem,
   SynapsePart,
+  MetanoiaFrase,
+  MetanoiaOrigem,
+  MetanoiaStatus,
   DailyLog,
   DayLog,
   DietMeal,
@@ -456,6 +459,9 @@ export function rowToSettings(row: SettingsRow | null): Settings {
     timezone: row?.timezone ?? null,
     waterStrategies: row?.water_strategies ?? null,
     dietPlan: row?.diet_plan ?? null,
+    metanoiaVezes: row?.metanoia_vezes ?? 1,
+    metanoiaHorarios: row?.metanoia_horarios ?? ["09:00", "14:00", "20:00"],
+    metanoiaPush: row?.metanoia_push ?? true,
     dietAppOptIn: row?.diet_app_opt_in ?? true,
     dietWhatsappOptIn: row?.diet_whatsapp_opt_in ?? false,
     whatsappMsgCostUsd: Number(row?.whatsapp_msg_cost_usd ?? 0.0068),
@@ -586,6 +592,34 @@ export function synapsePartToInsertRow(p: SynapsePart, userId: string): TablesIn
     part_date: p.date,
     body: p.body,
     sort_order: p.order,
+  };
+}
+
+export function rowToMetanoiaFrase(row: Tables<"metanoia_frases">): MetanoiaFrase {
+  return {
+    id: row.id,
+    texto: row.texto,
+    autor: row.autor,
+    fonte: row.fonte,
+    origem: row.origem as MetanoiaOrigem,
+    origemRef: row.origem_ref,
+    status: row.status as MetanoiaStatus,
+    favorita: row.favorita,
+    createdAt: row.created_at,
+  };
+}
+
+export function metanoiaFraseToInsertRow(f: MetanoiaFrase, userId: string): TablesInsert<"metanoia_frases"> {
+  return {
+    id: f.id,
+    user_id: userId,
+    texto: f.texto,
+    autor: f.autor,
+    fonte: f.fonte,
+    origem: f.origem,
+    origem_ref: f.origemRef,
+    status: f.status,
+    favorita: f.favorita,
   };
 }
 

@@ -316,6 +316,9 @@ export interface Settings {
   timezone: string | null; // IANA tz, ex. "America/Sao_Paulo"; null = detectar do navegador
   waterStrategies: string | null; // ideias/estratégias pra manter o consumo de água (ex.: garrafa 1L com marcador)
   dietPlan: string | null; // cadastro livre da dieta (plano, receitas, divisão de macros...)
+  metanoiaVezes: number; // quantas frases por dia (1 a 3)
+  metanoiaHorarios: string[]; // "HH:MM"; valem os primeiros `metanoiaVezes`
+  metanoiaPush: boolean; // a frase chega como notificação
   dietAppOptIn: boolean; // quer lembretes de refeição dentro do app (aviso "Foco na dieta")
   dietWhatsappOptIn: boolean; // usuário confirmou que quer avisos de refeição também pelo WhatsApp (notifyPhone)
   // Custo do WhatsApp. Ficam em configuração (e não fixos no código) pra dar pra
@@ -460,6 +463,22 @@ export interface Synapse {
   // Só vale para kind "ideia" (tela Ideias e Estudos): a mesma anotação pode ser uma ideia ou um estudo.
   tag: SynapseTag;
   titleAuto: boolean;
+}
+
+// Metanoia: as frases que o FARO traz de volta durante o dia (suas, do seu FARO ou de prints).
+// "pendente" espera a aprovação; só "aprovada" entra no sorteio dos lembretes.
+export type MetanoiaOrigem = "minha" | "faro" | "print" | "ia";
+export type MetanoiaStatus = "pendente" | "aprovada" | "arquivada";
+export interface MetanoiaFrase {
+  id: string;
+  texto: string;
+  autor: string | null;
+  fonte: string | null; // de onde veio, ex.: "Valores", "Print do Drive", "Sinapse: Ted Lasso"
+  origem: MetanoiaOrigem;
+  origemRef: string | null; // id do item do FARO que originou a frase (evita propor duas vezes)
+  status: MetanoiaStatus;
+  favorita: boolean;
+  createdAt: string;
 }
 
 // Uma parte de um Estudo (encontro, aula, módulo, atividade...): cada uma com o próprio texto,
@@ -668,6 +687,7 @@ export interface BoardState {
   books: Book[];
   synapses: Synapse[];
   synapseParts: SynapsePart[];
+  metanoiaFrases: MetanoiaFrase[];
   shoppingItems: ShoppingItem[];
   shoppingLists: ShoppingList[];
   birthdays: Birthday[];

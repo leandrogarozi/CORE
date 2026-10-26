@@ -8,6 +8,7 @@ import { sendWhatsAppReminderMessage } from "@/lib/whatsapp/send";
 import { AVISO_DE_CREDITO_BAIXO, CREDITO_INICIAL, decidirEnvio, saldoDe, tetoGlobalDoAmbiente } from "@/lib/whatsapp/credito";
 import { fmtDayMonth } from "@/lib/date-utils";
 import { enviarPushesDosLembretes } from "@/lib/push/dispatch";
+import { enviarFrasesDaMetanoia } from "@/lib/push/metanoia";
 import { espelharNoGoogle } from "@/lib/google/agenda";
 
 export const dynamic = "force-dynamic";
@@ -60,6 +61,13 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     push = { candidatos: 0, avisados: 0, semAparelho: 0, erros: [e instanceof Error ? e.message : "falha no push"] };
   }
+  // Frase da Metanoia nos horários escolhidos: canal próprio, falha aqui não cala os outros.
+  let metanoia: Awaited<ReturnType<typeof enviarFrasesDaMetanoia>>;
+  try {
+    metanoia = await enviarFrasesDaMetanoia(createServiceClient(), Date.now());
+  } catch (e) {
+    metanoia = { enviadas: 0, semAparelho: 0, erros: [e instanceof Error ? e.message : "falha na Metanoia"] };
+  }
   // Aviso de backup do dia não feito: canal próprio, também não pode calar nem
   // ser calado pelos outros.
   let backup: { avisados: number } | { erro: string };
@@ -77,7 +85,7 @@ export async function POST(req: NextRequest) {
   }
   const resposta = await dispararWhatsApp();
   const corpo = await resposta.json();
-  return NextResponse.json({ ...corpo, push, backup, google }, { status: resposta.status });
+  return NextResponse.json({ ...corpo, push, metanoia, backup, google }, { status: resposta.status });
 }
 
 async function dispararWhatsApp(): Promise<NextResponse> {

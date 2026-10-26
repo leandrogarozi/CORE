@@ -34,6 +34,8 @@ import { BirthdaysView } from "./BirthdaysView";
 import { CadastrosView } from "./CadastrosView";
 import { ClientesView } from "./ClientesView";
 import { ConhecendoView } from "./ConhecendoView";
+import { MetanoiaView } from "./MetanoiaView";
+import { FraseDoDia } from "./FraseDoDia";
 import { StudyPlansView } from "./StudyPlansView";
 import { MaintenanceView } from "./MaintenanceView";
 import { MedicationsView } from "./MedicationsView";
@@ -86,6 +88,16 @@ function BoardShell() {
     setViewMode(mode);
     setSidebarOpen(false);
   }
+
+  // A notificação da Metanoia abre o app já na tela dela (?ver=metanoia).
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    if (p.get("ver") === "metanoia") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- lê o endereço da página (sistema externo) uma vez, ao abrir
+      setViewMode("metanoia");
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }, []);
 
   function goToProject(projectId: string) {
     setSelectedProjectId(projectId);
@@ -287,6 +299,7 @@ function BoardShell() {
         onClose={() => setSidebarOpen(false)}
         paraRevisar={board.state.knowledgeItems.filter((k) => k.status === "pendente").length}
         aniversariosPendentes={board.state.birthdays.filter((b) => b.pending).length}
+        frasesParaRevisar={board.state.metanoiaFrases.filter((f) => f.status === "pendente").length}
         modoDono={board.state.settings.featureFlags.modo_dono === true}
       />
 
@@ -362,6 +375,8 @@ function BoardShell() {
         <SynapsesView onBack={() => setViewMode("day")} />
       ) : viewMode === "ideias" ? (
         <IdeasView onBack={() => setViewMode("day")} />
+      ) : viewMode === "metanoia" ? (
+        <MetanoiaView onBack={() => setViewMode("day")} />
       ) : viewMode === "conhecendo" ? (
         <ConhecendoView onBack={() => setViewMode("day")} />
       ) : viewMode === "compras" ? (
@@ -406,6 +421,7 @@ function BoardShell() {
               }}
             />
           )}
+          {viewMode === "day" && <FraseDoDia onAbrir={() => setViewMode("metanoia")} />}
           <div className="day-strip-wrap">
             <button
               className="strip-nav"
