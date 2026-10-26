@@ -146,6 +146,7 @@ function ItemCard({ item }: { item: KnowledgeItem }) {
           {item.dataRef ? `${item.dataRef} · ` : ""}
           {item.fonte === "manual" ? "escrito no FARO" : "veio da IA"}
         </span>
+        {item.status === "aprovado" && <span className="know-pill-aprovado">aprovado</span>}
         <span className="know-acoes">
           {item.status !== "aprovado" && (
             <button type="button" className="btn btn-ghost know-aprovar" onClick={() => board.setKnowledgeStatus([item.id], "aprovado")}>
@@ -154,7 +155,7 @@ function ItemCard({ item }: { item: KnowledgeItem }) {
           )}
           {item.status === "pendente" && (
             <button type="button" className="btn btn-ghost" onClick={() => board.setKnowledgeStatus([item.id], "descartado")}>
-              Descartar
+              Recusar
             </button>
           )}
           {item.status === "aprovado" && (
@@ -388,7 +389,7 @@ export function ConhecendoView({ onBack }: { onBack: () => void }) {
             [
               ["pendente", "Para revisar"],
               ["aprovado", "Aprovados"],
-              ["descartado", "Descartados"],
+              ["descartado", "Recusados"],
             ] as const
           ).map(([v, r]) => (
             <button key={v} type="button" className={"view-toggle-btn" + (aba === v ? " active" : "")} onClick={() => setAba(v)}>
