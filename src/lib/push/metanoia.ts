@@ -44,7 +44,7 @@ export async function enviarFrasesDaMetanoia(supabase: SupabaseClient<Database>,
 
   const { data: configs, error } = await supabase
     .from("settings")
-    .select("user_id, timezone, metanoia_vezes, metanoia_horarios, metanoia_push, metanoia_perguntas_vezes, metanoia_perguntas_horarios")
+    .select("user_id, timezone, metanoia_vezes, metanoia_inicio, metanoia_fim, metanoia_push, metanoia_perguntas_vezes, metanoia_perguntas_inicio, metanoia_perguntas_fim")
     .eq("metanoia_push", true);
   if (error) {
     out.erros.push(error.message);
@@ -56,8 +56,8 @@ export async function enviarFrasesDaMetanoia(supabase: SupabaseClient<Database>,
   for (const c of configs ?? []) {
     const { dia, minutos } = agoraNoFuso(nowMs, c.timezone || FUSO_PADRAO);
     const listas: [MetanoiaTipo, string[]][] = [
-      ["frase", horariosEmUso(c.metanoia_vezes, c.metanoia_horarios ?? [])],
-      ["pergunta", horariosDePerguntasEmUso(c.metanoia_perguntas_vezes, c.metanoia_perguntas_horarios ?? [])],
+      ["frase", horariosEmUso(c.metanoia_vezes, c.metanoia_inicio, c.metanoia_fim)],
+      ["pergunta", horariosDePerguntasEmUso(c.metanoia_perguntas_vezes, c.metanoia_perguntas_inicio, c.metanoia_perguntas_fim)],
     ];
     for (const [tipo, horarios] of listas) {
       horarios.forEach((h, indice) => {

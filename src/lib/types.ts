@@ -317,11 +317,13 @@ export interface Settings {
   waterStrategies: string | null; // ideias/estratégias pra manter o consumo de água (ex.: garrafa 1L com marcador)
   dietPlan: string | null; // cadastro livre da dieta (plano, receitas, divisão de macros...)
   metanoiaVezes: number; // quantas frases por dia (1 a 3)
-  metanoiaHorarios: string[]; // "HH:MM"; valem os primeiros `metanoiaVezes`
+  metanoiaInicio: string; // "HH:MM": a partir de que horas o FARO manda frases
+  metanoiaFim: string; // "HH:MM": até que horas; as frases do dia se distribuem entre os dois
   metanoiaPush: boolean; // a frase chega como notificação
   metanoiaTema: MetanoiaTema; // cartão da frase: fundo branco, preto ou o do app
   metanoiaPerguntasVezes: number; // quantas perguntas por dia (0 a 2)
-  metanoiaPerguntasHorarios: string[]; // "HH:MM"; valem as primeiras `metanoiaPerguntasVezes`
+  metanoiaPerguntasInicio: string; // "HH:MM"
+  metanoiaPerguntasFim: string; // "HH:MM"
   dietAppOptIn: boolean; // quer lembretes de refeição dentro do app (aviso "Foco na dieta")
   dietWhatsappOptIn: boolean; // usuário confirmou que quer avisos de refeição também pelo WhatsApp (notifyPhone)
   // Custo do WhatsApp. Ficam em configuração (e não fixos no código) pra dar pra

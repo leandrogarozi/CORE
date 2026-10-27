@@ -19,15 +19,15 @@ export function ConfirmModal() {
       <div className="modal-panel">
         <div className="modal-title">
           {confirmModal.icon && <span className="modal-title-icon">{confirmModal.icon}</span>}
-          Confirmar exclusão
+          {confirmModal.opcoes?.titulo ?? "Confirmar exclusão"}
         </div>
         <div className="scope-question">{confirmModal.question}</div>
         <div className="confirm-actions">
           <button type="button" className="btn btn-ghost" onClick={closeConfirmModal}>
             Cancelar
           </button>
-          <button type="button" className="btn btn-danger" onClick={handleConfirm}>
-            Excluir
+          <button type="button" className={confirmModal.opcoes?.perigo === false ? "btn btn-accent" : "btn btn-danger"} onClick={handleConfirm}>
+            {confirmModal.opcoes?.botao ?? "Excluir"}
           </button>
         </div>
       </div>

@@ -6199,3 +6199,8 @@ Desenho: página "5. Demais telas" do canvas Layouts FARO, quadro "Manutenção:
 - `creditoDaFrase` não mostra mais fontes que só dizem a origem (print, lista colada): autor/fonte desconhecidos ficam em branco, no cartão e na notificação.
 - Banco: +34 itens do Ted Lasso/Bruce Lee/filhos/corrida (pendentes) e 6 perguntas ruins arquivadas (não apagadas).
 - Falta testar em aparelho real (push + tela cheia). Aguardando a exportação do outro app.
+
+## Metanoia: janela de horário, aprovar sem "excluir" e "não aparecer mais" (27/10)
+- Horários: em vez de escolher cada hora, a pessoa escolhe quantas por dia e "a partir das / até as"; o FARO espalha por igual (`horariosDaJanela` em `lib/metanoia.ts`, usado no app e no servidor). Colunas novas `settings.metanoia_inicio/fim` e `metanoia_perguntas_inicio/fim`; as antigas `*_horarios` ficaram no banco sem uso.
+- `askConfirm` aceita `{titulo, botao, perigo}`; antes toda confirmação dizia "Confirmar exclusão / Excluir", inclusive "Aprovar todas".
+- Cartão da home, tela cheia e bloco "Hoje" ganharam "Não aparecer mais" (pergunta "Tem certeza que quer excluir…", arquiva a frase). Arquivar, e não apagar, impede que a mesma frase volte numa importação.

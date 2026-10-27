@@ -4,10 +4,8 @@ export const NOME_DA_METANOIA = "Metanoia";
 
 /** Quantas frases por dia a pessoa pode pedir, e os horários que valem para cada quantidade. */
 export const MAX_FRASES_POR_DIA = 3;
-export const HORARIOS_PADRAO = ["09:00", "14:00", "20:00"];
 /** Perguntas poderosas: até 2 por dia, em horários próprios (as frases não ocupam esses horários). */
 export const MAX_PERGUNTAS_POR_DIA = 2;
-export const HORARIOS_PERGUNTAS_PADRAO = ["12:00", "18:00"];
 
 /** Fontes que só dizem de onde o texto veio para o FARO (print, lista colada): não são crédito de ninguém. */
 const FONTE_SO_DE_ORIGEM = /^(prints?\b|lista colada|texto colado)/i;
@@ -40,18 +38,36 @@ export function fraseDaVez(frases: MetanoiaFrase[], diaISO: string, horario = 0,
   return fila[((posicao % fila.length) + fila.length) % fila.length];
 }
 
-/** Os horários que valem agora: os primeiros `vezes` da lista, em ordem. */
-export function horariosEmUso(vezes: number, horarios: string[]): string[] {
-  const n = Math.min(MAX_FRASES_POR_DIA, Math.max(0, Math.round(vezes)));
-  const lista = horarios.length ? horarios : HORARIOS_PADRAO;
-  return lista.slice(0, n);
+function paraMinutos(h: string): number {
+  const [hh, mm] = h.split(":").map(Number);
+  return hh * 60 + mm;
+}
+
+function deMinutos(m: number): string {
+  return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+}
+
+/**
+ * Os horários do dia: `vezes` mensagens espalhadas por igual entre o início e o fim (a primeira no início, a
+ * última no fim, de 5 em 5 minutos). Uma só sai no início. Fim antes do início vira só o início.
+ */
+export function horariosDaJanela(vezes: number, inicio: string, fim: string, max: number): string[] {
+  const n = Math.min(max, Math.max(0, Math.round(vezes)));
+  const a = paraMinutos(inicio);
+  const b = paraMinutos(fim);
+  if (n === 0 || !Number.isFinite(a)) return [];
+  if (n === 1 || !Number.isFinite(b) || b <= a) return [deMinutos(a)];
+  const lista = Array.from({ length: n }, (_, i) => (i === n - 1 ? b : Math.round((a + ((b - a) * i) / (n - 1)) / 5) * 5));
+  return [...new Set(lista)].map(deMinutos);
+}
+
+export function horariosEmUso(vezes: number, inicio: string, fim: string): string[] {
+  return horariosDaJanela(vezes, inicio, fim, MAX_FRASES_POR_DIA);
 }
 
 /** Igual a `horariosEmUso`, para as perguntas. */
-export function horariosDePerguntasEmUso(vezes: number, horarios: string[]): string[] {
-  const n = Math.min(MAX_PERGUNTAS_POR_DIA, Math.max(0, Math.round(vezes)));
-  const lista = horarios.length ? horarios : HORARIOS_PERGUNTAS_PADRAO;
-  return lista.slice(0, n);
+export function horariosDePerguntasEmUso(vezes: number, inicio: string, fim: string): string[] {
+  return horariosDaJanela(vezes, inicio, fim, MAX_PERGUNTAS_POR_DIA);
 }
 
 export interface FraseSeparada {

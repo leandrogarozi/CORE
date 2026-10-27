@@ -36,8 +36,8 @@ function emDestaqueAgora(frases: MetanoiaFrase[], s: Settings): MetanoiaFrase | 
   const emMin = (h: string) => Number(h.slice(0, 2)) * 60 + Number(h.slice(3, 5));
   let melhor: { quando: number; tipo: MetanoiaTipo; slot: number } = { quando: -1, tipo: "frase", slot: 0 };
   const grupos: [MetanoiaTipo, string[]][] = [
-    ["frase", horariosEmUso(s.metanoiaVezes, s.metanoiaHorarios)],
-    ["pergunta", horariosDePerguntasEmUso(s.metanoiaPerguntasVezes, s.metanoiaPerguntasHorarios)],
+    ["frase", horariosEmUso(s.metanoiaVezes, s.metanoiaInicio, s.metanoiaFim)],
+    ["pergunta", horariosDePerguntasEmUso(s.metanoiaPerguntasVezes, s.metanoiaPerguntasInicio, s.metanoiaPerguntasFim)],
   ];
   for (const [tipo, horarios] of grupos) {
     horarios.forEach((h, slot) => {
@@ -62,7 +62,7 @@ function rotulo(tipo: MetanoiaTipo) {
  * (`?ver=metanoia`) vê a frase em tela cheia; tocar em qualquer lugar fecha e deixa o painel.
  */
 export function FraseDoDia({ onAbrir, telaCheia = false, onFecharTelaCheia }: { onAbrir: () => void; telaCheia?: boolean; onFecharTelaCheia?: () => void }) {
-  const { board } = useBoardCtx();
+  const { board, askConfirm } = useBoardCtx();
   const f = emDestaqueAgora(board.state.metanoiaFrases, board.state.settings);
   const tema = useTemaDoCartao(board.state.settings.metanoiaTema);
   const [fechada, setFechada] = useState<string | null>(null);
@@ -85,6 +85,13 @@ export function FraseDoDia({ onAbrir, telaCheia = false, onFecharTelaCheia }: { 
     } catch {}
   }
 
+  function naoAparecerMais() {
+    askConfirm(
+      f!.tipo === "pergunta" ? "Tem certeza que quer excluir essa pergunta? Ela não aparece mais." : "Tem certeza que quer excluir essa frase? Ela não aparece mais.",
+      () => board.updateMetanoiaFrase(f!.id, { status: "arquivada" })
+    );
+  }
+
   if (telaCheia) {
     return (
       <div className={"meta-cheia " + tema} role="dialog" aria-label="Metanoia" onClick={onFecharTelaCheia}>
@@ -102,6 +109,15 @@ export function FraseDoDia({ onAbrir, telaCheia = false, onFecharTelaCheia }: { 
             }}
           >
             <HeartIcon filled={f.favorita} /> {f.favorita ? "Favorita" : "Favoritar"}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              naoAparecerMais();
+            }}
+          >
+            Não aparecer mais
           </button>
           <span>Toque para fechar</span>
         </div>
@@ -123,6 +139,9 @@ export function FraseDoDia({ onAbrir, telaCheia = false, onFecharTelaCheia }: { 
       <div className="meta-cartao-acoes">
         <button type="button" onClick={() => board.updateMetanoiaFrase(f.id, { favorita: !f.favorita })}>
           <HeartIcon filled={f.favorita} /> {f.favorita ? "Favorita" : "Favoritar"}
+        </button>
+        <button type="button" onClick={naoAparecerMais}>
+          Não aparecer mais
         </button>
         <button type="button" onClick={onAbrir}>
           Abrir

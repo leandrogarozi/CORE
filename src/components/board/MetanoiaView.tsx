@@ -8,16 +8,7 @@ import { CheckIcon, EditIcon, HeartIcon, TrashIcon } from "./icons";
 import { MicButton } from "./MicButton";
 import { ImportarFrases } from "./ImportarFrases";
 import { todayISO } from "@/lib/date-utils";
-import {
-  creditoDaFrase,
-  fraseDaVez,
-  horariosDePerguntasEmUso,
-  horariosEmUso,
-  HORARIOS_PADRAO,
-  HORARIOS_PERGUNTAS_PADRAO,
-  MAX_FRASES_POR_DIA,
-  MAX_PERGUNTAS_POR_DIA,
-} from "@/lib/metanoia";
+import { creditoDaFrase, fraseDaVez, horariosDePerguntasEmUso, horariosEmUso } from "@/lib/metanoia";
 import type { MetanoiaFrase, MetanoiaOrigem, MetanoiaTipo } from "@/lib/types";
 
 type Aba = "aprovadas" | "favoritas" | "revisar";
@@ -28,6 +19,25 @@ const ROTULO_DA_ORIGEM: Record<MetanoiaOrigem, string> = {
   print: "De print",
   ia: "Da minha IA",
 };
+
+/** "A partir das __ até as __" e onde cada mensagem cai, espalhadas por igual entre os dois horários. */
+function Janela({ inicio, fim, horarios, onInicio, onFim }: { inicio: string; fim: string; horarios: string[]; onInicio: (v: string) => void; onFim: (v: string) => void }) {
+  return (
+    <>
+      <div className="meta-janela">
+        <span>A partir das</span>
+        <TimePicker value={inicio} onChange={onInicio} />
+        {horarios.length > 1 && (
+          <>
+            <span>até as</span>
+            <TimePicker value={fim} onChange={onFim} />
+          </>
+        )}
+      </div>
+      <span className="hint-text">Chega às {horarios.join(" · ")}.</span>
+    </>
+  );
+}
 
 function Cartao({ frase, aprovando }: { frase: MetanoiaFrase; aprovando: boolean }) {
   const { board, askConfirm } = useBoardCtx();
@@ -97,9 +107,9 @@ function Cartao({ frase, aprovando }: { frase: MetanoiaFrase; aprovando: boolean
           <button
             type="button"
             className="icon-btn danger-hover"
-            title="Não mostrar mais"
-            aria-label="Tirar da rotação"
-            onClick={() => askConfirm(frase.tipo === "pergunta" ? "Tirar essa pergunta da Metanoia? Ela some da lista e dos avisos." : "Tirar essa frase da Metanoia? Ela some da lista e dos lembretes.", () => board.updateMetanoiaFrase(frase.id, { status: "arquivada" }))}
+            title="Não aparecer mais"
+            aria-label="Não aparecer mais"
+            onClick={() => askConfirm(frase.tipo === "pergunta" ? "Tem certeza que quer excluir essa pergunta? Ela não aparece mais." : "Tem certeza que quer excluir essa frase? Ela não aparece mais.", () => board.updateMetanoiaFrase(frase.id, { status: "arquivada" }))}
           >
             <TrashIcon />
           </button>
@@ -128,10 +138,8 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
   const hoje = todayISO();
   const daVez = fraseDaVez(frases, hoje, 0, tipo);
   const emDestaque = outra && aprovadas.some((f) => f.id === outra.id) ? aprovadas.find((f) => f.id === outra.id)! : daVez;
-  const horarios = horariosEmUso(s.metanoiaVezes, s.metanoiaHorarios);
-  const todosHorarios = [...s.metanoiaHorarios, ...HORARIOS_PADRAO].slice(0, MAX_FRASES_POR_DIA);
-  const horariosDasPerguntas = horariosDePerguntasEmUso(s.metanoiaPerguntasVezes, s.metanoiaPerguntasHorarios);
-  const todosHorariosDasPerguntas = [...s.metanoiaPerguntasHorarios, ...HORARIOS_PERGUNTAS_PADRAO].slice(0, MAX_PERGUNTAS_POR_DIA);
+  const horarios = horariosEmUso(s.metanoiaVezes, s.metanoiaInicio, s.metanoiaFim);
+  const horariosDasPerguntas = horariosDePerguntasEmUso(s.metanoiaPerguntasVezes, s.metanoiaPerguntasInicio, s.metanoiaPerguntasFim);
 
   function sortearOutra() {
     // A próxima da lista depois da que está na tela (volta ao começo no fim).
@@ -146,18 +154,6 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
       setNovo("");
       setNovoAutor("");
     }
-  }
-
-  function trocarHorario(i: number, v: string) {
-    const lista = [...todosHorarios];
-    lista[i] = v;
-    board.updateSettings({ metanoiaHorarios: lista });
-  }
-
-  function trocarHorarioDePergunta(i: number, v: string) {
-    const lista = [...todosHorariosDasPerguntas];
-    lista[i] = v;
-    board.updateSettings({ metanoiaPerguntasHorarios: lista });
   }
 
   const base = aba === "revisar" ? pendentes : aba === "favoritas" ? aprovadas.filter((f) => f.favorita) : aprovadas;
@@ -207,6 +203,18 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
                 <button type="button" className="btn btn-ghost" disabled={aprovadas.length < 2} onClick={sortearOutra}>
                   Outra
                 </button>
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() =>
+                    askConfirm(ehPergunta ? "Tem certeza que quer excluir essa pergunta? Ela não aparece mais." : "Tem certeza que quer excluir essa frase? Ela não aparece mais.", () => {
+                      setOutra(null);
+                      board.updateMetanoiaFrase(emDestaque.id, { status: "arquivada" });
+                    })
+                  }
+                >
+                  Não aparecer mais
+                </button>
                 <button type="button" className="btn btn-ghost" onClick={() => navigator.clipboard?.writeText(emDestaque.texto + (emDestaque.autor ? ` — ${emDestaque.autor}` : ""))}>
                   Copiar
                 </button>
@@ -237,11 +245,13 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
                 ))}
               </div>
               {horariosDasPerguntas.length > 0 && (
-                <div className="meta-horarios">
-                  {horariosDasPerguntas.map((h, i) => (
-                    <TimePicker key={i} value={h} onChange={(v) => trocarHorarioDePergunta(i, v)} />
-                  ))}
-                </div>
+                <Janela
+                  inicio={s.metanoiaPerguntasInicio}
+                  fim={s.metanoiaPerguntasFim}
+                  horarios={horariosDasPerguntas}
+                  onInicio={(v) => board.updateSettings({ metanoiaPerguntasInicio: v })}
+                  onFim={(v) => board.updateSettings({ metanoiaPerguntasFim: v })}
+                />
               )}
             </>
           ) : (
@@ -259,11 +269,13 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
                 ))}
               </div>
               {horarios.length > 0 && (
-                <div className="meta-horarios">
-                  {horarios.map((h, i) => (
-                    <TimePicker key={i} value={h} onChange={(v) => trocarHorario(i, v)} />
-                  ))}
-                </div>
+                <Janela
+                  inicio={s.metanoiaInicio}
+                  fim={s.metanoiaFim}
+                  horarios={horarios}
+                  onInicio={(v) => board.updateSettings({ metanoiaInicio: v })}
+                  onFim={(v) => board.updateSettings({ metanoiaFim: v })}
+                />
               )}
             </>
           )}
@@ -337,8 +349,11 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
               type="button"
               className="btn btn-ghost"
               onClick={() =>
-                askConfirm(`Aprovar as ${lista.length} ${ehPergunta ? "perguntas" : "frases"} mostradas? Dá para tirar uma por uma depois.`, () =>
-                  lista.forEach((f) => board.updateMetanoiaFrase(f.id, { status: "aprovada" }))
+                askConfirm(
+                  `Aprovar as ${lista.length} ${ehPergunta ? "perguntas" : "frases"} mostradas? Dá para tirar uma por uma depois.`,
+                  () => lista.forEach((f) => board.updateMetanoiaFrase(f.id, { status: "aprovada" })),
+                  undefined,
+                  { titulo: "Aprovar todas", botao: "Aprovar todas", perigo: false }
                 )
               }
             >

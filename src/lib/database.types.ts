@@ -1064,6 +1064,10 @@ export type Database = {
           daily_budget_hours: number
           diet_app_opt_in: boolean
           metanoia_horarios: string[]
+          metanoia_inicio: string
+          metanoia_fim: string
+          metanoia_perguntas_inicio: string
+          metanoia_perguntas_fim: string
           metanoia_push: boolean
           metanoia_tema: string
           metanoia_perguntas_horarios: string[]
@@ -1100,6 +1104,10 @@ export type Database = {
           daily_budget_hours?: number
           diet_app_opt_in?: boolean
           metanoia_horarios?: string[]
+          metanoia_inicio?: string
+          metanoia_fim?: string
+          metanoia_perguntas_inicio?: string
+          metanoia_perguntas_fim?: string
           metanoia_push?: boolean
           metanoia_tema?: string
           metanoia_perguntas_horarios?: string[]
@@ -1136,6 +1144,10 @@ export type Database = {
           daily_budget_hours?: number
           diet_app_opt_in?: boolean
           metanoia_horarios?: string[]
+          metanoia_inicio?: string
+          metanoia_fim?: string
+          metanoia_perguntas_inicio?: string
+          metanoia_perguntas_fim?: string
           metanoia_push?: boolean
           metanoia_tema?: string
           metanoia_perguntas_horarios?: string[]

@@ -16,6 +16,14 @@ interface ConfirmModalState {
   question: string;
   onConfirm: (() => void) | null;
   icon: ReactElement | null;
+  opcoes: ConfirmOpcoes | null;
+}
+
+/** Por padrão a confirmação é de exclusão; outras ações (aprovar, enviar) trocam o título e o botão. */
+export interface ConfirmOpcoes {
+  titulo?: string;
+  botao?: string;
+  perigo?: boolean;
 }
 
 export interface FocusRequest {
@@ -30,7 +38,7 @@ interface BoardCtxValue {
   askScope: (question: string, onChoose: (choice: ScopeChoice) => void) => void;
   scopeModal: ScopeModalState;
   closeScopeModal: () => void;
-  askConfirm: (question: string, onConfirm: () => void, icon?: ReactElement) => void;
+  askConfirm: (question: string, onConfirm: () => void, icon?: ReactElement, opcoes?: ConfirmOpcoes) => void;
   confirmModal: ConfirmModalState;
   closeConfirmModal: () => void;
   columns: UseColumnWidths;
@@ -56,6 +64,7 @@ export function BoardProvider({ userId, children }: { userId: string; children: 
     question: "",
     onConfirm: null,
     icon: null,
+    opcoes: null,
   });
   const columns = useColumnWidths();
 
@@ -76,12 +85,12 @@ export function BoardProvider({ userId, children }: { userId: string; children: 
     setScopeModal({ open: false, question: "", onChoose: null });
   }, []);
 
-  const askConfirm = useCallback((question: string, onConfirm: () => void, icon?: ReactElement) => {
-    setConfirmModal({ open: true, question, onConfirm, icon: icon ?? null });
+  const askConfirm = useCallback((question: string, onConfirm: () => void, icon?: ReactElement, opcoes?: ConfirmOpcoes) => {
+    setConfirmModal({ open: true, question, onConfirm, icon: icon ?? null, opcoes: opcoes ?? null });
   }, []);
 
   const closeConfirmModal = useCallback(() => {
-    setConfirmModal({ open: false, question: "", onConfirm: null, icon: null });
+    setConfirmModal({ open: false, question: "", onConfirm: null, icon: null, opcoes: null });
   }, []);
 
   const [openProjectHandler, setOpenProjectHandler] = useState<((id: string) => void) | null>(null);
