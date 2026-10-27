@@ -11,6 +11,7 @@ import { todayISO } from "@/lib/date-utils";
 import { creditoDaFrase, fraseDaVez, fraseEmDestaque, horariosDePerguntasEmUso, horariosEmUso, MAX_FRASES_POR_DIA, MAX_PERGUNTAS_POR_DIA, vezesPorDia } from "@/lib/metanoia";
 import { useTemaDoCartao } from "./use-tema-metanoia";
 import type { MetanoiaFrase, MetanoiaOrigem, MetanoiaTipo } from "@/lib/types";
+import { TutorialLink } from "./TutorialLink";
 
 type Aba = "aprovadas" | "favoritas" | "revisar" | "naolistadas";
 
@@ -226,7 +227,7 @@ export function MetanoiaView({ onBack, alvo }: { onBack: () => void; alvo?: { id
           ‹
         </button>
         <span className="dash-range-label">Metanoia</span>
-        <span style={{ width: 32 }} />
+        <TutorialLink secao="metanoia" />
       </div>
 
       <div className="narrow-list">

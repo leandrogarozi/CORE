@@ -11,6 +11,7 @@ import { DAY_NAMES, daysBetweenInclusive, fmtShortDate, isoAddDays, todayISO } f
 import { useClampedPopoverPos } from "@/lib/board/use-clamped-popover-pos";
 import { horarioDaMedicacao, temposDaMedicacao } from "@/lib/board/zap-engine";
 import type { Medication, MedicationGroup } from "@/lib/types";
+import { TutorialLink } from "./TutorialLink";
 
 function scheduleLabel(
   time: string | null,
@@ -515,7 +516,7 @@ export function MedicationsView({ onBack }: { onBack: () => void }) {
           ‹
         </button>
         <span className="dash-range-label">Medicamentos</span>
-        <span style={{ width: 32 }} />
+        <TutorialLink secao="medicamentos" />
       </div>
 
       <div className="narrow-list">

@@ -13,6 +13,7 @@ import {
 import { arquivoDoConhecimento } from "@/lib/learning-export";
 import { baixarTexto, soONome } from "@/lib/baixar";
 import type { KnowledgeItem } from "@/lib/types";
+import { TutorialLink } from "./TutorialLink";
 
 type ResumoGuardado = { resumo: string | null; em: string | null };
 
@@ -273,7 +274,7 @@ export function ConhecendoView({ onBack }: { onBack: () => void }) {
           ‹
         </button>
         <span className="dash-range-label">Conhecendo você</span>
-        <span style={{ width: 32 }} />
+        <TutorialLink secao="conhecendo" />
       </div>
 
       <div className={"narrow-list" + (wide ? " list-xl" : "")}>

@@ -12,6 +12,7 @@ import { baixarTexto, soONome } from "@/lib/baixar";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { stripHtml } from "@/lib/rich-text";
 import type { Synapse } from "@/lib/types";
+import { TutorialLink } from "./TutorialLink";
 
 function fmtDate(iso: string) {
   return `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}`;
@@ -221,7 +222,7 @@ export function SynapsesView({ onBack }: { onBack: () => void }) {
           ‹
         </button>
         <span className="dash-range-label">Novas Sinapses</span>
-        <span style={{ width: 32 }} />
+        <TutorialLink secao="sinapses" />
       </div>
 
       <div className={"narrow-list" + (wide ? " list-xl" : "")}>

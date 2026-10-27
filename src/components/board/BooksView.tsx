@@ -26,6 +26,7 @@ import { stripHtml } from "@/lib/rich-text";
 import { listaReordenada } from "@/lib/board/reordenar";
 import { arquivoDoLivro } from "@/lib/learning-export";
 import { baixarTexto, soONome } from "@/lib/baixar";
+import { TutorialLink } from "./TutorialLink";
 import {
   BOOK_KIND_INFO,
   BOOK_KIND_ORDER,
@@ -574,7 +575,7 @@ export function BooksView({ onBack }: { onBack: () => void }) {
           ‹
         </button>
         <span className="dash-range-label">Livros / Filmes e séries</span>
-        <span style={{ width: 32 }} />
+        <TutorialLink secao="livros" />
       </div>
 
       <div className="narrow-list">

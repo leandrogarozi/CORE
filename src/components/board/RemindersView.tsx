@@ -34,6 +34,7 @@ import {
 } from "@/lib/board/reminder-alerts";
 import type { Reminder, ReminderStatus, Repeat } from "@/lib/types";
 import { DateField } from "./DateField";
+import { TutorialLink } from "./TutorialLink";
 
 const REPEATS: { v: Repeat; l: string }[] = [
   { v: "none", l: "Não repete" },
@@ -1053,7 +1054,7 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
           ‹
         </button>
         <span className="dash-range-label">Lembretes</span>
-        <span style={{ width: 32 }} />
+        <TutorialLink secao="lembretes" />
       </div>
 
       <div className="narrow-list reminders-wide">

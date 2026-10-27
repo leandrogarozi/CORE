@@ -26,6 +26,7 @@ import { todayISO } from "@/lib/date-utils";
 import { DIAS_DE_AVISO_DO_ANIVERSARIO } from "./AniversariosButton";
 import { useNaoEnviar } from "@/lib/cadastro/use-cadastro";
 import type { Birthday, BirthdayPhrase } from "@/lib/types";
+import { TutorialLink } from "./TutorialLink";
 
 type Filtro = "todos" | "aguardando" | Birthday["category"];
 
@@ -423,7 +424,7 @@ export function BirthdaysView({ onBack }: { onBack: () => void }) {
           ‹
         </button>
         <span className="dash-range-label">Aniversários</span>
-        <span style={{ width: 32 }} />
+        <TutorialLink secao="aniversarios" />
       </div>
 
       <div className={"narrow-list" + (wide ? " list-xl" : "")}>

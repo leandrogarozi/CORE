@@ -9,6 +9,7 @@ import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { constanciaDoEstudo, studyPlanMath, tempoPorModulo } from "@/lib/board/study-plan";
 import { fmtHM, fmtShortDate, fmtTempoCurto, todayISO } from "@/lib/date-utils";
 import type { StudyModule, StudyPlan } from "@/lib/types";
+import { TutorialLink } from "./TutorialLink";
 
 const DIAS = [
   { v: 0, l: "D" },
@@ -475,7 +476,7 @@ export function StudyPlansView({ onBack }: { onBack: () => void }) {
           ‹
         </button>
         <span className="dash-range-label">Plano de Estudo</span>
-        <span style={{ width: 32 }} />
+        <TutorialLink secao="estudo" />
       </div>
 
       <div className={"narrow-list" + (wide ? " list-xl" : "")}>

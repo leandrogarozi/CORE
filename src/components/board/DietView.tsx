@@ -8,6 +8,7 @@ import { TimePicker } from "./TimePicker";
 import { DAY_NAMES } from "@/lib/date-utils";
 import type { DietMeal } from "@/lib/types";
 import type { UseBoard } from "@/lib/board/use-board";
+import { TutorialLink } from "./TutorialLink";
 
 function diasDaRefeicao(weekDays: number[] | null): string {
   if (!weekDays || weekDays.length === 0 || weekDays.length === 7) return "todos os dias";
@@ -192,7 +193,7 @@ export function DietView({ onBack }: { onBack: () => void }) {
           ‹
         </button>
         <span className="dash-range-label">Dieta</span>
-        <span style={{ width: 32 }} />
+        <TutorialLink secao="dieta" />
       </div>
 
       <div className="narrow-list">

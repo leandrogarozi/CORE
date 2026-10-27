@@ -10,6 +10,7 @@ import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { compraPendente, textoDaLista } from "@/lib/board/compras";
 import { fmtShortDate, todayISO } from "@/lib/date-utils";
 import type { ShoppingItem } from "@/lib/types";
+import { TutorialLink } from "./TutorialLink";
 
 type Aba = "compra" | "desejo";
 
@@ -509,7 +510,7 @@ export function ComprasView({ onBack }: { onBack: () => void }) {
           ‹
         </button>
         <span className="dash-range-label">Compras</span>
-        <span style={{ width: 32 }} />
+        <TutorialLink secao="compras" />
       </div>
 
       <div className={"narrow-list" + (wide ? " list-xl" : "")}>

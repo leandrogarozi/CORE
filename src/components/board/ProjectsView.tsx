@@ -17,6 +17,7 @@ import {
 import { RichTextEditor } from "./RichTextEditor";
 import { fmtHM, fmtShortDate } from "@/lib/date-utils";
 import { CATEGORY_LABEL, PROJECT_NAMING_TEMPLATE_DEFAULT, type Category, type Project } from "@/lib/types";
+import { TutorialLink } from "./TutorialLink";
 
 const CATEGORIES = Object.keys(CATEGORY_LABEL) as Category[];
 
@@ -116,7 +117,7 @@ function ProjectListView({ onBack, onOpen }: { onBack: () => void; onOpen: (id: 
           ‹
         </button>
         <span className="dash-range-label">Projetos</span>
-        <span style={{ width: 32 }} />
+        <TutorialLink secao="projetos" />
       </div>
 
       <div className="narrow-list">

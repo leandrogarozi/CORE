@@ -9,6 +9,7 @@ import { useDictation } from "@/lib/board/use-dictation";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import type { SynapseTag } from "@/lib/types";
 import { corpoDaIdeia, tituloDaIdeia } from "@/lib/board/ideias";
+import { TutorialLink } from "./TutorialLink";
 
 // Ideias (insights): teve uma ideia, joga rápido no FARO. Por voz: clica, fala,
 // para, e o FARO guarda com um título provisório (a IA refina depois). Ou à mão:
@@ -77,7 +78,7 @@ export function IdeasView({ onBack }: { onBack: () => void }) {
           ‹
         </button>
         <span className="dash-range-label">Ideias e Estudos</span>
-        <span style={{ width: 32 }} />
+        <TutorialLink secao="ideias" />
       </div>
 
       <div className={"narrow-list" + (wide ? " list-xl" : "")}>

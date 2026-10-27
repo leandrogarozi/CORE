@@ -21,6 +21,7 @@ import { fmtShortDate, todayISO } from "@/lib/date-utils";
 import type { Checklist, ChecklistExpense, ChecklistItem } from "@/lib/types";
 import type { UseBoard } from "@/lib/board/use-board";
 import { listaReordenada } from "@/lib/board/reordenar";
+import { TutorialLink } from "./TutorialLink";
 
 function uid(): string {
   return crypto.randomUUID();
@@ -646,7 +647,7 @@ export function ChecklistsView({ onBack }: { onBack: () => void }) {
           ‹
         </button>
         <span className="dash-range-label">Checklists</span>
-        <span style={{ width: 32 }} />
+        <TutorialLink secao="checklists" />
       </div>
 
       <div className="hint-text" style={{ marginBottom: 12 }}>

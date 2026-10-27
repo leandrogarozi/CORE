@@ -61,6 +61,7 @@ import { ToggleSwitch } from "./ToggleSwitch";
 import { CATEGORY_LABEL, isFeatureEnabled, type Category, type TaskStatus } from "@/lib/types";
 import type { UseBoard } from "@/lib/board/use-board";
 import { GRUPOS_DO_MENU, menuLigado } from "./Sidebar";
+import { TutorialLink } from "./TutorialLink";
 
 const CATEGORIES = Object.keys(CATEGORY_LABEL) as Category[];
 
@@ -2115,7 +2116,7 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
           ‹
         </button>
         <span className="dash-range-label">Configurações</span>
-        <span style={{ width: 32 }} />
+        <TutorialLink secao="configuracoes" />
       </div>
 
       {/* Trilho de grupos à esquerda e, ao lado, os blocos de cada grupo (pedido de 22/10:

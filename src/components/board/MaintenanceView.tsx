@@ -19,6 +19,7 @@ import {
 import { fmtShortDate, isoAddDays, todayISO } from "@/lib/date-utils";
 import { fmtBRL, parseAmountToCents } from "@/lib/money";
 import type { MaintenanceAsset, MaintenanceItem, MaintenanceService } from "@/lib/types";
+import { TutorialLink } from "./TutorialLink";
 
 const KIND_LABEL: Record<MaintenanceAsset["kind"], string> = {
   veiculo: "Veículo",
@@ -1052,7 +1053,7 @@ export function MaintenanceView({ onBack }: { onBack: () => void }) {
           ‹
         </button>
         <span className="dash-range-label">Manutenção</span>
-        <span style={{ width: 32 }} />
+        <TutorialLink secao="manutencao" />
       </div>
 
       <div className={"narrow-list" + (wide ? " list-xl" : "")}>

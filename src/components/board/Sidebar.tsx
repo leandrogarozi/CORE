@@ -28,6 +28,7 @@ export type ViewMode =
   | "projects"
   | "meetings"
   | "metanoia"
+  | "tutorial"
   | "trash";
 
 type ItemDoMenu = {
@@ -165,6 +166,13 @@ export function Sidebar({
             onClick={() => onSelect("trash")}
           >
             <TrashIcon /> Lixeira
+          </button>
+          <button
+            type="button"
+            className={"sidebar-item" + (viewMode === "tutorial" ? " active" : "")}
+            onClick={() => onSelect("tutorial")}
+          >
+            <BookOpenIcon /> Como usar
           </button>
           <button type="button" className="sidebar-item" onClick={onFeedback}>
             <CommentIcon /> Canal de feedback

@@ -35,6 +35,7 @@ import { CadastrosView } from "./CadastrosView";
 import { ClientesView } from "./ClientesView";
 import { ConhecendoView } from "./ConhecendoView";
 import { MetanoiaView } from "./MetanoiaView";
+import { TutorialView } from "./TutorialView";
 import { FraseDoDia } from "./FraseDoDia";
 import { StudyPlansView } from "./StudyPlansView";
 import { MaintenanceView } from "./MaintenanceView";
@@ -90,6 +91,16 @@ function BoardShell() {
   }
 
   // A notificação da Metanoia abre o app com a frase em tela cheia (?ver=metanoia); tocar fecha e deixa o painel.
+  // O "?" de cada tela abre o Tutorial já no assunto dela.
+  const [tutorialSecao, setTutorialSecao] = useState<string | null>(null);
+  useEffect(() => {
+    function abrir(e: Event) {
+      setTutorialSecao(String((e as CustomEvent).detail ?? ""));
+      setViewMode("tutorial");
+    }
+    window.addEventListener("faro:tutorial", abrir);
+    return () => window.removeEventListener("faro:tutorial", abrir);
+  }, []);
   const [metaCheia, setMetaCheia] = useState(false);
   // Frase do cartão da tela inicial que a pessoa quis abrir (ou editar) na Metanoia.
   const [metaAlvo, setMetaAlvo] = useState<{ id: string; editar: boolean } | null>(null);
@@ -383,6 +394,8 @@ function BoardShell() {
         <SynapsesView onBack={() => setViewMode("day")} />
       ) : viewMode === "ideias" ? (
         <IdeasView onBack={() => setViewMode("day")} />
+      ) : viewMode === "tutorial" ? (
+        <TutorialView onBack={() => { setTutorialSecao(null); setViewMode("day"); }} secao={tutorialSecao} />
       ) : viewMode === "metanoia" ? (
         <MetanoiaView key={metaAlvo ? `${metaAlvo.id}-${metaAlvo.editar}` : "livre"} alvo={metaAlvo} onBack={() => { setMetaAlvo(null); setViewMode("day"); }} />
       ) : viewMode === "conhecendo" ? (
