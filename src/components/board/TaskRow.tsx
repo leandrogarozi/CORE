@@ -48,6 +48,7 @@ import { countOpenChecklistItems } from "@/lib/rich-text";
 import { CATEGORY_LABEL, faltaTagReuniao, isMeetingTask, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
 import { oZapVaiSair } from "@/lib/board/reminder-alerts";
 import type { TaskEditFields } from "@/lib/board/use-board";
+import { DateField } from "./DateField";
 
 const CATEGORIES = Object.keys(CATEGORY_LABEL) as Category[];
 const PRIORITIES: { v: Priority; l: string }[] = [
@@ -631,11 +632,11 @@ function TaskWhenButton({ date, time, endDate, endTime, onSave }: TaskWhenFields
             <div className="edit-field">
               <span className="edit-field-label">Início</span>
               <div className="reminder-datetime-row">
-                <input
-                  type="date"
+                <DateField
                   autoFocus
+                  ariaLabel="Data de início"
                   value={dateDraft}
-                  onChange={(e) => setDateDraft(e.target.value)}
+                  onChange={setDateDraft}
                   onKeyDown={(e) => e.key === "Escape" && setAnchorRect(null)}
                 />
                 <TimePicker value={timeDraft} onChange={setTimeDraft} onClear={() => setTimeDraft("")} />
@@ -656,7 +657,7 @@ function TaskWhenButton({ date, time, endDate, endTime, onSave }: TaskWhenFields
             <div className="edit-field">
               <span className="edit-field-label">Fim (opcional — evento que passa de um dia)</span>
               <div className="reminder-datetime-row">
-                <input type="date" value={endDateDraft} onChange={(e) => setEndDateDraft(e.target.value)} />
+                <DateField ariaLabel="Data de fim" value={endDateDraft} onChange={setEndDateDraft} />
                 <TimePicker value={endTimeDraft} onChange={setEndTimeDraft} onClear={() => setEndTimeDraft("")} />
                 <button
                   type="button"
@@ -793,13 +794,7 @@ function TaskTimeButton({ taskId }: { taskId: string }) {
               />
             ))}
             <div className="task-time-row task-time-add">
-              <input
-                type="date"
-                className="task-time-date"
-                value={newDate}
-                aria-label="Dia do lançamento"
-                onChange={(e) => setNewDate(e.target.value)}
-              />
+              <DateField className="task-time-date" ariaLabel="Dia do lançamento" value={newDate} onChange={setNewDate} />
               <MinutesPicker
                 minutes={newMinutes}
                 onChange={setNewMinutes}

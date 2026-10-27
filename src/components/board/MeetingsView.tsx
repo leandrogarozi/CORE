@@ -11,6 +11,7 @@ import { countOpenChecklistItems } from "@/lib/rich-text";
 import { agruparReunioes, dataDaReuniao } from "@/lib/board/reunioes";
 import { fmtDayMonth, todayISO } from "@/lib/date-utils";
 import { entraEmReunioes, type Task } from "@/lib/types";
+import { DateField } from "./DateField";
 
 const NO_CLIENT_LABEL = "Sem cliente";
 
@@ -179,7 +180,7 @@ export function MeetingsView({ onBack }: { onBack: () => void }) {
                 <option key={c} value={c} />
               ))}
             </datalist>
-            <input type="date" value={data} aria-label="Dia da reunião" onChange={(e) => setData(e.target.value)} />
+            <DateField value={data} ariaLabel="Dia da reunião" onChange={setData} />
             <TimePicker value={hora} onChange={setHora} onClear={() => setHora("")} placeholder="hora" />
             <button type="button" className="btn btn-accent" disabled={!titulo.trim() || !data} onClick={criarReuniao}>
               Criar reunião

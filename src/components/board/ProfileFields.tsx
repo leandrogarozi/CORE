@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useMemo, useRef, useState } from "react";
 import { UserIcon } from "./icons";
 import type { UseBoard } from "@/lib/board/use-board";
+import { DateField } from "./DateField";
 
 const BRAZIL_TIMEZONES = [
   "America/Sao_Paulo",
@@ -140,11 +141,11 @@ export function ProfileFields({ board }: { board: UseBoard }) {
         </div>
         <div className="settings-row-standalone">
           <span className="settings-label">Data de nascimento</span>
-          <input
-            type="date"
+          <DateField
             className="budget-input"
-            value={board.state.settings.birthDate ?? ""}
-            onChange={(e) => board.updateSettings({ birthDate: e.target.value || null })}
+            ariaLabel="Data de nascimento"
+            value={board.state.settings.birthDate}
+            onChange={(iso) => board.updateSettings({ birthDate: iso || null })}
           />
         </div>
       </div>

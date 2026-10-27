@@ -33,6 +33,7 @@ import {
   reminderTargetMs,
 } from "@/lib/board/reminder-alerts";
 import type { Reminder, ReminderStatus, Repeat } from "@/lib/types";
+import { DateField } from "./DateField";
 
 const REPEATS: { v: Repeat; l: string }[] = [
   { v: "none", l: "Não repete" },
@@ -221,11 +222,11 @@ export function ReminderDateButton({
         createPortal(
           <div className="daylog-popover" ref={popRef} style={{ top: pos.top, left: pos.left }}>
             <div className="reminder-datetime-row">
-              <input
-                type="date"
+              <DateField
                 autoFocus
+                ariaLabel="Data do lembrete"
                 value={dateDraft}
-                onChange={(e) => setDateDraft(e.target.value)}
+                onChange={setDateDraft}
                 onKeyDown={(e) => e.key === "Escape" && setAnchorRect(null)}
               />
               <TimePicker
@@ -941,13 +942,12 @@ export function RemindersButton({ onOpenFull }: { onOpenFull: () => void }) {
             {/* Data e hora em linha própria: o popover tem 340px e os três
                 campos lado a lado ficariam apertados demais pra acertar. */}
             <div className="reminders-pop-quando">
-              <input
-                type="date"
+              <DateField
                 className="budget-input"
-                aria-label="Data do lembrete"
+                ariaLabel="Data do lembrete"
                 value={newDate}
-                onChange={(e) => {
-                  setNewDate(e.target.value);
+                onChange={(iso) => {
+                  setNewDate(iso);
                   setFaltando(null);
                 }}
                 onKeyDown={(e) => e.key === "Enter" && handleAdd()}
