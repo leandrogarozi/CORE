@@ -80,7 +80,7 @@ function Cartao({ frase, aprovando }: { frase: MetanoiaFrase; aprovando: boolean
         </div>
       </div>
       <div className="meta-frase-acoes">
-        {aprovando ? (
+        {aprovando && (
           <>
             <button type="button" className="btn btn-ghost know-aprovar" onClick={() => board.updateMetanoiaFrase(frase.id, { status: "aprovada" })}>
               <CheckIcon /> Aprovar
@@ -89,22 +89,20 @@ function Cartao({ frase, aprovando }: { frase: MetanoiaFrase; aprovando: boolean
               Recusar
             </button>
           </>
-        ) : (
-          <button
-            type="button"
-            className={"icon-btn" + (frase.favorita ? " active" : "")}
-            aria-pressed={frase.favorita}
-            title={frase.favorita ? "Tirar dos favoritos" : "Favoritar (aparece mais vezes)"}
-            onClick={() => board.updateMetanoiaFrase(frase.id, { favorita: !frase.favorita })}
-          >
-            <HeartIcon filled={frase.favorita} />
-          </button>
         )}
+        <button
+          type="button"
+          className={"icon-btn" + (frase.favorita ? " active" : "")}
+          aria-pressed={frase.favorita}
+          title={frase.favorita ? "Tirar dos favoritos" : "Favoritar (aparece mais vezes)"}
+          onClick={() => board.updateMetanoiaFrase(frase.id, { favorita: !frase.favorita })}
+        >
+          <HeartIcon filled={frase.favorita} />
+        </button>
         <button type="button" className="icon-btn" title="Editar" aria-label="Editar frase" onClick={() => setEditando(true)}>
           <EditIcon />
         </button>
-        {!aprovando && (
-          <button
+        <button
             type="button"
             className="icon-btn danger-hover"
             title="Não aparecer mais"
@@ -113,7 +111,6 @@ function Cartao({ frase, aprovando }: { frase: MetanoiaFrase; aprovando: boolean
           >
             <TrashIcon />
           </button>
-        )}
       </div>
     </div>
   );
@@ -205,7 +202,9 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
                 </button>
                 <button
                   type="button"
-                  className="btn btn-ghost"
+                  className="icon-btn danger-hover"
+                  title="Não aparecer mais"
+                  aria-label="Não aparecer mais"
                   onClick={() =>
                     askConfirm(ehPergunta ? "Tem certeza que quer excluir essa pergunta? Ela não aparece mais." : "Tem certeza que quer excluir essa frase? Ela não aparece mais.", () => {
                       setOutra(null);
@@ -213,7 +212,7 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
                     })
                   }
                 >
-                  Não aparecer mais
+                  <TrashIcon />
                 </button>
                 <button type="button" className="btn btn-ghost" onClick={() => navigator.clipboard?.writeText(emDestaque.texto + (emDestaque.autor ? ` — ${emDestaque.autor}` : ""))}>
                   Copiar

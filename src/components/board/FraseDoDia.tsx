@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useBoardCtx } from "./board-context";
-import { HeartIcon } from "./icons";
+import { HeartIcon, TrashIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
 import { creditoDaFrase, fraseDaVez, horariosDePerguntasEmUso, horariosEmUso } from "@/lib/metanoia";
 import type { MetanoiaFrase, MetanoiaTema, MetanoiaTipo, Settings } from "@/lib/types";
@@ -112,12 +112,14 @@ export function FraseDoDia({ onAbrir, telaCheia = false, onFecharTelaCheia }: { 
           </button>
           <button
             type="button"
+            title="Não aparecer mais"
+            aria-label="Não aparecer mais"
             onClick={(e) => {
               e.stopPropagation();
               naoAparecerMais();
             }}
           >
-            Não aparecer mais
+            <TrashIcon />
           </button>
           <span>Toque para fechar</span>
         </div>
@@ -140,11 +142,11 @@ export function FraseDoDia({ onAbrir, telaCheia = false, onFecharTelaCheia }: { 
         <button type="button" onClick={() => board.updateMetanoiaFrase(f.id, { favorita: !f.favorita })}>
           <HeartIcon filled={f.favorita} /> {f.favorita ? "Favorita" : "Favoritar"}
         </button>
-        <button type="button" onClick={naoAparecerMais}>
-          Não aparecer mais
-        </button>
         <button type="button" onClick={onAbrir}>
           Abrir
+        </button>
+        <button type="button" className="meta-cartao-discreto" title="Não aparecer mais" aria-label="Não aparecer mais" onClick={naoAparecerMais}>
+          <TrashIcon />
         </button>
       </div>
     </div>
