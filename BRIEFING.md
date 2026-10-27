@@ -6166,3 +6166,15 @@ Desenho: página "5. Demais telas" do canvas Layouts FARO, quadro "Manutenção:
 - Conector (MCP): o estudo e cada parte são itens separados (`parte_de_estudo` em `faro_listar`/`faro_buscar`/`faro_ler`).
 - Dados do Leandro: o item "Encontro MVE SOUL - Plano da Alme e Imersão VER" virou o estudo **MVE SOUL**, e o texto inteiro (10.521 caracteres) foi para a parte "Encontro 1 - Plano da Alme e Imersão VER" (17/10). Visão geral vazia, para ele preencher.
 - Para terceiros a IA aprende pelo **conector do FARO** (Configurações → Conector com a IA): cada pessoa tem o próprio link e a IA lê direto do FARO dela, sem Drive. O zip serve de cópia.
+
+## Metanoia: frases que voltam durante o dia (27/10)
+
+- Menu **Metanoia** (inspirado no app Motivation): frases curtas que chegam por **notificação** (só push por padrão; WhatsApp só se ele ligar depois). 1 a 3 por dia, nos horários escolhidos em Configurações → Metanoia. A frase do dia também aparece sob a saudação do painel.
+- Fila sem estado: `fraseDaVez(frases, dia, horario)` (src/lib/metanoia.ts) ordena por id, repete as favoritas e anda a posição `diaDoAno*3 + faixa`. Envio idempotente: PK (user_id, dia, horario) em `metanoia_envios`. O disparo roda no job de 1 em 1 minuto `api/whatsapp/dispatch-reminders` (src/lib/push/metanoia.ts).
+- Tabelas: `metanoia_frases` (texto, autor, fonte, origem `meu|faro|print|ia`, origem_ref, status `pendente|aprovada|recusada`, favorita), `metanoia_envios`, e campos `metanoia_*` em `settings`. RLS por usuário. Índice único (user_id, lower(btrim(texto))): reimportar a mesma frase não duplica.
+- Aprovação: frases novas entram **pendentes** e aparecem em "Para revisar" da própria tela (sim/não). Só as aprovadas entram na fila. O conector da IA tem `faro_propor_frases` (2 passos), que cai no mesmo "Para revisar" e avisa na caixa de Avisos.
+- Dados do Leandro (27/10): 119 frases pendentes vindas do que ele escreveu e aprendeu no FARO (`origem=faro`, `origem_ref` = id do item) e **275 frases dos prints** da pasta do Drive (`origem=print`, `origem_ref` = nome do arquivo, autor quando está impresso na imagem). Total para aprovar: 394. Nenhuma foi aprovada ainda.
+- Prints não lidos: IMG_5775, 5777, 5779, 5781 e 5782 (PNG enorme: derrubam o conector do Drive). Cópias "(1)", memes e prints de conversa/trabalho foram ignorados de propósito. Não inventamos autor: sem nome impresso, fica sem autor.
+- Revisita da pasta: ler só os arquivos cujo nome ainda não está em `origem_ref` (`select distinct origem_ref from metanoia_frases where origem='print'`). Ele vai subindo prints novos; é só pedir "revê a pasta do Metanoia".
+- Ainda não feito: varredura automática dos aprendizados novos para propor frases (por enquanto a IA dele propõe pelo conector), upload de prints pelo app, frases do outro app dele, canal WhatsApp.
+- Verificação: telas conferidas só no harness (Playwright com dados de mentira). O push real no celular **não foi testado**.
