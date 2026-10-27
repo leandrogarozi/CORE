@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
-import { BellIcon, BoltIcon, LinkIcon,
+import { BellIcon, BoltIcon, CommentIcon, LinkIcon,
   BookOpenIcon, BookIcon, GiftIcon, CarIcon, CartIcon, ChartIcon, ChecklistIcon, FolderIcon, HomeIcon, MealIcon, PillIcon, RtQuoteIcon, SettingsIcon, TrashIcon, UserIcon, UsersGroupIcon, WeekIcon } from "./icons";
 
 export type ViewMode =
@@ -40,7 +40,7 @@ type ItemDoMenu = {
   somenteDono?: boolean;
 };
 
-const GRUPOS: { titulo: string; itens: ItemDoMenu[] }[] = [
+export const GRUPOS_DO_MENU: { titulo: string; itens: ItemDoMenu[] }[] = [
   {
     titulo: "Hoje",
     itens: [
@@ -83,6 +83,11 @@ const GRUPOS: { titulo: string; itens: ItemDoMenu[] }[] = [
   },
 ];
 
+/** Quais itens do menu a pessoa pode desligar (o Painel, a Lixeira e as Configurações ficam sempre). */
+export function menuLigado(flags: Record<string, boolean> | undefined, modo: ViewMode): boolean {
+  return flags?.["menu_" + modo] !== false;
+}
+
 export function Sidebar({
   open,
   viewMode,
@@ -92,6 +97,8 @@ export function Sidebar({
   aniversariosPendentes = 0,
   frasesParaRevisar = 0,
   modoDono = false,
+  flags,
+  onFeedback,
 }: {
   open: boolean;
   viewMode: ViewMode;
@@ -103,6 +110,8 @@ export function Sidebar({
   /** Frases da Metanoia esperando aprovação. */
   frasesParaRevisar?: number;
   modoDono?: boolean;
+  flags?: Record<string, boolean>;
+  onFeedback: () => void;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -122,10 +131,10 @@ export function Sidebar({
         {/* Agrupado por assunto: antes era uma fila única de 20 itens e achar Clientes
             ou Dieta pedia ler a lista inteira. Os itens e a ordem dentro de cada grupo
             são os mesmos de antes. */}
-        {GRUPOS.map((grupo) => (
+        {GRUPOS_DO_MENU.map((grupo) => (
           <div className="sidebar-section" key={grupo.titulo}>
             <div className="sidebar-section-label">{grupo.titulo}</div>
-            {grupo.itens.filter((item) => !item.somenteDono || modoDono).map((item) => {
+            {grupo.itens.filter((item) => (!item.somenteDono || modoDono) && (item.modo === "day" || menuLigado(flags, item.modo))).map((item) => {
               const numero = item.selo === "paraRevisar" ? paraRevisar : item.selo === "aniversarios" ? aniversariosPendentes : item.selo === "frases" ? frasesParaRevisar : 0;
               return (
                 <button
@@ -156,6 +165,9 @@ export function Sidebar({
             onClick={() => onSelect("trash")}
           >
             <TrashIcon /> Lixeira
+          </button>
+          <button type="button" className="sidebar-item" onClick={onFeedback}>
+            <CommentIcon /> Canal de feedback
           </button>
           <button
             type="button"

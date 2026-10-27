@@ -44,7 +44,7 @@ export async function enviarFrasesDaMetanoia(supabase: SupabaseClient<Database>,
 
   const { data: configs, error } = await supabase
     .from("settings")
-    .select("user_id, timezone, metanoia_vezes, metanoia_inicio, metanoia_fim, metanoia_push, metanoia_perguntas_vezes, metanoia_perguntas_inicio, metanoia_perguntas_fim")
+    .select("user_id, timezone, metanoia_vezes, metanoia_inicio, metanoia_fim, metanoia_push, metanoia_perguntas_vezes, metanoia_perguntas_inicio, metanoia_perguntas_fim, feature_flags")
     .eq("metanoia_push", true);
   if (error) {
     out.erros.push(error.message);
@@ -54,6 +54,8 @@ export async function enviarFrasesDaMetanoia(supabase: SupabaseClient<Database>,
   // Quem tem horário vencendo agora (dentro da janela).
   const devidos: { userId: string; dia: string; horario: string; indice: number; tipo: MetanoiaTipo; porDia: number }[] = [];
   for (const c of configs ?? []) {
+    // Quem desligou a Metanoia no menu não recebe frases.
+    if ((c.feature_flags as Record<string, boolean> | null)?.menu_metanoia === false) continue;
     const { dia, minutos } = agoraNoFuso(nowMs, c.timezone || FUSO_PADRAO);
     const listas: [MetanoiaTipo, string[], number][] = [
       ["frase", horariosEmUso(c.metanoia_vezes, c.metanoia_inicio, c.metanoia_fim), c.metanoia_vezes],

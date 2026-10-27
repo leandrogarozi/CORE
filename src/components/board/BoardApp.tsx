@@ -304,6 +304,11 @@ function BoardShell() {
         aniversariosPendentes={board.state.birthdays.filter((b) => b.pending).length}
         frasesParaRevisar={board.state.metanoiaFrases.filter((f) => f.status === "pendente").length}
         modoDono={board.state.settings.featureFlags.modo_dono === true}
+        flags={board.state.settings.featureFlags}
+        onFeedback={() => {
+          selectView("settings");
+          setTimeout(() => document.getElementById("cfg-ajuda")?.scrollIntoView({ behavior: "smooth", block: "start" }), 200);
+        }}
       />
 
       <div className="topbar">

@@ -261,6 +261,7 @@ a{ color:inherit; }
 .datefield-nativo{ position:absolute; right:0; bottom:0; width:1px; height:1px; opacity:0; pointer-events:none; }
 /* Os campos de data que ainda são do navegador não podem cortar o ano. */
 input[type="date"]{ min-width:9.5em; }
+.aviso-box{ background:var(--accent-soft); color:var(--text); border-radius:10px; padding:10px 12px; font-size:13px; line-height:1.45; }
 .auth-form .auth-senha{ position:relative; display:flex; }
 .auth-form .auth-senha input{ width:100%; padding-right:42px; }
 .auth-form .auth-olho{ position:absolute; right:2px; top:0; bottom:0; width:40px; display:grid; place-items:center; color:var(--text-muted); background:none; border:0; cursor:pointer; }

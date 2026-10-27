@@ -60,6 +60,7 @@ import { emocoesEmUso, passosDeAgua, valorDaEmocao, type Emocao } from "@/lib/bo
 import { ToggleSwitch } from "./ToggleSwitch";
 import { CATEGORY_LABEL, isFeatureEnabled, type Category, type TaskStatus } from "@/lib/types";
 import type { UseBoard } from "@/lib/board/use-board";
+import { GRUPOS_DO_MENU, menuLigado } from "./Sidebar";
 
 const CATEGORIES = Object.keys(CATEGORY_LABEL) as Category[];
 
@@ -319,7 +320,7 @@ function PushNotificationsBox() {
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
         setBloqueado(permission === "denied");
-        setStatus("A permissão de notificação não foi dada.");
+        setStatus(permission === "denied" ? "O navegador bloqueou as notificações. Se esta é uma janela anônima, abra o FARO numa janela normal: o modo anônimo não permite notificações. Senão, libere nas configurações do site (cadeado ao lado do endereço)." : "Você fechou o pedido sem permitir. Toque em ativar de novo e escolha Permitir.");
         return;
       }
       const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -1163,6 +1164,11 @@ function IaCostBox() {
 
   return (
     <CollapsibleBox title="Custo da IA" icon={<BoltIcon />} resumo="O que a IA do app gastou no mês">
+      {board.state.settings.featureFlags.modo_dono !== true && (
+        <div className="aviso-box" style={{ marginBottom: 8 }}>
+          Este painel só passa a contar o gasto da <strong>sua própria IA</strong> depois que você conectar a sua conta de IA (em breve). Até lá, a conversa usa a IA do FARO, dentro do teto abaixo.
+        </div>
+      )}
       <div className="hint-text" style={{ marginTop: 0, marginBottom: 8 }}>
         Quanto a conversa do FARO (o mascote) gastou com a API da Anthropic. O servidor soma cada fala e{" "}
         <strong>para de responder ao chegar no teto</strong>; o resto do app não depende disso.
@@ -1942,6 +1948,37 @@ function HorasConfig() {
  * Um bloco por painel da tela principal. Aqui se cadastra e se liga ou desliga: a tela principal
  * só preenche. Desligado, o painel some da tela do dia e do Dashboard e os dados ficam guardados.
  */
+function PaineisDoMenu() {
+  const { board } = useBoardCtx();
+  const flags = board.state.settings.featureFlags;
+  const modoDono = flags.modo_dono === true;
+  return (
+    <div className="settings-rows">
+      {GRUPOS_DO_MENU.map((g) => (
+        <div key={g.titulo}>
+          <div className="settings-label" style={{ margin: "10px 0 4px", opacity: 0.7 }}>
+            {g.titulo}
+          </div>
+          {g.itens
+            .filter((i) => i.modo !== "day" && (!i.somenteDono || modoDono))
+            .map((i) => (
+              <div className="settings-toggle-row" key={i.modo}>
+                <span>
+                  <span className="settings-label">{i.rotulo}</span>
+                </span>
+                <ToggleSwitch
+                  checked={menuLigado(flags, i.modo)}
+                  ariaLabel={"Mostrar " + i.rotulo + " no menu"}
+                  onChange={(v) => board.updateSettings({ featureFlags: { ...flags, ["menu_" + i.modo]: v } })}
+                />
+              </div>
+            ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function PaineisDaTela() {
   const { board } = useBoardCtx();
   const flags = board.state.settings.featureFlags;
@@ -2024,10 +2061,11 @@ const GRUPOS_DE_CONFIGURACAO = [
   { id: "aparencia", titulo: "Aparência", sub: "Como o app aparece neste aparelho" },
   { id: "tarefas", titulo: "Tarefas", sub: "Como as tarefas são organizadas" },
   { id: "paineis", titulo: "Painéis da tela principal", sub: "Cada painel tem a sua configuração. Aqui você cadastra e liga ou desliga; na tela principal só se preenche." },
+  { id: "menu", titulo: "Painéis do menu", sub: "Escolha o que aparece no menu lateral. Desligado, some do menu; o que você escreveu continua guardado." },
   { id: "avisos", titulo: "Avisos e custos", sub: "Quando o FARO avisa e quanto custa" },
   { id: "dados", titulo: "Dados e backup", sub: "Cópias de segurança do que você escreveu" },
   { id: "conexoes", titulo: "Conexões", sub: "O FARO falando com outras ferramentas" },
-  { id: "ajuda", titulo: "Ajuda e feedback", sub: "Fale com quem está construindo o FARO" },
+  { id: "ajuda", titulo: "Canal de feedback", sub: "Conte um problema, uma ideia, uma dúvida ou um elogio para quem está construindo o FARO" },
 ] as const;
 
 function GrupoDeConfiguracao({ id, children }: { id: (typeof GRUPOS_DE_CONFIGURACAO)[number]["id"]; children: ReactNode }) {
@@ -2177,6 +2215,10 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
 
           <GrupoDeConfiguracao id="paineis">
             <PaineisDaTela />
+          </GrupoDeConfiguracao>
+
+          <GrupoDeConfiguracao id="menu">
+            <PaineisDoMenu />
           </GrupoDeConfiguracao>
 
           <GrupoDeConfiguracao id="avisos">

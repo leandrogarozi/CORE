@@ -44,7 +44,7 @@ export function FraseDoDia({ onAbrir, onEditar, telaCheia = false, onFecharTelaC
     } catch {}
   }, []);
 
-  if (!f) return null;
+  if (!f || board.state.settings.featureFlags.menu_metanoia === false) return null;
   const credito = creditoDaFrase(f);
 
   function fechar() {
