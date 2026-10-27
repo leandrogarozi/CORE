@@ -33,7 +33,9 @@ export function FraseDoDia({ onAbrir, onEditar, telaCheia = false, onFecharTelaC
   const natural = fraseEmDestaque(board.state.metanoiaFrases, board.state.settings, todayISO(), new Date(), passos);
   const fixa = fixaId ? board.state.metanoiaFrases.find((x) => x.id === fixaId && x.status === "aprovada") : undefined;
   const f = fixa ?? natural;
-  const tema = useTemaDoCartao(board.state.settings.metanoiaTema);
+  const cor = board.state.settings.metanoiaCor;
+  const tema = useTemaDoCartao(board.state.settings.metanoiaTema, cor);
+  const fundo = cor ? { background: cor } : undefined;
   const [fechada, setFechada] = useState<string | null>(null);
 
   useEffect(() => {
@@ -61,7 +63,7 @@ export function FraseDoDia({ onAbrir, onEditar, telaCheia = false, onFecharTelaC
 
   if (telaCheia) {
     return (
-      <div className={"meta-cheia " + tema} role="dialog" aria-label="Metanoia" onClick={onFecharTelaCheia}>
+      <div className={"meta-cheia " + tema} style={fundo} role="dialog" aria-label="Metanoia" onClick={onFecharTelaCheia}>
         <div className="meta-cartao-rotulo">{rotulo(f.tipo)}</div>
         <p className="meta-cheia-texto">
           <Texto f={f} />
@@ -98,7 +100,7 @@ export function FraseDoDia({ onAbrir, onEditar, telaCheia = false, onFecharTelaC
 
   if (fechada === f.id) return null;
   return (
-    <div className={"meta-cartao " + tema}>
+    <div className={"meta-cartao " + tema} style={fundo}>
       <div className="meta-cartao-nav">
         <button type="button" aria-label="Frase anterior" title="Anterior" onClick={() => { setFixaId(null); setPassos((p) => p - 1); }}>
           ‹

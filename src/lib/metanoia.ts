@@ -6,6 +6,38 @@ export const NOME_DA_METANOIA = "Metanoia";
 export const MAX_FRASES_POR_DIA = 10;
 export const MAX_PERGUNTAS_POR_DIA = 10;
 
+/** Cores de fundo sugeridas para o cartão (além de branco e preto). */
+export const CORES_DO_CARTAO: { nome: string; hex: string }[] = [
+  { nome: "Azul", hex: "#1d4ed8" },
+  { nome: "Petróleo", hex: "#0e7490" },
+  { nome: "Verde", hex: "#047857" },
+  { nome: "Oliva", hex: "#4d7c0f" },
+  { nome: "Laranja", hex: "#c2410c" },
+  { nome: "Vinho", hex: "#9f1239" },
+  { nome: "Roxo", hex: "#7e22ce" },
+  { nome: "Grafite", hex: "#334155" },
+  { nome: "Amarelo claro", hex: "#fde68a" },
+  { nome: "Azul claro", hex: "#bfdbfe" },
+  { nome: "Verde claro", hex: "#bbf7d0" },
+  { nome: "Rosa claro", hex: "#fbcfe8" },
+  { nome: "Cinza claro", hex: "#e5e7eb" },
+];
+
+/** Só aceita "#RRGGBB": a cor vem do banco e entra em estilo, então nada além disso passa. */
+export function corValida(c: string | null | undefined): boolean {
+  return typeof c === "string" && /^#[0-9a-fA-F]{6}$/.test(c);
+}
+
+/** O fundo é escuro? Decide se o texto fica branco ou preto. */
+export function corEhEscura(hex: string): boolean {
+  const n = parseInt(hex.slice(1), 16);
+  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => {
+    const x = v / 255;
+    return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b < 0.4;
+}
+
 export const AUTOR_DESCONHECIDO = "Autor desconhecido";
 
 /**

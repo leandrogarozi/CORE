@@ -49,6 +49,7 @@ import type {
   TimerKind,
 } from "@/lib/types";
 import { DEFAULT_TAG_COLORS } from "@/lib/types";
+import { corValida } from "@/lib/metanoia";
 
 type TaskRow = Tables<"tasks">;
 type HabitRow = Tables<"habits">;
@@ -465,6 +466,7 @@ export function rowToSettings(row: SettingsRow | null): Settings {
     metanoiaFim: row?.metanoia_fim ?? "20:00",
     metanoiaPush: row?.metanoia_push ?? true,
     metanoiaTema: (row?.metanoia_tema as MetanoiaTema | undefined) ?? "escuro",
+    metanoiaCor: corValida(row?.metanoia_cor) ? (row?.metanoia_cor as string) : null,
     metanoiaPerguntasVezes: row?.metanoia_perguntas_vezes ?? 1,
     metanoiaPerguntasInicio: row?.metanoia_perguntas_inicio ?? "12:00",
     metanoiaPerguntasFim: row?.metanoia_perguntas_fim ?? "18:00",

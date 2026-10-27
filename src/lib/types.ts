@@ -321,6 +321,7 @@ export interface Settings {
   metanoiaFim: string; // "HH:MM": até que horas; as frases do dia se distribuem entre os dois
   metanoiaPush: boolean; // a frase chega como notificação
   metanoiaTema: MetanoiaTema; // cartão da frase: fundo branco, preto ou o do app
+  metanoiaCor: string | null; // cor de fundo própria do cartão ("#RRGGBB"); vale no lugar do tema
   metanoiaPerguntasVezes: number; // quantas perguntas por dia (0 a 2)
   metanoiaPerguntasInicio: string; // "HH:MM"
   metanoiaPerguntasFim: string; // "HH:MM"

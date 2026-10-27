@@ -1,11 +1,41 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
+import {
+  BellIcon,
+  BoltIcon,
+  BookOpenIcon,
+  CalendarCheckIcon,
+  ChecklistIcon,
+  CommentIcon,
+  DuplicateIcon,
+  EditIcon,
+  ExpandIcon,
+  EyeOffIcon,
+  FlagIcon,
+  FollowIcon,
+  GiftIcon,
+  HeartIcon,
+  InboxIcon,
+  MicIcon,
+  PaperclipIcon,
+  PlayIcon,
+  RepeatIcon,
+  SendIcon,
+  ShieldWarningIcon,
+  SunIcon,
+  TrashIcon,
+  UserIcon,
+  UsersGroupIcon,
+  WhatsAppIcon,
+} from "./icons";
 
 interface Secao {
   id: string;
   titulo: string;
   linhas: string[];
+  /** Ícones do app com o que cada um significa (o desenho é o mesmo que aparece nas telas). */
+  icones?: { grupo: string; itens: [ReactNode, string][] }[];
 }
 
 /** Um bloco curto por assunto. Quem muda uma tela do FARO muda o bloco dela aqui. */
@@ -22,6 +52,55 @@ const SECOES: Secao[] = [
       "Tamanho das listas: arraste a borda de uma lista de tarefas para mudar o tamanho; dois cliques voltam ao tamanho original.",
       "Cada tela tem o botão “Como funciona” no canto de cima. Ele abre esta página no assunto dela.",
       "Tudo que você escreve entra no backup diário. Excluiu sem querer? Veja a Lixeira.",
+    ],
+  },
+  {
+    id: "icones",
+    titulo: "Ícones: o que cada um significa",
+    linhas: ["Passe o mouse (ou segure o dedo) sobre um ícone no app e aparece o nome dele. Aqui está o guia dos que mais aparecem."],
+    icones: [
+      {
+        grupo: "Na linha de uma tarefa (selos depois do título)",
+        itens: [
+          [<CalendarCheckIcon key="a" />, "Evento: compromisso com hora marcada."],
+          [<FollowIcon key="b" />, "Rastreando: o FARO leva a tarefa para hoje todo dia até você concluir."],
+          [<ShieldWarningIcon key="c" />, "Desafiadora (“dessa eu fujo”): adiar pede justificativa. O número mostra quantas vezes já foi adiada."],
+          [<ChecklistIcon key="d" />, "Tópicos abertos: itens da lista da observação que ainda não foram marcados."],
+          [<UsersGroupIcon key="e" />, "Em reunião: pautas em aberto. Na tarefa sem tag: “falta a tag”, escolha Reunião ou Evento."],
+          [<UserIcon key="f" />, "Cliente da tarefa (com o nome ao lado)."],
+          [<BookOpenIcon key="g" />, "Sessão de um plano de estudo."],
+          [<BellIcon key="h" filled />, "A tarefa tem lembrete."],
+          [<WhatsAppIcon key="i" filled />, "O lembrete avisa também no WhatsApp."],
+          [<CommentIcon key="j" />, "A tarefa tem observação."],
+          [<PaperclipIcon key="k" />, "A tarefa tem anexo."],
+          [<RepeatIcon key="l" />, "Tarefa recorrente: ela se repete."],
+        ],
+      },
+      {
+        grupo: "Nos botões da linha da tarefa",
+        itens: [
+          [<FlagIcon key="m" color="var(--flag-alta)" />, "Bandeira de prioridade: vermelha é alta, azul é média, verde é baixa. Toque para mudar."],
+          [<BoltIcon key="n" />, "Raios de velocidade, de 1 a 3: quanto mais raios, mais rápida de fazer."],
+          [<PlayIcon key="o" />, "Play: começa a contar o tempo trabalhado na tarefa."],
+          [<DuplicateIcon key="p" />, "Copiar tarefa: cria uma cópia."],
+          [<TrashIcon key="q" />, "Excluir: manda para a Lixeira."],
+        ],
+      },
+      {
+        grupo: "No topo e nas telas",
+        itens: [
+          [<InboxIcon key="r" />, "Avisos: o que o FARO quis te contar (a IA propôs algo, criou algo)."],
+          [<GiftIcon key="s" />, "Aniversários: acende quando há um chegando."],
+          [<SunIcon key="t" />, "Tema claro e escuro (a lua faz o contrário). Vale só para este aparelho."],
+          [<MicIcon key="u" />, "Microfone: toque e fale em vez de digitar."],
+          [<SendIcon key="v" />, "Enviar: adiciona o que você escreveu (útil no celular)."],
+          [<BellIcon key="w" />, "Sininho do lembrete: avisa no app e no celular. O ícone do WhatsApp ao lado manda mensagem."],
+          [<ExpandIcon key="x" />, "Ampliar: abre a caixa de texto maior para escrever com folga."],
+          [<EditIcon key="y" />, "Editar."],
+          [<HeartIcon key="z" />, "Metanoia: favorita (fica vermelho). Aparece mais vezes."],
+          [<EyeOffIcon key="za" />, "Metanoia: não mostrar mais. A frase vai para “Não listadas”, e dá para voltar."],
+        ],
+      },
     ],
   },
   {
@@ -43,7 +122,7 @@ const SECOES: Secao[] = [
     linhas: [
       "Toque numa tarefa para abri-la. Dentro: título, categorias (até 2), data e hora de início e de fim, observação, anexos, lembrete, projeto, cliente e ID.",
       "Status: toque no status para trocar (A iniciar, Executando, Agendado, Aguardando, Concluída). Você cria os seus em Configurações > Tarefas.",
-      "Bandeira de prioridade: toque para mudar entre alta (vermelha), média e baixa (verde). As vermelhas ficam no topo e as verdes embaixo; as médias seguem a sua ordem.",
+      "Bandeira de prioridade: toque para mudar entre alta (vermelha), média (azul) e baixa (verde). As vermelhas ficam no topo e as verdes embaixo; as médias seguem a sua ordem.",
       "Raios (⚡ de 1 a 3): quanto mais raios, mais rápida de fazer. Toque no mesmo raio para tirar. O botão “Rápidas primeiro” ordena por eles.",
       "Arrastar: puxe a tarefa para reordenar. A que tem raio ou bandeira não-média é posicionada pela regra, não pelo arrasto.",
       "Play: o cronômetro conta o tempo que você trabalhou na tarefa, dia a dia. Dá para ver o tempo de cada dia e apagar o de um dia errado.",
@@ -130,7 +209,7 @@ const SECOES: Secao[] = [
       "Sua conta já vem com frases. Você pode escrever as suas, colar uma lista ou subir prints (o print é lido no seu aparelho e descartado; fica só o texto).",
       "Em “Quando o FARO me lembra” você escolhe quantas frases e perguntas por dia (de 0 a 10) e o intervalo de horas. O FARO as espalha por igual entre o começo e o fim.",
       "O coração marca uma favorita, que aparece mais vezes. O olho riscado manda a frase para “Não listadas”: não aparece mais, mas dá para voltar. Excluir de vez só no editor.",
-      "Na tela inicial um cartão mostra a frase do momento, com setinhas para ver a anterior e a próxima. Em Aparência você escolhe fundo branco, preto ou o do app.",
+      "Na tela inicial um cartão mostra a frase do momento, com setinhas para ver a anterior e a próxima. Em Aparência você escolhe fundo branco, preto, o do app, ou o botão “Cor”, que abre uma paleta (ou qualquer outra cor) para o fundo; o texto ajusta sozinho para ler bem.",
       "Não quer usar? Desligue a Metanoia em Configurações > Painéis do menu.",
     ],
   },
@@ -138,9 +217,12 @@ const SECOES: Secao[] = [
     id: "conhecendo",
     titulo: "Conhecendo você",
     linhas: [
-      "É o que o FARO sabe sobre você: valores, objetivos, preferências, decisões, projetos.",
-      "Quando você conversa com uma IA ligada ao FARO, ela pode propor o que aprendeu. Nada vale até você aprovar em “Para revisar”.",
+      "A ideia do FARO é ser o seu cérebro: tudo o que você cria e anota aqui faz o FARO te conhecer melhor. Esta tela guarda o que ele sabe sobre você: valores, objetivos, preferências, decisões, projetos.",
+      "Depois, o backup de tudo isso serve para a sua IA te conhecer também. Para isso você precisa conectar o FARO à sua IA.",
+      "Como trazer o que a sua IA já sabe: em “Trazer o que minha IA já sabe”, 1) copie o pedido e cole numa conversa nova da sua IA (Claude, ChatGPT...); 2) traga de volta o arquivo .md que ela criou, ou cole a resposta. Você revisa item por item em “Para revisar”; nada vale até você aprovar.",
+      "Como deixar a IA lendo o FARO o tempo todo: em Configurações > Conexões você gera o seu link do Conector e cola na sua IA. Daí ela lê o que você aprovou, e pode propor aprendizados e criar tarefas e lembretes (sempre com a sua confirmação).",
       "O resumo “O que o FARO sabe sobre você” junta tudo o que você aprovou.",
+      "Faça os seus backups sempre (Configurações > Dados e backup) para preservar todos os seus aprendizados.",
     ],
   },
   {
@@ -256,8 +338,11 @@ const SECOES: Secao[] = [
     id: "ia",
     titulo: "A IA e o cachorrinho",
     linhas: [
-      "O cachorrinho no canto da tela é o assistente do FARO. Toque para abrir e fale ou escreva. Ele pode também te puxar no meio do dia (por exemplo, para registrar o humor), no máximo duas vezes por dia.",
-      "Se você usa uma IA (como o Claude), ela pode se conectar ao FARO pelo Conector (Configurações > Conexões) e ler o que você aprovou.",
+      "O FARO foi feito para ficar ligado à sua IA. Ele guarda o que você aprende e anota; a sua IA, conectada, lê isso, passa a te conhecer e trabalha junto com você.",
+      "Com a IA conectada ela pode lançar lembretes e tarefas mais rápido (por voz ou texto), resumir a sua semana, perguntar se você esqueceu alguma coisa e propor o que aprendeu sobre você, sempre pedindo o seu OK.",
+      "O cachorrinho no canto da tela é o assistente dentro do app: toque para abrir e fale ou escreva. Ele depende da IA: sem IA conectada ele não funciona. Para conectar, siga o passo a passo em Conhecendo você e em Configurações > Conexões.",
+      "Nesta fase de teste inicial, o cachorrinho já responde usando a IA do FARO, dentro de um limite mensal por pessoa. Mais para a frente ele passa a usar a sua própria IA, e o custo aparece em Configurações > Custo da IA.",
+      "Ele também pode te puxar no meio do dia (por exemplo, para registrar o humor), no máximo duas vezes por dia.",
     ],
   },
 ];
@@ -299,6 +384,17 @@ export function TutorialView({ onBack, secao }: { onBack: () => void; secao?: st
                 <li key={i}>{l}</li>
               ))}
             </ul>
+            {s.icones?.map((g) => (
+              <div key={g.grupo} className="tutorial-icones">
+                <h3>{g.grupo}</h3>
+                {g.itens.map(([icone, texto], i) => (
+                  <div key={i} className="tutorial-icone-linha">
+                    <span className="tutorial-icone">{icone}</span>
+                    <span>{texto}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
           </section>
         ))}
       </div>

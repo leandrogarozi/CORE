@@ -1063,6 +1063,7 @@ export type Database = {
           birth_date: string | null
           daily_budget_hours: number
           diet_app_opt_in: boolean
+          metanoia_cor: string | null
           metanoia_horarios: string[]
           metanoia_inicio: string
           metanoia_fim: string
@@ -1103,6 +1104,7 @@ export type Database = {
           birth_date?: string | null
           daily_budget_hours?: number
           diet_app_opt_in?: boolean
+          metanoia_cor?: string | null
           metanoia_horarios?: string[]
           metanoia_inicio?: string
           metanoia_fim?: string
@@ -1143,6 +1145,7 @@ export type Database = {
           birth_date?: string | null
           daily_budget_hours?: number
           diet_app_opt_in?: boolean
+          metanoia_cor?: string | null
           metanoia_horarios?: string[]
           metanoia_inicio?: string
           metanoia_fim?: string
