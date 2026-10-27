@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { TablesUpdate } from "@/lib/database.types";
+import type { Tables, TablesUpdate } from "@/lib/database.types";
 import {
   attachmentToInsertRow,
   bookToInsertRow,
@@ -231,6 +231,26 @@ function bucketOf(t: Pick<Task, "date">): string {
   return t.date || "";
 }
 
+/**
+ * Todas as frases e perguntas da Metanoia, incluindo as "não listadas" (arquivadas). O banco entrega no máximo
+ * 1.000 linhas por consulta, calado: com a biblioteca crescendo, sem paginar as mais antigas sumiriam da tela.
+ */
+async function lerFrasesDaMetanoia(supabase: ReturnType<typeof createClient>) {
+  const todas: Tables<"metanoia_frases">[] = [];
+  for (let de = 0; ; de += 1000) {
+    const { data, error } = await supabase
+      .from("metanoia_frases")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .order("id")
+      .range(de, de + 999);
+    if (error) return { data: null, error };
+    todas.push(...(data ?? []));
+    if ((data ?? []).length < 1000) break;
+  }
+  return { data: todas, error: null };
+}
+
 export function useBoard(userId: string | null) {
   const supabase = useMemo(() => createClient(), []);
   const [state, setState] = useState<BoardState>(EMPTY_STATE);
@@ -323,7 +343,7 @@ export function useBoard(userId: string | null) {
       supabase.from("books").select("*").order("created_at"),
       supabase.from("synapses").select("*").is("deleted_at", null).order("created_at", { ascending: false }),
       supabase.from("synapse_parts").select("*").order("sort_order"),
-      supabase.from("metanoia_frases").select("*").neq("status", "arquivada").order("created_at", { ascending: false }),
+      lerFrasesDaMetanoia(supabase),
       supabase.from("shopping_items").select("*").is("deleted_at", null).order("sort_order"),
       supabase.from("shopping_lists").select("*").is("deleted_at", null).order("sort_order"),
       supabase.from("birthdays").select("*").is("deleted_at", null).order("sort_order"),
@@ -346,11 +366,14 @@ export function useBoard(userId: string | null) {
     // Conta nova nasce sem nenhum status de tarefa (A iniciar, Concluída...). O banco semeia os cinco padrões,
     // uma vez só (a função confere antes), e a gente relê a lista. Sem isso a coluna de status ficava vazia.
     let statusRows = taskStatusesRes.data ?? [];
+    let metanoiaData = metanoiaRes.data ?? [];
     if (statusRows.length === 0 && !taskStatusesRes.error) {
       const { error: erroSemente } = await supabase.rpc("faro_semear_conta");
       if (!erroSemente) {
         const { data: depois } = await supabase.from("task_statuses").select("*").order("sort_order");
         statusRows = depois ?? [];
+        // A mesma função também dá as frases iniciais da Metanoia à conta nova: relê a lista.
+        metanoiaData = (await lerFrasesDaMetanoia(supabase)).data ?? [];
       } else {
         reportSaveError("faro_semear_conta", erroSemente);
       }
@@ -379,7 +402,7 @@ export function useBoard(userId: string | null) {
       books: (booksRes.data ?? []).map(rowToBook),
       synapses: (synapsesRes.data ?? []).map(rowToSynapse),
       synapseParts: (synapsePartsRes.data ?? []).map(rowToSynapsePart),
-      metanoiaFrases: (metanoiaRes.data ?? []).map(rowToMetanoiaFrase),
+      metanoiaFrases: metanoiaData.map(rowToMetanoiaFrase),
       shoppingItems: (shoppingRes.data ?? []).map(rowToShoppingItem),
       shoppingLists: (shoppingListsRes.data ?? []).map(rowToShoppingList),
       birthdays: (birthdaysRes.data ?? []).map(rowToBirthday),
