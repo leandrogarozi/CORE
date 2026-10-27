@@ -14,6 +14,7 @@ import {
   RepeatIcon,
   TrashIcon,
   UsersGroupIcon,
+  SendIcon,
   WeekIcon,
   WhatsAppIcon,
 } from "./icons";
@@ -961,6 +962,17 @@ export function RemindersButton({ onOpenFull }: { onOpenFull: () => void }) {
                 }}
                 onClear={() => setNewTime("")}
               />
+              <button
+              type="button"
+              className="quickadd-enviar"
+              aria-label="Adicionar o lembrete"
+              title="Adicionar o lembrete"
+              // Sem isto o clique tira o foco do título antes de enviar e o teclado do celular fecha no meio.
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => handleAdd()}
+            >
+              <SendIcon />
+            </button>
             </div>
             {faltando && <div className="reminder-zap-erro">{faltando}</div>}
             {pending.length === 0 ? (
@@ -1083,13 +1095,12 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
             />
             {/* Data e hora aqui na criação: antes o lembrete nascia sem data e
                 ele tinha que procurar a linha no fim da lista pra preencher. */}
-            <input
-              type="date"
+            <DateField
               className="budget-input reminder-new-date"
-              aria-label="Data do lembrete"
+              ariaLabel="Data do lembrete"
               value={newDate}
-              onChange={(e) => {
-                setNewDate(e.target.value);
+              onChange={(iso) => {
+                setNewDate(iso);
                 setFaltando(null);
               }}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
@@ -1108,6 +1119,17 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
               onClear={() => setNewTime("")}
             />
             <MicButton onText={(t) => setNewTitle((v) => (v ? `${v} ${t}` : t))} ariaLabel="Ditar o lembrete" />
+            <button
+              type="button"
+              className="quickadd-enviar"
+              aria-label="Adicionar o lembrete"
+              title="Adicionar o lembrete"
+              // Sem isto o clique tira o foco do título antes de enviar e o teclado do celular fecha no meio.
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => handleAdd()}
+            >
+              <SendIcon />
+            </button>
           </div>
           {faltando && <div className="reminder-zap-erro">{faltando}</div>}
         </div>

@@ -184,7 +184,7 @@ export function TutorialView({ onBack, secao }: { onBack: () => void; secao?: st
         <span style={{ width: 32 }} />
       </div>
       <div className="narrow-list tutorial">
-        <p className="hint-text">Um bloco curto por assunto. Toque num assunto para pular até ele. Em cada tela do FARO, o “?” no canto de cima abre esta página no assunto dela.</p>
+        <p className="hint-text">Um bloco curto por assunto. Toque num assunto para pular até ele. Em cada tela do FARO, o botão “Como funciona”, no canto de cima, abre esta página no assunto dela.</p>
         <div className="tutorial-indice">
           {SECOES.map((s) => (
             <button key={s.id} type="button" className="btn btn-ghost" onClick={() => document.getElementById("tut-" + s.id)?.scrollIntoView({ behavior: "smooth", block: "start" })}>

@@ -9,11 +9,13 @@ export function TutorialLink({ secao }: { secao: string }) {
     <button
       type="button"
       className="tutorial-link"
-      title="Como funciona esta tela"
-      aria-label="Como funciona esta tela"
+      title="Abrir o tutorial desta tela"
       onClick={() => window.dispatchEvent(new CustomEvent("faro:tutorial", { detail: secao }))}
     >
-      ?
+      <span className="tutorial-link-bola" aria-hidden="true">
+        ?
+      </span>
+      Como funciona
     </button>
   );
 }

@@ -6267,3 +6267,15 @@ Feito a partir do que o Leandro viu usando as contas de teste:
 - **Mão dupla (Google → FARO):** o robô já enxerga a agenda compartilhada, então LER é possível. Fica para depois do OAuth: importar eventos do Google como tarefas-evento, com o vínculo em `google_eventos` para não duplicar nem entrar em loop (quem mexeu por último vence). Decisão de desenho pendente: importar tudo ou só o que tiver uma etiqueta.
 
 **Decisões que dependem do Leandro:** (a) o e-mail dele é Workspace? (b) topa o caminho OAuth (recomendado) ou quer só o atalho do convite por e-mail? (c) mão dupla: quer que eventos criados no Google apareçam no FARO?
+
+### Respostas do Leandro (27/10, noite) e o que ficou combinado
+- **Como funciona o Google Agenda para o cliente:** hoje NÃO funciona: o espelho é só da conta dona (robô). Para qualquer cliente é o botão **"Conectar com o Google"** (OAuth), em que cada pessoa autoriza o FARO a criar eventos na própria agenda. Sem isso o cliente não tem Google Agenda no FARO.
+- **E-mail dele é só Gmail** (não Workspace): então delegação de domínio está fora; o caminho é o OAuth. **Ele topa "Conectar com o Google"** e quer que se explique (para o cliente) que é **só ida** no começo (FARO → Google); o problema a resolver é a pessoa dar acesso à agenda para poder convidar os participantes.
+- **Mão dupla:** ele quer que eventos criados no Google também apareçam no FARO, **sem duplicar**, ou pelo menos com **push** avisando. A pensar: importar com vínculo em `google_eventos`, etiqueta "veio do Google", e aviso push/Avisos quando entrar evento novo.
+- **Mensagem de boas-vindas e acesso (a escrever):** texto para quem entra agora explicando que o FARO está em **teste inicial, para pessoas selecionadas**, que **pode haver erros**, e que a ideia é **melhorar com o feedback** (apontar o Canal de feedback). Entra na janela de boas-vindas (`WelcomeModal.tsx`) e/ou no e-mail "Bem-vindo ao FARO". Depois, para o **teste final**, detalhar acesso, limites (WhatsApp, IA) e o que muda.
+- **Campo Convidados** na reunião só depois do OAuth.
+
+### Ajustes de 27/10 (noite)
+- **Lembretes:** botão de **enviar** (avião) ao lado do campo de adicionar, na página de Lembretes e no popover do sininho (no celular não precisa mais abrir o teclado para dar OK). `onMouseDown preventDefault` para o clique não fechar o teclado/disparar o "adicionar ao sair do campo" antes. A data da página de Lembretes passou a usar o `DateField`.
+- **Metanoia:** fundo **preto** (`escuro`) como padrão para usuários novos (coluna `settings.metanoia_tema` default `escuro`; as 2 contas de teste foram ajustadas).
+- **"Como funciona":** o "?" virou um botão de texto "? Como funciona" no canto de cima de cada tela (antes ficava escondido).

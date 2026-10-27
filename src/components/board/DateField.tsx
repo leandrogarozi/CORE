@@ -76,9 +76,10 @@ export function DateField({ value, onChange, className, ariaLabel, autoFocus, on
   }
 
   return (
-    <span className={"datefield " + (className ?? "")}>
+    <span className="datefield">
       <input
         type="text"
+        className={className}
         inputMode="numeric"
         autoComplete="off"
         placeholder="dd/mm/aaaa"

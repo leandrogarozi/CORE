@@ -261,8 +261,10 @@ a{ color:inherit; }
 .datefield-nativo{ position:absolute; right:0; bottom:0; width:1px; height:1px; opacity:0; pointer-events:none; }
 /* Os campos de data que ainda são do navegador não podem cortar o ano. */
 input[type="date"]{ min-width:9.5em; }
-.tutorial-link{ width:28px; height:28px; border-radius:50%; border:1px solid var(--border-strong); background:none; color:var(--text-muted); font-weight:700; font-size:14px; cursor:pointer; justify-self:end; }
-.tutorial-link:hover{ color:var(--text); border-color:var(--text-muted); }
+.tutorial-link{ display:inline-flex; align-items:center; gap:6px; padding:4px 11px 4px 5px; border-radius:999px; border:1px solid var(--accent); background:var(--accent-soft); color:var(--accent); font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap; justify-self:end; }
+.tutorial-link:hover{ background:var(--accent); color:var(--accent-contrast); }
+.tutorial-link-bola{ width:20px; height:20px; border-radius:50%; background:var(--accent); color:var(--accent-contrast); display:grid; place-items:center; font-size:12px; font-weight:700; }
+.tutorial-link:hover .tutorial-link-bola{ background:var(--accent-contrast); color:var(--accent); }
 .tutorial h2{ font-size:17px; margin:0 0 8px; }
 .tutorial ul{ margin:0; padding-left:20px; display:flex; flex-direction:column; gap:8px; line-height:1.5; }
 .tutorial-bloco{ padding:16px 18px; margin-bottom:12px; scroll-margin-top:12px; }
@@ -1253,6 +1255,9 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 /* quick add */
 .quickadd-row{ display:flex; align-items:center; gap:8px; padding:11px 16px; border-bottom:1px solid var(--linha); }
 .quickadd-plus{ color:var(--text-faint); font-size:15px; width:16px; text-align:center; }
+.quickadd-enviar{ flex:none; width:36px; height:36px; display:grid; place-items:center; border-radius:50%; background:var(--accent); color:var(--accent-contrast); border:0; cursor:pointer; }
+.quickadd-enviar:hover{ filter:brightness(1.1); }
+.quickadd-enviar svg{ width:16px; height:16px; }
 .quickadd-input{ flex:1; border:none; background:none; padding:2px 0; color:var(--text); }
 .quickadd-input::placeholder{ color:var(--text-faint); }
 .quickadd-input:focus{ outline:none; }

@@ -178,7 +178,7 @@ const EMPTY_STATE: BoardState = {
     metanoiaInicio: "09:00",
     metanoiaFim: "20:00",
     metanoiaPush: true,
-    metanoiaTema: "auto",
+    metanoiaTema: "escuro",
     metanoiaPerguntasVezes: 1,
     metanoiaPerguntasInicio: "12:00",
     metanoiaPerguntasFim: "18:00",
