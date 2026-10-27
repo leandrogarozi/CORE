@@ -62,6 +62,18 @@ export const TUTORIAL: SecaoDoTutorial[] = [
     ],
   },
   {
+    id: "categorias",
+    titulo: "Categorias (tags) das tarefas",
+    linhas: [
+      "Cada tarefa tem uma categoria, e pode ter até duas. As categorias são: Trabalho, Estudo, Dev. pessoal, Saúde, Pessoal, Família, Reunião e Evento (ou Sem categoria). Toque na categoria da linha para escolher.",
+      "A primeira é a principal. É por ela que o Dashboard soma o tempo: o tempo que você cronometra (ou a duração das tarefas concluídas) entra na categoria principal, e aparece em Trabalho, Estudo e assim por diante. A segunda descreve melhor a tarefa e aparece na linha, mas não divide o tempo.",
+      "Por isso vale categorizar tudo: o tempo de tarefa sem categoria aparece numa fatia “Sem categoria” e não mostra para onde o seu tempo foi. Nos números de cima do Dashboard, “Trabalho” soma Trabalho e Pessoal, e “Estudo” soma Estudo e Dev. pessoal.",
+      "Os hábitos e os blocos fixos do dia a dia que têm categoria também somam o tempo deles na categoria.",
+      "As tags “Reunião” e “Evento” fazem a tarefa aparecer na tela Reuniões e, no Evento, marcam compromisso com hora fixa.",
+      "Em Configurações > Tarefas > Tags da tarefa você escolhe a cor e a intensidade de cada tag.",
+    ],
+  },
+  {
     id: "voz",
     titulo: "Falar com o FARO",
     linhas: [
@@ -95,6 +107,7 @@ export const TUTORIAL: SecaoDoTutorial[] = [
     linhas: [
       "O resumo de um período: tarefas concluídas e pendentes por dia, tempo por categoria, atrasadas. Troque o período pelas setas.",
       "Os números de cima são botões: toque para ver as tarefas por trás deles.",
+      "O tempo por categoria (Trabalho, Estudo, Saúde...) vem da categoria principal de cada tarefa. Veja o bloco “Categorias (tags) das tarefas”.",
       "“Tópicos abertos” (com o aviso amarelo) soma os itens ainda não marcados nas observações das tarefas e reuniões. Toque para ver quais tarefas têm pendência e ir direto a elas.",
     ],
   },
