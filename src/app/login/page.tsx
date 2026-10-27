@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -13,6 +13,14 @@ export default function LoginPage() {
   const [aceito, setAceito] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Link do e-mail vencido ou já usado: a tela de entrada explica em vez de mostrar página de erro.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("erro") === "link") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- lê o endereço da página (sistema externo) uma vez, ao abrir
+      setError("Esse link do e-mail venceu ou já foi usado. Se você já confirmou, é só entrar com e-mail e senha. Se não, crie a conta de novo ou use “Esqueci minha senha”.");
+    }
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
