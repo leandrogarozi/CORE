@@ -8,7 +8,7 @@ import { CheckIcon, EditIcon, EyeOffIcon, HeartIcon } from "./icons";
 import { MicButton } from "./MicButton";
 import { ImportarFrases } from "./ImportarFrases";
 import { todayISO } from "@/lib/date-utils";
-import { CORES_DO_CARTAO, creditoDaFrase, fraseDaVez, fraseEmDestaque, horariosDePerguntasEmUso, horariosEmUso, MAX_FRASES_POR_DIA, MAX_PERGUNTAS_POR_DIA, vezesPorDia } from "@/lib/metanoia";
+import { coresDoFundo, creditoDaFrase, fundoDaCor, fraseDaVez, fraseEmDestaque, horariosDePerguntasEmUso, horariosEmUso, MAX_FRASES_POR_DIA, MAX_PERGUNTAS_POR_DIA, vezesPorDia } from "@/lib/metanoia";
 import { useTemaDoCartao } from "./use-tema-metanoia";
 import type { MetanoiaFrase, MetanoiaOrigem, MetanoiaTipo } from "@/lib/types";
 import { TutorialLink } from "./TutorialLink";
@@ -180,7 +180,7 @@ export function MetanoiaView({ onBack, alvo }: { onBack: () => void; alvo?: { id
   const [tipo, setTipo] = useState<MetanoiaTipo>(frasePedida?.tipo ?? destaqueDaHome?.tipo ?? "frase");
   const [editandoHoje, setEditandoHoje] = useState(!!frasePedida && !!alvo?.editar);
   const temaDoCartao = useTemaDoCartao(s.metanoiaTema, s.metanoiaCor);
-  const [abrirCores, setAbrirCores] = useState(false);
+  const [abrirCores, setAbrirCores] = useState<"cor" | "degrade" | null>(null);
   const [busca, setBusca] = useState("");
   const ehPergunta = tipo === "pergunta";
   const frases = todas.filter((f) => f.tipo === tipo);
@@ -248,7 +248,7 @@ export function MetanoiaView({ onBack, alvo }: { onBack: () => void; alvo?: { id
           ))}
         </div>
 
-        <div className={"meta-hoje " + (editandoHoje ? "" : temaDoCartao)} style={s.metanoiaCor && !editandoHoje ? { background: s.metanoiaCor } : undefined}>
+        <div className={"meta-hoje " + (editandoHoje ? "" : temaDoCartao)} style={s.metanoiaCor && !editandoHoje ? { background: fundoDaCor(s.metanoiaCor) } : undefined}>
           <div className="meta-hoje-rotulo">Hoje</div>
           {emDestaque && editandoHoje ? (
             <EditorDaFrase key={emDestaque.id} frase={emDestaque} onFechar={() => setEditandoHoje(false)} />
@@ -336,49 +336,67 @@ export function MetanoiaView({ onBack, alvo }: { onBack: () => void; alvo?: { id
           <div className="meta-aparencia">
             <span className="hint-text">Aparência do cartão na tela inicial e ao abrir pela notificação</span>
             <div className="meta-vezes" role="group" aria-label="Aparência">
-              {(["claro", "escuro", "auto"] as const).map((t) => (
+              {(["claro", "escuro"] as const).map((t) => (
                 <button
                   key={t}
                   type="button"
                   className={"meeting-modo-btn" + (!s.metanoiaCor && s.metanoiaTema === t ? " ativo" : "")}
-                  onClick={() => board.updateSettings({ metanoiaTema: t, metanoiaCor: null })}
+                  onClick={() => {
+                    setAbrirCores(null);
+                    board.updateSettings({ metanoiaTema: t, metanoiaCor: null });
+                  }}
                 >
-                  {t === "claro" ? "Fundo branco" : t === "escuro" ? "Fundo preto" : "Automático"}
+                  {t === "claro" ? "Fundo branco" : "Fundo preto"}
                 </button>
               ))}
               <button
                 type="button"
-                className={"meeting-modo-btn" + (s.metanoiaCor ? " ativo" : "")}
-                aria-expanded={abrirCores}
-                onClick={() => setAbrirCores((v) => !v)}
+                className={"meeting-modo-btn" + (s.metanoiaCor && !s.metanoiaCor.includes(">") ? " ativo" : "")}
+                aria-expanded={abrirCores === "cor"}
+                onClick={() => {
+                  setAbrirCores(abrirCores === "cor" ? null : "cor");
+                  if (!s.metanoiaCor || s.metanoiaCor.includes(">")) board.updateSettings({ metanoiaCor: coresDoFundo(s.metanoiaCor ?? "#1d4ed8")[0] });
+                }}
               >
                 Cor
-                {s.metanoiaCor && <span className="meta-cor-ponto" style={{ background: s.metanoiaCor }} aria-hidden="true" />}
+              </button>
+              <button
+                type="button"
+                className={"meeting-modo-btn" + (s.metanoiaCor?.includes(">") ? " ativo" : "")}
+                aria-expanded={abrirCores === "degrade"}
+                onClick={() => {
+                  setAbrirCores(abrirCores === "degrade" ? null : "degrade");
+                  if (!s.metanoiaCor?.includes(">")) board.updateSettings({ metanoiaCor: `${coresDoFundo(s.metanoiaCor ?? "#1d4ed8")[0]}>#7e22ce` });
+                }}
+              >
+                Degradê
               </button>
             </div>
-            {abrirCores && (
-              <div className="meta-cores" role="group" aria-label="Escolher a cor de fundo">
-                {CORES_DO_CARTAO.map((c) => (
-                  <button
-                    key={c.hex}
-                    type="button"
-                    className={"meta-cor" + (s.metanoiaCor === c.hex ? " ativa" : "")}
-                    style={{ background: c.hex }}
-                    title={c.nome}
-                    aria-label={c.nome}
-                    aria-pressed={s.metanoiaCor === c.hex}
-                    onClick={() => board.updateSettings({ metanoiaCor: c.hex })}
-                  />
-                ))}
-                <label className="meta-cor-livre" title="Escolher outra cor">
-                  <input type="color" aria-label="Outra cor" value={s.metanoiaCor ?? "#1d4ed8"} onChange={(e) => board.updateSettings({ metanoiaCor: e.target.value })} />
-                  Outra cor
+            {abrirCores === "cor" && s.metanoiaCor && (
+              <div className="meta-cores">
+                <label className="meta-cor-livre">
+                  <input type="color" aria-label="Cor de fundo" value={coresDoFundo(s.metanoiaCor)[0]} onChange={(e) => board.updateSettings({ metanoiaCor: e.target.value })} />
+                  Toque para escolher a cor
                 </label>
-                {s.metanoiaCor && (
-                  <button type="button" className="btn btn-ghost" onClick={() => board.updateSettings({ metanoiaCor: null })}>
-                    Tirar a cor
-                  </button>
-                )}
+              </div>
+            )}
+            {abrirCores === "degrade" && s.metanoiaCor?.includes(">") && (
+              <div className="meta-cores">
+                {[0, 1].map((i) => (
+                  <label key={i} className="meta-cor-livre">
+                    <input
+                      type="color"
+                      aria-label={i === 0 ? "Primeira cor do degradê" : "Segunda cor do degradê"}
+                      value={coresDoFundo(s.metanoiaCor!)[i]}
+                      onChange={(e) => {
+                        const duas = coresDoFundo(s.metanoiaCor!);
+                        duas[i] = e.target.value;
+                        board.updateSettings({ metanoiaCor: duas.join(">") });
+                      }}
+                    />
+                    {i === 0 ? "Cor do começo" : "Cor do fim"}
+                  </label>
+                ))}
               </div>
             )}
           </div>

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { EditIcon, EyeOffIcon, HeartIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
-import { creditoDaFrase, fraseEmDestaque } from "@/lib/metanoia";
+import { creditoDaFrase, fraseEmDestaque, fundoDaCor } from "@/lib/metanoia";
 import { useTemaDoCartao } from "./use-tema-metanoia";
 import type { MetanoiaFrase, MetanoiaTipo } from "@/lib/types";
 
@@ -35,7 +35,7 @@ export function FraseDoDia({ onAbrir, onEditar, telaCheia = false, onFecharTelaC
   const f = fixa ?? natural;
   const cor = board.state.settings.metanoiaCor;
   const tema = useTemaDoCartao(board.state.settings.metanoiaTema, cor);
-  const fundo = cor ? { background: cor } : undefined;
+  const fundo = cor ? { background: fundoDaCor(cor) } : undefined;
   const [fechada, setFechada] = useState<string | null>(null);
 
   useEffect(() => {

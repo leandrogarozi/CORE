@@ -209,7 +209,7 @@ const SECOES: Secao[] = [
       "Sua conta já vem com frases. Você pode escrever as suas, colar uma lista ou subir prints (o print é lido no seu aparelho e descartado; fica só o texto).",
       "Em “Quando o FARO me lembra” você escolhe quantas frases e perguntas por dia (de 0 a 10) e o intervalo de horas. O FARO as espalha por igual entre o começo e o fim.",
       "O coração marca uma favorita, que aparece mais vezes. O olho riscado manda a frase para “Não listadas”: não aparece mais, mas dá para voltar. Excluir de vez só no editor.",
-      "Na tela inicial um cartão mostra a frase do momento, com setinhas para ver a anterior e a próxima. Em Aparência você escolhe fundo branco, preto, o do app, ou o botão “Cor”, que abre uma paleta (ou qualquer outra cor) para o fundo; o texto ajusta sozinho para ler bem.",
+      "Na tela inicial um cartão mostra a frase do momento, com setinhas para ver a anterior e a próxima. Em Aparência você escolhe fundo branco, fundo preto, “Cor” (qualquer cor que quiser) ou “Degradê” (de uma cor para outra); o texto ajusta sozinho para ler bem.",
       "Não quer usar? Desligue a Metanoia em Configurações > Painéis do menu.",
     ],
   },
