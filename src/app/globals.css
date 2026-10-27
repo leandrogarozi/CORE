@@ -269,7 +269,11 @@ input[type="date"]{ min-width:9.5em; }
 .tutorial ul{ margin:0; padding-left:20px; display:flex; flex-direction:column; gap:8px; line-height:1.5; }
 .tutorial-bloco{ padding:16px 18px; margin-bottom:12px; scroll-margin-top:12px; }
 .tutorial-bloco.em-foco{ outline:2px solid var(--accent); }
-.dsh-kpi-aviso{ display:inline-flex; margin-left:6px; color:#e0a800; vertical-align:middle; }
+/* Enquanto houver tópico aberto, o quadro fica amarelo (como o das Concluídas fica azul). O texto é escuro nos dois temas. */
+.dsh-kpi.atencao{ background:#F6C945; color:#2B2200; }
+.dsh-kpi.atencao .dsh-kpi-n, .dsh-kpi.atencao .dsh-kpi-l{ color:#2B2200; }
+button.dsh-kpi.atencao:hover:not(:disabled){ background:#F1BC2B; }
+.dsh-kpi-aviso{ display:inline-flex; margin-left:6px; color:#2B2200; vertical-align:middle; }
 .dsh-kpi-aviso svg{ width:16px; height:16px; }
 .tutorial h3{ font-size:13px; margin:14px 0 6px; color:var(--text-muted); font-weight:700; }
 .tutorial-icone-linha{ display:flex; gap:12px; align-items:center; padding:7px 0; border-top:1px solid var(--linha); font-size:14px; line-height:1.4; }

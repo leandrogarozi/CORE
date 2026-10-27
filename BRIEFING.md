@@ -6291,3 +6291,4 @@ Feito a partir do que o Leandro viu usando as contas de teste:
 - **Ícones:** a aba ganhou Menu, Usar a tela toda, Calendário, Configurações, Perfil, Modo claro e Modo escuro; "Tópicos abertos" diz que o Dashboard soma e mostra a lista.
 - **Dashboard:** o quadro "Tópicos abertos" ganhou o aviso amarelo (triângulo de atenção) depois do número quando há pendência.
 - **Reuniões (Tutorial):** texto "Não deixe nada passar: faça as suas reuniões com o FARO aberto, anote as etapas..." e onde o pendente aparece.
+- **Dashboard (27/10):** o quadro "Tópicos abertos" fica **amarelo** (`.dsh-kpi.atencao`, texto escuro nos dois temas) enquanto houver tópico aberto, como o das Concluídas é azul; com zero volta ao padrão e fica desabilitado.

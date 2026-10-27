@@ -406,7 +406,7 @@ export function Dashboard({ abrirAtrasadas = false }: { abrirAtrasadas?: boolean
         </button>
         <button
           type="button"
-          className="dsh-kpi"
+          className={"dsh-kpi" + (stats.openTopicTotal > 0 ? " atencao" : "")}
           title={
             stats.openTopicTotal > 0
               ? `${stats.openTopicTotal} tópico(s) em aberto em ${stats.openTopicTasks.length} tarefa(s) — clique pra ver a lista`
