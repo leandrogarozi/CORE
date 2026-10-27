@@ -1641,6 +1641,8 @@ export function useBoard(userId: string | null) {
         repeat: Repeat;
         weekDays: number[] | null;
         alertMinutesBefore: number | null;
+        // O sininho: avisa dentro do app (o push no celular chega de qualquer jeito). Sem valor, fica ligado.
+        inApp?: boolean;
         // Vem do próprio popover de data. Antes o lembrete da tarefa nascia
         // sempre com whatsapp: true — herança de quando a coluna tinha default
         // true, que foi justamente o erro que fez ele receber verde em tudo.
@@ -1679,6 +1681,7 @@ export function useBoard(userId: string | null) {
         // Quem decide é a opção que ele marcou no mesmo popover. Sem marcação,
         // nasce apagado — a regra do app é que ele acende o que quer.
         whatsapp: fields.whatsapp ?? false,
+        inApp: fields.inApp ?? true,
       };
       apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
       supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {

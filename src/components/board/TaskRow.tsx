@@ -39,7 +39,7 @@ import {
   WeekIcon,
   WhatsAppIcon,
 } from "./icons";
-import { fmtDayMonth, fmtShortDate, fmtTempoCurto, todayISO } from "@/lib/date-utils";
+import { DAY_NAMES, fmtDayMonth, fmtShortDate, fmtTempoCurto, todayISO } from "@/lib/date-utils";
 import { REMINDER_ALERT_PRESETS } from "@/lib/board/reminder-alerts";
 import { taskEntriesOf } from "@/lib/board/task-time";
 import { PostponeModal } from "./PostponeModal";
@@ -562,9 +562,22 @@ interface TaskWhenBlock extends TaskWhenFields {
   /** Minutos antes de avisar; 0 = no horário; null = sem lembrete. */
   aviso: number | null;
   zap: boolean;
+  /** Sininho: avisa dentro do app. O push no celular chega de qualquer jeito. */
+  sino: boolean;
+  repeat: Repeat;
+  weekDays: number[];
 }
 
-function TaskWhenButton({ date, time, endDate, endTime, durationMin, aviso, zap, onSave }: TaskWhenBlock & { onSave: (f: TaskWhenBlock) => void }) {
+const REPETICOES: { v: Repeat; l: string }[] = [
+  { v: "none", l: "Não repete" },
+  { v: "daily", l: "Todo dia" },
+  { v: "weekly", l: "Toda semana" },
+  { v: "monthly", l: "Todo mês" },
+  { v: "yearly", l: "Todo ano" },
+];
+const REPETE_CURTO: Record<Repeat, string> = { none: "", daily: "todo dia", weekly: "toda semana", monthly: "todo mês", yearly: "todo ano" };
+
+function TaskWhenButton({ date, time, endDate, endTime, durationMin, aviso, zap, sino, repeat, weekDays, onSave }: TaskWhenBlock & { onSave: (f: TaskWhenBlock) => void }) {
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const open = anchorRect !== null;
   const [dateDraft, setDateDraft] = useState(date ?? "");
@@ -574,6 +587,9 @@ function TaskWhenButton({ date, time, endDate, endTime, durationMin, aviso, zap,
   const [durDraft, setDurDraft] = useState<number | null>(durationMin);
   const [avisoDraft, setAvisoDraft] = useState<number | null>(aviso);
   const [zapDraft, setZapDraft] = useState(zap);
+  const [sinoDraft, setSinoDraft] = useState(sino);
+  const [repeatDraft, setRepeatDraft] = useState<Repeat>(repeat);
+  const [weekDraft, setWeekDraft] = useState<number[]>(weekDays);
   const [erro, setErro] = useState<string | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
@@ -603,6 +619,9 @@ function TaskWhenButton({ date, time, endDate, endTime, durationMin, aviso, zap,
     setDurDraft(durationMin);
     setAvisoDraft(aviso);
     setZapDraft(zap);
+    setSinoDraft(sino);
+    setRepeatDraft(repeat);
+    setWeekDraft(weekDays);
     setErro(null);
     if (btnRef.current) setAnchorRect(btnRef.current.getBoundingClientRect());
   }
@@ -621,6 +640,9 @@ function TaskWhenButton({ date, time, endDate, endTime, durationMin, aviso, zap,
       durationMin: durDraft,
       aviso: avisoDraft,
       zap: avisoDraft !== null && zapDraft,
+      sino: sinoDraft,
+      repeat: avisoDraft !== null && weekDraft.length === 0 ? repeatDraft : "none",
+      weekDays: avisoDraft !== null && weekDraft.length < 7 ? [...weekDraft].sort((a, b) => a - b) : [],
     });
     setAnchorRect(null);
   }
@@ -633,6 +655,9 @@ function TaskWhenButton({ date, time, endDate, endTime, durationMin, aviso, zap,
     setDurDraft(null);
     setAvisoDraft(null);
     setZapDraft(false);
+    setSinoDraft(true);
+    setRepeatDraft("none");
+    setWeekDraft([]);
   }
 
   const startLabel = date ? fmtDayMonth(date) + (time ? ` às ${time}` : "") : null;
@@ -647,6 +672,11 @@ function TaskWhenButton({ date, time, endDate, endTime, durationMin, aviso, zap,
       endLabel ? `até ${endLabel}` : null,
       durationMin ? fmtTempoCurto(durationMin * 60) : null,
       avisoLabel ? avisoLabel + (zap ? " + WhatsApp" : "") : null,
+      aviso !== null && weekDays.length > 0 && weekDays.length < 7
+        ? weekDays.map((d) => DAY_NAMES[d]).join(",")
+        : aviso !== null && repeat !== "none"
+          ? REPETE_CURTO[repeat]
+          : null,
     ]
       .filter(Boolean)
       .join(" · ") || null;
@@ -718,30 +748,70 @@ function TaskWhenButton({ date, time, endDate, endTime, durationMin, aviso, zap,
             </div>
             <div className="edit-field">
               <span className="edit-field-label">Lembrete (avisa da data e hora do início)</span>
-              <div className="reminder-datetime-row">
-                <select
-                  className="reminder-repeat-select"
-                  aria-label="Quando lembrar"
-                  value={avisoDraft === null ? "" : String(avisoDraft)}
-                  onChange={(e) => {
-                    setAvisoDraft(e.target.value === "" ? null : Number(e.target.value));
-                    setErro(null);
-                  }}
-                >
-                  <option value="">Sem lembrete</option>
-                  {REMINDER_ALERT_PRESETS.map((p) => (
-                    <option key={p.l} value={String(p.v ?? 0)}>
-                      {p.v === 0 ? "No horário" : p.l}
-                    </option>
-                  ))}
-                </select>
-                {avisoDraft !== null && (
-                  <button type="button" className={"reminder-zap-opcao" + (zapDraft ? " ativo" : "")} aria-pressed={zapDraft} onClick={() => setZapDraft((v) => !v)}>
-                    <WhatsAppIcon filled={zapDraft} />
-                    <span>Avisar no WhatsApp</span>
-                  </button>
-                )}
-              </div>
+              <select
+                className="reminder-repeat-select"
+                aria-label="Quando lembrar"
+                value={avisoDraft === null ? "" : String(avisoDraft)}
+                onChange={(e) => {
+                  setAvisoDraft(e.target.value === "" ? null : Number(e.target.value));
+                  setErro(null);
+                }}
+              >
+                <option value="">Sem lembrete</option>
+                {REMINDER_ALERT_PRESETS.map((p) => (
+                  <option key={p.l} value={String(p.v ?? 0)}>
+                    {p.v === 0 ? "No horário" : p.l}
+                  </option>
+                ))}
+              </select>
+              {avisoDraft !== null && (
+                <div className="lembrete-config">
+                  <div className="lembrete-canais">
+                    <button
+                      type="button"
+                      className={"reminder-zap-opcao sino" + (sinoDraft ? " ativo" : "")}
+                      aria-pressed={sinoDraft}
+                      title="Avisa dentro do app. O aviso no celular (push) chega de qualquer jeito."
+                      onClick={() => setSinoDraft((v) => !v)}
+                    >
+                      <BellIcon filled={sinoDraft} />
+                      <span>Sininho</span>
+                    </button>
+                    <button type="button" className={"reminder-zap-opcao" + (zapDraft ? " ativo" : "")} aria-pressed={zapDraft} onClick={() => setZapDraft((v) => !v)}>
+                      <WhatsAppIcon filled={zapDraft} />
+                      <span>WhatsApp</span>
+                    </button>
+                  </div>
+                  <select
+                    className="reminder-repeat-select"
+                    aria-label="O lembrete se repete?"
+                    value={weekDraft.length > 0 ? "none" : repeatDraft}
+                    disabled={weekDraft.length > 0}
+                    title={weekDraft.length > 0 ? "Já repete nos dias da semana marcados" : "Só o lembrete se repete; a tarefa continua uma só"}
+                    onChange={(e) => setRepeatDraft(e.target.value as Repeat)}
+                  >
+                    {REPETICOES.map((x) => (
+                      <option key={x.v} value={x.v}>
+                        {x.l}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="weekday-picker" role="group" aria-label="Repetir nestes dias da semana">
+                    {DAY_NAMES.map((nome, d) => (
+                      <button
+                        key={d}
+                        type="button"
+                        className={"weekday-btn" + (weekDraft.includes(d) ? " active" : "")}
+                        title={nome}
+                        aria-pressed={weekDraft.includes(d)}
+                        onClick={() => setWeekDraft((cur) => (cur.includes(d) ? cur.filter((x) => x !== d) : [...cur, d]))}
+                      >
+                        {nome[0]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             {erro && <div className="reminder-zap-erro">{erro}</div>}
             <div className="edit-actions edit-actions-split">
@@ -961,9 +1031,12 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
   const [tirandoDesafio, setTirandoDesafio] = useState(false);
   const adiamentos = board.state.taskPostponements.filter((p) => p.taskId === t.id).length;
   // O lembrete da tarefa vive no mesmo bloco do "Quando": avisa sempre da data e hora do início.
-  const [lembrete, setLembrete] = useState<{ aviso: number | null; zap: boolean }>({
+  const [lembrete, setLembrete] = useState<{ aviso: number | null; zap: boolean; sino: boolean; repeat: Repeat; weekDays: number[] }>({
     aviso: linkedReminder ? (linkedReminder.alertMinutesBefore ?? 0) : null,
     zap: linkedReminder?.whatsapp ?? false,
+    sino: linkedReminder ? linkedReminder.inApp !== false : true,
+    repeat: linkedReminder?.repeat ?? "none",
+    weekDays: linkedReminder?.weekDays ?? [],
   });
   const [vals, setVals] = useState<TaskEditFields>({
     title: t.title,
@@ -994,10 +1067,11 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
         board.setTaskReminder(t.id, {
           date: finalVals.date,
           time: finalVals.time || null,
-          repeat: linkedReminder?.repeat ?? "none",
-          weekDays: linkedReminder?.weekDays ?? null,
+          repeat: lembrete.repeat,
+          weekDays: lembrete.weekDays.length > 0 ? lembrete.weekDays : null,
           alertMinutesBefore: lembrete.aviso,
           whatsapp: lembrete.zap,
+          inApp: lembrete.sino,
         });
       } else if (linkedReminder) {
         board.setTaskReminder(t.id, { date: null, time: null, repeat: "none", weekDays: null, alertMinutesBefore: null });
@@ -1068,10 +1142,13 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
               durationMin={vals.durationMin}
               aviso={lembrete.aviso}
               zap={lembrete.zap}
+              sino={lembrete.sino}
+              repeat={lembrete.repeat}
+              weekDays={lembrete.weekDays}
               onSave={(f) => {
-                const { aviso, zap, ...quando } = f;
+                const { aviso, zap, sino, repeat, weekDays, ...quando } = f;
                 setVals((v) => ({ ...v, ...quando }));
-                setLembrete({ aviso, zap });
+                setLembrete({ aviso, zap, sino, repeat, weekDays });
               }}
             />
           </div>
