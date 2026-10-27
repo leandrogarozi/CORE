@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useBoardCtx } from "./board-context";
-import { EyeOffIcon, HeartIcon } from "./icons";
+import { EditIcon, EyeOffIcon, HeartIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
 import { creditoDaFrase, fraseEmDestaque } from "@/lib/metanoia";
 import { useTemaDoCartao } from "./use-tema-metanoia";
@@ -24,7 +24,7 @@ function rotulo(tipo: MetanoiaTipo) {
  * branco, conforme a escolha em Metanoia → Aparência). O X fecha até a próxima frase. Quem chega pela notificação
  * (`?ver=metanoia`) vê a frase em tela cheia; tocar em qualquer lugar fecha e deixa o painel.
  */
-export function FraseDoDia({ onAbrir, telaCheia = false, onFecharTelaCheia }: { onAbrir: () => void; telaCheia?: boolean; onFecharTelaCheia?: () => void }) {
+export function FraseDoDia({ onAbrir, onEditar, telaCheia = false, onFecharTelaCheia }: { onAbrir: (f: MetanoiaFrase) => void; onEditar: (f: MetanoiaFrase) => void; telaCheia?: boolean; onFecharTelaCheia?: () => void }) {
   const { board } = useBoardCtx();
   // Setinhas do cartão: andam na fila da Metanoia, só nesta tela (não mudam o que o FARO manda).
   const [passos, setPassos] = useState(0);
@@ -113,10 +113,13 @@ export function FraseDoDia({ onAbrir, telaCheia = false, onFecharTelaCheia }: { 
         <button type="button" onClick={() => board.updateMetanoiaFrase(f.id, { favorita: !f.favorita })}>
           <HeartIcon filled={f.favorita} /> {f.favorita ? "Favorita" : "Favoritar"}
         </button>
-        <button type="button" onClick={onAbrir}>
+        <button type="button" onClick={() => onAbrir(f)}>
           Abrir
         </button>
-        <button type="button" className="meta-cartao-discreto meta-cartao-ultimo" title={TEXTO_NAO_LISTAR} aria-label={TEXTO_NAO_LISTAR} onClick={naoAparecerMais}>
+        <button type="button" className="meta-cartao-discreto meta-cartao-ultimo" title="Editar esta frase" aria-label="Editar esta frase" onClick={() => onEditar(f)}>
+          <EditIcon />
+        </button>
+        <button type="button" className="meta-cartao-discreto" title={TEXTO_NAO_LISTAR} aria-label={TEXTO_NAO_LISTAR} onClick={naoAparecerMais}>
           <EyeOffIcon />
         </button>
       </div>

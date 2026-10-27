@@ -168,14 +168,16 @@ function Cartao({ frase, aprovando, naoListada }: { frase: MetanoiaFrase; aprova
   );
 }
 
-export function MetanoiaView({ onBack }: { onBack: () => void }) {
+export function MetanoiaView({ onBack, alvo }: { onBack: () => void; alvo?: { id: string; editar: boolean } | null }) {
   const { board, askConfirm } = useBoardCtx();
   const s = board.state.settings;
   const todas = board.state.metanoiaFrases;
   // Abre na mesma frase que está em destaque na tela inicial (e na aba do tipo dela).
   const destaqueDaHome = fraseEmDestaque(todas, s, todayISO(), new Date());
-  const [tipo, setTipo] = useState<MetanoiaTipo>(destaqueDaHome?.tipo ?? "frase");
-  const [editandoHoje, setEditandoHoje] = useState(false);
+  // Vindo do cartão da tela inicial: abre na frase que estava lá (e, pelo lápis, já editando).
+  const frasePedida = alvo ? todas.find((f) => f.id === alvo.id && f.status === "aprovada") : undefined;
+  const [tipo, setTipo] = useState<MetanoiaTipo>(frasePedida?.tipo ?? destaqueDaHome?.tipo ?? "frase");
+  const [editandoHoje, setEditandoHoje] = useState(!!frasePedida && !!alvo?.editar);
   const temaDoCartao = useTemaDoCartao(s.metanoiaTema);
   const [busca, setBusca] = useState("");
   const ehPergunta = tipo === "pergunta";
@@ -188,7 +190,7 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
   const [origem, setOrigem] = useState<"todas" | MetanoiaOrigem>("todas");
   const [novo, setNovo] = useState("");
   const [novoAutor, setNovoAutor] = useState("");
-  const [outra, setOutra] = useState<MetanoiaFrase | null>(null);
+  const [outra, setOutra] = useState<MetanoiaFrase | null>(frasePedida ?? null);
 
   const hoje = todayISO();
   const daVez = destaqueDaHome?.tipo === tipo ? destaqueDaHome : fraseDaVez(frases, hoje, 0, tipo, vezesPorDia(s, tipo));

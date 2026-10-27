@@ -16,6 +16,10 @@ export default function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (mode === "signup" && password.length < 8) {
+      setError("A senha precisa ter no mínimo 8 caracteres. Você digitou " + password.length + ".");
+      return;
+    }
     setLoading(true);
     setError(null);
     setMessage(null);
@@ -112,11 +116,15 @@ export default function LoginPage() {
             <input
               type="password"
               required
-              minLength={mode === "signup" ? 8 : 1}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete={mode === "signin" ? "current-password" : "new-password"}
             />
+            {mode === "signup" && (
+              <span className={"auth-dica" + (password.length > 0 && password.length < 8 ? " alerta" : "")}>
+                Mínimo de 8 caracteres{password.length > 0 ? ` (${password.length} até agora)` : ""}.
+              </span>
+            )}
           </label>
           {mode === "signup" && (
             <label className="auth-consent">

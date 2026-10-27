@@ -65,8 +65,8 @@ export function ImportarFrases({ tipo }: { tipo: MetanoiaTipo }) {
 
   return (
     <div className="list-card">
-      <button type="button" className="meta-importar-topo" aria-expanded={aberto} onClick={() => setAberto((v) => !v)}>
-        Trazer {rotulo} de fora (colar lista ou subir prints)
+      <button type="button" className="btn btn-accent meta-importar-topo" aria-expanded={aberto} onClick={() => setAberto((v) => !v)}>
+        {aberto ? "Fechar" : `Trazer ${rotulo} de fora (colar lista ou subir prints)`}
       </button>
       {aberto && (
         <div className="meta-novo">
@@ -82,7 +82,7 @@ export function ImportarFrases({ tipo }: { tipo: MetanoiaTipo }) {
           />
           <div className="meta-novo-linha">
             <input ref={input} type="file" accept="image/*" multiple hidden onChange={(e) => lerPrints(e.target.files)} />
-            <button type="button" className="btn btn-ghost" disabled={!!lendo} onClick={() => input.current?.click()}>
+            <button type="button" className="btn btn-accent" disabled={!!lendo} onClick={() => input.current?.click()}>
               Subir prints
             </button>
             <button type="button" className="btn btn-accent" disabled={!itens.length || !!lendo} onClick={enviar}>
