@@ -3872,6 +3872,8 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .meta-cheia-base{ gap:12px; align-items:center; position:absolute; left:28px; right:28px; bottom:calc(26px + env(safe-area-inset-bottom)); display:flex; justify-content:space-between; font-size:12.5px; }
 .meta-cheia-base span{ opacity:.55; }
 .meta-aparencia{ margin-top:10px; }
+.meta-quantas{ display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:13px; margin:2px 0 6px; }
+.meta-quantas input{ width:64px; padding:6px 8px; font:inherit; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--text); }
 .meta-janela{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:10px 0 4px; font-size:14px; }
 @media (max-width:640px){ .meta-frase{ flex-direction:column; } .meta-frase-acoes{ justify-content:flex-start; } }
 

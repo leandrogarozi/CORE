@@ -2,10 +2,9 @@ import type { MetanoiaFrase, MetanoiaTipo, Settings } from "@/lib/types";
 
 export const NOME_DA_METANOIA = "Metanoia";
 
-/** Quantas frases por dia a pessoa pode pedir, e os horários que valem para cada quantidade. */
-export const MAX_FRASES_POR_DIA = 3;
-/** Perguntas poderosas: até 2 por dia, em horários próprios (as frases não ocupam esses horários). */
-export const MAX_PERGUNTAS_POR_DIA = 2;
+/** Quantas frases e perguntas por dia a pessoa pode pedir: de 0 a 10 cada. */
+export const MAX_FRASES_POR_DIA = 10;
+export const MAX_PERGUNTAS_POR_DIA = 10;
 
 /** Fontes que só dizem de onde o texto veio para o FARO (print, lista colada): não são crédito de ninguém. */
 const FONTE_SO_DE_ORIGEM = /^(prints?\b|lista colada|texto colado)/i;
@@ -21,21 +20,56 @@ function diaNumero(iso: string): number {
   return Math.floor(Date.UTC(a, m - 1, d) / 86400000);
 }
 
+/** Gerador de números repetível (mulberry32): a mesma semente dá sempre a mesma sequência, no app e no servidor. */
+function sorteador(semente: number): () => number {
+  let t = semente >>> 0;
+  return () => {
+    t = (t + 0x6d2b79f5) >>> 0;
+    let r = Math.imul(t ^ (t >>> 15), 1 | t);
+    r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function embaralhar<T>(lista: T[], semente: number): T[] {
+  const sorteio = sorteador(semente);
+  const saida = [...lista];
+  for (let i = saida.length - 1; i > 0; i--) {
+    const j = Math.floor(sorteio() * (i + 1));
+    [saida[i], saida[j]] = [saida[j], saida[i]];
+  }
+  return saida;
+}
+
+/** Quantas vezes por dia a pessoa pediu cada tipo (o que ela escolheu em "Quando o FARO me lembra"). */
+export function vezesPorDia(s: Pick<Settings, "metanoiaVezes" | "metanoiaPerguntasVezes">, tipo: MetanoiaTipo): number {
+  return tipo === "pergunta" ? s.metanoiaPerguntasVezes : s.metanoiaVezes;
+}
+
 /**
- * A frase de uma data e de um horário (0, 1 ou 2): uma fila que anda e só repete depois de passar por todas.
+ * A frase de uma data e de um horário (0, 1, 2...): as frases passam em ordem ALEATÓRIA, e só repetem depois
+ * de passar por todas. A cada volta a ordem é sorteada de novo.
  *
- * Sem estado guardado: o número do dia e o horário dizem a posição na fila, então o aplicativo (a "frase do
- * dia" no painel) e o servidor (a notificação) chegam na mesma frase sem conversar. As favoritas aparecem duas
- * vezes por volta. A posição anda de 3 em 3 por dia (2 em 2 nas perguntas), qualquer que seja a quantidade
- * escolhida, para mudar de 1 para 3 por dia não embaralhar a fila. Frases e perguntas têm filas separadas.
+ * Sem estado guardado: o sorteio usa uma semente fixa (tipo + número da volta), então o aplicativo (o cartão da
+ * tela inicial) e o servidor (a notificação) chegam na mesma frase sem conversar. As favoritas entram duas vezes
+ * por volta. A posição anda `porDia` por dia (quantas a pessoa pediu), então com 10 por dia a fila gasta 10
+ * frases por dia. Frases e perguntas têm filas separadas.
  */
-export function fraseDaVez(frases: MetanoiaFrase[], diaISO: string, horario = 0, tipo: MetanoiaTipo = "frase"): MetanoiaFrase | null {
+export function fraseDaVez(frases: MetanoiaFrase[], diaISO: string, horario = 0, tipo: MetanoiaTipo = "frase", porDia = 3): MetanoiaFrase | null {
   const aprovadas = frases.filter((f) => f.status === "aprovada" && f.tipo === tipo).sort((a, b) => a.id.localeCompare(b.id));
   if (!aprovadas.length) return null;
   const fila = [...aprovadas, ...aprovadas.filter((f) => f.favorita)];
-  const porDia = tipo === "pergunta" ? MAX_PERGUNTAS_POR_DIA : MAX_FRASES_POR_DIA;
-  const posicao = diaNumero(diaISO) * porDia + horario;
-  return fila[((posicao % fila.length) + fila.length) % fila.length];
+  const passo = Math.max(1, Math.round(porDia));
+  const posicao = diaNumero(diaISO) * passo + horario;
+  const volta = Math.floor(posicao / fila.length);
+  const ordem = embaralhar(fila, volta * 2 + (tipo === "pergunta" ? 1 : 0) + 7919);
+  // Uma favorita entra duas vezes; o sorteio não deve mostrar a mesma duas vezes seguidas.
+  for (let i = 1; i < ordem.length; i++) {
+    if (ordem[i].id !== ordem[i - 1].id) continue;
+    const j = ordem.findIndex((f, k) => k > i && f.id !== ordem[i].id);
+    if (j > 0) [ordem[i], ordem[j]] = [ordem[j], ordem[i]];
+  }
+  return ordem[posicao - volta * fila.length];
 }
 
 function paraMinutos(h: string): number {
@@ -88,7 +122,8 @@ export function fraseEmDestaque(frases: MetanoiaFrase[], s: Settings, diaISO: st
       if (m <= min && m > melhor.quando) melhor = { quando: m, tipo, slot };
     });
   }
-  return fraseDaVez(frases, diaISO, melhor.slot, melhor.tipo) ?? fraseDaVez(frases, diaISO, 0, "frase") ?? fraseDaVez(frases, diaISO, 0, "pergunta");
+  const da = (slot: number, tipo: MetanoiaTipo) => fraseDaVez(frases, diaISO, slot, tipo, vezesPorDia(s, tipo));
+  return da(melhor.slot, melhor.tipo) ?? da(0, "frase") ?? da(0, "pergunta");
 }
 
 export interface FraseSeparada {

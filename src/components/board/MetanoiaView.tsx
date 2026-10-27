@@ -8,7 +8,7 @@ import { CheckIcon, EditIcon, EyeOffIcon, HeartIcon } from "./icons";
 import { MicButton } from "./MicButton";
 import { ImportarFrases } from "./ImportarFrases";
 import { todayISO } from "@/lib/date-utils";
-import { creditoDaFrase, fraseDaVez, fraseEmDestaque, horariosDePerguntasEmUso, horariosEmUso } from "@/lib/metanoia";
+import { creditoDaFrase, fraseDaVez, fraseEmDestaque, horariosDePerguntasEmUso, horariosEmUso, MAX_FRASES_POR_DIA, MAX_PERGUNTAS_POR_DIA, vezesPorDia } from "@/lib/metanoia";
 import { useTemaDoCartao } from "./use-tema-metanoia";
 import type { MetanoiaFrase, MetanoiaOrigem, MetanoiaTipo } from "@/lib/types";
 
@@ -20,6 +20,27 @@ const ROTULO_DA_ORIGEM: Record<MetanoiaOrigem, string> = {
   print: "De print",
   ia: "Da minha IA",
 };
+
+/** Quantas por dia: atalhos para 0 a 3 e um campo para escolher qualquer número até o máximo. */
+function QuantasVezes({ valor, max, rotulo, onChange }: { valor: number; max: number; rotulo: string; onChange: (n: number) => void }) {
+  const escolher = (n: number) => onChange(Math.min(max, Math.max(0, Math.round(Number.isFinite(n) ? n : 0))));
+  return (
+    <>
+      <div className="meta-vezes" role="group" aria-label={`Quantas ${rotulo} por dia`}>
+        {[0, 1, 2, 3].map((n) => (
+          <button key={n} type="button" className={"meeting-modo-btn" + (valor === n ? " ativo" : "")} onClick={() => escolher(n)}>
+            {n === 0 ? "Desligado" : n === 1 ? "1 por dia" : `${n} por dia`}
+          </button>
+        ))}
+      </div>
+      <label className="meta-quantas">
+        <span>Ou escolha outra quantidade (0 a {max}):</span>
+        <input type="number" inputMode="numeric" min={0} max={max} value={valor} aria-label={`Quantas ${rotulo} por dia, de 0 a ${max}`} onChange={(e) => escolher(Number(e.target.value))} />
+        <span>por dia</span>
+      </label>
+    </>
+  );
+}
 
 /** "A partir das __ até as __" e onde cada mensagem cai, espalhadas por igual entre os dois horários. */
 const TEXTO_NAO_LISTAR = "Não mostrar mais essa frase. Ela vai para a aba Não listadas, de onde dá para voltar depois.";
@@ -170,7 +191,7 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
   const [outra, setOutra] = useState<MetanoiaFrase | null>(null);
 
   const hoje = todayISO();
-  const daVez = destaqueDaHome?.tipo === tipo ? destaqueDaHome : fraseDaVez(frases, hoje, 0, tipo);
+  const daVez = destaqueDaHome?.tipo === tipo ? destaqueDaHome : fraseDaVez(frases, hoje, 0, tipo, vezesPorDia(s, tipo));
   const emDestaque = outra && aprovadas.some((f) => f.id === outra.id) ? aprovadas.find((f) => f.id === outra.id)! : daVez;
   const horarios = horariosEmUso(s.metanoiaVezes, s.metanoiaInicio, s.metanoiaFim);
   const horariosDasPerguntas = horariosDePerguntasEmUso(s.metanoiaPerguntasVezes, s.metanoiaPerguntasInicio, s.metanoiaPerguntasFim);
@@ -274,18 +295,7 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
           <span className="diet-card-titulo">{ehPergunta ? "Quando o FARO me pergunta" : "Quando o FARO me lembra"}</span>
           {ehPergunta ? (
             <>
-              <div className="meta-vezes" role="group" aria-label="Quantas perguntas por dia">
-                {[0, 1, 2].map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    className={"meeting-modo-btn" + (s.metanoiaPerguntasVezes === n ? " ativo" : "")}
-                    onClick={() => board.updateSettings({ metanoiaPerguntasVezes: n })}
-                  >
-                    {n === 0 ? "Desligado" : n === 1 ? "1 por dia" : `${n} por dia`}
-                  </button>
-                ))}
-              </div>
+              <QuantasVezes valor={s.metanoiaPerguntasVezes} max={MAX_PERGUNTAS_POR_DIA} rotulo="perguntas" onChange={(n) => board.updateSettings({ metanoiaPerguntasVezes: n })} />
               {horariosDasPerguntas.length > 0 && (
                 <Janela
                   inicio={s.metanoiaPerguntasInicio}
@@ -298,18 +308,7 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
             </>
           ) : (
             <>
-              <div className="meta-vezes" role="group" aria-label="Quantas frases por dia">
-                {[0, 1, 2, 3].map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    className={"meeting-modo-btn" + (s.metanoiaVezes === n ? " ativo" : "")}
-                    onClick={() => board.updateSettings({ metanoiaVezes: n })}
-                  >
-                    {n === 0 ? "Desligado" : n === 1 ? "1 por dia" : `${n} por dia`}
-                  </button>
-                ))}
-              </div>
+              <QuantasVezes valor={s.metanoiaVezes} max={MAX_FRASES_POR_DIA} rotulo="frases" onChange={(n) => board.updateSettings({ metanoiaVezes: n })} />
               {horarios.length > 0 && (
                 <Janela
                   inicio={s.metanoiaInicio}

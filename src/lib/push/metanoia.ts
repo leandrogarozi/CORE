@@ -52,19 +52,19 @@ export async function enviarFrasesDaMetanoia(supabase: SupabaseClient<Database>,
   }
 
   // Quem tem horário vencendo agora (dentro da janela).
-  const devidos: { userId: string; dia: string; horario: string; indice: number; tipo: MetanoiaTipo }[] = [];
+  const devidos: { userId: string; dia: string; horario: string; indice: number; tipo: MetanoiaTipo; porDia: number }[] = [];
   for (const c of configs ?? []) {
     const { dia, minutos } = agoraNoFuso(nowMs, c.timezone || FUSO_PADRAO);
-    const listas: [MetanoiaTipo, string[]][] = [
-      ["frase", horariosEmUso(c.metanoia_vezes, c.metanoia_inicio, c.metanoia_fim)],
-      ["pergunta", horariosDePerguntasEmUso(c.metanoia_perguntas_vezes, c.metanoia_perguntas_inicio, c.metanoia_perguntas_fim)],
+    const listas: [MetanoiaTipo, string[], number][] = [
+      ["frase", horariosEmUso(c.metanoia_vezes, c.metanoia_inicio, c.metanoia_fim), c.metanoia_vezes],
+      ["pergunta", horariosDePerguntasEmUso(c.metanoia_perguntas_vezes, c.metanoia_perguntas_inicio, c.metanoia_perguntas_fim), c.metanoia_perguntas_vezes],
     ];
-    for (const [tipo, horarios] of listas) {
+    for (const [tipo, horarios, porDia] of listas) {
       horarios.forEach((h, indice) => {
         const [hh, mm] = h.split(":").map(Number);
         const alvo = hh * 60 + mm;
         if (Number.isFinite(alvo) && minutos >= alvo && minutos - alvo <= JANELA_MIN) {
-          devidos.push({ userId: c.user_id, dia, horario: h, indice, tipo });
+          devidos.push({ userId: c.user_id, dia, horario: h, indice, tipo, porDia });
         }
       });
     }
@@ -83,7 +83,7 @@ export async function enviarFrasesDaMetanoia(supabase: SupabaseClient<Database>,
 
   for (const d of devidos) {
     const frases = (frasesRows ?? []).filter((r) => r.user_id === d.userId).map(rowToMetanoiaFrase);
-    const frase = fraseDaVez(frases, d.dia, d.indice, d.tipo);
+    const frase = fraseDaVez(frases, d.dia, d.indice, d.tipo, d.porDia);
     if (!frase) continue;
     const aparelhos = (subs ?? []).filter((s) => s.user_id === d.userId);
     if (!aparelhos.length) {
