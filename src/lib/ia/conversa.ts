@@ -1,3 +1,5 @@
+import { manualDoFaro } from "@/lib/tutorial";
+
 /**
  * A conversa do mascote: o que a IA recebe (instrução + resumo do dia) e os
  * limites da chamada. Puro, sem rede. A rota do servidor e os testes usam o mesmo.
@@ -31,6 +33,7 @@ PARA QUE VOCÊ SERVE:
 4. Anotar por ele, usando as ferramentas: criar lembrete, criar tarefa, adicionar pessoa à lista de aniversários (uma chamada por pessoa; precisa de dia e mês; se ele pedir o lembrete no WhatsApp já na criação, marque), ligar ou desligar o sininho e o WhatsApp do aniversário de quem já está na lista, marcar tarefa como feita, criar reunião, acrescentar texto na anotação de uma tarefa ou reunião (pauta, decisões, próximos passos; sempre só acrescenta), anotar gasto em checklist, e registrar no dia de hoje o humor, o sono (hora de acordar e de dormir), a água e a % da dieta.
 
 5. Reajustar plano de estudo: compare o tempo planejado com o REAL (seção ESTUDOS, por módulo) e, se o plano não fecha no prazo ou o ritmo real é outro, proponha o ajuste com a ferramenta. Explique em 1 ou 2 frases com os números. As sessões já feitas e o tempo registrado nunca são apagados.
+6. Ensinar a usar o FARO: quando ele perguntar como usar uma parte do app ou o que um ícone significa, explique com o MANUAL DO FARO que vem no fim desta instrução (quando vier). Diga onde clicar e os passos, em poucas linhas; se o manual não cobrir, diga que não sabe e sugira o item Como usar do menu.
 
 AÇÕES: quando ele pedir algo que uma ferramenta faz, CHAME a ferramenta (não só diga que fez). Ele confirma na tela antes de gravar, então não pergunte "posso criar?": proponha direto e escreva uma frase curta. Resolva datas relativas ("amanhã", "sexta") com a data de hoje do resumo. Lembrete exige data E hora: se faltar a hora, pergunte só a hora. Gasto exige o valor e o checklist: se ele não disser qual checklist e houver mais de um com Gastos ligado, pergunte qual.
 
@@ -62,7 +65,18 @@ export function prepararMensagens(entrada: unknown): MensagemDaConversa[] {
   return ultimas;
 }
 
-export function sistemaDaConversa(resumo: string, nome?: string | null): string {
+/** A pessoa está pedindo para ser ensinada a usar o app? ("como uso...", "me ensina...", "o que significa..."). */
+export function pedeAjudaDeUso(texto: string): boolean {
+  return /\b(como\s+(eu\s+)?(uso|usar|faço|fazer|funciona|ativo|ativar|ligo|ligar|conecto|conectar|configuro|configurar|crio|criar)|me\s+ensina|ensina|explica|tutorial|o\s+que\s+(é|significa|faz)|para\s+que\s+serve|pra\s+que\s+serve|onde\s+(fica|acho|está|encontro))\b/i.test(texto);
+}
+
+/**
+ * O que a IA recebe: a instrução, o resumo do dia e, só quando a pessoa pergunta como usar o app, o manual (o mesmo
+ * texto da tela "Como usar"). O manual é grande, então não vai em toda fala.
+ */
+export function sistemaDaConversa(resumo: string, nome?: string | null, ultimaFala?: string): string {
   const corte = resumo.slice(0, LIMITE_DO_RESUMO);
-  return `${instrucaoDoFaro(nome)}\n\n=== RESUMO DO DIA ===\n${corte}`;
+  const base = `${instrucaoDoFaro(nome)}\n\n=== RESUMO DO DIA ===\n${corte}`;
+  if (!ultimaFala || !pedeAjudaDeUso(ultimaFala)) return base;
+  return `${base}\n\n=== MANUAL DO FARO (use para explicar como usar o app; responda só o que foi perguntado, em poucos passos, e diga onde clicar) ===\n${manualDoFaro()}`;
 }

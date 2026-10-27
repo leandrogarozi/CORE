@@ -23,7 +23,7 @@ import { useWhatsAppCost } from "@/lib/board/use-whatsapp-cost";
 import { fmtBRL } from "@/lib/money";
 import { taskMinutesInRange } from "@/lib/board/task-time";
 import { fmtHorasMin, resumoDoSono } from "@/lib/board/sono";
-import { MoodFaceIcon } from "./icons";
+import { MoodFaceIcon, WarningIcon } from "./icons";
 import { TaskListModal } from "./TaskListModal";
 
 type Period = "day" | "week" | "month";
@@ -415,7 +415,14 @@ export function Dashboard({ abrirAtrasadas = false }: { abrirAtrasadas?: boolean
           disabled={stats.openTopicTotal === 0}
           onClick={() => setModal({ title: "Tarefas com tópicos abertos", tasks: stats.openTopicTasks })}
         >
-          <span className="dsh-kpi-n">{stats.openTopicTotal}</span>
+          <span className="dsh-kpi-n">
+            {stats.openTopicTotal}
+            {stats.openTopicTotal > 0 && (
+              <span className="dsh-kpi-aviso" role="img" aria-label="atenção: há tópicos sem concluir">
+                <WarningIcon />
+              </span>
+            )}
+          </span>
           <span className="dsh-kpi-l">Tópicos abertos</span>
         </button>
         <div className="dsh-kpi">

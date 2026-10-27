@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
 
   const resultado = await iniciarConversa({
     anthropic: new Anthropic({ apiKey: chave }),
-    sistema: sistemaDaConversa(resumo, config?.preferred_name),
+    sistema: sistemaDaConversa(resumo, config?.preferred_name, [...mensagens].reverse().find((m) => m.role === "user")?.content),
     mensagens,
     registrarGasto: async (g) => {
       const { error } = await servico.from("ia_uso").insert({

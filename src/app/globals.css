@@ -269,6 +269,8 @@ input[type="date"]{ min-width:9.5em; }
 .tutorial ul{ margin:0; padding-left:20px; display:flex; flex-direction:column; gap:8px; line-height:1.5; }
 .tutorial-bloco{ padding:16px 18px; margin-bottom:12px; scroll-margin-top:12px; }
 .tutorial-bloco.em-foco{ outline:2px solid var(--accent); }
+.dsh-kpi-aviso{ display:inline-flex; margin-left:6px; color:#e0a800; vertical-align:middle; }
+.dsh-kpi-aviso svg{ width:16px; height:16px; }
 .tutorial h3{ font-size:13px; margin:14px 0 6px; color:var(--text-muted); font-weight:700; }
 .tutorial-icone-linha{ display:flex; gap:12px; align-items:center; padding:7px 0; border-top:1px solid var(--linha); font-size:14px; line-height:1.4; }
 .tutorial-icone{ flex:none; width:34px; height:34px; border-radius:9px; background:var(--surface-2, var(--accent-soft)); display:grid; place-items:center; color:var(--text); }
