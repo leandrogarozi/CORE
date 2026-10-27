@@ -1064,3 +1064,13 @@ export function EyeOffIcon() {
     </svg>
   );
 }
+
+/** Olho aberto: "mostrar" (a senha, por exemplo). */
+export function EyeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2.5 12C3.5 9.2 7 5 12 5s8.5 4.2 9.5 7c-1 2.8-4.5 7-9.5 7s-8.5-4.2-9.5-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}

@@ -3,6 +3,24 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { EyeIcon, EyeOffIcon } from "@/components/board/icons";
+
+/** Erros do Supabase que a pessoa vê ao criar conta, em português e com o que fazer. */
+function traduzirErro(error: { message: string; code?: string }): string {
+  const m = error.message.toLowerCase();
+  if (m.includes("sending confirmation email") || error.code === "email_address_not_authorized" || m.includes("not authorized")) {
+    return "Não foi possível enviar o e-mail de confirmação para este endereço agora. Fale com quem te convidou para liberar o seu acesso.";
+  }
+  if (error.code === "over_email_send_rate_limit" || m.includes("rate limit")) {
+    return "Foram enviados e-mails demais em pouco tempo. Espere alguns minutos e tente de novo.";
+  }
+  if (error.code === "user_already_exists" || m.includes("already registered")) {
+    return "Já existe uma conta com este e-mail. Toque em Entrar, ou em “Esqueci minha senha”.";
+  }
+  if (m.includes("invalid login credentials")) return "E-mail ou senha incorretos.";
+  if (m.includes("email not confirmed")) return "Este e-mail ainda não foi confirmado. Abra o e-mail que enviamos e toque em confirmar.";
+  return error.message;
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,6 +29,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [aceito, setAceito] = useState(false);
+  const [verSenha, setVerSenha] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,7 +55,7 @@ export default function LoginPage() {
     if (mode === "signin") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
-        setError(error.message);
+        setError(traduzirErro(error));
         setLoading(false);
         return;
       }
@@ -55,7 +74,7 @@ export default function LoginPage() {
       setError(
         (error as { code?: string }).code === "weak_password"
           ? "Essa senha é muito comum ou já apareceu em vazamentos. Escolha outra, com pelo menos 8 caracteres."
-          : error.message
+          : traduzirErro(error)
       );
       return;
     }
@@ -121,13 +140,18 @@ export default function LoginPage() {
           </label>
           <label>
             Senha
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete={mode === "signin" ? "current-password" : "new-password"}
-            />
+            <span className="auth-senha">
+              <input
+                type={verSenha ? "text" : "password"}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete={mode === "signin" ? "current-password" : "new-password"}
+              />
+              <button type="button" className="auth-olho" aria-label={verSenha ? "Esconder a senha" : "Mostrar a senha"} aria-pressed={verSenha} onClick={() => setVerSenha((v) => !v)}>
+                {verSenha ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
+            </span>
             {mode === "signup" && (
               <span className={"auth-dica" + (password.length > 0 && password.length < 8 ? " alerta" : "")}>
                 Mínimo de 8 caracteres{password.length > 0 ? ` (${password.length} até agora)` : ""}.
