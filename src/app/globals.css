@@ -1102,7 +1102,13 @@ button.dsh-kpi:disabled{ cursor:default; }
 /* Vermelho só quando há atrasada de verdade. Zero em vermelho
    assusta à toa — e assustar à toa faz o alerta perder o valor. */
 /* Sem vermelho: o vermelho ficou só na saudação e nas bolinhas de aviso (pedido de 22/10). */
-.dsh-kpi.alerta .dsh-kpi-n{ color:var(--text); }
+/* Atrasadas: quadro vermelho suave com texto branco enquanto houver tarefa atrasada. */
+.dsh-kpi.alerta{ background:#C65D5D; color:#fff; }
+.dsh-kpi.alerta .dsh-kpi-n, .dsh-kpi.alerta .dsh-kpi-l{ color:#fff; }
+.dsh-kpi.alerta .dsh-kpi-aviso.perigo{ color:#fff; }
+button.dsh-kpi.alerta:hover:not(:disabled){ background:#B94F4F; }
+:root[data-theme="dark"] .dsh-kpi.alerta{ background:#A94646; }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .dsh-kpi.alerta{ background:#A94646; } }
 @media (max-width:1100px){ .dsh-kpis{ grid-template-columns:repeat(3,1fr); } }
 @media (max-width:720px){ .dsh-kpis{ grid-template-columns:repeat(2,1fr); } }
 

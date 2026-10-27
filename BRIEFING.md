@@ -6303,3 +6303,4 @@ Feito a partir do que o Leandro viu usando as contas de teste:
 5. **Claude:** card **"Em breve"** com os prints do app financeiro (depois de receber os prints).
 6. **Claude:** IA com a chave do cliente e mais de um provedor (Anthropic/GPT); explicar o backup no Drive da pessoa.
 7. **Antes de abrir ao público:** e-mail de contato real nos Termos, revisão jurídica, tirar a faixa "teste fechado", verificação do Google, ligar `soufaro.app.br` na Vercel (antes de os testadores instalarem o app).
+- **Atrasadas, decisão do Leandro (27/10):** vai o **quadro vermelho suave com texto branco** (`.dsh-kpi.alerta`: `#C65D5D` no claro, `#A94646` no escuro, sinal de atenção branco) enquanto houver atrasada. A opção só com o sinal vermelho ficou de lado. Em teste; se enjoar, voltar é trocar o CSS.
