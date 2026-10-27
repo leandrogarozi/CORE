@@ -1,4 +1,4 @@
-import type { MetanoiaFrase, MetanoiaTipo } from "@/lib/types";
+import type { MetanoiaFrase, MetanoiaTipo, Settings } from "@/lib/types";
 
 export const NOME_DA_METANOIA = "Metanoia";
 
@@ -68,6 +68,27 @@ export function horariosEmUso(vezes: number, inicio: string, fim: string): strin
 /** Igual a `horariosEmUso`, para as perguntas. */
 export function horariosDePerguntasEmUso(vezes: number, inicio: string, fim: string): string[] {
   return horariosDaJanela(vezes, inicio, fim, MAX_PERGUNTAS_POR_DIA);
+}
+
+/**
+ * O que está em destaque agora: o que o FARO mandou por último hoje (frase ou pergunta, nos horários que a pessoa
+ * escolheu). Antes da primeira do dia, a primeira frase. O cartão da tela inicial e o bloco "Hoje" da Metanoia
+ * usam esta mesma conta, para mostrarem sempre a mesma frase.
+ */
+export function fraseEmDestaque(frases: MetanoiaFrase[], s: Settings, diaISO: string, agora: Date): MetanoiaFrase | null {
+  const min = agora.getHours() * 60 + agora.getMinutes();
+  let melhor: { quando: number; tipo: MetanoiaTipo; slot: number } = { quando: -1, tipo: "frase", slot: 0 };
+  const grupos: [MetanoiaTipo, string[]][] = [
+    ["frase", horariosEmUso(s.metanoiaVezes, s.metanoiaInicio, s.metanoiaFim)],
+    ["pergunta", horariosDePerguntasEmUso(s.metanoiaPerguntasVezes, s.metanoiaPerguntasInicio, s.metanoiaPerguntasFim)],
+  ];
+  for (const [tipo, horarios] of grupos) {
+    horarios.forEach((h, slot) => {
+      const m = paraMinutos(h);
+      if (m <= min && m > melhor.quando) melhor = { quando: m, tipo, slot };
+    });
+  }
+  return fraseDaVez(frases, diaISO, melhor.slot, melhor.tipo) ?? fraseDaVez(frases, diaISO, 0, "frase") ?? fraseDaVez(frases, diaISO, 0, "pergunta");
 }
 
 export interface FraseSeparada {

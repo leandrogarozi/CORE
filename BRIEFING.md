@@ -6214,3 +6214,8 @@ Desenho: página "5. Demais telas" do canvas Layouts FARO, quadro "Manutenção:
 - "Não listar" (olho riscado) arquiva sem apagar e sem pedir confirmação; vira a aba **Não listadas**, com "Voltar a listar" (volta como aprovada). No cartão da tela inicial, na tela cheia e no bloco "Hoje" ele ocupa o lugar da lixeira.
 - **Excluir de vez** (apaga a linha do banco, com confirmação) só aparece com a frase aberta para editar. Coração continua em todos os lugares: tocar de novo desfavorita (a frase segue aparecendo, só deixa de contar em dobro).
 - O olho riscado mostra, ao passar o mouse, "Não mostrar mais essa frase. Ela vai para a aba Não listadas, de onde dá para voltar depois."
+
+## Metanoia: "Abrir" na mesma frase, cor no destaque e cachorrinho fechado no celular (27/10)
+- `fraseEmDestaque` (`lib/metanoia.ts`) é a conta única do que está em destaque agora; o cartão da tela inicial e o bloco "Hoje" da Metanoia usam a mesma, e a Metanoia abre já na aba do tipo dela. Antes o "Hoje" mostrava sempre a frase do primeiro horário.
+- O bloco "Hoje" tem lápis e usa o mesmo editor da lista (`EditorDaFrase`): texto, autor e "de onde saiu" (fonte); Excluir de vez continua só ali. Ele também segue a cor escolhida (branco ou preto, ou o tema do app no automático), via `useTemaDoCartao` (`use-tema-metanoia.ts`).
+- `FaroMascot`: em telas de até 640px a janela do FARO (saudação do dia e avisos) não abre mais sozinha; fica só o cachorrinho, que abre ao toque. No computador segue como era.

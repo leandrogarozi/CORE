@@ -3824,6 +3824,14 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .meta-hoje-texto{ font-size:19px; line-height:1.4; font-weight:600; margin:0 0 6px; color:var(--text); }
 .meta-hoje-credito{ font-size:13px; color:var(--text-muted); margin-bottom:12px; }
 .meta-hoje-acoes{ display:flex; flex-wrap:wrap; gap:8px; }
+/* O destaque da Metanoia usa a cor escolhida em Aparência, igual ao cartão da tela inicial. */
+.meta-hoje.claro{ background:#fff; color:#111; border-color:var(--linha); }
+.meta-hoje.escuro{ background:#111; color:#fff; border-color:#111; }
+.meta-hoje.claro .meta-hoje-rotulo, .meta-hoje.escuro .meta-hoje-rotulo{ color:inherit; opacity:.5; }
+.meta-hoje.claro .meta-hoje-texto, .meta-hoje.escuro .meta-hoje-texto{ color:inherit; }
+.meta-hoje.claro .meta-hoje-credito, .meta-hoje.escuro .meta-hoje-credito{ color:inherit; opacity:.65; }
+.meta-hoje.claro .btn, .meta-hoje.escuro .btn, .meta-hoje.claro .icon-btn, .meta-hoje.escuro .icon-btn{ color:inherit; border-color:currentColor; background:transparent; opacity:.8; }
+.meta-hoje.claro .btn:hover, .meta-hoje.escuro .btn:hover, .meta-hoje.claro .icon-btn:hover, .meta-hoje.escuro .icon-btn:hover{ opacity:1; }
 .meta-vezes{ display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; }
 .meta-horarios{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:4px; }
 .meta-novo{ display:flex; flex-direction:column; gap:8px; padding:12px; }

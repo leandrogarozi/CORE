@@ -59,6 +59,11 @@ function textoDoErro(status: number, erro: string | undefined, gasto?: number, t
   return "Não consegui falar com a IA agora. Tente de novo daqui a pouco.";
 }
 
+/** Tela de celular: a janela do FARO não abre sozinha aqui (cobre a tela inicial). */
+function ehCelular(): boolean {
+  return typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches;
+}
+
 export function FaroMascot() {
   const { board } = useBoardCtx();
   const [open, setOpen] = useState(false);
@@ -81,8 +86,9 @@ export function FaroMascot() {
     if (board.loading) return;
     const key = `faro-greeted-${today}`;
     if (!localStorage.getItem(key)) {
+      // No celular a janela cobre a tela: ele fica só como o cachorrinho e abre quando a pessoa toca.
       // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time greeting on first load of the day
-      setOpen(true);
+      if (!ehCelular()) setOpen(true);
       localStorage.setItem(key, "1");
     }
   }, [board.loading, today]);
@@ -118,7 +124,7 @@ export function FaroMascot() {
       }
       setAvisoFeito(null);
       setAviso(a);
-      setOpen(true);
+      if (!ehCelular()) setOpen(true);
     }
     const primeira = setTimeout(verificar, 30_000);
     const relogio = setInterval(verificar, 60_000);

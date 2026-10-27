@@ -8,7 +8,8 @@ import { CheckIcon, EditIcon, EyeOffIcon, HeartIcon } from "./icons";
 import { MicButton } from "./MicButton";
 import { ImportarFrases } from "./ImportarFrases";
 import { todayISO } from "@/lib/date-utils";
-import { creditoDaFrase, fraseDaVez, horariosDePerguntasEmUso, horariosEmUso } from "@/lib/metanoia";
+import { creditoDaFrase, fraseDaVez, fraseEmDestaque, horariosDePerguntasEmUso, horariosEmUso } from "@/lib/metanoia";
+import { useTemaDoCartao } from "./use-tema-metanoia";
 import type { MetanoiaFrase, MetanoiaOrigem, MetanoiaTipo } from "@/lib/types";
 
 type Aba = "aprovadas" | "favoritas" | "revisar" | "naolistadas";
@@ -43,48 +44,54 @@ function Janela({ inicio, fim, horarios, onInicio, onFim }: { inicio: string; fi
   );
 }
 
-function Cartao({ frase, aprovando, naoListada }: { frase: MetanoiaFrase; aprovando: boolean; naoListada: boolean }) {
+/** Editor de uma frase: texto, autor e de onde saiu. Excluir de vez só existe aqui, com a frase aberta. */
+function EditorDaFrase({ frase, onFechar }: { frase: MetanoiaFrase; onFechar: () => void }) {
   const { board, askConfirm } = useBoardCtx();
-  const [editando, setEditando] = useState(false);
   const [texto, setTexto] = useState(frase.texto);
   const [autor, setAutor] = useState(frase.autor ?? "");
+  const [fonte, setFonte] = useState(frase.fonte ?? "");
 
   function salvar() {
     const t = texto.trim();
     if (!t) return;
-    board.updateMetanoiaFrase(frase.id, { texto: t, autor: autor.trim() || null });
-    setEditando(false);
+    board.updateMetanoiaFrase(frase.id, { texto: t, autor: autor.trim() || null, fonte: fonte.trim() || null });
+    onFechar();
   }
 
-  if (editando) {
-    return (
-      <div className="meta-frase editando">
-        <textarea value={texto} rows={3} aria-label={frase.tipo === "pergunta" ? "Texto da pergunta" : "Texto da frase"} onChange={(e) => setTexto(e.target.value)} />
-        {frase.tipo === "frase" && <input type="text" value={autor} placeholder="Autor (opcional)" aria-label="Autor" onChange={(e) => setAutor(e.target.value)} />}
-        <div className="edit-actions">
-          {/* Apagar de verdade só existe aqui, com a frase aberta para editar. */}
-          <button
-            type="button"
-            className="btn btn-danger"
-            onClick={() =>
-              askConfirm(
-                frase.tipo === "pergunta" ? "Excluir essa pergunta de vez? Não dá para desfazer." : "Excluir essa frase de vez? Não dá para desfazer.",
-                () => board.deleteMetanoiaFrase(frase.id)
-              )
-            }
-          >
-            Excluir
-          </button>
-          <button type="button" className="btn btn-ghost" onClick={() => setEditando(false)}>
-            Cancelar
-          </button>
-          <button type="button" className="btn btn-accent" disabled={!texto.trim()} onClick={salvar}>
-            Salvar
-          </button>
-        </div>
+  return (
+    <div className="meta-frase editando">
+      <textarea value={texto} rows={3} aria-label={frase.tipo === "pergunta" ? "Texto da pergunta" : "Texto da frase"} onChange={(e) => setTexto(e.target.value)} />
+      {frase.tipo === "frase" && <input type="text" value={autor} placeholder="Autor (opcional)" aria-label="Autor" onChange={(e) => setAutor(e.target.value)} />}
+      <input type="text" value={fonte} placeholder="De onde saiu (opcional)" aria-label="De onde saiu" onChange={(e) => setFonte(e.target.value)} />
+      <div className="edit-actions">
+        <button
+          type="button"
+          className="btn btn-danger"
+          onClick={() =>
+            askConfirm(
+              frase.tipo === "pergunta" ? "Excluir essa pergunta de vez? Não dá para desfazer." : "Excluir essa frase de vez? Não dá para desfazer.",
+              () => board.deleteMetanoiaFrase(frase.id)
+            )
+          }
+        >
+          Excluir
+        </button>
+        <button type="button" className="btn btn-ghost" onClick={onFechar}>
+          Cancelar
+        </button>
+        <button type="button" className="btn btn-accent" disabled={!texto.trim()} onClick={salvar}>
+          Salvar
+        </button>
       </div>
-    );
-  }
+    </div>
+  );
+}
+
+function Cartao({ frase, aprovando, naoListada }: { frase: MetanoiaFrase; aprovando: boolean; naoListada: boolean }) {
+  const { board } = useBoardCtx();
+  const [editando, setEditando] = useState(false);
+
+  if (editando) return <EditorDaFrase frase={frase} onFechar={() => setEditando(false)} />;
 
   const credito = creditoDaFrase(frase);
   return (
@@ -144,7 +151,11 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
   const { board, askConfirm } = useBoardCtx();
   const s = board.state.settings;
   const todas = board.state.metanoiaFrases;
-  const [tipo, setTipo] = useState<MetanoiaTipo>("frase");
+  // Abre na mesma frase que está em destaque na tela inicial (e na aba do tipo dela).
+  const destaqueDaHome = fraseEmDestaque(todas, s, todayISO(), new Date());
+  const [tipo, setTipo] = useState<MetanoiaTipo>(destaqueDaHome?.tipo ?? "frase");
+  const [editandoHoje, setEditandoHoje] = useState(false);
+  const temaDoCartao = useTemaDoCartao(s.metanoiaTema);
   const [busca, setBusca] = useState("");
   const ehPergunta = tipo === "pergunta";
   const frases = todas.filter((f) => f.tipo === tipo);
@@ -159,7 +170,7 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
   const [outra, setOutra] = useState<MetanoiaFrase | null>(null);
 
   const hoje = todayISO();
-  const daVez = fraseDaVez(frases, hoje, 0, tipo);
+  const daVez = destaqueDaHome?.tipo === tipo ? destaqueDaHome : fraseDaVez(frases, hoje, 0, tipo);
   const emDestaque = outra && aprovadas.some((f) => f.id === outra.id) ? aprovadas.find((f) => f.id === outra.id)! : daVez;
   const horarios = horariosEmUso(s.metanoiaVezes, s.metanoiaInicio, s.metanoiaFim);
   const horariosDasPerguntas = horariosDePerguntasEmUso(s.metanoiaPerguntasVezes, s.metanoiaPerguntasInicio, s.metanoiaPerguntasFim);
@@ -212,9 +223,11 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
           ))}
         </div>
 
-        <div className="meta-hoje">
+        <div className={"meta-hoje " + temaDoCartao}>
           <div className="meta-hoje-rotulo">Hoje</div>
-          {emDestaque ? (
+          {emDestaque && editandoHoje ? (
+            <EditorDaFrase key={emDestaque.id} frase={emDestaque} onFechar={() => setEditandoHoje(false)} />
+          ) : emDestaque ? (
             <>
               <p className="meta-hoje-texto">{ehPergunta ? emDestaque.texto : <>&ldquo;{emDestaque.texto}&rdquo;</>}</p>
               {creditoDaFrase(emDestaque) && <div className="meta-hoje-credito">{creditoDaFrase(emDestaque)}</div>}
@@ -228,6 +241,9 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
                 </button>
                 <button type="button" className="btn btn-ghost" disabled={aprovadas.length < 2} onClick={sortearOutra}>
                   Outra
+                </button>
+                <button type="button" className="icon-btn" title="Editar" aria-label="Editar frase" onClick={() => setEditandoHoje(true)}>
+                  <EditIcon />
                 </button>
                 <button
                   type="button"
