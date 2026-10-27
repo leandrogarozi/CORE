@@ -6,13 +6,16 @@ export const NOME_DA_METANOIA = "Metanoia";
 export const MAX_FRASES_POR_DIA = 10;
 export const MAX_PERGUNTAS_POR_DIA = 10;
 
-/** Fontes que só dizem de onde o texto veio para o FARO (print, lista colada): não são crédito de ninguém. */
-const FONTE_SO_DE_ORIGEM = /^(prints?\b|lista colada|texto colado)/i;
+export const AUTOR_DESCONHECIDO = "Autor desconhecido";
 
-/** "Fulano · Fonte" para mostrar embaixo da frase. Autor ou fonte desconhecidos não aparecem. */
-export function creditoDaFrase(f: Pick<MetanoiaFrase, "autor" | "fonte">): string {
-  const fonte = f.fonte?.trim();
-  return [f.autor?.trim(), fonte && !FONTE_SO_DE_ORIGEM.test(fonte) ? fonte : ""].filter(Boolean).join(" · ");
+/**
+ * O crédito que aparece embaixo da frase: só o autor. Frase sem autor mostra "Autor desconhecido"; pergunta sem
+ * autor não mostra nada. De onde a frase veio (`fonte`) fica guardado só para a pessoa, no editor e no backup.
+ */
+export function creditoDaFrase(f: Pick<MetanoiaFrase, "autor" | "tipo">): string {
+  const autor = f.autor?.trim();
+  if (autor) return autor;
+  return f.tipo === "pergunta" ? "" : AUTOR_DESCONHECIDO;
 }
 
 function diaNumero(iso: string): number {

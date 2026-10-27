@@ -3832,8 +3832,8 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .meta-hoje.claro .meta-hoje-rotulo, .meta-hoje.escuro .meta-hoje-rotulo{ color:inherit; opacity:.5; }
 .meta-hoje.claro .meta-hoje-texto, .meta-hoje.escuro .meta-hoje-texto{ color:inherit; }
 .meta-hoje.claro .meta-hoje-credito, .meta-hoje.escuro .meta-hoje-credito{ color:inherit; opacity:.65; }
-.meta-hoje.claro .btn, .meta-hoje.escuro .btn, .meta-hoje.claro .icon-btn, .meta-hoje.escuro .icon-btn{ color:inherit; border-color:currentColor; background:transparent; opacity:.8; }
-.meta-hoje.claro .btn:hover, .meta-hoje.escuro .btn:hover, .meta-hoje.claro .icon-btn:hover, .meta-hoje.escuro .icon-btn:hover{ opacity:1; }
+.meta-hoje.claro .meta-hoje-acoes .btn, .meta-hoje.escuro .meta-hoje-acoes .btn, .meta-hoje.claro .meta-hoje-acoes .icon-btn, .meta-hoje.escuro .meta-hoje-acoes .icon-btn{ color:inherit; border-color:currentColor; background:transparent; opacity:.8; }
+.meta-hoje.claro .meta-hoje-acoes .btn:hover, .meta-hoje.escuro .meta-hoje-acoes .btn:hover, .meta-hoje.claro .meta-hoje-acoes .icon-btn:hover, .meta-hoje.escuro .meta-hoje-acoes .icon-btn:hover{ opacity:1; }
 .meta-vezes{ display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; }
 .meta-horarios{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:4px; }
 .meta-novo{ display:flex; flex-direction:column; gap:8px; padding:12px; }

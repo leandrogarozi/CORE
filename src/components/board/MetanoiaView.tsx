@@ -82,8 +82,8 @@ function EditorDaFrase({ frase, onFechar }: { frase: MetanoiaFrase; onFechar: ()
   return (
     <div className="meta-frase editando">
       <textarea value={texto} rows={3} aria-label={frase.tipo === "pergunta" ? "Texto da pergunta" : "Texto da frase"} onChange={(e) => setTexto(e.target.value)} />
-      {frase.tipo === "frase" && <input type="text" value={autor} placeholder="Autor (opcional)" aria-label="Autor" onChange={(e) => setAutor(e.target.value)} />}
-      <input type="text" value={fonte} placeholder="De onde saiu (opcional)" aria-label="De onde saiu" onChange={(e) => setFonte(e.target.value)} />
+      {frase.tipo === "frase" && <input type="text" value={autor} placeholder="Autor (em branco = desconhecido)" aria-label="Autor" onChange={(e) => setAutor(e.target.value)} />}
+      <input type="text" value={fonte} placeholder="De onde saiu (só para você)" aria-label="De onde saiu" onChange={(e) => setFonte(e.target.value)} />
       <div className="edit-actions">
         <button
           type="button"
@@ -246,7 +246,7 @@ export function MetanoiaView({ onBack, alvo }: { onBack: () => void; alvo?: { id
           ))}
         </div>
 
-        <div className={"meta-hoje " + temaDoCartao}>
+        <div className={"meta-hoje " + (editandoHoje ? "" : temaDoCartao)}>
           <div className="meta-hoje-rotulo">Hoje</div>
           {emDestaque && editandoHoje ? (
             <EditorDaFrase key={emDestaque.id} frase={emDestaque} onFechar={() => setEditandoHoje(false)} />
