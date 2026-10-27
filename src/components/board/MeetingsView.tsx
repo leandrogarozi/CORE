@@ -6,13 +6,14 @@ import { TaskEditRow } from "./TaskRow";
 import { StatusPicker } from "./StatusPicker";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { TimePicker } from "./TimePicker";
-import { EditIcon, SearchIcon, TrashIcon, UserIcon, UsersGroupIcon } from "./icons";
+import { EditIcon, SearchIcon, TrashIcon, UserIcon, UsersGroupIcon, WhatsAppIcon } from "./icons";
 import { countOpenChecklistItems } from "@/lib/rich-text";
 import { agruparReunioes, dataDaReuniao } from "@/lib/board/reunioes";
 import { fmtDayMonth, todayISO } from "@/lib/date-utils";
 import { entraEmReunioes, type Task } from "@/lib/types";
 import { DateField } from "./DateField";
 import { TutorialLink } from "./TutorialLink";
+import { REMINDER_ALERT_PRESETS } from "@/lib/board/reminder-alerts";
 
 const NO_CLIENT_LABEL = "Sem cliente";
 
@@ -38,6 +39,9 @@ export function MeetingsView({ onBack }: { onBack: () => void }) {
   const [data, setData] = useState(() => todayISO());
   const [hora, setHora] = useState("");
   const [criada, setCriada] = useState("");
+  // Lembrete já na criação (antes era preciso abrir Lembretes para configurar): quando avisar e se vai no WhatsApp.
+  const [avisar, setAvisar] = useState<number | null>(null);
+  const [avisarZap, setAvisarZap] = useState(false);
 
   const hoje = todayISO();
   const meetingTasks = board.state.tasks.filter((t) => entraEmReunioes(t));
@@ -53,7 +57,15 @@ export function MeetingsView({ onBack }: { onBack: () => void }) {
     if (!titulo.trim() || !data) return;
     const id = board.addMeeting({ title: titulo, client: cliente.trim() || null, date: data, time: hora || null });
     if (!id) return;
-    setCriada(`Reunião criada para ${dataDaReuniao(data)}${hora ? ` às ${hora}` : ""}. Ela já aparece na lista de tarefas desse dia.`);
+    const comLembrete = avisar !== null && !!hora;
+    if (comLembrete) {
+      board.setTaskReminder(id, { date: data, time: hora, repeat: "none", weekDays: null, alertMinutesBefore: avisar, whatsapp: avisarZap });
+    }
+    const quandoAvisa = avisar === 0 ? "no horário" : avisar !== null ? (REMINDER_ALERT_PRESETS.find((p) => p.v === avisar)?.l ?? "") : "";
+    setCriada(
+      `Reunião criada para ${dataDaReuniao(data)}${hora ? ` às ${hora}` : ""}. Ela já aparece na lista de tarefas desse dia.` +
+        (comLembrete ? ` Lembrete ${quandoAvisa}${avisarZap ? ", também no WhatsApp" : ""}.` : "")
+    );
     setTitulo("");
     setHora("");
   }
@@ -183,6 +195,27 @@ export function MeetingsView({ onBack }: { onBack: () => void }) {
             </datalist>
             <DateField value={data} ariaLabel="Dia da reunião" onChange={setData} />
             <TimePicker value={hora} onChange={setHora} onClear={() => setHora("")} placeholder="hora" />
+            <select
+              className="reminder-repeat-select"
+              aria-label="Lembrete da reunião"
+              value={avisar === null ? "" : String(avisar)}
+              disabled={!hora}
+              title={hora ? "Cria o lembrete desta reunião junto" : "Escolha a hora para poder ligar o lembrete"}
+              onChange={(e) => setAvisar(e.target.value === "" ? null : Number(e.target.value))}
+            >
+              <option value="">Sem lembrete</option>
+              {REMINDER_ALERT_PRESETS.map((p) => (
+                <option key={p.l} value={String(p.v ?? 0)}>
+                  Lembrar {p.v === 0 ? "no horário" : p.l}
+                </option>
+              ))}
+            </select>
+            {avisar !== null && hora && (
+              <button type="button" className={"reminder-zap-opcao" + (avisarZap ? " ativo" : "")} onClick={() => setAvisarZap((v) => !v)} aria-pressed={avisarZap}>
+                <WhatsAppIcon filled={avisarZap} />
+                <span>Avisar no WhatsApp</span>
+              </button>
+            )}
             <button type="button" className="btn btn-accent" disabled={!titulo.trim() || !data} onClick={criarReuniao}>
               Criar reunião
             </button>
