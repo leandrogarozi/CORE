@@ -376,6 +376,7 @@ function ondeEstao(): string {
     "- Livros/ (só livros com anotação)",
     "- Ideias/",
     "- Conhecendo você/ (só o que ele aprovou)",
+    "- Metanoia/ (Frases.md e Perguntas poderosas.md: as frases e perguntas que voltam para ele durante o dia, com favoritas e as que ainda esperam revisão; Metanoia - tudo.csv tem também as que ele mandou não aparecer mais)",
     "",
     "O id no cabeçalho de cada arquivo é o mesmo que faro_ler aceita. Se você tiver acesso ao Drive, pode ler por lá; se não, este conector entrega o mesmo conteúdo.",
     "",
