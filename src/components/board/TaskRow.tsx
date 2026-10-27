@@ -1159,6 +1159,9 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
               alertMinutesBefore={linkedReminder?.alertMinutesBefore ?? null}
               onSave={(fields) => board.setTaskReminder(t.id, fields)}
               emptyLabel="Vazio"
+              // Já vem com a data e a hora da tarefa: a pessoa só escolhe quanto antes avisar e se quer no WhatsApp.
+              sugestaoData={vals.date}
+              sugestaoHora={vals.time || null}
               // Sempre presente: antes a opção só aparecia DEPOIS que o
               // lembrete existia, então ao marcar a data pela primeira vez ela
               // não estava lá — ele procurou e não achou. Agora a escolha viaja

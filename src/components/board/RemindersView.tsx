@@ -35,6 +35,7 @@ import {
 } from "@/lib/board/reminder-alerts";
 import type { Reminder, ReminderStatus, Repeat } from "@/lib/types";
 import { DateField } from "./DateField";
+import { LembreteDeTarefa } from "./LembreteDeTarefa";
 import { TutorialLink } from "./TutorialLink";
 
 const REPEATS: { v: Repeat; l: string }[] = [
@@ -103,6 +104,8 @@ export function ReminderDateButton({
   emptyLabel = "Definir data",
   whatsapp,
   onWhatsappChange,
+  sugestaoData,
+  sugestaoHora,
 }: ReminderScheduleFields & {
   onSave: (fields: ReminderScheduleFields & { whatsapp?: boolean }) => void;
   emptyLabel?: string;
@@ -110,6 +113,9 @@ export function ReminderDateButton({
    *  existe é o estado normal — a opção aparece desde o começo. */
   whatsapp?: boolean;
   onWhatsappChange?: (ligado: boolean) => void;
+  /** Data e hora para já vir preenchido quando o lembrete ainda não tem (a da tarefa a que ele pertence). */
+  sugestaoData?: string | null;
+  sugestaoHora?: string | null;
 }) {
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const open = anchorRect !== null;
@@ -141,8 +147,8 @@ export function ReminderDateButton({
       setAnchorRect(null);
       return;
     }
-    setDateDraft(date ?? "");
-    setTimeDraft(time ?? "");
+    setDateDraft(date ?? sugestaoData ?? "");
+    setTimeDraft(time ?? (date ? "" : (sugestaoHora ?? "")));
     setRepeatDraft(repeat);
     setWeekDraft(weekDays ?? []);
     setAlertDraft(alertMinutesBefore);
@@ -1079,6 +1085,7 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
             </span>
           </button>
         )}
+        <LembreteDeTarefa />
         <div className="list-quickadd-card">
           <div className="quickadd-row">
             <span className="quickadd-plus" aria-hidden="true">

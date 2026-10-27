@@ -121,7 +121,8 @@ export const TUTORIAL: SecaoDoTutorial[] = [
       "Lembretes podem se repetir (todo dia, semana, mês) ou cair em dias da semana.",
       "Escreva ou fale o nome, escolha data e hora e toque no botão de enviar (o avião).",
       "Filtros em cima: Todos, Recorrentes, Hoje, Semana, Atrasados. Os que o FARO criou sozinho (de manutenção, aniversário, dieta...) ficam em “Vindos de outras telas”.",
-      "Toda tarefa também pode ter um lembrete: no campo de data da tarefa.",
+      "Toda tarefa também pode ter um lembrete, no campo “Lembrete” dentro da tarefa. Ele já vem com a data e a hora da tarefa; você só escolhe quanto antes avisar e se quer o WhatsApp.",
+      "Sem cadastrar duas vezes: em cima da página de Lembretes, “Lembrar de uma reunião ou tarefa que já está na agenda” lista as reuniões, os eventos e as tarefas com hora que ainda não têm lembrete. Escolha uma, diga quando avisar (no horário, 10 min antes...) e se quer o WhatsApp, e toque em Criar lembrete.",
     ],
   },
   {
