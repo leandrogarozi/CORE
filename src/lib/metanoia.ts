@@ -109,7 +109,7 @@ export function horariosDePerguntasEmUso(vezes: number, inicio: string, fim: str
  * escolheu). Antes da primeira do dia, a primeira frase. O cartão da tela inicial e o bloco "Hoje" da Metanoia
  * usam esta mesma conta, para mostrarem sempre a mesma frase.
  */
-export function fraseEmDestaque(frases: MetanoiaFrase[], s: Settings, diaISO: string, agora: Date): MetanoiaFrase | null {
+export function fraseEmDestaque(frases: MetanoiaFrase[], s: Settings, diaISO: string, agora: Date, passos = 0): MetanoiaFrase | null {
   const min = agora.getHours() * 60 + agora.getMinutes();
   let melhor: { quando: number; tipo: MetanoiaTipo; slot: number } = { quando: -1, tipo: "frase", slot: 0 };
   const grupos: [MetanoiaTipo, string[]][] = [
@@ -122,7 +122,8 @@ export function fraseEmDestaque(frases: MetanoiaFrase[], s: Settings, diaISO: st
       if (m <= min && m > melhor.quando) melhor = { quando: m, tipo, slot };
     });
   }
-  const da = (slot: number, tipo: MetanoiaTipo) => fraseDaVez(frases, diaISO, slot, tipo, vezesPorDia(s, tipo));
+  // `passos` anda para frente (positivo) ou para trás (negativo) na mesma fila, para ver outra frase sem esperar.
+  const da = (slot: number, tipo: MetanoiaTipo) => fraseDaVez(frases, diaISO, slot + passos, tipo, vezesPorDia(s, tipo));
   return da(melhor.slot, melhor.tipo) ?? da(0, "frase") ?? da(0, "pergunta");
 }
 

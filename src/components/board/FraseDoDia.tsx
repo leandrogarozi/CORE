@@ -26,7 +26,9 @@ function rotulo(tipo: MetanoiaTipo) {
  */
 export function FraseDoDia({ onAbrir, telaCheia = false, onFecharTelaCheia }: { onAbrir: () => void; telaCheia?: boolean; onFecharTelaCheia?: () => void }) {
   const { board } = useBoardCtx();
-  const f = fraseEmDestaque(board.state.metanoiaFrases, board.state.settings, todayISO(), new Date());
+  // Setinhas do cartão: andam na fila da Metanoia, só nesta tela (não mudam o que o FARO manda).
+  const [passos, setPassos] = useState(0);
+  const f = fraseEmDestaque(board.state.metanoiaFrases, board.state.settings, todayISO(), new Date(), passos);
   const tema = useTemaDoCartao(board.state.settings.metanoiaTema);
   const [fechada, setFechada] = useState<string | null>(null);
 
@@ -91,6 +93,14 @@ export function FraseDoDia({ onAbrir, telaCheia = false, onFecharTelaCheia }: { 
   if (fechada === f.id) return null;
   return (
     <div className={"meta-cartao " + tema}>
+      <div className="meta-cartao-nav">
+        <button type="button" aria-label="Frase anterior" title="Anterior" onClick={() => setPassos((p) => p - 1)}>
+          ‹
+        </button>
+        <button type="button" aria-label="Próxima frase" title="Próxima" onClick={() => setPassos((p) => p + 1)}>
+          ›
+        </button>
+      </div>
       <button type="button" className="meta-cartao-x" aria-label="Fechar até a próxima frase" onClick={fechar}>
         ×
       </button>
