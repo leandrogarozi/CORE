@@ -6227,3 +6227,4 @@ Desenho: página "5. Demais telas" do canvas Layouts FARO, quadro "Manutenção:
 
 ## Metanoia: setinhas no cartão da tela inicial (27/10)
 - O cartão ganhou ‹ › discretos no canto de cima (antes do ×): andam para trás e para frente na mesma fila aleatória da Metanoia (`fraseEmDestaque(..., passos)`), só na tela, sem mudar o que o FARO manda por notificação.
+- **Correção (27/10):** as setinhas e o × não respondiam ao toque porque o rótulo do cartão (com `opacity`) pintava por cima delas. Elas ganharam `z-index`. Conferido num Chromium de verdade (harness em `scratchpad/rev`, hash `#frase`): avança, volta e fecha. Lição: botão em canto de cartão com texto de `opacity` por cima precisa de `z-index`.
