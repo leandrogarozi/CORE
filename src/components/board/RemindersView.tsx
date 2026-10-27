@@ -32,7 +32,6 @@ import {
   oZapVaiSair,
   reminderTargetMs,
 } from "@/lib/board/reminder-alerts";
-import { ANTECEDENCIA_PADRAO_MIN } from "@/lib/board/zap-engine";
 import type { Reminder, ReminderStatus, Repeat } from "@/lib/types";
 
 const REPEATS: { v: Repeat; l: string }[] = [
@@ -178,7 +177,7 @@ export function ReminderDateButton({
       // olha lembrete com antecedência preenchida, e sem isso o verde que ele
       // acabou de acender não sairia.
       alertMinutesBefore:
-        nextDate || hasWeekDays ? (zapDraft ? (alertDraft ?? ANTECEDENCIA_PADRAO_MIN) : alertDraft) : null,
+        nextDate || hasWeekDays ? (alertDraft ?? 0) : null,
       // Só manda o campo quando ESTA tela usa a opção. Sem isso, os três outros
       // lugares que abrem este mesmo popover (a tabela de Lembretes) passariam
       // a salvar `whatsapp: false` e apagariam em silêncio o zap que ele tinha
@@ -200,7 +199,7 @@ export function ReminderDateButton({
         date ? fmtDayMonth(date) + (time ? ` às ${time}` : "") : null,
         weekLabel,
         repeat !== "none" ? REPEAT_SHORT[repeat] : null,
-        alertMinutesBefore ? `aviso ${alertLabel}` : null,
+        alertMinutesBefore !== null && alertMinutesBefore > 0 ? `aviso ${alertLabel}` : null,
       ]
         .filter(Boolean)
         .join(" · ")
@@ -279,12 +278,12 @@ export function ReminderDateButton({
             </select>
             <select
               className="reminder-repeat-select"
-              value={alertDraft ?? ""}
+              value={alertDraft ?? 0}
               disabled={!dateDraft && weekDraft.length === 0}
-              onChange={(e) => setAlertDraft(e.target.value ? Number(e.target.value) : null)}
+              onChange={(e) => setAlertDraft(Number(e.target.value))}
             >
               {REMINDER_ALERT_PRESETS.map((p) => (
-                <option key={p.l} value={p.v ?? ""}>
+                <option key={p.l} value={p.v ?? 0}>
                   {p.l}
                 </option>
               ))}
@@ -737,7 +736,7 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
                 ? { whatsapp: false }
                 : {
                     whatsapp: true,
-                    alertMinutesBefore: reminder.alertMinutesBefore ?? ANTECEDENCIA_PADRAO_MIN,
+                    alertMinutesBefore: reminder.alertMinutesBefore ?? 0,
                   }
             )
           }

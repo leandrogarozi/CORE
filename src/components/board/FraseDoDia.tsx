@@ -28,7 +28,11 @@ export function FraseDoDia({ onAbrir, onEditar, telaCheia = false, onFecharTelaC
   const { board } = useBoardCtx();
   // Setinhas do cartão: andam na fila da Metanoia, só nesta tela (não mudam o que o FARO manda).
   const [passos, setPassos] = useState(0);
-  const f = fraseEmDestaque(board.state.metanoiaFrases, board.state.settings, todayISO(), new Date(), passos);
+  // Favoritar muda a fila (a favorita entra duas vezes); a frase na tela fica onde está até a pessoa usar as setas.
+  const [fixaId, setFixaId] = useState<string | null>(null);
+  const natural = fraseEmDestaque(board.state.metanoiaFrases, board.state.settings, todayISO(), new Date(), passos);
+  const fixa = fixaId ? board.state.metanoiaFrases.find((x) => x.id === fixaId && x.status === "aprovada") : undefined;
+  const f = fixa ?? natural;
   const tema = useTemaDoCartao(board.state.settings.metanoiaTema);
   const [fechada, setFechada] = useState<string | null>(null);
 
@@ -68,8 +72,10 @@ export function FraseDoDia({ onAbrir, onEditar, telaCheia = false, onFecharTelaC
             type="button"
             onClick={(e) => {
               e.stopPropagation();
+              setFixaId(f.id);
               board.updateMetanoiaFrase(f.id, { favorita: !f.favorita });
             }}
+            className={f.favorita ? "coracao-ativo" : ""}
           >
             <HeartIcon filled={f.favorita} /> {f.favorita ? "Favorita" : "Favoritar"}
           </button>
@@ -94,10 +100,10 @@ export function FraseDoDia({ onAbrir, onEditar, telaCheia = false, onFecharTelaC
   return (
     <div className={"meta-cartao " + tema}>
       <div className="meta-cartao-nav">
-        <button type="button" aria-label="Frase anterior" title="Anterior" onClick={() => setPassos((p) => p - 1)}>
+        <button type="button" aria-label="Frase anterior" title="Anterior" onClick={() => { setFixaId(null); setPassos((p) => p - 1); }}>
           ‹
         </button>
-        <button type="button" aria-label="Próxima frase" title="Próxima" onClick={() => setPassos((p) => p + 1)}>
+        <button type="button" aria-label="Próxima frase" title="Próxima" onClick={() => { setFixaId(null); setPassos((p) => p + 1); }}>
           ›
         </button>
       </div>
@@ -110,7 +116,14 @@ export function FraseDoDia({ onAbrir, onEditar, telaCheia = false, onFecharTelaC
       </p>
       {credito && <div className="meta-cartao-credito">{credito}</div>}
       <div className="meta-cartao-acoes">
-        <button type="button" onClick={() => board.updateMetanoiaFrase(f.id, { favorita: !f.favorita })}>
+        <button
+          type="button"
+          className={f.favorita ? "coracao-ativo" : ""}
+          onClick={() => {
+            setFixaId(f.id);
+            board.updateMetanoiaFrase(f.id, { favorita: !f.favorita });
+          }}
+        >
           <HeartIcon filled={f.favorita} /> {f.favorita ? "Favorita" : "Favoritar"}
         </button>
         <button type="button" onClick={() => onAbrir(f)}>

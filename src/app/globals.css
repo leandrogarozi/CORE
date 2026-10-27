@@ -3866,6 +3866,8 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .meta-cartao-acoes button, .meta-cheia-base button{ display:inline-flex; align-items:center; gap:5px; background:transparent; border:0; padding:2px 0; color:inherit; opacity:.7; font:inherit; font-size:12.5px; cursor:pointer; }
 .meta-cartao-acoes button:hover, .meta-cheia-base button:hover{ opacity:1; }
 .meta-cartao-acoes .meta-cartao-discreto{ opacity:.4; }
+.meta-cartao-acoes .coracao-ativo, .meta-cheia-base .coracao-ativo, .meta-hoje .coracao-ativo, .meta-hoje.claro .meta-hoje-acoes .coracao-ativo, .meta-hoje.escuro .meta-hoje-acoes .coracao-ativo{ color:#e5384f; opacity:1; }
+.coracao-ativo svg{ fill:#e5384f; }
 .meta-cartao-acoes .meta-cartao-ultimo{ margin-left:auto; }
 .meta-busca{ width:100%; margin:12px 0 0; padding:9px 12px; font:inherit; font-size:14px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text); }
 .meta-frase.editando .edit-actions .btn-danger{ margin-right:auto; }

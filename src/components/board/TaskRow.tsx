@@ -46,7 +46,6 @@ import { PostponeModal } from "./PostponeModal";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { countOpenChecklistItems } from "@/lib/rich-text";
 import { CATEGORY_LABEL, faltaTagReuniao, isMeetingTask, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
-import { ANTECEDENCIA_PADRAO_MIN } from "@/lib/board/zap-engine";
 import { oZapVaiSair } from "@/lib/board/reminder-alerts";
 import type { TaskEditFields } from "@/lib/board/use-board";
 
@@ -1179,7 +1178,7 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
                           ? {
                               whatsapp: true,
                               alertMinutesBefore:
-                                linkedReminder.alertMinutesBefore ?? ANTECEDENCIA_PADRAO_MIN,
+                                linkedReminder.alertMinutesBefore ?? 0,
                             }
                           : { whatsapp: false }
                       )

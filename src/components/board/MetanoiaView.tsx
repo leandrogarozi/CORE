@@ -257,8 +257,12 @@ export function MetanoiaView({ onBack, alvo }: { onBack: () => void; alvo?: { id
               <div className="meta-hoje-acoes">
                 <button
                   type="button"
-                  className={"btn btn-ghost" + (emDestaque.favorita ? " saved-btn" : "")}
-                  onClick={() => board.updateMetanoiaFrase(emDestaque.id, { favorita: !emDestaque.favorita })}
+                  className={"btn btn-ghost" + (emDestaque.favorita ? " coracao-ativo" : "")}
+                  onClick={() => {
+                    // Favoritar muda a fila; a frase na tela fica onde está.
+                    setOutra(emDestaque);
+                    board.updateMetanoiaFrase(emDestaque.id, { favorita: !emDestaque.favorita });
+                  }}
                 >
                   <HeartIcon filled={emDestaque.favorita} /> {emDestaque.favorita ? "Favorita" : "Favoritar"}
                 </button>

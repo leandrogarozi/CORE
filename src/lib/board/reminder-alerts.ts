@@ -2,7 +2,7 @@ import { dateFromISO, isoAddDays, stepIso, todayISO } from "@/lib/date-utils";
 import type { Reminder } from "@/lib/types";
 
 export const REMINDER_ALERT_PRESETS: { v: number | null; l: string }[] = [
-  { v: null, l: "Sem aviso" },
+  { v: 0, l: "No horário marcado" },
   { v: 10, l: "10 min antes" },
   { v: 30, l: "30 min antes" },
   { v: 60, l: "1h antes" },
@@ -10,6 +10,14 @@ export const REMINDER_ALERT_PRESETS: { v: number | null; l: string }[] = [
   { v: 2880, l: "2 dias antes" },
   { v: 10080, l: "1 semana antes" },
 ];
+
+/** "No horário marcado" (0): o aviso vale por alguns minutos depois da hora, para o agendador de cada minuto pegar. */
+export const AVISO_NO_HORARIO_FOLGA_MIN = 5;
+
+/** Até quando o aviso vale: a hora marcada, ou, no aviso "no horário", alguns minutos depois dela. */
+function fimDoAviso(targetMs: number, minAntes: number): number {
+  return minAntes === 0 ? targetMs + AVISO_NO_HORARIO_FOLGA_MIN * 60000 : targetMs;
+}
 
 export function isRecurringReminder(reminder: Pick<Reminder, "repeat" | "weekDays">): boolean {
   return reminder.repeat !== "none" || (reminder.weekDays?.length ?? 0) > 0;
@@ -58,20 +66,20 @@ export function zonedDateTimeToMs(dateISO: string, time: string, timeZone: strin
 
 /** Mesma regra do isReminderAlerting, mas lendo data/hora no fuso do usuário. */
 export function isReminderAlertingInZone(reminder: Reminder, nowMs: number, timeZone: string): boolean {
-  if (reminder.done || !reminder.alertMinutesBefore) return false;
+  if (reminder.done || reminder.alertMinutesBefore === null) return false;
   if (!reminder.date) return false;
   const targetMs = zonedDateTimeToMs(reminder.date, reminder.time ?? "23:59", timeZone);
   if (Number.isNaN(targetMs)) return false;
   const alertAtMs = targetMs - reminder.alertMinutesBefore * 60000;
-  return nowMs >= alertAtMs && nowMs < targetMs;
+  return nowMs >= alertAtMs && nowMs < fimDoAviso(targetMs, reminder.alertMinutesBefore);
 }
 
 export function isReminderAlerting(reminder: Reminder, nowMs: number): boolean {
-  if (reminder.done || !reminder.alertMinutesBefore) return false;
+  if (reminder.done || reminder.alertMinutesBefore === null) return false;
   const targetMs = reminderTargetMs(reminder);
   if (targetMs === null) return false;
   const alertAtMs = targetMs - reminder.alertMinutesBefore * 60000;
-  return nowMs >= alertAtMs && nowMs < targetMs;
+  return nowMs >= alertAtMs && nowMs < fimDoAviso(targetMs, reminder.alertMinutesBefore);
 }
 
 // Vencido: já passou da data (e hora, se marcada) — sem hora, considera o dia inteiro
