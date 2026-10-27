@@ -21,6 +21,8 @@ const ROTULO_DA_ORIGEM: Record<MetanoiaOrigem, string> = {
 };
 
 /** "A partir das __ até as __" e onde cada mensagem cai, espalhadas por igual entre os dois horários. */
+const TEXTO_NAO_LISTAR = "Não mostrar mais essa frase. Ela vai para a aba Não listadas, de onde dá para voltar depois.";
+
 const semAcento = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 function Janela({ inicio, fim, horarios, onInicio, onFim }: { inicio: string; fim: string; horarios: string[]; onInicio: (v: string) => void; onFim: (v: string) => void }) {
@@ -126,8 +128,8 @@ function Cartao({ frase, aprovando, naoListada }: { frase: MetanoiaFrase; aprova
           <button
             type="button"
             className="icon-btn"
-            title="Não listar (não aparece mais, mas não é apagada)"
-            aria-label="Não listar"
+            title={TEXTO_NAO_LISTAR}
+            aria-label={TEXTO_NAO_LISTAR}
             onClick={() => board.updateMetanoiaFrase(frase.id, { status: "arquivada" })}
           >
             <EyeOffIcon />
@@ -138,13 +140,12 @@ function Cartao({ frase, aprovando, naoListada }: { frase: MetanoiaFrase; aprova
   );
 }
 
-export function MetanoiaView({ onBack, inicial }: { onBack: () => void; inicial?: { texto: string; tipo: MetanoiaTipo } | null }) {
+export function MetanoiaView({ onBack }: { onBack: () => void }) {
   const { board, askConfirm } = useBoardCtx();
   const s = board.state.settings;
   const todas = board.state.metanoiaFrases;
-  const [tipo, setTipo] = useState<MetanoiaTipo>(inicial?.tipo ?? "frase");
-  // Vindo do botão de editar do cartão da tela inicial, já procura por aquela frase.
-  const [busca, setBusca] = useState(inicial?.texto.slice(0, 60) ?? "");
+  const [tipo, setTipo] = useState<MetanoiaTipo>("frase");
+  const [busca, setBusca] = useState("");
   const ehPergunta = tipo === "pergunta";
   const frases = todas.filter((f) => f.tipo === tipo);
   const aprovadas = frases.filter((f) => f.status === "aprovada");
@@ -231,8 +232,8 @@ export function MetanoiaView({ onBack, inicial }: { onBack: () => void; inicial?
                 <button
                   type="button"
                   className="icon-btn"
-                  title="Não aparecer mais (fica em Não listadas)"
-                  aria-label="Não aparecer mais"
+                  title={TEXTO_NAO_LISTAR}
+                  aria-label={TEXTO_NAO_LISTAR}
                   onClick={() => {
                     setOutra(null);
                     board.updateMetanoiaFrase(emDestaque.id, { status: "arquivada" });

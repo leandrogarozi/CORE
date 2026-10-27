@@ -2,11 +2,12 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useBoardCtx } from "./board-context";
-import { EditIcon, EyeOffIcon, HeartIcon } from "./icons";
+import { EyeOffIcon, HeartIcon } from "./icons";
 import { todayISO } from "@/lib/date-utils";
 import { creditoDaFrase, fraseDaVez, horariosDePerguntasEmUso, horariosEmUso } from "@/lib/metanoia";
 import type { MetanoiaFrase, MetanoiaTema, MetanoiaTipo, Settings } from "@/lib/types";
 
+const TEXTO_NAO_LISTAR = "Não mostrar mais essa frase. Ela vai para Não listadas na Metanoia, de onde dá para voltar depois.";
 const CHAVE_FECHADA = "faro-metanoia-fechada";
 
 function temaDoApp(): "claro" | "escuro" {
@@ -61,7 +62,7 @@ function rotulo(tipo: MetanoiaTipo) {
  * branco, conforme a escolha em Metanoia → Aparência). O X fecha até a próxima frase. Quem chega pela notificação
  * (`?ver=metanoia`) vê a frase em tela cheia; tocar em qualquer lugar fecha e deixa o painel.
  */
-export function FraseDoDia({ onAbrir, onEditar, telaCheia = false, onFecharTelaCheia }: { onAbrir: () => void; onEditar: (f: MetanoiaFrase) => void; telaCheia?: boolean; onFecharTelaCheia?: () => void }) {
+export function FraseDoDia({ onAbrir, telaCheia = false, onFecharTelaCheia }: { onAbrir: () => void; telaCheia?: boolean; onFecharTelaCheia?: () => void }) {
   const { board } = useBoardCtx();
   const f = emDestaqueAgora(board.state.metanoiaFrases, board.state.settings);
   const tema = useTemaDoCartao(board.state.settings.metanoiaTema);
@@ -110,8 +111,8 @@ export function FraseDoDia({ onAbrir, onEditar, telaCheia = false, onFecharTelaC
           </button>
           <button
             type="button"
-            title="Não aparecer mais"
-            aria-label="Não aparecer mais"
+            title={TEXTO_NAO_LISTAR}
+            aria-label={TEXTO_NAO_LISTAR}
             onClick={(e) => {
               e.stopPropagation();
               naoAparecerMais();
@@ -143,10 +144,7 @@ export function FraseDoDia({ onAbrir, onEditar, telaCheia = false, onFecharTelaC
         <button type="button" onClick={onAbrir}>
           Abrir
         </button>
-        <button type="button" className="meta-cartao-discreto meta-cartao-editar" title="Editar" aria-label="Editar" onClick={() => onEditar(f)}>
-          <EditIcon />
-        </button>
-        <button type="button" className="meta-cartao-discreto" title="Não aparecer mais" aria-label="Não aparecer mais" onClick={naoAparecerMais}>
+        <button type="button" className="meta-cartao-discreto meta-cartao-ultimo" title={TEXTO_NAO_LISTAR} aria-label={TEXTO_NAO_LISTAR} onClick={naoAparecerMais}>
           <EyeOffIcon />
         </button>
       </div>

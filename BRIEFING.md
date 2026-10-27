@@ -6210,6 +6210,7 @@ Desenho: página "5. Demais telas" do canvas Layouts FARO, quadro "Manutenção:
 - Banco: +76 itens dos PDFs (Plano da Alma, Códigos Titi, Aula Magna) e das subpastas Febracis (Mentoria Empresarial, Inteligência Financeira, Perfil Comportamental, BHP, Neurociência), origem "ia", pendentes, textos encurtados e sem o contexto que só quem fez o curso entende. Total pendente: 568 frases e 82 perguntas; nada aprovado ainda.
 
 ## Metanoia: buscar, editar, "não listar" e excluir só na edição (27/10)
-- Campo de busca acima das abas (texto, autor e fonte, sem acento). O lápis do cartão da tela inicial abre a Metanoia já buscando aquela frase.
+- Campo de busca acima das abas (texto, autor e fonte, sem acento). O pop-up/cartão da tela inicial NÃO tem lápis: editar é só dentro da Metanoia.
 - "Não listar" (olho riscado) arquiva sem apagar e sem pedir confirmação; vira a aba **Não listadas**, com "Voltar a listar" (volta como aprovada). No cartão da tela inicial, na tela cheia e no bloco "Hoje" ele ocupa o lugar da lixeira.
 - **Excluir de vez** (apaga a linha do banco, com confirmação) só aparece com a frase aberta para editar. Coração continua em todos os lugares: tocar de novo desfavorita (a frase segue aparecendo, só deixa de contar em dobro).
+- O olho riscado mostra, ao passar o mouse, "Não mostrar mais essa frase. Ela vai para a aba Não listadas, de onde dá para voltar depois."

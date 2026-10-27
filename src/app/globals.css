@@ -3852,7 +3852,7 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .meta-cartao-acoes button, .meta-cheia-base button{ display:inline-flex; align-items:center; gap:5px; background:transparent; border:0; padding:2px 0; color:inherit; opacity:.7; font:inherit; font-size:12.5px; cursor:pointer; }
 .meta-cartao-acoes button:hover, .meta-cheia-base button:hover{ opacity:1; }
 .meta-cartao-acoes .meta-cartao-discreto{ opacity:.4; }
-.meta-cartao-acoes .meta-cartao-editar{ margin-left:auto; }
+.meta-cartao-acoes .meta-cartao-ultimo{ margin-left:auto; }
 .meta-busca{ width:100%; margin:12px 0 0; padding:9px 12px; font:inherit; font-size:14px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text); }
 .meta-frase.editando .edit-actions .btn-danger{ margin-right:auto; }
 .meta-cartao-x{ position:absolute; top:6px; right:8px; width:28px; height:28px; background:transparent; border:0; color:inherit; opacity:.5; font-size:20px; line-height:1; cursor:pointer; }
