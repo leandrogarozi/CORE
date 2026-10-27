@@ -49,3 +49,33 @@ export function horariosDePerguntasEmUso(vezes: number, horarios: string[]): str
   const lista = horarios.length ? horarios : HORARIOS_PERGUNTAS_PADRAO;
   return lista.slice(0, n);
 }
+
+export interface FraseSeparada {
+  texto: string;
+  autor: string | null;
+}
+
+/**
+ * Transforma um texto colado (ou lido de um print) em frases: uma por parágrafo ou, se for um bloco só, uma por
+ * linha. Tira numeração ("23)", "1.", "-") e aspas, e reconhece "frase — Autor" quando o final é curto como um nome.
+ */
+export function separarFrases(bruto: string): FraseSeparada[] {
+  const limpo = bruto.replace(/\r/g, "").trim();
+  if (!limpo) return [];
+  const blocos = limpo.split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
+  const pedacos = blocos.length > 1 ? blocos.map((b) => b.replace(/\s*\n\s*/g, " ")) : limpo.split("\n");
+  const saida: FraseSeparada[] = [];
+  for (const p of pedacos) {
+    let t = p.replace(/\s+/g, " ").trim();
+    t = t.replace(/^(\d{1,3}\s*[).:–-]|[-•*·])\s*/, "").trim();
+    t = t.replace(/^["“”']+|["“”']+$/g, "").trim();
+    let autor: string | null = null;
+    const m = t.match(/^(.*\S)\s+[—–-]\s*([A-ZÀ-Ý][\p{L}.'’ ]{2,38})$/u);
+    if (m && m[2].trim().split(" ").length <= 4 && !/[.!?]$/.test(m[2])) {
+      t = m[1].replace(/["“”]+$/g, "").trim();
+      autor = m[2].trim();
+    }
+    if (t.length >= 8 && t.length <= 400) saida.push({ texto: t, autor });
+  }
+  return saida;
+}

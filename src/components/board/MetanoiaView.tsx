@@ -6,6 +6,7 @@ import { ToggleSwitch } from "./ToggleSwitch";
 import { TimePicker } from "./TimePicker";
 import { CheckIcon, EditIcon, HeartIcon, TrashIcon } from "./icons";
 import { MicButton } from "./MicButton";
+import { ImportarFrases } from "./ImportarFrases";
 import { todayISO } from "@/lib/date-utils";
 import {
   creditoDaFrase,
@@ -291,6 +292,8 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
             </div>
           </div>
         </div>
+
+        <ImportarFrases tipo={tipo} />
 
         <div className="meta-abas">
           <div className="view-toggle">

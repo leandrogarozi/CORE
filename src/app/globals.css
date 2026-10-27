@@ -3845,3 +3845,5 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .frase-do-dia-credito{ font-size:11.5px; color:var(--text-faint); }
 .frase-do-dia:hover .frase-do-dia-texto{ color:var(--text); }
 @media (max-width:640px){ .meta-frase{ flex-direction:column; } .meta-frase-acoes{ justify-content:flex-start; } }
+
+.meta-importar-topo{ width:100%; text-align:left; padding:12px; font:inherit; font-size:14px; background:none; border:0; color:var(--text); cursor:pointer; }
