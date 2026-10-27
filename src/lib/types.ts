@@ -319,6 +319,8 @@ export interface Settings {
   metanoiaVezes: number; // quantas frases por dia (1 a 3)
   metanoiaHorarios: string[]; // "HH:MM"; valem os primeiros `metanoiaVezes`
   metanoiaPush: boolean; // a frase chega como notificação
+  metanoiaPerguntasVezes: number; // quantas perguntas por dia (0 a 2)
+  metanoiaPerguntasHorarios: string[]; // "HH:MM"; valem as primeiras `metanoiaPerguntasVezes`
   dietAppOptIn: boolean; // quer lembretes de refeição dentro do app (aviso "Foco na dieta")
   dietWhatsappOptIn: boolean; // usuário confirmou que quer avisos de refeição também pelo WhatsApp (notifyPhone)
   // Custo do WhatsApp. Ficam em configuração (e não fixos no código) pra dar pra
@@ -469,11 +471,14 @@ export interface Synapse {
 // "pendente" espera a aprovação; só "aprovada" entra no sorteio dos lembretes.
 export type MetanoiaOrigem = "minha" | "faro" | "print" | "ia";
 export type MetanoiaStatus = "pendente" | "aprovada" | "arquivada";
+// "pergunta" = pergunta poderosa: chega em horários próprios, sem aspas nem autor.
+export type MetanoiaTipo = "frase" | "pergunta";
 export interface MetanoiaFrase {
   id: string;
   texto: string;
   autor: string | null;
   fonte: string | null; // de onde veio, ex.: "Valores", "Print do Drive", "Sinapse: Ted Lasso"
+  tipo: MetanoiaTipo;
   origem: MetanoiaOrigem;
   origemRef: string | null; // id do item do FARO que originou a frase (evita propor duas vezes)
   status: MetanoiaStatus;

@@ -6178,3 +6178,11 @@ Desenho: página "5. Demais telas" do canvas Layouts FARO, quadro "Manutenção:
 - Revisita da pasta: ler só os arquivos cujo nome ainda não está em `origem_ref` (`select distinct origem_ref from metanoia_frases where origem='print'`). Ele vai subindo prints novos; é só pedir "revê a pasta do Metanoia".
 - Ainda não feito: varredura automática dos aprendizados novos para propor frases (por enquanto a IA dele propõe pelo conector), upload de prints pelo app, frases do outro app dele, canal WhatsApp.
 - Verificação: telas conferidas só no harness (Playwright com dados de mentira). O push real no celular **não foi testado**.
+
+## Metanoia: perguntas poderosas e pasta do Drive organizada (27/10)
+
+- `metanoia_frases.tipo` = `frase` | `pergunta`. Perguntas têm fila própria, até **2 por dia** (`settings.metanoia_perguntas_vezes` / `_horarios`, padrão 12:00 e 18:00) e chegam por push com o título "Metanoia · pergunta". `metanoia_envios` ganhou `tipo` na chave primária (frase e pergunta no mesmo horário não se atropelam). Na tela há o seletor Frases | Perguntas; pergunta não tem autor nem aspas.
+- Conector: `faro_propor_frases` aceita `tipo: "pergunta"` por item.
+- Dados do Leandro: perguntas tiradas de `synapses.questions` (7 sinapses) e do "Teste do Orgulho" entraram como **pendentes** (origem `faro`, `origem_ref` = id do item). Limpeza que ficou pendente (o Supabase pediu confirmação e não respondeu): apagar as 3 perguntas de análise da série "Ted Lasso" e tirar as aspas das 3 de "Minha ativação de recurso natural". Ele revisa tudo em Para revisar, então não é urgente.
+- Drive: os 312 prints já lidos foram para a subpasta **"Mapeados (já no Metanoia)"** dentro da pasta de prints; na raiz ficam só os próximos (e os 5 PNGs enormes que o conector não consegue ler: IMG_5775, 5777, 5779, 5781, 5782). Revisita = ler só o que está solto na raiz. O print `26c88f35-….JPG` era foto de reunião (não é frase) e foi guardado junto dos mapeados.
+- Combinado com o Leandro, ainda não feito: varredura automática de aprendizados novos; subir prints pelo app **lendo o texto no próprio aparelho (OCR) e descartando a imagem** (nada de armazenar imagem, para não gerar custo); importar frases do outro app (ver jeito: colar a lista ou subir prints).

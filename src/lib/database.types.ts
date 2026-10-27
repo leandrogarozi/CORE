@@ -1065,6 +1065,8 @@ export type Database = {
           diet_app_opt_in: boolean
           metanoia_horarios: string[]
           metanoia_push: boolean
+          metanoia_perguntas_horarios: string[]
+          metanoia_perguntas_vezes: number
           metanoia_vezes: number
           diet_plan: string | null
           diet_whatsapp_opt_in: boolean
@@ -1098,6 +1100,8 @@ export type Database = {
           diet_app_opt_in?: boolean
           metanoia_horarios?: string[]
           metanoia_push?: boolean
+          metanoia_perguntas_horarios?: string[]
+          metanoia_perguntas_vezes?: number
           metanoia_vezes?: number
           diet_plan?: string | null
           diet_whatsapp_opt_in?: boolean
@@ -1131,6 +1135,8 @@ export type Database = {
           diet_app_opt_in?: boolean
           metanoia_horarios?: string[]
           metanoia_push?: boolean
+          metanoia_perguntas_horarios?: string[]
+          metanoia_perguntas_vezes?: number
           metanoia_vezes?: number
           diet_plan?: string | null
           diet_whatsapp_opt_in?: boolean
@@ -1684,6 +1690,7 @@ export type Database = {
           origem: string
           origem_ref: string | null
           status: string
+          tipo: string
           texto: string
           updated_at: string
           user_id: string
@@ -1697,6 +1704,7 @@ export type Database = {
           origem?: string
           origem_ref?: string | null
           status?: string
+          tipo?: string
           texto: string
           updated_at?: string
           user_id: string
@@ -1710,6 +1718,7 @@ export type Database = {
           origem?: string
           origem_ref?: string | null
           status?: string
+          tipo?: string
           texto?: string
           updated_at?: string
           user_id?: string
@@ -1722,6 +1731,7 @@ export type Database = {
           dia: string
           frase_id: string | null
           horario: string
+          tipo: string
           user_id: string
         }
         Insert: {
@@ -1729,6 +1739,7 @@ export type Database = {
           dia: string
           frase_id?: string | null
           horario: string
+          tipo?: string
           user_id: string
         }
         Update: {
@@ -1736,6 +1747,7 @@ export type Database = {
           dia?: string
           frase_id?: string | null
           horario?: string
+          tipo?: string
           user_id?: string
         }
         Relationships: []

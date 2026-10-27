@@ -196,6 +196,7 @@ function repositorioDe(usuario: string): Repositorio {
           texto: f.texto,
           autor: f.autor,
           fonte: f.fonte,
+          tipo: f.tipo,
           origem: "ia",
           origem_ref: f.origemRef,
           status: "pendente",

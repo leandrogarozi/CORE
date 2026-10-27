@@ -2,7 +2,8 @@ import webpush from "web-push";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 import { rowToMetanoiaFrase } from "@/lib/board/mappers";
-import { fraseDaVez, horariosEmUso, creditoDaFrase, NOME_DA_METANOIA } from "@/lib/metanoia";
+import { fraseDaVez, horariosEmUso, horariosDePerguntasEmUso, creditoDaFrase, NOME_DA_METANOIA } from "@/lib/metanoia";
+import type { MetanoiaTipo } from "@/lib/types";
 
 const FUSO_PADRAO = "America/Sao_Paulo";
 // Se o agendador falhar uns minutos a frase ainda sai; passou disso, deixa para o próximo horário.
@@ -43,7 +44,7 @@ export async function enviarFrasesDaMetanoia(supabase: SupabaseClient<Database>,
 
   const { data: configs, error } = await supabase
     .from("settings")
-    .select("user_id, timezone, metanoia_vezes, metanoia_horarios, metanoia_push")
+    .select("user_id, timezone, metanoia_vezes, metanoia_horarios, metanoia_push, metanoia_perguntas_vezes, metanoia_perguntas_horarios")
     .eq("metanoia_push", true);
   if (error) {
     out.erros.push(error.message);
@@ -51,16 +52,22 @@ export async function enviarFrasesDaMetanoia(supabase: SupabaseClient<Database>,
   }
 
   // Quem tem horário vencendo agora (dentro da janela).
-  const devidos: { userId: string; dia: string; horario: string; indice: number }[] = [];
+  const devidos: { userId: string; dia: string; horario: string; indice: number; tipo: MetanoiaTipo }[] = [];
   for (const c of configs ?? []) {
     const { dia, minutos } = agoraNoFuso(nowMs, c.timezone || FUSO_PADRAO);
-    horariosEmUso(c.metanoia_vezes, c.metanoia_horarios ?? []).forEach((h, indice) => {
-      const [hh, mm] = h.split(":").map(Number);
-      const alvo = hh * 60 + mm;
-      if (Number.isFinite(alvo) && minutos >= alvo && minutos - alvo <= JANELA_MIN) {
-        devidos.push({ userId: c.user_id, dia, horario: h, indice });
-      }
-    });
+    const listas: [MetanoiaTipo, string[]][] = [
+      ["frase", horariosEmUso(c.metanoia_vezes, c.metanoia_horarios ?? [])],
+      ["pergunta", horariosDePerguntasEmUso(c.metanoia_perguntas_vezes, c.metanoia_perguntas_horarios ?? [])],
+    ];
+    for (const [tipo, horarios] of listas) {
+      horarios.forEach((h, indice) => {
+        const [hh, mm] = h.split(":").map(Number);
+        const alvo = hh * 60 + mm;
+        if (Number.isFinite(alvo) && minutos >= alvo && minutos - alvo <= JANELA_MIN) {
+          devidos.push({ userId: c.user_id, dia, horario: h, indice, tipo });
+        }
+      });
+    }
   }
   if (!devidos.length) return out;
 
@@ -76,7 +83,7 @@ export async function enviarFrasesDaMetanoia(supabase: SupabaseClient<Database>,
 
   for (const d of devidos) {
     const frases = (frasesRows ?? []).filter((r) => r.user_id === d.userId).map(rowToMetanoiaFrase);
-    const frase = fraseDaVez(frases, d.dia, d.indice);
+    const frase = fraseDaVez(frases, d.dia, d.indice, d.tipo);
     if (!frase) continue;
     const aparelhos = (subs ?? []).filter((s) => s.user_id === d.userId);
     if (!aparelhos.length) {
@@ -86,13 +93,14 @@ export async function enviarFrasesDaMetanoia(supabase: SupabaseClient<Database>,
     // A chave primária é a trava: só uma execução consegue inserir o par dia + horário.
     const { error: erroMarca } = await supabase
       .from("metanoia_envios")
-      .insert({ user_id: d.userId, dia: d.dia, horario: d.horario, frase_id: frase.id });
+      .insert({ user_id: d.userId, dia: d.dia, horario: d.horario, tipo: d.tipo, frase_id: frase.id });
     if (erroMarca) {
       if (erroMarca.code !== "23505") out.erros.push(`${d.userId}: ${erroMarca.message}`);
       continue;
     }
     const credito = creditoDaFrase(frase);
-    const payload = JSON.stringify({ title: NOME_DA_METANOIA, body: credito ? `${frase.texto}\n— ${credito}` : frase.texto, url: "/?ver=metanoia" });
+    const titulo = d.tipo === "pergunta" ? `${NOME_DA_METANOIA} · pergunta` : NOME_DA_METANOIA;
+    const payload = JSON.stringify({ title: titulo, body: credito ? `${frase.texto}\n— ${credito}` : frase.texto, url: "/?ver=metanoia" });
     const mortos: string[] = [];
     await Promise.all(
       aparelhos.map(async (s) => {

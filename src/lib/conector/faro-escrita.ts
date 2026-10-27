@@ -38,7 +38,7 @@ export interface Repositorio {
   conhecimentoExistente(): Promise<{ tipo: string; titulo: string }[]>;
   /** Textos de todas as frases da Metanoia, inclusive as recusadas (para a IA não propor de novo). */
   frasesExistentes(): Promise<string[]>;
-  inserirFrases(itens: { id: string; texto: string; autor: string | null; fonte: string | null; origemRef: string | null }[]): Promise<void>;
+  inserirFrases(itens: { id: string; texto: string; autor: string | null; fonte: string | null; origemRef: string | null; tipo: "frase" | "pergunta" }[]): Promise<void>;
   inserirConhecimento(
     itens: { id: string; tipo: string; titulo: string; conteudo: string; dataRef: string | null; origem: string | null; tags: string[] }[]
   ): Promise<void>;
@@ -284,7 +284,7 @@ export const FERRAMENTAS_DE_ESCRITA = [
     name: "faro_propor_frases",
     title: "Propor frases para a Metanoia",
     description:
-      "Envia ao FARO frases curtas para a Metanoia (as frases que o FARO manda para o usuário durante o dia): tiradas do que ele aprendeu, acredita e decidiu, ou que ele pediu para guardar. Vão como PROPOSTA para 'Para revisar' da Metanoia e só entram nos lembretes depois que ele aprovar. Regras: a frase tem de ser curta (até uns 220 caracteres), fiel ao que ele disse ou escreveu (use as palavras dele; se for de outro autor, informe o autor; nunca invente autoria), uma ideia por frase, sem saúde, senhas ou dados bancários. Confira com faro_buscar para não repetir e use 'fonte' para dizer de onde veio (ex.: 'Valores', 'Sinapse: Ted Lasso'). Depois de enviar, diga em uma linha quantas propôs.",
+      "Envia ao FARO frases curtas para a Metanoia (as frases que o FARO manda para o usuário durante o dia): tiradas do que ele aprendeu, acredita e decidiu, ou que ele pediu para guardar. Vão como PROPOSTA para 'Para revisar' da Metanoia e só entram nos lembretes depois que ele aprovar. Regras: a frase tem de ser curta (até uns 220 caracteres), fiel ao que ele disse ou escreveu (use as palavras dele; se for de outro autor, informe o autor; nunca invente autoria), uma ideia por frase, sem saúde, senhas ou dados bancários. Confira com faro_buscar para não repetir e use 'fonte' para dizer de onde veio (ex.: 'Valores', 'Sinapse: Ted Lasso'). Também serve para PERGUNTAS PODEROSAS (tipo \"pergunta\"): perguntas curtas de autoconsciência tiradas do que ele estuda, que chegam em horários próprios. Pergunta não leva autor. Depois de enviar, diga em uma linha quantas propôs.",
     inputSchema: {
       type: "object",
       properties: {
@@ -298,6 +298,7 @@ export const FERRAMENTAS_DE_ESCRITA = [
               texto: { type: "string", description: "A frase, pronta para ser lida numa notificação." },
               autor: { type: "string", description: "Quem disse, se não for o próprio usuário. Deixe vazio se não souber." },
               fonte: { type: "string", description: "De onde veio dentro do FARO ou da conversa." },
+              tipo: { type: "string", enum: ["frase", "pergunta"], description: "\"frase\" (padrão) ou \"pergunta\" (pergunta poderosa)." },
             },
             required: ["texto"],
             additionalProperties: false,
@@ -763,13 +764,13 @@ export async function proporFrases(args: Args, repo: Repositorio, ctx: Contexto)
       continue;
     }
     ja.add(norm(t));
-    novos.push({ id: ctx.novoId(), texto: t, autor: texto(bruto.autor) || null, fonte: texto(bruto.fonte) || "conector (IA)", origemRef: null });
+    novos.push({ id: ctx.novoId(), texto: t, autor: texto(bruto.autor) || null, fonte: texto(bruto.fonte) || "conector (IA)", origemRef: null, tipo: texto(bruto.tipo) === "pergunta" ? "pergunta" : "frase" });
   }
   if (!novos.length) return { texto: ["Nada foi enviado.", ...problemas.map((p) => `- ${p}`)].join("\n"), erro: true };
   await repo.inserirFrases(novos);
   return {
     texto: [
-      `Enviado à Metanoia como PROPOSTA (${novos.length}). Está em "Para revisar"; só entra nos lembretes depois que o usuário aprovar, e o FARO já avisou ele.`,
+      `Enviado à Metanoia como PROPOSTA (${novos.length}; ${novos.filter((n) => n.tipo === "pergunta").length} pergunta(s)). Está em "Para revisar"; só entra nos lembretes depois que o usuário aprovar, e o FARO já avisou ele.`,
       ...novos.map((n) => `- ${n.texto}`),
       ...(problemas.length ? ["", "Não enviadas:", ...problemas.map((p) => `- ${p}`)] : []),
     ].join("\n"),

@@ -177,6 +177,8 @@ const EMPTY_STATE: BoardState = {
     metanoiaVezes: 1,
     metanoiaHorarios: ["09:00", "14:00", "20:00"],
     metanoiaPush: true,
+    metanoiaPerguntasVezes: 1,
+    metanoiaPerguntasHorarios: ["12:00", "18:00"],
     dietAppOptIn: true,
     dietWhatsappOptIn: false,
   },
@@ -1182,7 +1184,7 @@ export function useBoard(userId: string | null) {
   // ---------- metanoia (frases) ----------
   // Arquivada some da tela mas continua no banco (a pessoa pode ter mudado de ideia e a frase já foi tirada uma vez).
   const addMetanoiaFrase = useCallback(
-    (extra: { texto: string; autor?: string | null; fonte?: string | null; origem?: MetanoiaFrase["origem"]; status?: MetanoiaFrase["status"] }): string | null => {
+    (extra: { texto: string; autor?: string | null; fonte?: string | null; tipo?: MetanoiaFrase["tipo"]; origem?: MetanoiaFrase["origem"]; status?: MetanoiaFrase["status"] }): string | null => {
       const texto = extra.texto.trim();
       if (!userId || !texto) return null;
       const igual = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
@@ -1192,6 +1194,7 @@ export function useBoard(userId: string | null) {
         texto,
         autor: extra.autor?.trim() || null,
         fonte: extra.fonte?.trim() || null,
+        tipo: extra.tipo ?? "frase",
         origem: extra.origem ?? "minha",
         origemRef: null,
         status: extra.status ?? "aprovada",
@@ -3915,6 +3918,8 @@ export function useBoard(userId: string | null) {
           metanoia_vezes: merged.metanoiaVezes,
           metanoia_horarios: merged.metanoiaHorarios,
           metanoia_push: merged.metanoiaPush,
+          metanoia_perguntas_vezes: merged.metanoiaPerguntasVezes,
+          metanoia_perguntas_horarios: merged.metanoiaPerguntasHorarios,
           diet_whatsapp_opt_in: merged.dietWhatsappOptIn,
           whatsapp_msg_cost_usd: merged.whatsappMsgCostUsd,
           ia_monthly_cap_brl: merged.iaMonthlyCapBrl,

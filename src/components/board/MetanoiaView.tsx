@@ -7,8 +7,17 @@ import { TimePicker } from "./TimePicker";
 import { CheckIcon, EditIcon, HeartIcon, TrashIcon } from "./icons";
 import { MicButton } from "./MicButton";
 import { todayISO } from "@/lib/date-utils";
-import { creditoDaFrase, fraseDaVez, horariosEmUso, HORARIOS_PADRAO, MAX_FRASES_POR_DIA } from "@/lib/metanoia";
-import type { MetanoiaFrase, MetanoiaOrigem } from "@/lib/types";
+import {
+  creditoDaFrase,
+  fraseDaVez,
+  horariosDePerguntasEmUso,
+  horariosEmUso,
+  HORARIOS_PADRAO,
+  HORARIOS_PERGUNTAS_PADRAO,
+  MAX_FRASES_POR_DIA,
+  MAX_PERGUNTAS_POR_DIA,
+} from "@/lib/metanoia";
+import type { MetanoiaFrase, MetanoiaOrigem, MetanoiaTipo } from "@/lib/types";
 
 type Aba = "aprovadas" | "favoritas" | "revisar";
 
@@ -35,8 +44,8 @@ function Cartao({ frase, aprovando }: { frase: MetanoiaFrase; aprovando: boolean
   if (editando) {
     return (
       <div className="meta-frase editando">
-        <textarea value={texto} rows={3} aria-label="Texto da frase" onChange={(e) => setTexto(e.target.value)} />
-        <input type="text" value={autor} placeholder="Autor (opcional)" aria-label="Autor" onChange={(e) => setAutor(e.target.value)} />
+        <textarea value={texto} rows={3} aria-label={frase.tipo === "pergunta" ? "Texto da pergunta" : "Texto da frase"} onChange={(e) => setTexto(e.target.value)} />
+        {frase.tipo === "frase" && <input type="text" value={autor} placeholder="Autor (opcional)" aria-label="Autor" onChange={(e) => setAutor(e.target.value)} />}
         <div className="edit-actions">
           <button type="button" className="btn btn-ghost" onClick={() => setEditando(false)}>
             Cancelar
@@ -53,7 +62,7 @@ function Cartao({ frase, aprovando }: { frase: MetanoiaFrase; aprovando: boolean
   return (
     <div className="meta-frase">
       <div className="meta-frase-corpo">
-        <p className="meta-frase-texto">&ldquo;{frase.texto}&rdquo;</p>
+        <p className="meta-frase-texto">{frase.tipo === "pergunta" ? frase.texto : <>&ldquo;{frase.texto}&rdquo;</>}</p>
         <div className="meta-frase-meta">
           {credito && <span>{credito}</span>}
           <span className="meta-origem">{ROTULO_DA_ORIGEM[frase.origem]}</span>
@@ -89,7 +98,7 @@ function Cartao({ frase, aprovando }: { frase: MetanoiaFrase; aprovando: boolean
             className="icon-btn danger-hover"
             title="Não mostrar mais"
             aria-label="Tirar da rotação"
-            onClick={() => askConfirm("Tirar essa frase da Metanoia? Ela some da lista e dos lembretes.", () => board.updateMetanoiaFrase(frase.id, { status: "arquivada" }))}
+            onClick={() => askConfirm(frase.tipo === "pergunta" ? "Tirar essa pergunta da Metanoia? Ela some da lista e dos avisos." : "Tirar essa frase da Metanoia? Ela some da lista e dos lembretes.", () => board.updateMetanoiaFrase(frase.id, { status: "arquivada" }))}
           >
             <TrashIcon />
           </button>
@@ -102,9 +111,13 @@ function Cartao({ frase, aprovando }: { frase: MetanoiaFrase; aprovando: boolean
 export function MetanoiaView({ onBack }: { onBack: () => void }) {
   const { board, askConfirm } = useBoardCtx();
   const s = board.state.settings;
-  const frases = board.state.metanoiaFrases;
+  const todas = board.state.metanoiaFrases;
+  const [tipo, setTipo] = useState<MetanoiaTipo>("frase");
+  const ehPergunta = tipo === "pergunta";
+  const frases = todas.filter((f) => f.tipo === tipo);
   const aprovadas = frases.filter((f) => f.status === "aprovada");
   const pendentes = frases.filter((f) => f.status === "pendente");
+  const pendentesDoOutro = todas.filter((f) => f.tipo !== tipo && f.status === "pendente").length;
   const [aba, setAba] = useState<Aba>("aprovadas");
   const [origem, setOrigem] = useState<"todas" | MetanoiaOrigem>("todas");
   const [novo, setNovo] = useState("");
@@ -112,10 +125,12 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
   const [outra, setOutra] = useState<MetanoiaFrase | null>(null);
 
   const hoje = todayISO();
-  const daVez = fraseDaVez(frases, hoje, 0);
+  const daVez = fraseDaVez(frases, hoje, 0, tipo);
   const emDestaque = outra && aprovadas.some((f) => f.id === outra.id) ? aprovadas.find((f) => f.id === outra.id)! : daVez;
   const horarios = horariosEmUso(s.metanoiaVezes, s.metanoiaHorarios);
   const todosHorarios = [...s.metanoiaHorarios, ...HORARIOS_PADRAO].slice(0, MAX_FRASES_POR_DIA);
+  const horariosDasPerguntas = horariosDePerguntasEmUso(s.metanoiaPerguntasVezes, s.metanoiaPerguntasHorarios);
+  const todosHorariosDasPerguntas = [...s.metanoiaPerguntasHorarios, ...HORARIOS_PERGUNTAS_PADRAO].slice(0, MAX_PERGUNTAS_POR_DIA);
 
   function sortearOutra() {
     // A próxima da lista depois da que está na tela (volta ao começo no fim).
@@ -125,7 +140,7 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
 
   function adicionar() {
     if (!novo.trim()) return;
-    const id = board.addMetanoiaFrase({ texto: novo, autor: novoAutor, origem: "minha" });
+    const id = board.addMetanoiaFrase({ texto: novo, autor: ehPergunta ? null : novoAutor, origem: "minha", tipo });
     if (id) {
       setNovo("");
       setNovoAutor("");
@@ -136,6 +151,12 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
     const lista = [...todosHorarios];
     lista[i] = v;
     board.updateSettings({ metanoiaHorarios: lista });
+  }
+
+  function trocarHorarioDePergunta(i: number, v: string) {
+    const lista = [...todosHorariosDasPerguntas];
+    lista[i] = v;
+    board.updateSettings({ metanoiaPerguntasHorarios: lista });
   }
 
   const base = aba === "revisar" ? pendentes : aba === "favoritas" ? aprovadas.filter((f) => f.favorita) : aprovadas;
@@ -152,13 +173,27 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
       </div>
 
       <div className="narrow-list">
-        <p className="hint-text">Metanoia é a mudança de mente. Aqui voltam até você o que você aprendeu e no que acredita, em frases curtas, durante o dia.</p>
+        <p className="hint-text">Metanoia é a mudança de mente. Aqui voltam até você o que você aprendeu e no que acredita, em frases curtas e perguntas poderosas, durante o dia.</p>
+
+        <div className="view-toggle" role="group" aria-label="O que ver">
+          {(
+            [
+              ["frase", "Frases"],
+              ["pergunta", "Perguntas"],
+            ] as const
+          ).map(([v, rotulo]) => (
+            <button key={v} type="button" className={"view-toggle-btn" + (tipo === v ? " active" : "")} onClick={() => { setTipo(v); setAba("aprovadas"); setOutra(null); }}>
+              {rotulo}
+              {todas.some((f) => f.tipo === v && f.status === "pendente") ? " •" : ""}
+            </button>
+          ))}
+        </div>
 
         <div className="meta-hoje">
           <div className="meta-hoje-rotulo">Hoje</div>
           {emDestaque ? (
             <>
-              <p className="meta-hoje-texto">&ldquo;{emDestaque.texto}&rdquo;</p>
+              <p className="meta-hoje-texto">{ehPergunta ? emDestaque.texto : <>&ldquo;{emDestaque.texto}&rdquo;</>}</p>
               {creditoDaFrase(emDestaque) && <div className="meta-hoje-credito">{creditoDaFrase(emDestaque)}</div>}
               <div className="meta-hoje-acoes">
                 <button
@@ -177,30 +212,59 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
               </div>
             </>
           ) : (
-            <p className="hint-text">Nenhuma frase aprovada ainda. Escreva a primeira abaixo{pendentes.length ? " ou aprove as que o FARO sugeriu em “Para revisar”" : ""}.</p>
+            <p className="hint-text">
+              {ehPergunta ? "Nenhuma pergunta aprovada ainda." : "Nenhuma frase aprovada ainda."} Escreva a primeira abaixo
+              {pendentes.length ? " ou aprove as que o FARO sugeriu em “Para revisar”" : pendentesDoOutro ? ` (há ${pendentesDoOutro} ${ehPergunta ? "frases" : "perguntas"} para revisar na outra aba)` : ""}.
+            </p>
           )}
         </div>
 
         <div className="diet-page-card">
-          <span className="diet-card-titulo">Quando o FARO me lembra</span>
-          <div className="meta-vezes" role="group" aria-label="Quantas frases por dia">
-            {[0, 1, 2, 3].map((n) => (
-              <button
-                key={n}
-                type="button"
-                className={"meeting-modo-btn" + (s.metanoiaVezes === n ? " ativo" : "")}
-                onClick={() => board.updateSettings({ metanoiaVezes: n })}
-              >
-                {n === 0 ? "Desligado" : n === 1 ? "1 por dia" : `${n} por dia`}
-              </button>
-            ))}
-          </div>
-          {horarios.length > 0 && (
-            <div className="meta-horarios">
-              {horarios.map((h, i) => (
-                <TimePicker key={i} value={h} onChange={(v) => trocarHorario(i, v)} />
-              ))}
-            </div>
+          <span className="diet-card-titulo">{ehPergunta ? "Quando o FARO me pergunta" : "Quando o FARO me lembra"}</span>
+          {ehPergunta ? (
+            <>
+              <div className="meta-vezes" role="group" aria-label="Quantas perguntas por dia">
+                {[0, 1, 2].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    className={"meeting-modo-btn" + (s.metanoiaPerguntasVezes === n ? " ativo" : "")}
+                    onClick={() => board.updateSettings({ metanoiaPerguntasVezes: n })}
+                  >
+                    {n === 0 ? "Desligado" : n === 1 ? "1 por dia" : `${n} por dia`}
+                  </button>
+                ))}
+              </div>
+              {horariosDasPerguntas.length > 0 && (
+                <div className="meta-horarios">
+                  {horariosDasPerguntas.map((h, i) => (
+                    <TimePicker key={i} value={h} onChange={(v) => trocarHorarioDePergunta(i, v)} />
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="meta-vezes" role="group" aria-label="Quantas frases por dia">
+                {[0, 1, 2, 3].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    className={"meeting-modo-btn" + (s.metanoiaVezes === n ? " ativo" : "")}
+                    onClick={() => board.updateSettings({ metanoiaVezes: n })}
+                  >
+                    {n === 0 ? "Desligado" : n === 1 ? "1 por dia" : `${n} por dia`}
+                  </button>
+                ))}
+              </div>
+              {horarios.length > 0 && (
+                <div className="meta-horarios">
+                  {horarios.map((h, i) => (
+                    <TimePicker key={i} value={h} onChange={(v) => trocarHorario(i, v)} />
+                  ))}
+                </div>
+              )}
+            </>
           )}
           <label className="diet-channel-option" style={{ marginTop: 10 }}>
             <ToggleSwitch checked={s.metanoiaPush} ariaLabel="Avisar por notificação" onChange={(v) => board.updateSettings({ metanoiaPush: v })} />
@@ -214,13 +278,13 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
             <textarea
               value={novo}
               rows={2}
-              placeholder="Escrever uma frase"
-              aria-label="Nova frase"
+              placeholder={ehPergunta ? "Escrever uma pergunta" : "Escrever uma frase"}
+              aria-label={ehPergunta ? "Nova pergunta" : "Nova frase"}
               onChange={(e) => setNovo(e.target.value)}
             />
             <div className="meta-novo-linha">
-              <input type="text" value={novoAutor} placeholder="Autor (opcional)" aria-label="Autor da frase" onChange={(e) => setNovoAutor(e.target.value)} />
-              <MicButton onText={(t) => setNovo((v) => (v ? `${v} ${t}` : t))} ariaLabel="Ditar a frase" />
+              {!ehPergunta && <input type="text" value={novoAutor} placeholder="Autor (opcional)" aria-label="Autor da frase" onChange={(e) => setNovoAutor(e.target.value)} />}
+              <MicButton onText={(t) => setNovo((v) => (v ? `${v} ${t}` : t))} ariaLabel={ehPergunta ? "Ditar a pergunta" : "Ditar a frase"} />
               <button type="button" className="btn btn-accent" disabled={!novo.trim()} onClick={adicionar}>
                 Adicionar
               </button>
@@ -255,7 +319,7 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
               type="button"
               className="btn btn-ghost"
               onClick={() =>
-                askConfirm(`Aprovar as ${lista.length} frases mostradas? Dá para tirar uma por uma depois.`, () =>
+                askConfirm(`Aprovar as ${lista.length} ${ehPergunta ? "perguntas" : "frases"} mostradas? Dá para tirar uma por uma depois.`, () =>
                   lista.forEach((f) => board.updateMetanoiaFrase(f.id, { status: "aprovada" }))
                 )
               }
@@ -268,7 +332,13 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
         {lista.length === 0 ? (
           <div className="list-card">
             <div className="hp-empty">
-              {aba === "revisar" ? "Nada para revisar agora. Quando o FARO tiver frases novas, elas aparecem aqui." : aba === "favoritas" ? "Nenhuma favorita ainda." : "Nenhuma frase ainda."}
+              {aba === "revisar"
+                ? `Nada para revisar agora. Quando o FARO tiver ${ehPergunta ? "perguntas" : "frases"} novas, elas aparecem aqui.`
+                : aba === "favoritas"
+                  ? "Nenhuma favorita ainda."
+                  : ehPergunta
+                    ? "Nenhuma pergunta ainda."
+                    : "Nenhuma frase ainda."}
             </div>
           </div>
         ) : (
