@@ -89,12 +89,13 @@ function BoardShell() {
     setSidebarOpen(false);
   }
 
-  // A notificação da Metanoia abre o app já na tela dela (?ver=metanoia).
+  // A notificação da Metanoia abre o app com a frase em tela cheia (?ver=metanoia); tocar fecha e deixa o painel.
+  const [metaCheia, setMetaCheia] = useState(false);
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
     if (p.get("ver") === "metanoia") {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- lê o endereço da página (sistema externo) uma vez, ao abrir
-      setViewMode("metanoia");
+      setMetaCheia(true);
       window.history.replaceState(null, "", window.location.pathname);
     }
   }, []);
@@ -422,6 +423,7 @@ function BoardShell() {
             />
           )}
           {viewMode === "day" && <FraseDoDia onAbrir={() => setViewMode("metanoia")} />}
+          {metaCheia && <FraseDoDia telaCheia onAbrir={() => setViewMode("metanoia")} onFecharTelaCheia={() => setMetaCheia(false)} />}
           <div className="day-strip-wrap">
             <button
               className="strip-nav"

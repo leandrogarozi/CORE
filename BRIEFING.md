@@ -6191,3 +6191,11 @@ Desenho: página "5. Demais telas" do canvas Layouts FARO, quadro "Manutenção:
 - Ainda sem aplicar: aparência da frase (claro/escuro/automático), cartão no painel e tela cheia ao tocar na notificação. Desenho mostrado ao Leandro, aguardando escolha. A notificação do celular usa o visual do sistema (não dá para pintar).
 - Pendente de banco: 37 frases/perguntas de Ted Lasso, Bruce Lee e "perguntas para o filho" prontas em `scratchpad/meta/insert_mais.sql`; limpeza das 6 perguntas (Ted Lasso de análise e duplicadas com aspas). O Supabase ficou pedindo confirmação de DELETE sem resposta.
 - Goodnotes: os arquivos `.goodnotes` (zip proprietário com escrita à mão) não são legíveis pelo conector do Drive. Precisa exportar em PDF/imagens.
+
+## Metanoia: cartão na tela inicial e aparência (27/10)
+- Tela inicial: cartão único abaixo da saudação (`FraseDoDia`), mostra o último que o FARO mandou hoje (frase ou pergunta, nos horários escolhidos). X fecha até a próxima frase (guardado no aparelho, `faro-metanoia-fechada`).
+- Notificação (`?ver=metanoia`) abre a frase em tela cheia; tocar fecha e deixa o painel.
+- Aparência em Metanoia → "Fundo branco / Fundo preto / Automático" (coluna `settings.metanoia_tema`, default `auto`, segue o tema do app). O fundo do pop-up do celular é do sistema, não dá para pintar.
+- `creditoDaFrase` não mostra mais fontes que só dizem a origem (print, lista colada): autor/fonte desconhecidos ficam em branco, no cartão e na notificação.
+- Banco: +34 itens do Ted Lasso/Bruce Lee/filhos/corrida (pendentes) e 6 perguntas ruins arquivadas (não apagadas).
+- Falta testar em aparelho real (push + tela cheia). Aguardando a exportação do outro app.

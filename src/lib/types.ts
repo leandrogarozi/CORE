@@ -319,6 +319,7 @@ export interface Settings {
   metanoiaVezes: number; // quantas frases por dia (1 a 3)
   metanoiaHorarios: string[]; // "HH:MM"; valem os primeiros `metanoiaVezes`
   metanoiaPush: boolean; // a frase chega como notificação
+  metanoiaTema: MetanoiaTema; // cartão da frase: fundo branco, preto ou o do app
   metanoiaPerguntasVezes: number; // quantas perguntas por dia (0 a 2)
   metanoiaPerguntasHorarios: string[]; // "HH:MM"; valem as primeiras `metanoiaPerguntasVezes`
   dietAppOptIn: boolean; // quer lembretes de refeição dentro do app (aviso "Foco na dieta")
@@ -472,6 +473,7 @@ export interface Synapse {
 export type MetanoiaOrigem = "minha" | "faro" | "print" | "ia";
 export type MetanoiaStatus = "pendente" | "aprovada" | "arquivada";
 // "pergunta" = pergunta poderosa: chega em horários próprios, sem aspas nem autor.
+export type MetanoiaTema = "claro" | "escuro" | "auto";
 export type MetanoiaTipo = "frase" | "pergunta";
 export interface MetanoiaFrase {
   id: string;

@@ -1065,6 +1065,7 @@ export type Database = {
           diet_app_opt_in: boolean
           metanoia_horarios: string[]
           metanoia_push: boolean
+          metanoia_tema: string
           metanoia_perguntas_horarios: string[]
           metanoia_perguntas_vezes: number
           metanoia_vezes: number
@@ -1100,6 +1101,7 @@ export type Database = {
           diet_app_opt_in?: boolean
           metanoia_horarios?: string[]
           metanoia_push?: boolean
+          metanoia_tema?: string
           metanoia_perguntas_horarios?: string[]
           metanoia_perguntas_vezes?: number
           metanoia_vezes?: number
@@ -1135,6 +1137,7 @@ export type Database = {
           diet_app_opt_in?: boolean
           metanoia_horarios?: string[]
           metanoia_push?: boolean
+          metanoia_tema?: string
           metanoia_perguntas_horarios?: string[]
           metanoia_perguntas_vezes?: number
           metanoia_vezes?: number

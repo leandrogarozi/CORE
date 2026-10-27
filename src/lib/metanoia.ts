@@ -9,9 +9,13 @@ export const HORARIOS_PADRAO = ["09:00", "14:00", "20:00"];
 export const MAX_PERGUNTAS_POR_DIA = 2;
 export const HORARIOS_PERGUNTAS_PADRAO = ["12:00", "18:00"];
 
-/** "Fulano — Fonte" para mostrar embaixo da frase. */
+/** Fontes que só dizem de onde o texto veio para o FARO (print, lista colada): não são crédito de ninguém. */
+const FONTE_SO_DE_ORIGEM = /^(prints?\b|lista colada|texto colado)/i;
+
+/** "Fulano · Fonte" para mostrar embaixo da frase. Autor ou fonte desconhecidos não aparecem. */
 export function creditoDaFrase(f: Pick<MetanoiaFrase, "autor" | "fonte">): string {
-  return [f.autor?.trim(), f.fonte?.trim()].filter(Boolean).join(" · ");
+  const fonte = f.fonte?.trim();
+  return [f.autor?.trim(), fonte && !FONTE_SO_DE_ORIGEM.test(fonte) ? fonte : ""].filter(Boolean).join(" · ");
 }
 
 function diaNumero(iso: string): number {

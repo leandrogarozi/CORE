@@ -272,6 +272,21 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
             Por notificação no celular
           </label>
           <span className="hint-text">A notificação precisa estar ligada em Configurações. Por WhatsApp ainda não, para não gastar crédito.</span>
+          <div className="meta-aparencia">
+            <span className="hint-text">Aparência do cartão na tela inicial e ao abrir pela notificação</span>
+            <div className="meta-vezes" role="group" aria-label="Aparência">
+              {(["claro", "escuro", "auto"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  className={"meeting-modo-btn" + (s.metanoiaTema === t ? " ativo" : "")}
+                  onClick={() => board.updateSettings({ metanoiaTema: t })}
+                >
+                  {t === "claro" ? "Fundo branco" : t === "escuro" ? "Fundo preto" : "Automático"}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="list-card">
