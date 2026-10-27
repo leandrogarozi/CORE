@@ -401,7 +401,14 @@ export function Dashboard({ abrirAtrasadas = false }: { abrirAtrasadas?: boolean
           disabled={stats.overdueCount === 0}
           onClick={() => setModal({ title: "Atrasadas", tasks: stats.overdueTasks })}
         >
-          <span className="dsh-kpi-n">{stats.overdueCount}</span>
+          <span className="dsh-kpi-n">
+            {stats.overdueCount}
+            {stats.overdueCount > 0 && (
+              <span className="dsh-kpi-aviso perigo" role="img" aria-label="atenção: há tarefas atrasadas">
+                <WarningIcon />
+              </span>
+            )}
+          </span>
           <span className="dsh-kpi-l">Atrasadas</span>
         </button>
         <button

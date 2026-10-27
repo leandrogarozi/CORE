@@ -6292,3 +6292,14 @@ Feito a partir do que o Leandro viu usando as contas de teste:
 - **Dashboard:** o quadro "Tópicos abertos" ganhou o aviso amarelo (triângulo de atenção) depois do número quando há pendência.
 - **Reuniões (Tutorial):** texto "Não deixe nada passar: faça as suas reuniões com o FARO aberto, anote as etapas..." e onde o pendente aparece.
 - **Dashboard (27/10):** o quadro "Tópicos abertos" fica **amarelo** (`.dsh-kpi.atencao`, texto escuro nos dois temas) enquanto houver tópico aberto, como o das Concluídas é azul; com zero volta ao padrão e fica desabilitado.
+- **Dashboard, Atrasadas (27/10):** sinal de atenção **vermelho** (`.dsh-kpi-aviso.perigo`, `var(--danger)`) depois do número quando há atrasadas; o quadro fica branco. Testada também a opção de quadro vermelho suave (`#C65D5D`, texto branco), não aplicada; se o Leandro preferir, é só uma classe a mais em `.dsh-kpi.alerta`.
+- **A fazer, "Em breve" (pedido do Leandro, 27/10):** uma área **"Em breve"** com **prints do app financeiro dele**, dizendo que será **integrado ao FARO**. Aguarda os prints. Sugestão: card no menu (ou no fim do Painel) com carrossel de imagens e um texto curto; prints entram como arquivos do app (não no banco).
+
+### Próximos passos (27/10, fim do dia), em ordem sugerida
+1. **Leandro:** ligar o envio de e-mail (Resend no `soufaro.app.br`), colar os 5 e-mails em português e acertar Site URL/Redirect URL no Supabase (guia em artifact "Guia dos e-mails do FARO"); depois criar uma conta de fora para provar o e-mail.
+2. **Claude:** escrever a **mensagem de boas-vindas** (teste inicial, pode haver erros, feedback) para o Leandro aprovar; entra no `WelcomeModal` e no e-mail "Bem-vindo".
+3. **Claude + Leandro:** "Conectar com o Google" (OAuth): convidados na reunião, agenda de cada pessoa e mão dupla. 2 a 3 dias de trabalho + ~15 min no Google Cloud.
+4. **Claude:** **restaurador de conta** a partir da cópia diária (hoje só por SQL).
+5. **Claude:** card **"Em breve"** com os prints do app financeiro (depois de receber os prints).
+6. **Claude:** IA com a chave do cliente e mais de um provedor (Anthropic/GPT); explicar o backup no Drive da pessoa.
+7. **Antes de abrir ao público:** e-mail de contato real nos Termos, revisão jurídica, tirar a faixa "teste fechado", verificação do Google, ligar `soufaro.app.br` na Vercel (antes de os testadores instalarem o app).

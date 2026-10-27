@@ -274,6 +274,7 @@ input[type="date"]{ min-width:9.5em; }
 .dsh-kpi.atencao .dsh-kpi-n, .dsh-kpi.atencao .dsh-kpi-l{ color:#2B2200; }
 button.dsh-kpi.atencao:hover:not(:disabled){ background:#F1BC2B; }
 .dsh-kpi-aviso{ display:inline-flex; margin-left:6px; color:#2B2200; vertical-align:middle; }
+.dsh-kpi-aviso.perigo{ color:var(--danger); }
 .dsh-kpi-aviso svg{ width:16px; height:16px; }
 .tutorial h3{ font-size:13px; margin:14px 0 6px; color:var(--text-muted); font-weight:700; }
 .tutorial-icone-linha{ display:flex; gap:12px; align-items:center; padding:7px 0; border-top:1px solid var(--linha); font-size:14px; line-height:1.4; }
