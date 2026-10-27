@@ -1,5 +1,6 @@
 import { htmlParaMarkdown, temConteudo } from "@/lib/html-para-markdown";
 import type { Tables } from "@/lib/database.types";
+import type { MetanoiaFrase } from "@/lib/types";
 import { celulaCsv, csvDosClientes, csvDosLinks } from "@/lib/cadastro/csv";
 
 /**
@@ -95,10 +96,11 @@ export const AREAS_DE_BACKUP = [
   { id: "conhecendo", rotulo: "Conhecendo você", pasta: "Conhecendo você" },
   { id: "aniversarios", rotulo: "Aniversários", pasta: "Aniversários" },
   { id: "crm", rotulo: "CRM clientes (cadastros pelo site)", pasta: "CRM clientes" },
+  { id: "metanoia", rotulo: "Metanoia (frases e perguntas)", pasta: "Metanoia" },
 ] as const;
 
 export type AreaDeBackup = (typeof AREAS_DE_BACKUP)[number]["id"];
-export const AREAS_PADRAO: AreaDeBackup[] = ["sinapses", "livros", "ideias", "conhecendo", "aniversarios", "crm"];
+export const AREAS_PADRAO: AreaDeBackup[] = ["sinapses", "livros", "ideias", "conhecendo", "aniversarios", "crm", "metanoia"];
 
 export function ehAreaDeBackup(v: string): v is AreaDeBackup {
   return AREAS_DE_BACKUP.some((a) => a.id === v);
@@ -263,6 +265,45 @@ export function arquivosDosAniversarios(lista: AniversarioParaExportar[], gerado
 }
 
 /**
+ * Frases e perguntas da Metanoia: dois arquivos para ler (aprovadas, com as favoritas primeiro, e as que ainda
+ * esperam revisão) e um .csv com tudo, inclusive as que ele mandou não aparecer mais — assim uma importação
+ * futura não traz de volta o que ele já recusou.
+ */
+export function arquivosDaMetanoia(frases: MetanoiaFrase[], geradoEm: string): ArquivoDeAprendizado[] {
+  if (!frases.length) return [];
+  const pasta = pastaDaArea("metanoia");
+  const ordenar = (a: MetanoiaFrase, b: MetanoiaFrase) => a.texto.localeCompare(b.texto, "pt-BR");
+  const linha = (f: MetanoiaFrase) => {
+    const credito = [f.autor?.trim(), f.fonte?.trim()].filter(Boolean).join(" · ");
+    const texto = f.tipo === "pergunta" ? f.texto.trim() : `“${f.texto.trim()}”`;
+    return `- ${texto}${credito ? ` — ${credito}` : ""}`;
+  };
+  const arquivoDoTipo = (tipo: MetanoiaFrase["tipo"], titulo: string): ArquivoDeAprendizado | null => {
+    const doTipo = frases.filter((f) => f.tipo === tipo);
+    const aprovadas = doTipo.filter((f) => f.status === "aprovada").sort(ordenar);
+    const pendentes = doTipo.filter((f) => f.status === "pendente").sort(ordenar);
+    if (!aprovadas.length && !pendentes.length) return null;
+    const md = [cabecalho({ tipo: `metanoia-${tipo}`, data: geradoEm.slice(0, 10), origem: "FARO" }), `# ${titulo}`, ""];
+    const favoritas = aprovadas.filter((f) => f.favorita);
+    if (favoritas.length) md.push(`## Favoritas (${favoritas.length})`, "", ...favoritas.map(linha), "");
+    md.push(`## Aprovadas (${aprovadas.length})`, "");
+    md.push(...(aprovadas.length ? aprovadas.map(linha) : ["_Nenhuma ainda._"]), "");
+    if (pendentes.length) md.push(`## Para revisar (${pendentes.length})`, "", ...pendentes.map(linha), "");
+    return { nome: `${pasta}/${titulo}.md`, conteudo: md.join("\n") };
+  };
+  const celula = celulaCsv;
+  const csv = [["Tipo", "Situação", "Favorita", "Texto", "Autor", "Fonte", "Origem"].map(celula).join(",")];
+  for (const f of [...frases].sort((a, b) => a.tipo.localeCompare(b.tipo) || a.status.localeCompare(b.status) || ordenar(a, b))) {
+    csv.push([f.tipo, f.status, f.favorita ? "sim" : "não", f.texto.trim(), f.autor?.trim() ?? "", f.fonte?.trim() ?? "", f.origem].map(celula).join(","));
+  }
+  return [
+    arquivoDoTipo("frase", "Frases"),
+    arquivoDoTipo("pergunta", "Perguntas poderosas"),
+    { nome: `${pasta}/Metanoia - tudo.csv`, conteudo: "\uFEFF" + csv.join("\r\n") + "\r\n" },
+  ].filter((a): a is ArquivoDeAprendizado => a !== null);
+}
+
+/**
  * CRM de clientes (quem se cadastrou pelos links e pelas páginas do site): duas
  * planilhas para usar fora do FARO e um JSON com as linhas cruas, que é o que a
  * restauração lê (`/api/backup/restaurar-crm`).
@@ -362,6 +403,8 @@ export interface DadosDoBackup {
   conhecendo: ConhecimentoParaExportar[];
   aniversarios?: AniversarioParaExportar[];
   crm?: { clientes: Tables<"clientes_cadastro">[]; links: Tables<"cadastro_links">[] };
+  /** Todas as frases e perguntas da Metanoia, de qualquer situação. */
+  metanoia?: MetanoiaFrase[];
 }
 
 /**
@@ -416,6 +459,20 @@ export function indiceDoBackup(
     linhas.push(`## CRM clientes (${c.clientes.length} pessoas, ${c.links.length} links)`, "");
     if (!c.clientes.length && !c.links.length) linhas.push("_Nenhum cadastro ainda._", "");
     else linhas.push("Planilhas em `CRM clientes/` (`Clientes.csv` e `Links de cadastro.csv`) e `crm-clientes.json` para restaurar.", "");
+  }
+
+  if (areas.includes("metanoia")) {
+    const lista = dados.metanoia ?? [];
+    const aprovadas = lista.filter((f) => f.status === "aprovada");
+    const pendentes = lista.filter((f) => f.status === "pendente").length;
+    linhas.push(`## Metanoia (${aprovadas.length} aprovadas)`, "");
+    if (!lista.length) linhas.push("_Nenhuma frase ainda._", "");
+    else
+      linhas.push(
+        `${aprovadas.filter((f) => f.tipo === "frase").length} frases e ${aprovadas.filter((f) => f.tipo === "pergunta").length} perguntas aprovadas, ${pendentes} esperando revisão.`,
+        "Em `Metanoia/` (`Frases.md`, `Perguntas poderosas.md` e `Metanoia - tudo.csv`).",
+        ""
+      );
   }
 
   if (areas.includes("livros")) {
@@ -475,6 +532,7 @@ export function arquivosDoBackup(
   }
   if (areas.includes("aniversarios")) arquivos.push(...arquivosDosAniversarios(dados.aniversarios ?? [], geradoEm));
   if (areas.includes("crm") && dados.crm) arquivos.push(...arquivosDoCrm(dados.crm, geradoEm));
+  if (areas.includes("metanoia")) arquivos.push(...arquivosDaMetanoia(dados.metanoia ?? [], geradoEm));
   if (areas.includes("livros")) {
     for (const l of dados.livros) {
       const a = arquivoDoLivro(l);

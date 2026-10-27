@@ -992,6 +992,7 @@ function BackupDeAprendizadoBox() {
     conhecendo: board.state.knowledgeItems.filter((k) => k.status === "aprovado").map(conhecimentoParaExportar),
     aniversarios: board.state.birthdays,
     crm,
+    metanoia: board.state.metanoiaFrases,
   };
 
   // Quantos TÊM anotação, por área — o número que importa, porque é o que vai
@@ -1003,6 +1004,7 @@ function BackupDeAprendizadoBox() {
     livros: dados.livros.filter((x) => temConteudo(x.insights)).length,
     aniversarios: board.state.birthdays.length,
     crm: crm?.clientes.length ?? 0,
+    metanoia: board.state.metanoiaFrases.filter((f) => f.status === "aprovada").length,
   };
   const totalNaArea = {
     sinapses: dados.sinapses.length,
@@ -1011,6 +1013,7 @@ function BackupDeAprendizadoBox() {
     conhecendo: board.state.knowledgeItems.filter((k) => k.status !== "descartado").length,
     aniversarios: board.state.birthdays.length,
     crm: crm?.clientes.length ?? 0,
+    metanoia: board.state.metanoiaFrases.filter((f) => f.status !== "arquivada").length,
   };
   // Menos o índice, que não é aprendizado — o número é a promessa do botão.
   const quantos = Math.max(0, quantosArquivos(dados, areas) - 1);
@@ -1082,7 +1085,7 @@ function BackupDeAprendizadoBox() {
             <span>
               <span className="settings-label">{a.rotulo}</span>
               <span className="settings-toggle-hint">
-                {comAnotacao[a.id]} {a.id === "aniversarios" || a.id === "crm" ? "cadastrados" : "com anotação"}
+                {comAnotacao[a.id]} {a.id === "aniversarios" || a.id === "crm" ? "cadastrados" : a.id === "metanoia" ? "aprovadas" : "com anotação"}
                 {totalNaArea[a.id] > comAnotacao[a.id] && ` (de ${totalNaArea[a.id]})`}
               </span>
             </span>

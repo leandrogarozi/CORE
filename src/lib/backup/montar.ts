@@ -32,6 +32,7 @@ export const TABELAS = [
   "clientes_cadastro",
   "cadastro_links",
   "knowledge_items",
+  "metanoia_frases",
   "checklists",
   "attachments",
   "medications",
