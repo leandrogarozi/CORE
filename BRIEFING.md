@@ -6208,3 +6208,8 @@ Desenho: página "5. Demais telas" do canvas Layouts FARO, quadro "Manutenção:
 ## Metanoia: backup no Drive e frases dos cursos (27/10)
 - Nova área de backup **Metanoia (frases e perguntas)** em `learning-export.ts` (`arquivosDaMetanoia`): `Metanoia/Frases.md`, `Metanoia/Perguntas poderosas.md` (favoritas, aprovadas, para revisar) e `Metanoia/Metanoia - tudo.csv` (inclui as arquivadas, para não voltarem numa importação). Entra no padrão (`AREAS_PADRAO`), no zip das Configurações e no envio diário do computador para "Aprendizado (cópia automática)". O JSON completo (`montar.ts`) passou a levar a tabela `metanoia_frases`, que não estava lá.
 - Banco: +76 itens dos PDFs (Plano da Alma, Códigos Titi, Aula Magna) e das subpastas Febracis (Mentoria Empresarial, Inteligência Financeira, Perfil Comportamental, BHP, Neurociência), origem "ia", pendentes, textos encurtados e sem o contexto que só quem fez o curso entende. Total pendente: 568 frases e 82 perguntas; nada aprovado ainda.
+
+## Metanoia: buscar, editar, "não listar" e excluir só na edição (27/10)
+- Campo de busca acima das abas (texto, autor e fonte, sem acento). O lápis do cartão da tela inicial abre a Metanoia já buscando aquela frase.
+- "Não listar" (olho riscado) arquiva sem apagar e sem pedir confirmação; vira a aba **Não listadas**, com "Voltar a listar" (volta como aprovada). No cartão da tela inicial, na tela cheia e no bloco "Hoje" ele ocupa o lugar da lixeira.
+- **Excluir de vez** (apaga a linha do banco, com confirmação) só aparece com a frase aberta para editar. Coração continua em todos os lugares: tocar de novo desfavorita (a frase segue aparecendo, só deixa de contar em dobro).

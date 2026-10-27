@@ -4,14 +4,14 @@ import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { TimePicker } from "./TimePicker";
-import { CheckIcon, EditIcon, HeartIcon, TrashIcon } from "./icons";
+import { CheckIcon, EditIcon, EyeOffIcon, HeartIcon } from "./icons";
 import { MicButton } from "./MicButton";
 import { ImportarFrases } from "./ImportarFrases";
 import { todayISO } from "@/lib/date-utils";
 import { creditoDaFrase, fraseDaVez, horariosDePerguntasEmUso, horariosEmUso } from "@/lib/metanoia";
 import type { MetanoiaFrase, MetanoiaOrigem, MetanoiaTipo } from "@/lib/types";
 
-type Aba = "aprovadas" | "favoritas" | "revisar";
+type Aba = "aprovadas" | "favoritas" | "revisar" | "naolistadas";
 
 const ROTULO_DA_ORIGEM: Record<MetanoiaOrigem, string> = {
   minha: "Minha",
@@ -21,6 +21,8 @@ const ROTULO_DA_ORIGEM: Record<MetanoiaOrigem, string> = {
 };
 
 /** "A partir das __ até as __" e onde cada mensagem cai, espalhadas por igual entre os dois horários. */
+const semAcento = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
 function Janela({ inicio, fim, horarios, onInicio, onFim }: { inicio: string; fim: string; horarios: string[]; onInicio: (v: string) => void; onFim: (v: string) => void }) {
   return (
     <>
@@ -39,7 +41,7 @@ function Janela({ inicio, fim, horarios, onInicio, onFim }: { inicio: string; fi
   );
 }
 
-function Cartao({ frase, aprovando }: { frase: MetanoiaFrase; aprovando: boolean }) {
+function Cartao({ frase, aprovando, naoListada }: { frase: MetanoiaFrase; aprovando: boolean; naoListada: boolean }) {
   const { board, askConfirm } = useBoardCtx();
   const [editando, setEditando] = useState(false);
   const [texto, setTexto] = useState(frase.texto);
@@ -58,6 +60,19 @@ function Cartao({ frase, aprovando }: { frase: MetanoiaFrase; aprovando: boolean
         <textarea value={texto} rows={3} aria-label={frase.tipo === "pergunta" ? "Texto da pergunta" : "Texto da frase"} onChange={(e) => setTexto(e.target.value)} />
         {frase.tipo === "frase" && <input type="text" value={autor} placeholder="Autor (opcional)" aria-label="Autor" onChange={(e) => setAutor(e.target.value)} />}
         <div className="edit-actions">
+          {/* Apagar de verdade só existe aqui, com a frase aberta para editar. */}
+          <button
+            type="button"
+            className="btn btn-danger"
+            onClick={() =>
+              askConfirm(
+                frase.tipo === "pergunta" ? "Excluir essa pergunta de vez? Não dá para desfazer." : "Excluir essa frase de vez? Não dá para desfazer.",
+                () => board.deleteMetanoiaFrase(frase.id)
+              )
+            }
+          >
+            Excluir
+          </button>
           <button type="button" className="btn btn-ghost" onClick={() => setEditando(false)}>
             Cancelar
           </button>
@@ -80,6 +95,11 @@ function Cartao({ frase, aprovando }: { frase: MetanoiaFrase; aprovando: boolean
         </div>
       </div>
       <div className="meta-frase-acoes">
+        {naoListada && (
+          <button type="button" className="btn btn-ghost" onClick={() => board.updateMetanoiaFrase(frase.id, { status: "aprovada" })}>
+            Voltar a listar
+          </button>
+        )}
         {aprovando && (
           <>
             <button type="button" className="btn btn-ghost know-aprovar" onClick={() => board.updateMetanoiaFrase(frase.id, { status: "aprovada" })}>
@@ -102,29 +122,34 @@ function Cartao({ frase, aprovando }: { frase: MetanoiaFrase; aprovando: boolean
         <button type="button" className="icon-btn" title="Editar" aria-label="Editar frase" onClick={() => setEditando(true)}>
           <EditIcon />
         </button>
-        <button
+        {!naoListada && !aprovando && (
+          <button
             type="button"
-            className="icon-btn danger-hover"
-            title="Não aparecer mais"
-            aria-label="Não aparecer mais"
-            onClick={() => askConfirm(frase.tipo === "pergunta" ? "Tem certeza que quer excluir essa pergunta? Ela não aparece mais." : "Tem certeza que quer excluir essa frase? Ela não aparece mais.", () => board.updateMetanoiaFrase(frase.id, { status: "arquivada" }))}
+            className="icon-btn"
+            title="Não listar (não aparece mais, mas não é apagada)"
+            aria-label="Não listar"
+            onClick={() => board.updateMetanoiaFrase(frase.id, { status: "arquivada" })}
           >
-            <TrashIcon />
+            <EyeOffIcon />
           </button>
+        )}
       </div>
     </div>
   );
 }
 
-export function MetanoiaView({ onBack }: { onBack: () => void }) {
+export function MetanoiaView({ onBack, inicial }: { onBack: () => void; inicial?: { texto: string; tipo: MetanoiaTipo } | null }) {
   const { board, askConfirm } = useBoardCtx();
   const s = board.state.settings;
   const todas = board.state.metanoiaFrases;
-  const [tipo, setTipo] = useState<MetanoiaTipo>("frase");
+  const [tipo, setTipo] = useState<MetanoiaTipo>(inicial?.tipo ?? "frase");
+  // Vindo do botão de editar do cartão da tela inicial, já procura por aquela frase.
+  const [busca, setBusca] = useState(inicial?.texto.slice(0, 60) ?? "");
   const ehPergunta = tipo === "pergunta";
   const frases = todas.filter((f) => f.tipo === tipo);
   const aprovadas = frases.filter((f) => f.status === "aprovada");
   const pendentes = frases.filter((f) => f.status === "pendente");
+  const naoListadas = frases.filter((f) => f.status === "arquivada");
   const pendentesDoOutro = todas.filter((f) => f.tipo !== tipo && f.status === "pendente").length;
   const [aba, setAba] = useState<Aba>("aprovadas");
   const [origem, setOrigem] = useState<"todas" | MetanoiaOrigem>("todas");
@@ -153,8 +178,11 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
     }
   }
 
-  const base = aba === "revisar" ? pendentes : aba === "favoritas" ? aprovadas.filter((f) => f.favorita) : aprovadas;
-  const lista = base.filter((f) => origem === "todas" || f.origem === origem);
+  const base = aba === "revisar" ? pendentes : aba === "naolistadas" ? naoListadas : aba === "favoritas" ? aprovadas.filter((f) => f.favorita) : aprovadas;
+  const termo = semAcento(busca.trim());
+  const lista = base
+    .filter((f) => origem === "todas" || f.origem === origem)
+    .filter((f) => !termo || semAcento(`${f.texto} ${f.autor ?? ""} ${f.fonte ?? ""}`).includes(termo));
 
   return (
     <div className="section">
@@ -202,17 +230,15 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
                 </button>
                 <button
                   type="button"
-                  className="icon-btn danger-hover"
-                  title="Não aparecer mais"
+                  className="icon-btn"
+                  title="Não aparecer mais (fica em Não listadas)"
                   aria-label="Não aparecer mais"
-                  onClick={() =>
-                    askConfirm(ehPergunta ? "Tem certeza que quer excluir essa pergunta? Ela não aparece mais." : "Tem certeza que quer excluir essa frase? Ela não aparece mais.", () => {
-                      setOutra(null);
-                      board.updateMetanoiaFrase(emDestaque.id, { status: "arquivada" });
-                    })
-                  }
+                  onClick={() => {
+                    setOutra(null);
+                    board.updateMetanoiaFrase(emDestaque.id, { status: "arquivada" });
+                  }}
                 >
-                  <TrashIcon />
+                  <EyeOffIcon />
                 </button>
                 <button type="button" className="btn btn-ghost" onClick={() => navigator.clipboard?.writeText(emDestaque.texto + (emDestaque.autor ? ` — ${emDestaque.autor}` : ""))}>
                   Copiar
@@ -321,6 +347,15 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
 
         <ImportarFrases tipo={tipo} />
 
+        <input
+          type="search"
+          className="meta-busca"
+          value={busca}
+          placeholder={ehPergunta ? "Buscar uma pergunta" : "Buscar uma frase"}
+          aria-label="Buscar"
+          onChange={(e) => setBusca(e.target.value)}
+        />
+
         <div className="meta-abas">
           <div className="view-toggle">
             {(
@@ -328,6 +363,7 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
                 ["aprovadas", `Aprovadas ${aprovadas.length}`],
                 ["favoritas", `Favoritas ${aprovadas.filter((f) => f.favorita).length}`],
                 ["revisar", `Para revisar ${pendentes.length}`],
+                ["naolistadas", `Não listadas ${naoListadas.length}`],
               ] as const
             ).map(([v, rotulo]) => (
               <button key={v} type="button" className={"view-toggle-btn" + (aba === v ? " active" : "")} onClick={() => setAba(v)}>
@@ -364,7 +400,11 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
         {lista.length === 0 ? (
           <div className="list-card">
             <div className="hp-empty">
-              {aba === "revisar"
+              {busca.trim()
+                ? "Nada encontrado nesta aba com essa busca."
+                : aba === "naolistadas"
+                  ? "Nada aqui. O que você marcar como “Não listar” fica guardado nesta aba, sem aparecer nas notificações."
+                  : aba === "revisar"
                 ? `Nada para revisar agora. Quando o FARO tiver ${ehPergunta ? "perguntas" : "frases"} novas, elas aparecem aqui.`
                 : aba === "favoritas"
                   ? "Nenhuma favorita ainda."
@@ -376,7 +416,7 @@ export function MetanoiaView({ onBack }: { onBack: () => void }) {
         ) : (
           <div className="meta-lista">
             {lista.map((f) => (
-              <Cartao key={f.id} frase={f} aprovando={aba === "revisar"} />
+              <Cartao key={f.id} frase={f} aprovando={aba === "revisar"} naoListada={aba === "naolistadas"} />
             ))}
           </div>
         )}

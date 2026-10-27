@@ -91,6 +91,8 @@ function BoardShell() {
 
   // A notificação da Metanoia abre o app com a frase em tela cheia (?ver=metanoia); tocar fecha e deixa o painel.
   const [metaCheia, setMetaCheia] = useState(false);
+  // Frase que a pessoa quis editar a partir do cartão da tela inicial: a Metanoia abre já procurando por ela.
+  const [metaBusca, setMetaBusca] = useState<{ texto: string; tipo: "frase" | "pergunta" } | null>(null);
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
     if (p.get("ver") === "metanoia") {
@@ -377,7 +379,7 @@ function BoardShell() {
       ) : viewMode === "ideias" ? (
         <IdeasView onBack={() => setViewMode("day")} />
       ) : viewMode === "metanoia" ? (
-        <MetanoiaView onBack={() => setViewMode("day")} />
+        <MetanoiaView key={metaBusca?.texto ?? ""} inicial={metaBusca} onBack={() => { setMetaBusca(null); setViewMode("day"); }} />
       ) : viewMode === "conhecendo" ? (
         <ConhecendoView onBack={() => setViewMode("day")} />
       ) : viewMode === "compras" ? (
@@ -422,8 +424,13 @@ function BoardShell() {
               }}
             />
           )}
-          {viewMode === "day" && <FraseDoDia onAbrir={() => setViewMode("metanoia")} />}
-          {metaCheia && <FraseDoDia telaCheia onAbrir={() => setViewMode("metanoia")} onFecharTelaCheia={() => setMetaCheia(false)} />}
+          {viewMode === "day" && (
+            <FraseDoDia
+              onAbrir={() => { setMetaBusca(null); setViewMode("metanoia"); }}
+              onEditar={(f) => { setMetaBusca({ texto: f.texto, tipo: f.tipo }); setViewMode("metanoia"); }}
+            />
+          )}
+          {metaCheia && <FraseDoDia telaCheia onAbrir={() => setViewMode("metanoia")} onEditar={() => {}} onFecharTelaCheia={() => setMetaCheia(false)} />}
           <div className="day-strip-wrap">
             <button
               className="strip-nav"
