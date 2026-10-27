@@ -9,7 +9,6 @@ import { AttachmentsButton } from "./AttachmentsButton";
 import { TimerButton } from "./TimerButton";
 import { StatusPicker } from "./StatusPicker";
 import { MinutesPicker, TimePicker } from "./TimePicker";
-import { ReminderDateButton } from "./RemindersView";
 import { NoteField } from "./NoteField";
 import {
   BellIcon,
@@ -41,6 +40,7 @@ import {
   WhatsAppIcon,
 } from "./icons";
 import { fmtDayMonth, fmtShortDate, fmtTempoCurto, todayISO } from "@/lib/date-utils";
+import { REMINDER_ALERT_PRESETS } from "@/lib/board/reminder-alerts";
 import { taskEntriesOf } from "@/lib/board/task-time";
 import { PostponeModal } from "./PostponeModal";
 import { ToggleSwitch } from "./ToggleSwitch";
@@ -556,13 +556,25 @@ interface TaskWhenFields {
 
 // Um menu só pro "quando" da tarefa: início (data + hora) e fim (data + hora)
 // juntos, em vez de 4 campos soltos espalhados pelo formulário.
-function TaskWhenButton({ date, time, endDate, endTime, onSave }: TaskWhenFields & { onSave: (f: TaskWhenFields) => void }) {
+/** O bloco único de "quando": início, duração, fim e o lembrete que avisa dele (sempre na data e hora do início). */
+interface TaskWhenBlock extends TaskWhenFields {
+  durationMin: number | null;
+  /** Minutos antes de avisar; 0 = no horário; null = sem lembrete. */
+  aviso: number | null;
+  zap: boolean;
+}
+
+function TaskWhenButton({ date, time, endDate, endTime, durationMin, aviso, zap, onSave }: TaskWhenBlock & { onSave: (f: TaskWhenBlock) => void }) {
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const open = anchorRect !== null;
   const [dateDraft, setDateDraft] = useState(date ?? "");
   const [timeDraft, setTimeDraft] = useState(time ?? "");
   const [endDateDraft, setEndDateDraft] = useState(endDate ?? "");
   const [endTimeDraft, setEndTimeDraft] = useState(endTime ?? "");
+  const [durDraft, setDurDraft] = useState<number | null>(durationMin);
+  const [avisoDraft, setAvisoDraft] = useState<number | null>(aviso);
+  const [zapDraft, setZapDraft] = useState(zap);
+  const [erro, setErro] = useState<string | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
   const pos = useClampedPopoverPos(anchorRect, popRef);
@@ -588,15 +600,27 @@ function TaskWhenButton({ date, time, endDate, endTime, onSave }: TaskWhenFields
     setTimeDraft(time ?? "");
     setEndDateDraft(endDate ?? "");
     setEndTimeDraft(endTime ?? "");
+    setDurDraft(durationMin);
+    setAvisoDraft(aviso);
+    setZapDraft(zap);
+    setErro(null);
     if (btnRef.current) setAnchorRect(btnRef.current.getBoundingClientRect());
   }
 
   function save() {
+    // O lembrete avisa sempre da data e hora do início: sem elas não há quando avisar.
+    if (avisoDraft !== null && (!dateDraft || !timeDraft)) {
+      setErro("Para lembrar, escolha a data e a hora de início.");
+      return;
+    }
     onSave({
       date: dateDraft || null,
       time: timeDraft,
       endDate: endDateDraft || null,
       endTime: endTimeDraft || null,
+      durationMin: durDraft,
+      aviso: avisoDraft,
+      zap: avisoDraft !== null && zapDraft,
     });
     setAnchorRect(null);
   }
@@ -606,13 +630,26 @@ function TaskWhenButton({ date, time, endDate, endTime, onSave }: TaskWhenFields
     setTimeDraft("");
     setEndDateDraft("");
     setEndTimeDraft("");
+    setDurDraft(null);
+    setAvisoDraft(null);
+    setZapDraft(false);
   }
 
   const startLabel = date ? fmtDayMonth(date) + (time ? ` às ${time}` : "") : null;
   const endLabel = endDate || endTime
     ? `${endDate && endDate !== date ? fmtDayMonth(endDate) : ""}${endTime ? ` ${endTime}` : ""}`.trim()
     : null;
-  const label = [startLabel, endLabel ? `até ${endLabel}` : null].filter(Boolean).join(" · ") || null;
+  const avisoLabel =
+    aviso === null ? null : aviso === 0 ? "lembra no horário" : `lembra ${REMINDER_ALERT_PRESETS.find((p) => p.v === aviso)?.l ?? ""}`;
+  const label =
+    [
+      startLabel,
+      endLabel ? `até ${endLabel}` : null,
+      durationMin ? fmtTempoCurto(durationMin * 60) : null,
+      avisoLabel ? avisoLabel + (zap ? " + WhatsApp" : "") : null,
+    ]
+      .filter(Boolean)
+      .join(" · ") || null;
 
   return (
     <>
@@ -655,6 +692,12 @@ function TaskWhenButton({ date, time, endDate, endTime, onSave }: TaskWhenFields
               </div>
             </div>
             <div className="edit-field">
+              <span className="edit-field-label">Duração</span>
+              <div className="reminder-datetime-row">
+                <MinutesPicker minutes={durDraft} placeholder="Vazio" onChange={setDurDraft} onClear={() => setDurDraft(null)} />
+              </div>
+            </div>
+            <div className="edit-field">
               <span className="edit-field-label">Fim (opcional — evento que passa de um dia)</span>
               <div className="reminder-datetime-row">
                 <DateField ariaLabel="Data de fim" value={endDateDraft} onChange={setEndDateDraft} />
@@ -673,11 +716,39 @@ function TaskWhenButton({ date, time, endDate, endTime, onSave }: TaskWhenFields
                 </button>
               </div>
             </div>
+            <div className="edit-field">
+              <span className="edit-field-label">Lembrete (avisa da data e hora do início)</span>
+              <div className="reminder-datetime-row">
+                <select
+                  className="reminder-repeat-select"
+                  aria-label="Quando lembrar"
+                  value={avisoDraft === null ? "" : String(avisoDraft)}
+                  onChange={(e) => {
+                    setAvisoDraft(e.target.value === "" ? null : Number(e.target.value));
+                    setErro(null);
+                  }}
+                >
+                  <option value="">Sem lembrete</option>
+                  {REMINDER_ALERT_PRESETS.map((p) => (
+                    <option key={p.l} value={String(p.v ?? 0)}>
+                      {p.v === 0 ? "No horário" : p.l}
+                    </option>
+                  ))}
+                </select>
+                {avisoDraft !== null && (
+                  <button type="button" className={"reminder-zap-opcao" + (zapDraft ? " ativo" : "")} aria-pressed={zapDraft} onClick={() => setZapDraft((v) => !v)}>
+                    <WhatsAppIcon filled={zapDraft} />
+                    <span>Avisar no WhatsApp</span>
+                  </button>
+                )}
+              </div>
+            </div>
+            {erro && <div className="reminder-zap-erro">{erro}</div>}
             <div className="edit-actions edit-actions-split">
               <button
                 type="button"
                 className="btn btn-ghost"
-                disabled={!dateDraft && !timeDraft && !endDateDraft && !endTimeDraft}
+                disabled={!dateDraft && !timeDraft && !endDateDraft && !endTimeDraft && durDraft === null && avisoDraft === null}
                 title="Limpar datas e horários"
                 onClick={clearAll}
               >
@@ -889,6 +960,11 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
   const [postponing, setPostponing] = useState<TaskEditFields | null>(null);
   const [tirandoDesafio, setTirandoDesafio] = useState(false);
   const adiamentos = board.state.taskPostponements.filter((p) => p.taskId === t.id).length;
+  // O lembrete da tarefa vive no mesmo bloco do "Quando": avisa sempre da data e hora do início.
+  const [lembrete, setLembrete] = useState<{ aviso: number | null; zap: boolean }>({
+    aviso: linkedReminder ? (linkedReminder.alertMinutesBefore ?? 0) : null,
+    zap: linkedReminder?.whatsapp ?? false,
+  });
   const [vals, setVals] = useState<TaskEditFields>({
     title: t.title,
     category: t.category,
@@ -913,6 +989,19 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
     function doApply(scope: "esta" | "proximas" | "todas" | null) {
       board.saveTaskEdit(t.id, finalVals, scope);
       board.logPostponement(t.id, t.date, finalVals.date, reason);
+      // O lembrete segue a tarefa: mesma data e hora do início, o aviso e o WhatsApp do bloco.
+      if (lembrete.aviso !== null && finalVals.date) {
+        board.setTaskReminder(t.id, {
+          date: finalVals.date,
+          time: finalVals.time || null,
+          repeat: linkedReminder?.repeat ?? "none",
+          weekDays: linkedReminder?.weekDays ?? null,
+          alertMinutesBefore: lembrete.aviso,
+          whatsapp: lembrete.zap,
+        });
+      } else if (linkedReminder) {
+        board.setTaskReminder(t.id, { date: null, time: null, repeat: "none", weekDays: null, alertMinutesBefore: null });
+      }
     }
     if (t.seriesId) {
       askScope("Essa tarefa faz parte de uma repetição. Aplicar a mudança em:", doApply);
@@ -968,7 +1057,7 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
         </div>
         <div className="prop-row">
           <span className="prop-label">
-            <WeekIcon /> Quando
+            <WeekIcon /> Quando e lembrete
           </span>
           <div className="prop-value">
             <TaskWhenButton
@@ -976,7 +1065,14 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
               time={vals.time}
               endDate={vals.endDate}
               endTime={vals.endTime}
-              onSave={(f) => setVals((v) => ({ ...v, ...f }))}
+              durationMin={vals.durationMin}
+              aviso={lembrete.aviso}
+              zap={lembrete.zap}
+              onSave={(f) => {
+                const { aviso, zap, ...quando } = f;
+                setVals((v) => ({ ...v, ...quando }));
+                setLembrete({ aviso, zap });
+              }}
             />
           </div>
         </div>
@@ -1076,19 +1172,6 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
         </div>
         <div className="prop-row">
           <span className="prop-label">
-            <ClockIcon /> Duração
-          </span>
-          <div className="prop-value">
-            <MinutesPicker
-              minutes={vals.durationMin}
-              placeholder="Vazio"
-              onChange={(m) => setVals((v) => ({ ...v, durationMin: m }))}
-              onClear={() => setVals((v) => ({ ...v, durationMin: null }))}
-            />
-          </div>
-        </div>
-        <div className="prop-row">
-          <span className="prop-label">
             <PlayCircleIcon /> Tempo
           </span>
           <div className="prop-value">
@@ -1146,45 +1229,6 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
             </select>
           </div>
         </label>
-        <div className="prop-row">
-          <span className="prop-label">
-            <BellIcon /> Lembrete
-          </span>
-          <div className="prop-value">
-            <ReminderDateButton
-              date={linkedReminder?.date ?? null}
-              time={linkedReminder?.time ?? null}
-              repeat={linkedReminder?.repeat ?? "none"}
-              weekDays={linkedReminder?.weekDays ?? null}
-              alertMinutesBefore={linkedReminder?.alertMinutesBefore ?? null}
-              onSave={(fields) => board.setTaskReminder(t.id, fields)}
-              emptyLabel="Vazio"
-              // Já vem com a data e a hora da tarefa: a pessoa só escolhe quanto antes avisar e se quer no WhatsApp.
-              sugestaoData={vals.date}
-              sugestaoHora={vals.time || null}
-              // Sempre presente: antes a opção só aparecia DEPOIS que o
-              // lembrete existia, então ao marcar a data pela primeira vez ela
-              // não estava lá — ele procurou e não achou. Agora a escolha viaja
-              // junto no salvar e vale já na criação.
-              whatsapp={linkedReminder ? linkedReminder.whatsapp : false}
-              onWhatsappChange={
-                linkedReminder
-                  ? (ligado) =>
-                      board.updateReminder(
-                        linkedReminder.id,
-                        ligado
-                          ? {
-                              whatsapp: true,
-                              alertMinutesBefore:
-                                linkedReminder.alertMinutesBefore ?? 0,
-                            }
-                          : { whatsapp: false }
-                      )
-                  : undefined
-              }
-            />
-          </div>
-        </div>
         <div className="prop-row">
           <span className="prop-label">
             <PaperclipIcon /> Anexos

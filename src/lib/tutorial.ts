@@ -46,7 +46,7 @@ export const TUTORIAL: SecaoDoTutorial[] = [
     id: "tarefas",
     titulo: "Tarefas por dentro",
     linhas: [
-      "Toque numa tarefa para abri-la. Dentro: título, categorias (até 2), data e hora de início e de fim, observação, anexos, lembrete, projeto, cliente e ID.",
+      "Toque numa tarefa para abri-la. Dentro: título, categorias (até 2), o bloco “Quando e lembrete” (início, duração, fim e lembrete, tudo junto), observação, anexos, projeto, cliente e ID.",
       "Status: toque no status para trocar (A iniciar, Executando, Agendado, Aguardando, Concluída). Você cria os seus em Configurações > Tarefas.",
       "Bandeira de prioridade: toque para mudar entre alta (vermelha), média (azul) e baixa (verde). As vermelhas ficam no topo e as verdes embaixo; as médias seguem a sua ordem.",
       "Raios (⚡ de 1 a 3): quanto mais raios, mais rápida de fazer. Toque no mesmo raio para tirar. O botão “Rápidas primeiro” ordena por eles.",
@@ -121,7 +121,7 @@ export const TUTORIAL: SecaoDoTutorial[] = [
       "Lembretes podem se repetir (todo dia, semana, mês) ou cair em dias da semana.",
       "Escreva ou fale o nome, escolha data e hora e toque no botão de enviar (o avião).",
       "Filtros em cima: Todos, Recorrentes, Hoje, Semana, Atrasados. Os que o FARO criou sozinho (de manutenção, aniversário, dieta...) ficam em “Vindos de outras telas”.",
-      "Toda tarefa também pode ter um lembrete, no campo “Lembrete” dentro da tarefa. Ele já vem com a data e a hora da tarefa; você só escolhe quanto antes avisar e se quer o WhatsApp.",
+      "Toda tarefa também pode ter um lembrete, no mesmo bloco “Quando e lembrete” dentro da tarefa. O lembrete avisa sempre da data e hora de início: se você mudar o início, ele muda junto. Você só escolhe quanto antes avisar e se quer o WhatsApp.",
       "Sem cadastrar duas vezes: em cima da página de Lembretes, “Lembrar de uma reunião ou tarefa que já está na agenda” lista as reuniões, os eventos e as tarefas com hora que ainda não têm lembrete. Escolha uma, diga quando avisar (no horário, 10 min antes...) e se quer o WhatsApp, e toque em Criar lembrete.",
     ],
   },
