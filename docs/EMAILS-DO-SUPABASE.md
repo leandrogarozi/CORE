@@ -65,7 +65,7 @@ Subject: `Você foi convidado para o FARO`
 ```
 
 ## 3. Envio próprio de e-mail (NECESSÁRIO para pessoas de fora) e nome do remetente ("FARO" em vez de "Supabase Auth")
-O envio que vem de fábrica no Supabase só entrega para e-mails de membros do time do projeto (erro `email_address_not_authorized` para o resto) e, no painel, a edição dos modelos pode ficar travada até haver SMTP próprio. O remetente padrão também não pode ser trocado. Para aparecer "FARO <algo@seudominio>", é preciso SMTP próprio: Authentication → Emails → SMTP Settings. Opção gratuita: Resend (3.000 e-mails/mês) com um domínio verificado (por exemplo `soufaro.app.br` ou `leandrogarozi.com.br`). Isso também tira o limite baixo de e-mails por hora do plano gratuito.
+O envio que vem de fábrica no Supabase só entrega para e-mails de membros do time do projeto (erro `email_address_not_authorized` para o resto) e, no painel, a edição dos modelos pode ficar travada até haver SMTP próprio. O remetente padrão também não pode ser trocado. Para aparecer "FARO <algo@seudominio>", é preciso SMTP próprio: Authentication → Emails → SMTP Settings. Opção gratuita: Resend (3.000 e-mails/mês) com um domínio verificado (por exemplo `soufaro.app.br` ou `soufaro.app.br`). Isso também tira o limite baixo de e-mails por hora do plano gratuito.
 
 ## No código
 - `src/app/auth/confirm/route.ts`: confere `token_hash` + `type` e entra; falha vai para `/login?erro=link`.
