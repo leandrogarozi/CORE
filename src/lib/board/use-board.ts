@@ -567,6 +567,7 @@ export function useBoard(userId: string | null) {
         deletedAt: null,
         projectId: null,
         client: null,
+        cancelled: false,
         guests: [],
       };
       apply((s) => ({ ...s, tasks: [...s.tasks, t] }));
@@ -1052,7 +1053,8 @@ export function useBoard(userId: string | null) {
             deletedAt: null,
             projectId: null,
             client: null,
-            guests: [],
+            cancelled: false,
+        guests: [],
           });
         });
       });
@@ -1507,6 +1509,7 @@ export function useBoard(userId: string | null) {
         deletedAt: null,
         projectId,
         client: null,
+        cancelled: false,
         guests: [],
       };
       apply((s) => ({ ...s, tasks: [...s.tasks, t] }));
@@ -2977,6 +2980,18 @@ export function useBoard(userId: string | null) {
     [apply, supabase]
   );
 
+  // Cancelar reunião/evento: a tarefa continua no FARO (riscada, e concluída para não virar atraso), mas sai da
+  // agenda do Google em até 1 minuto, e o Google avisa os convidados do cancelamento. Reativar traz tudo de volta.
+  const setCancelled = useCallback(
+    (id: string, cancelled: boolean) => {
+      apply((st) => ({ ...st, tasks: st.tasks.map((t) => (t.id === id ? { ...t, cancelled, done: cancelled } : t)) }));
+      supabase.from("tasks").update({ cancelada: cancelled, done: cancelled }).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("setCancelled", error);
+      });
+    },
+    [apply, supabase]
+  );
+
   const setFollows = useCallback(
     (id: string, follows: boolean) => {
       // Tarefa desafiadora não pode ser rastreada.
@@ -3219,6 +3234,7 @@ export function useBoard(userId: string | null) {
         deletedAt: null,
         projectId: null,
         client: null,
+        cancelled: false,
         guests: [],
       }));
 
@@ -3790,6 +3806,7 @@ export function useBoard(userId: string | null) {
         deletedAt: null,
         projectId: null,
         client: client?.trim() || null,
+        cancelled: false,
         guests: [],
       };
       const at: ActiveTimer = { id: uid(), kind: "task", itemId: t.id, logDate: today, startedAt: Date.now() };
@@ -3842,6 +3859,7 @@ export function useBoard(userId: string | null) {
         deletedAt: null,
         projectId: null,
         client: campos.client?.trim() || null,
+        cancelled: false,
         guests: campos.guests ?? [],
       };
       apply((s) => ({ ...s, tasks: [...s.tasks, t] }));
@@ -4300,6 +4318,7 @@ export function useBoard(userId: string | null) {
     updateMaintenanceService,
     deleteMaintenanceService,
     setChallenging,
+    setCancelled,
     setFollows,
     setIsEvent,
     logPostponement,

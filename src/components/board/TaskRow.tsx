@@ -332,6 +332,7 @@ export function TaskRow({
       className={
         "task-row" +
         (t.done ? " done" : "") +
+        (t.cancelled ? " cancelled" : "") +
         (t.challenging && !t.done ? " challenging" : "") +
         (t.isEvent && !t.done ? " is-event" : "") +
         (isOverdue(t) ? " overdue" : "") +
@@ -396,8 +397,13 @@ export function TaskRow({
         <button type="button" className="row-title" title={t.title} onClick={() => setEditing(true)}>
           {t.title}
         </button>
-        {(t.isEvent || t.client || t.challenging || t.follows || openTopics > 0 || hasReminder || t.note.trim() || hasAttachment) && (
+        {(t.cancelled || t.isEvent || t.client || t.challenging || t.follows || openTopics > 0 || hasReminder || t.note.trim() || hasAttachment) && (
           <span className="row-badges">
+            {t.cancelled && (
+              <span className="task-badge task-cancelada-badge" title="Cancelada. Saiu da agenda do Google e os convidados foram avisados.">
+                Cancelada
+              </span>
+            )}
             {/* Só o ícone: o horário já aparece do lado do sininho, e repetir
                 o mesmo 15:00 duas vezes na linha é ruído. */}
             {t.isEvent && (
@@ -1021,7 +1027,7 @@ function escapeHtml(t: string): string {
 }
 
 export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
-  const { board, askScope } = useBoardCtx();
+  const { board, askScope, askConfirm } = useBoardCtx();
   const currentSeries = t.seriesId ? board.state.taskSeries.find((s) => s.id === t.seriesId) : null;
   const linkedReminder = board.state.reminders.find((r) => r.taskId === t.id) ?? null;
   const clientListId = useId();
@@ -1295,6 +1301,48 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
               {convidadosErrados.length > 0 && <div className="hint-text">Não parece e-mail: {convidadosErrados.join(", ")}</div>}
             </div>
           </label>
+        )}
+        {(t.isEvent || isMeetingTask(vals)) && (
+          <div className="prop-row">
+            <span className="prop-label">
+              <UsersGroupIcon /> Agenda
+            </span>
+            <div className="prop-value">
+              <div className="hint-text" style={{ marginTop: 0 }}>
+                Mudou o dia ou a hora? Salve e os convidados recebem a agenda remarcada.
+              </div>
+              {t.cancelled ? (
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() => {
+                    board.setCancelled(t.id, false);
+                    onDone();
+                  }}
+                >
+                  Reativar reunião
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={() =>
+                    askConfirm(
+                      `Cancelar "${t.title}"? Ela sai da agenda do Google e os convidados recebem o aviso de cancelamento. Continua aqui no FARO, riscada.`,
+                      () => {
+                        board.setCancelled(t.id, true);
+                        // Cancelada não lembra mais ninguém.
+                        if (linkedReminder) board.setTaskReminder(t.id, { date: null, time: null, repeat: "none", weekDays: null, alertMinutesBefore: null });
+                        onDone();
+                      }
+                    )
+                  }
+                >
+                  Cancelar reunião
+                </button>
+              )}
+            </div>
+          </div>
         )}
         <label className="prop-row">
           <span className="prop-label">

@@ -85,7 +85,7 @@ async function chamar(acesso: Acesso, metodo: string, caminho: string, corpo?: o
 
 /** Tarefa que merece estar na agenda do Google. */
 export function sobeParaOGoogle(t: Task): boolean {
-  return !t.deletedAt && !!t.date && t.category !== "saude" && t.category2 !== "saude" && (t.isEvent || entraEmReunioes(t));
+  return !t.deletedAt && !t.cancelled && !!t.date && t.category !== "saude" && t.category2 !== "saude" && (t.isEvent || entraEmReunioes(t));
 }
 
 const soma = (data: string, dias: number): string => {

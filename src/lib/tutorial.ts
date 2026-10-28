@@ -144,6 +144,8 @@ export const TUTORIAL: SecaoDoTutorial[] = [
       "Reunião é uma tarefa com a tag reunião, listada aqui por data (ou por cliente).",
       "Em “Nova reunião”: título, cliente, dia e hora. Escolha ali mesmo “Lembrar...” e “Avisar no WhatsApp”, e o lembrete já nasce junto, sem ir a Lembretes.",
       "Convidados: escreva os e-mails (separados por vírgula) em “Nova reunião” ou dentro da reunião. Se você conectou o Google (Configurações > Conexões > Agenda do Google), a reunião vai para a sua agenda do Google e os convidados recebem o convite por e-mail. Sem o Google conectado, a lista só fica guardada na reunião.",
+      "Remarcar: mude o dia ou a hora dentro da reunião e salve. Com o Google conectado, a agenda do Google muda em até 1 minuto e os convidados recebem a atualização.",
+      "Cancelar: abra a reunião e toque em “Cancelar reunião”. Ela sai da agenda do Google, os convidados recebem o aviso de cancelamento e ela continua no FARO, riscada e marcada como “Cancelada” (“Reativar reunião” desfaz). Excluir (Lixeira) também tira da agenda e avisa, mas a reunião some do FARO.",
       "Dentro da reunião você escreve a pauta e as decisões; itens abertos viram “pauta aberta”. “Só com pauta em aberto” filtra as que ainda têm pendência.",
       "Não deixe nada passar: faça as suas reuniões com o FARO aberto e anote as etapas que você precisa concluir, como uma lista na observação da reunião. Assim você sempre consegue olhar fácil o que ficou combinado, voltar depois e conferir se o que foi comprometido está sendo executado. O que ainda não foi marcado aparece como pauta aberta na linha da reunião e, somado, no quadro “Tópicos abertos” do Dashboard.",
     ],

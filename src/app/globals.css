@@ -3948,3 +3948,6 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .embreve-tela figcaption{ display:flex; flex-direction:column; gap:2px; margin-bottom:10px; font-size:13.5px; color:var(--text-muted); }
 .embreve-tela figcaption strong{ color:var(--text); font-size:15px; }
 .embreve-tela img{ width:100%; height:auto; display:block; border-radius:10px; border:1px solid var(--linha); }
+
+.task-row.cancelled .row-title{ text-decoration:line-through; opacity:0.7; }
+.task-cancelada-badge{ background:var(--danger-soft, #FDECEC); color:var(--danger, #C65D5D); font-weight:600; font-size:11px; padding:1px 8px; border-radius:999px; }

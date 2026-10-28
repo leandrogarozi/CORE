@@ -71,6 +71,7 @@ export interface Task {
   deletedAt: string | null; // ISO datetime — soft delete, tarefa vai pra Lixeira em vez de sumir na hora
   projectId: string | null; // vincula essa tarefa como etapa de um Projeto (PDA)
   client: string | null; // nome do cliente — usado quando é reunião, pra agrupar na aba Reuniões
+  cancelled: boolean; // reunião/evento cancelado: sai da agenda do Google (os convidados são avisados) mas continua no FARO, riscado
   guests: string[]; // e-mails dos convidados de uma reunião/evento; com o Google conectado, o convite sai da agenda da pessoa
 }
 

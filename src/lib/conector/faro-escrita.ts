@@ -512,7 +512,8 @@ export async function criarTarefas(args: Args, repo: Repositorio, ctx: Contexto)
       deletedAt: null,
       projectId: null,
       client: cliente,
-      guests: [],
+      cancelled: false,
+        guests: [],
     };
     ok.push({
       t,

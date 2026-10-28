@@ -6358,3 +6358,8 @@ Feito a partir do que o Leandro viu usando as contas de teste:
 ### Google completo e roteiro do ensaio (28/10)
 - **Testado pelo Leandro em produção:** "Conectar com o Google" (aviso de app não verificado, conexão, agenda escolhida), eventos criados na agenda dele (4 vínculos em `google_eventos`, 0 erros) e **convite por e-mail para um convidado: chegou**. Itens 1 e 2 do Google concluídos. Falta só a mão dupla (item 3) e, antes de abrir ao público, a verificação do app no Google.
 - **Próximo:** ensaio com 2 contas, roteiro em `docs/ENSAIO-COM-2-CONTAS.md` (cadastro e e-mail, boas-vindas, lembrete com push, Google, assistente, WhatsApp, isolamento entre contas, backup e feedback).
+
+### Cancelar reunião e remarcar com aviso aos convidados (28/10)
+- Pedido do Leandro: botão claro de "agenda cancelada" que avisa o cliente, e remarcar avisando também. **Remarcar** já funcionava (editar dia/hora muda o evento no Google com `sendUpdates=all`); agora há aviso na tela de edição.
+- **Cancelar reunião** (edição de reunião/evento > "Agenda"): coluna nova `tasks.cancelada` (`Task.cancelled`), `board.setCancelled(id, v)`. Cancelar marca também `done = true` (para não virar atrasada), remove o lembrete ligado e a linha fica riscada com o selo "Cancelada". `sobeParaOGoogle` ignora canceladas, então o motor apaga o evento da agenda (DELETE com `sendUpdates=all`) e o Google avisa os convidados. **Reativar reunião** desfaz (`done = false`) e o evento volta à agenda com convite novo. Excluir (Lixeira) continua tirando da agenda e avisando, mas some do FARO.
+- Limite: concluir/cancelar usam o mesmo `done`; a reunião cancelada conta como concluída nas estatísticas.
