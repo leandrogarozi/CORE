@@ -3650,7 +3650,7 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .legal-voltar:hover{ color:var(--text); }
 .legal-rodape{ margin-top:32px; padding-top:14px; border-top:1px solid var(--linha); display:flex; gap:18px; font-size:12.5px; }
 .legal-rodape a{ color:var(--text-muted); }
-.auth-legal{ font-size:12px; color:var(--text-muted); line-height:1.5; margin:14px 0 0; }
+.auth-legal{ font-size:12px; color:var(--text-muted); line-height:1.5; margin:14px 0 0; text-align:center; }
 .auth-legal a{ color:var(--accent); }
 .auth-form .auth-consent{ display:flex; flex-direction:row; align-items:flex-start; gap:8px; font-size:12px; color:var(--text-muted); line-height:1.45; }
 .auth-consent input{ margin-top:2px; flex:none; }
