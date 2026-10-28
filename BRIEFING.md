@@ -6354,3 +6354,7 @@ Feito a partir do que o Leandro viu usando as contas de teste:
 
 ### Painéis do menu em blocos (28/10)
 - Configurações > "Painéis do menu": cada grupo (Hoje, Aprender, Pessoas, Saúde e casa) virou um bloco recolhível (`CollapsibleBox`), igual aos "Painéis da tela principal". Chave do grupo ("No menu" / "Fora do menu") liga ou desliga todos os painéis dele; por dentro, cada painel mantém a sua chave. Resumo: "N de M no menu". `CollapsibleBox` ganhou `textoLiga` (textos ao lado da chave). Não conferido em tela (precisa de login); interpretação do pedido: se ele quiser um bloco único "Painéis do menu" em vez de um por grupo, é trocar o wrapper.
+
+### Google completo e roteiro do ensaio (28/10)
+- **Testado pelo Leandro em produção:** "Conectar com o Google" (aviso de app não verificado, conexão, agenda escolhida), eventos criados na agenda dele (4 vínculos em `google_eventos`, 0 erros) e **convite por e-mail para um convidado: chegou**. Itens 1 e 2 do Google concluídos. Falta só a mão dupla (item 3) e, antes de abrir ao público, a verificação do app no Google.
+- **Próximo:** ensaio com 2 contas, roteiro em `docs/ENSAIO-COM-2-CONTAS.md` (cadastro e e-mail, boas-vindas, lembrete com push, Google, assistente, WhatsApp, isolamento entre contas, backup e feedback).
