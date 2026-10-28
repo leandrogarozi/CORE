@@ -109,7 +109,11 @@ export default function LoginPage() {
   return (
     <div className="auth-wrap">
       <div className="auth-card">
-        <div className="auth-brand">FARO</div>
+        <div className="auth-brand">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/faro-logo.png" alt="" width={44} height={44} className="auth-logo" />
+          FARO
+        </div>
         <p className="auth-sub">Foco, Ação, Rotina e Objetivos</p>
         <div className="auth-tabs">
           <button
