@@ -1302,48 +1302,6 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
             </div>
           </label>
         )}
-        {(t.isEvent || isMeetingTask(vals)) && (
-          <div className="prop-row">
-            <span className="prop-label">
-              <UsersGroupIcon /> Agenda
-            </span>
-            <div className="prop-value">
-              <div className="hint-text" style={{ marginTop: 0 }}>
-                Mudou o dia ou a hora? Salve e os convidados recebem a agenda remarcada.
-              </div>
-              {t.cancelled ? (
-                <button
-                  type="button"
-                  className="btn btn-ghost"
-                  onClick={() => {
-                    board.setCancelled(t.id, false);
-                    onDone();
-                  }}
-                >
-                  Reativar reunião
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="btn btn-danger"
-                  onClick={() =>
-                    askConfirm(
-                      `Cancelar "${t.title}"? Ela sai da agenda do Google e os convidados recebem o aviso de cancelamento. Continua aqui no FARO, riscada.`,
-                      () => {
-                        board.setCancelled(t.id, true);
-                        // Cancelada não lembra mais ninguém.
-                        if (linkedReminder) board.setTaskReminder(t.id, { date: null, time: null, repeat: "none", weekDays: null, alertMinutesBefore: null });
-                        onDone();
-                      }
-                    )
-                  }
-                >
-                  Cancelar reunião
-                </button>
-              )}
-            </div>
-          </div>
-        )}
         <label className="prop-row">
           <span className="prop-label">
             <RepeatIcon /> Repete
@@ -1384,6 +1342,46 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
             <AttachmentsButton variant="field" entityType="task" entityId={t.id} ariaLabel="Anexos da tarefa" />
           </div>
         </div>
+        {(t.isEvent || isMeetingTask(vals)) && (
+          <div className="prop-row">
+            <span className="prop-label">
+              <UsersGroupIcon /> Agenda
+            </span>
+            <div className="prop-value">
+              {t.cancelled ? (
+                <button
+                  type="button"
+                  className="link-acao"
+                  onClick={() => {
+                    board.setCancelled(t.id, false);
+                    onDone();
+                  }}
+                >
+                  Reativar reunião
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="link-acao perigo"
+                  title="Sai da agenda do Google e os convidados recebem o aviso de cancelamento. Continua aqui no FARO, riscada."
+                  onClick={() =>
+                    askConfirm(
+                      `Cancelar "${t.title}"? Ela sai da agenda do Google e os convidados recebem o aviso de cancelamento. Continua aqui no FARO, riscada.`,
+                      () => {
+                        board.setCancelled(t.id, true);
+                        // Cancelada não lembra mais ninguém.
+                        if (linkedReminder) board.setTaskReminder(t.id, { date: null, time: null, repeat: "none", weekDays: null, alertMinutesBefore: null });
+                        onDone();
+                      }
+                    )
+                  }
+                >
+                  Cancelar reunião
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
       <div className="edit-note">
         <span className="prop-label">

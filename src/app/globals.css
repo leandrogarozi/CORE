@@ -3951,3 +3951,6 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 
 .task-row.cancelled .row-title{ text-decoration:line-through; opacity:0.7; }
 .task-cancelada-badge{ background:var(--danger-soft, #FDECEC); color:var(--danger, #C65D5D); font-weight:600; font-size:11px; padding:1px 8px; border-radius:999px; }
+.link-acao{ background:none; border:0; padding:0; font:inherit; font-size:12.5px; color:var(--accent); cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
+.link-acao.perigo{ color:var(--danger); }
+.link-acao:hover{ filter:brightness(0.85); }
