@@ -141,8 +141,11 @@ const ICONE_DO_ASSUNTO: Record<string, ReactNode> = {
   ia: <CommentIcon />,
 };
 
-function dicas(n: number): string {
-  return n === 1 ? "1 dica" : `${n} dicas`;
+function resumoDe(id: string, linhas: number): string {
+  // A seção de ícones é uma lista de desenhos, não de dicas: conta os desenhos.
+  const icones = (ICONES_DO_TUTORIAL[id] ?? []).reduce((n, g) => n + g.itens.length, 0);
+  if (icones > 0) return `${icones} ícones`;
+  return linhas === 1 ? "1 dica" : `${linhas} dicas`;
 }
 
 /**
@@ -155,6 +158,8 @@ export function TutorialView({ onBack, secao }: { onBack: () => void; secao?: st
   function ir(id: string) {
     setAtivo(id);
     document.getElementById("tut-" + id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    // No celular a faixa de atalhos rola de lado: mantém o escolhido à vista.
+    document.getElementById("tut-chip-" + id)?.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
   }
 
   useEffect(() => {
@@ -174,23 +179,23 @@ export function TutorialView({ onBack, secao }: { onBack: () => void; secao?: st
       </div>
       <div className="narrow-list tutorial">
         <p className="hint-text">Um bloco curto por assunto. Toque num assunto para pular até ele. Em cada tela do FARO, o botão “Como funciona”, no canto de cima, abre esta página no assunto dela.</p>
-        <div className="tutorial-indice">
+        <nav className="tutorial-indice" aria-label="Assuntos do Como usar">
           {TUTORIAL.map((s) => (
-            <button key={s.id} type="button" className={"tut-chip" + (ativo === s.id ? " on" : "")} aria-pressed={ativo === s.id} onClick={() => ir(s.id)}>
+            <button key={s.id} id={"tut-chip-" + s.id} type="button" className={"tut-chip" + (ativo === s.id ? " on" : "")} aria-pressed={ativo === s.id} onClick={() => ir(s.id)}>
               {ICONE_DO_ASSUNTO[s.id] ?? <BookOpenIcon />}
               <span>{s.titulo}</span>
             </button>
           ))}
-        </div>
+        </nav>
         {TUTORIAL.map((s) => (
-          <section key={s.id} id={"tut-" + s.id} className={"list-card tutorial-bloco tut-sec" + (ativo === s.id ? " sel" : "")}>
-            <div className="tut-cab" onClick={() => setAtivo(s.id)}>
+          <section key={s.id} id={"tut-" + s.id} className={"list-card tutorial-bloco tut-sec" + (ativo === s.id ? " sel" : "")} aria-labelledby={"tut-t-" + s.id}>
+            <div className="tut-cab">
               <span className="tut-tile" aria-hidden="true">
                 {ICONE_DO_ASSUNTO[s.id] ?? <BookOpenIcon />}
               </span>
               <span className="tut-nome">
-                <h2>{s.titulo}</h2>
-                <span>{dicas(s.linhas.length)}</span>
+                <h2 id={"tut-t-" + s.id}>{s.titulo}</h2>
+                <span>{resumoDe(s.id, s.linhas.length)}</span>
               </span>
               {ativo === s.id && <span className="tut-aqui">Você está aqui</span>}
             </div>

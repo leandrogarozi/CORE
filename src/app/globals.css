@@ -270,7 +270,7 @@ input[type="date"]{ min-width:9.5em; }
 .tutorial-link:hover .tutorial-link-bola{ background:var(--accent-contrast); color:var(--accent); }
 .tutorial h2{ font-size:17px; margin:0 0 8px; }
 .tutorial ul{ margin:0; padding-left:20px; display:flex; flex-direction:column; gap:8px; line-height:1.5; }
-.tutorial-bloco{ padding:16px 18px; margin-bottom:12px; scroll-margin-top:12px; }
+.tutorial-bloco{ padding:16px 18px; margin-bottom:12px; scroll-margin-top:20px; }
 /* Enquanto houver tópico aberto, o quadro fica amarelo (como o das Concluídas fica azul). O texto é escuro nos dois temas. */
 .dsh-kpi.atencao{ background:#F6C945; color:#2B2200; }
 .dsh-kpi.atencao .dsh-kpi-n, .dsh-kpi.atencao .dsh-kpi-l{ color:#2B2200; }
@@ -282,7 +282,7 @@ button.dsh-kpi.atencao:hover:not(:disabled){ background:#F1BC2B; }
 .tutorial-icone-linha{ display:flex; gap:12px; align-items:center; padding:7px 0; border-top:1px solid var(--linha); font-size:14px; line-height:1.4; }
 .tutorial-icone{ flex:none; width:34px; height:34px; border-radius:9px; background:var(--surface-2, var(--accent-soft)); display:grid; place-items:center; color:var(--text); }
 .tutorial-icone svg{ width:17px; height:17px; }
-.tutorial-indice{ display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 16px; }
+.tutorial-indice{ display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 16px; }
 .aviso-box{ background:var(--accent-soft); color:var(--text); border-radius:10px; padding:10px 12px; font-size:13px; line-height:1.45; }
 .auth-form .auth-senha{ position:relative; display:flex; }
 .auth-form .auth-senha input{ width:100%; padding-right:42px; }
@@ -3975,15 +3975,26 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .tut-chip.on{ background:var(--accent); border-color:var(--accent); color:var(--accent-contrast); font-weight:600; box-shadow:0 4px 12px color-mix(in srgb, var(--accent) 30%, transparent); }
 .tut-chip.on svg{ color:var(--accent-contrast); }
 .tut-sec{ transition:box-shadow .25s ease, border-color .25s ease, background .25s ease; }
-.tut-cab{ display:flex; align-items:center; gap:14px; margin-bottom:12px; cursor:pointer; }
+.tut-cab{ display:flex; align-items:center; gap:14px; margin-bottom:12px; }
 .tut-tile{ width:36px; height:36px; border-radius:10px; flex:none; display:inline-flex; align-items:center; justify-content:center; background:var(--accent-soft); color:var(--accent); }
 .tut-tile svg{ width:18px; height:18px; }
 .tut-nome{ display:flex; flex-direction:column; gap:2px; flex:1; min-width:0; }
 .tut-nome h2{ margin:0; font-size:15px; font-weight:650; letter-spacing:-0.01em; }
-.tut-nome span{ font-size:12px; color:var(--text-faint); }
+.tut-nome span{ font-size:12px; color:var(--text-muted); }
 .tut-aqui{ display:inline-flex; align-items:center; gap:6px; padding:4px 11px; border-radius:999px; background:var(--accent); color:var(--accent-contrast); font-size:11px; font-weight:600; flex:none; }
 .tut-aqui::before{ content:""; width:6px; height:6px; border-radius:50%; background:var(--accent-contrast); }
 .tut-sec.sel{ border:2px solid var(--accent); padding:15px 17px; background:linear-gradient(180deg, color-mix(in srgb, var(--accent) 8%, var(--surface)) 0%, var(--surface) 70%); box-shadow:0 0 0 5px color-mix(in srgb, var(--accent) 14%, transparent), 0 12px 28px color-mix(in srgb, var(--accent) 18%, transparent); }
 .tut-sec.sel .tut-tile{ background:var(--accent); color:var(--accent-contrast); box-shadow:0 4px 10px color-mix(in srgb, var(--accent) 38%, transparent); }
 .tut-sec.sel .tut-nome h2{ color:var(--accent); }
 .tut-sec.sel li::marker{ color:var(--accent); }
+.tut-chip:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+.tut-chip{ white-space:nowrap; }
+@media (max-width:640px){
+  /* No celular os 29 atalhos viram UMA faixa que rola de lado, em vez de ocupar a tela inteira. */
+  .tutorial-indice{ flex-wrap:nowrap; overflow-x:auto; padding-bottom:8px; scroll-snap-type:x proximity; scrollbar-width:thin; -webkit-overflow-scrolling:touch; }
+  .tut-chip{ flex:none; scroll-snap-align:center; }
+  .tut-aqui{ font-size:10.5px; padding:3px 8px; }
+}
+@media (prefers-reduced-motion: reduce){
+  .tut-sec{ transition:none; }
+}
