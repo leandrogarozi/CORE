@@ -43,6 +43,18 @@ export const TUTORIAL: SecaoDoTutorial[] = [
     ],
   },
   {
+    id: "instalar",
+    titulo: "Instalar o FARO no celular e no computador",
+    linhas: [
+      "Instalar faz o FARO abrir como um aplicativo, com ícone próprio, sem a barra do navegador. No iPhone é obrigatório para receber notificações; nos outros aparelhos deixa os avisos mais seguros.",
+      "iPhone: abra o FARO no Safari (tem de ser o Safari), toque em Compartilhar (o quadrado com a seta para cima), depois em “Adicionar à Tela de Início”, deixe “Abrir como app da Web” ligado e toque em Adicionar. Abra sempre pelo ícone novo.",
+      "Android: no Chrome, toque nos três pontinhos e em “Instalar app” (ou “Adicionar à tela inicial”).",
+      "Computador (Chrome ou Edge): clique no ícone de instalar que aparece no fim da barra de endereço (um monitor com uma seta). Se não aparecer, abra o menu do navegador e escolha “Instalar FARO” (no Chrome: Transmitir, salvar e compartilhar > Instalar página como app).",
+      "Mac com Safari: menu Arquivo > “Adicionar ao Dock”.",
+      "Depois de instalar, ligue as notificações em Configurações > Notificações (em cada aparelho separadamente).",
+    ],
+  },
+  {
     id: "tarefas",
     titulo: "Tarefas por dentro",
     linhas: [
