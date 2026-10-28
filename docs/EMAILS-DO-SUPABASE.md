@@ -4,9 +4,8 @@ Os e-mails de criar conta, redefinir senha etc. são enviados pelo Supabase e, d
 
 ## 1. Endereço do site (resolve o "página não encontrada" / localhost:3000)
 Authentication → URL Configuration:
-- **Site URL:** `https://core-app-seven-gamma.vercel.app`
-- **Redirect URLs** (Add URL): `https://core-app-seven-gamma.vercel.app/**`
-(Se um dia o app mudar para `soufaro.app.br`, trocar aqui também.)
+- **Site URL:** `https://soufaro.app.br`
+- **Redirect URLs** (Add URL, os dois): `https://soufaro.app.br/**` e `https://core-app-seven-gamma.vercel.app/**` (o endereço antigo continua funcionando e serve de reserva).
 
 Sem isso o link do e-mail cai em `http://localhost:3000/?error=...`.
 

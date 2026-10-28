@@ -5,7 +5,7 @@ Várias páginas (uma por produto) em `https://cadastro.leandrogarozi.com.br` en
 ## Endereço
 
 ```
-POST https://core-app-seven-gamma.vercel.app/api/cadastro
+POST https://soufaro.app.br/api/cadastro
 Content-Type: application/json
 ```
 
@@ -69,7 +69,7 @@ A resposta **nunca** diz se a pessoa já estava cadastrada.
 Teste rápido (não grava):
 
 ```bash
-curl -s -X POST https://core-app-seven-gamma.vercel.app/api/cadastro \
+curl -s -X POST https://soufaro.app.br/api/cadastro \
   -H "Content-Type: application/json" -H "Origin: https://cadastro.leandrogarozi.com.br" \
   -d '{"produto":"devolutiva","nome":"Teste","email":"teste@exemplo.com","consentimento":true,"teste":true}'
 ```
@@ -129,7 +129,7 @@ Cada pessoa tem o seu link: `https://cadastro.leandrogarozi.com.br/<codigo>` (ex
 ### Ler a configuração do link
 
 ```
-GET https://core-app-seven-gamma.vercel.app/api/cadastro/config?c=<codigo>
+GET https://soufaro.app.br/api/cadastro/config?c=<codigo>
 ```
 
 Mesmo CORS do POST. Resposta:

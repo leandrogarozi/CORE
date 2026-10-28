@@ -106,7 +106,7 @@ function somaMinutos(data: string, hhmm: string, min: number): { data: string; h
 export function montarEvento(t: Task, fuso: string, comConvidados = false): Record<string, unknown> {
   const titulo = t.title.trim() || "(sem título)";
   const convidados = comConvidados ? { attendees: convidadosValidos(t.guests).map((email) => ({ email })) } : {};
-  const comum = { ...convidados, summary: titulo, description: "Criado pelo FARO. Edite no FARO: mudanças feitas aqui não voltam.", source: { title: "FARO", url: "https://core-app-seven-gamma.vercel.app" } };
+  const comum = { ...convidados, summary: titulo, description: "Criado pelo FARO. Edite no FARO: mudanças feitas aqui não voltam.", source: { title: "FARO", url: "https://soufaro.app.br" } };
   if (!t.time) {
     // Dia inteiro. No Google o fim é exclusivo: um evento de 1 dia termina no dia seguinte.
     const fim = t.endDate && t.endDate > t.date! ? t.endDate : t.date!;
