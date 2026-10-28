@@ -1,5 +1,6 @@
 "use client";
 
+import { AuthMarca } from "@/components/AuthMarca";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -109,12 +110,7 @@ export default function LoginPage() {
   return (
     <div className="auth-wrap">
       <div className="auth-card">
-        <div className="auth-brand">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/faro-logo.png" alt="" width={44} height={44} className="auth-logo" />
-          FARO
-        </div>
-        <p className="auth-sub">Foco, Ação, Rotina e Objetivos</p>
+        <AuthMarca />
         <div className="auth-tabs">
           <button
             type="button"

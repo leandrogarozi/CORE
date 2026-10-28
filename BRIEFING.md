@@ -6349,3 +6349,4 @@ Feito a partir do que o Leandro viu usando as contas de teste:
 
 ### Logo na tela de entrada (28/10)
 - Login e "Redefinir senha" mostram a logo do FARO (robô branco em fundo azul, versão A de `design/icone-app/`, copiada para `public/faro-logo.png`) ao lado do nome. Classes `.auth-brand` e `.auth-logo` em `globals.css`.
+- **Marca na entrada (28/10, modelo do Leandro):** componente `src/components/AuthMarca.tsx` (login e redefinir senha): frase à esquerda ("Seu caminho para manter o foco, ação, rotina e objetivos", 10px, cinza, alinhada à direita), robô (`public/faro-logo.png`) e **FARO em Poppins ExtraBold (800) na cor do app (`--accent`, o mesmo roxo do ícone)**, tudo centralizado. Poppins vem do mesmo link do Google Fonts do `layout.tsx`. Se ele quiser mais pesado, trocar para 900 (Black) no link e em `.auth-marca-nome`.

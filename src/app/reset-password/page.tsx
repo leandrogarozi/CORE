@@ -1,5 +1,6 @@
 "use client";
 
+import { AuthMarca } from "@/components/AuthMarca";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -33,11 +34,7 @@ export default function ResetPasswordPage() {
   return (
     <div className="auth-wrap">
       <div className="auth-card">
-        <div className="auth-brand">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/faro-logo.png" alt="" width={44} height={44} className="auth-logo" />
-          FARO
-        </div>
+        <AuthMarca />
         <p className="auth-sub">Escolha sua nova senha</p>
         <form onSubmit={handleSubmit} className="auth-form">
           <label>
