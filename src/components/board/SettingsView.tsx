@@ -79,6 +79,7 @@ function CollapsibleBox({
   ligado,
   onLigar,
   abertoInicial = false,
+  textoLiga,
 }: {
   title: string;
   icon?: ReactNode;
@@ -87,6 +88,8 @@ function CollapsibleBox({
   ligado?: boolean;
   onLigar?: (ligado: boolean) => void;
   abertoInicial?: boolean;
+  /** Os dois textos ao lado da chave (ligada, desligada). Padrão: "Mostrar na tela" / "Não usar". */
+  textoLiga?: [string, string];
 }) {
   const chave = "faro-cfg-aberto:" + title;
   const [open, setOpen] = useState(() => {
@@ -121,7 +124,7 @@ function CollapsibleBox({
         </button>
         {onLigar && (
           <span className="cfg-bloco-liga">
-            <span>{ligado ? "Mostrar na tela" : "Não usar"}</span>
+            <span>{ligado ? (textoLiga?.[0] ?? "Mostrar na tela") : (textoLiga?.[1] ?? "Não usar")}</span>
             <ToggleSwitch checked={!!ligado} onChange={onLigar} ariaLabel={`${title}: mostrar na tela principal`} />
           </span>
         )}
@@ -2191,29 +2194,44 @@ function PaineisDoMenu() {
   const flags = board.state.settings.featureFlags;
   const modoDono = flags.modo_dono === true;
   return (
-    <div className="settings-rows">
-      {GRUPOS_DO_MENU.map((g) => (
-        <div key={g.titulo}>
-          <div className="settings-label" style={{ margin: "10px 0 4px", opacity: 0.7 }}>
-            {g.titulo}
-          </div>
-          {g.itens
-            .filter((i) => i.modo !== "day" && (!i.somenteDono || modoDono))
-            .map((i) => (
-              <div className="settings-toggle-row" key={i.modo}>
-                <span>
-                  <span className="settings-label">{i.rotulo}</span>
-                </span>
-                <ToggleSwitch
-                  checked={menuLigado(flags, i.modo)}
-                  ariaLabel={"Mostrar " + i.rotulo + " no menu"}
-                  onChange={(v) => board.updateSettings({ featureFlags: { ...flags, ["menu_" + i.modo]: v } })}
-                />
-              </div>
-            ))}
-        </div>
-      ))}
-    </div>
+    <>
+      {GRUPOS_DO_MENU.map((g) => {
+        const itens = g.itens.filter((i) => i.modo !== "day" && (!i.somenteDono || modoDono));
+        if (itens.length === 0) return null;
+        const ligados = itens.filter((i) => menuLigado(flags, i.modo)).length;
+        // A chave do grupo liga ou desliga todos os painéis dele de uma vez; cada um continua com a sua chave por dentro.
+        const ligarTodos = (v: boolean) => {
+          const novos = { ...flags };
+          for (const i of itens) novos["menu_" + i.modo] = v;
+          board.updateSettings({ featureFlags: novos });
+        };
+        return (
+          <CollapsibleBox
+            key={g.titulo}
+            title={g.titulo}
+            resumo={`${ligados} de ${itens.length} no menu`}
+            ligado={ligados > 0}
+            onLigar={ligarTodos}
+            textoLiga={["No menu", "Fora do menu"]}
+          >
+            <div className="settings-rows">
+              {itens.map((i) => (
+                <div className="settings-toggle-row" key={i.modo}>
+                  <span>
+                    <span className="settings-label">{i.rotulo}</span>
+                  </span>
+                  <ToggleSwitch
+                    checked={menuLigado(flags, i.modo)}
+                    ariaLabel={"Mostrar " + i.rotulo + " no menu"}
+                    onChange={(v) => board.updateSettings({ featureFlags: { ...flags, ["menu_" + i.modo]: v } })}
+                  />
+                </div>
+              ))}
+            </div>
+          </CollapsibleBox>
+        );
+      })}
+    </>
   );
 }
 
