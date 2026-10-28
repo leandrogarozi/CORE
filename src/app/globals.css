@@ -244,9 +244,9 @@ a{ color:inherit; }
 /* auth */
 .auth-wrap{ min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--bg); padding:20px; }
 .auth-card{ width:min(360px, 100%); background:var(--surface); border:1px solid var(--linha); border-radius:var(--r-3); box-shadow:var(--sh-1); padding:26px 24px; }
-.auth-brand{ display:flex; align-items:center; gap:12px; font-weight:700; font-size:22px; letter-spacing:-0.01em; }
+.auth-brand{ display:flex; align-items:center; justify-content:center; gap:12px; font-weight:700; font-size:22px; letter-spacing:-0.01em; }
 .auth-logo{ width:44px; height:44px; border-radius:12px; flex:none; }
-.auth-sub{ font-size:12.5px; color:var(--text-faint); margin:2px 0 18px; }
+.auth-sub{ font-size:12.5px; color:var(--text-faint); margin:8px 0 18px; text-align:center; }
 .auth-tabs{ display:flex; border:1px solid var(--border-strong); border-radius:8px; overflow:hidden; margin-bottom:16px; }
 .auth-tabs button{ flex:1; padding:8px; font-size:12.5px; font-weight:600; color:var(--text-muted); background:var(--surface); }
 .auth-tabs button + button{ border-left:1px solid var(--border-strong); }
