@@ -708,6 +708,7 @@ export type Database = {
           done: boolean
           id: string
           note: string | null
+          push: boolean
           remind_date: string | null
           remind_time: string | null
           repeat: string | null
@@ -731,6 +732,7 @@ export type Database = {
           done?: boolean
           id?: string
           note?: string | null
+          push?: boolean
           remind_date?: string | null
           remind_time?: string | null
           repeat?: string | null
@@ -754,6 +756,7 @@ export type Database = {
           done?: boolean
           id?: string
           note?: string | null
+          push?: boolean
           remind_date?: string | null
           remind_time?: string | null
           repeat?: string | null
@@ -1614,6 +1617,7 @@ export type Database = {
           deleted_at: string | null
           id: string
           kind: string
+          lembrete_id: string | null
           name: string
           sort_order: number
           user_id: string
@@ -1623,6 +1627,7 @@ export type Database = {
           deleted_at?: string | null
           id: string
           kind?: string
+          lembrete_id?: string | null
           name: string
           sort_order?: number
           user_id: string
@@ -1632,6 +1637,7 @@ export type Database = {
           deleted_at?: string | null
           id?: string
           kind?: string
+          lembrete_id?: string | null
           name?: string
           sort_order?: number
           user_id?: string

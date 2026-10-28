@@ -695,6 +695,7 @@ export function rowToShoppingList(row: Tables<"shopping_lists">): ShoppingList {
     kind: row.kind === "desejo" ? "desejo" : "compra",
     name: row.name,
     order: row.sort_order,
+    reminderId: row.lembrete_id,
   };
 }
 
@@ -792,6 +793,7 @@ export function rowToReminder(row: ReminderRow): Reminder {
     sourceId: row.source_id,
     sourceStage: row.source_stage,
     inApp: row.in_app ?? true,
+    push: row.push ?? true,
     whatsapp: row.whatsapp ?? true,
   };
 }
@@ -815,12 +817,14 @@ export function reminderToInsertRow(r: Reminder, userId: string): TablesInsert<"
     source_id: r.sourceId,
     source_stage: r.sourceStage,
     in_app: r.inApp ?? true,
+    push: r.push ?? true,
     whatsapp: r.whatsapp,
   };
 }
 
 export function reminderToUpdateRow(r: Partial<Reminder>): TablesUpdate<"reminders"> {
   const row: TablesUpdate<"reminders"> = {};
+  if (r.push !== undefined) row.push = r.push;
   if (r.title !== undefined) row.title = r.title;
   if (r.date !== undefined) row.remind_date = r.date;
   if (r.time !== undefined) row.remind_time = r.time;

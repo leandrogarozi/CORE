@@ -6,6 +6,7 @@ import { ToggleSwitch } from "./ToggleSwitch";
 import { NoteField } from "./NoteField";
 import { DateField } from "./DateField";
 import { TimePicker } from "./TimePicker";
+import { AvisoEscolha, canalDe, opcoesDoCanal, type CanalDeAviso } from "./AvisoEscolha";
 import {
   BellIcon,
   CartIcon,
@@ -18,7 +19,6 @@ import {
   MoneyIcon,
   SendIcon,
   TrashIcon,
-  WhatsAppIcon,
 } from "./icons";
 import { fmtAmount, fmtBRL, parseAmountToCents } from "@/lib/money";
 import { fmtShortDate, todayISO } from "@/lib/date-utils";
@@ -182,8 +182,7 @@ function ChecklistRow({
   const [compraId, setCompraId] = useState<string | null>(null);
   const [compraData, setCompraData] = useState(() => todayISO());
   const [compraHora, setCompraHora] = useState("09:00");
-  const [compraZap, setCompraZap] = useState(false);
-  const [compraSino, setCompraSino] = useState(true);
+  const [compraCanal, setCompraCanal] = useState<CanalDeAviso>("push");
 
   const total = checklist.items.length;
   const done = checklist.items.filter((i) => i.checked).length;
@@ -204,8 +203,7 @@ function ChecklistRow({
     const r = lembreteDaCompra(item);
     setCompraData(r?.date ?? todayISO());
     setCompraHora(r?.time ?? "09:00");
-    setCompraZap(r?.whatsapp ?? false);
-    setCompraSino(r ? r.inApp !== false : true);
+    setCompraCanal(canalDe(r));
     setCompraId(item.id);
   }
 
@@ -225,10 +223,10 @@ function ChecklistRow({
     const titulo = `Comprar: ${item.text} (${checklist.title})`;
     const existente = lembreteDaCompra(item);
     if (existente) {
-      board.updateReminder(existente.id, { title: titulo, date: compraData, time: compraHora, alertMinutesBefore: 0, whatsapp: compraZap, inApp: compraSino, done: false });
+      board.updateReminder(existente.id, { title: titulo, date: compraData, time: compraHora, alertMinutesBefore: 0, inApp: true, ...opcoesDoCanal(compraCanal), done: false });
     } else {
       const id = uid();
-      board.addReminder(titulo, compraData, compraHora, { id, alertMinutesBefore: 0, whatsapp: compraZap, inApp: compraSino });
+      board.addReminder(titulo, compraData, compraHora, { id, alertMinutesBefore: 0, inApp: true, ...opcoesDoCanal(compraCanal) });
       setItems(checklist.items.map((i) => (i.id === item.id ? { ...i, toBuy: true, buyReminderId: id } : i)));
     }
     setCompraId(null);
@@ -376,7 +374,7 @@ function ChecklistRow({
           <span className="checklist-buy-quando" title="Lembrete de compra (em Lembretes)">
             <BellIcon /> {fmtShortDate(lembrete.date)}
             {lembrete.time ? ` ${lembrete.time}` : ""}
-            {lembrete.whatsapp ? " · zap" : ""}
+            {lembrete.whatsapp ? (lembrete.push === false ? " · zap" : " · push+zap") : ""}
           </span>
         )}
         {checklist.expensesEnabled && (
@@ -412,14 +410,7 @@ function ChecklistRow({
           <div className="checklist-buy-linha">
             <DateField value={compraData} ariaLabel="Dia do lembrete de compra" onChange={setCompraData} />
             <TimePicker value={compraHora} onChange={setCompraHora} onClear={() => setCompraHora("")} placeholder="hora" />
-            <button type="button" className={"reminder-zap-opcao" + (compraSino ? " ativo" : "")} aria-pressed={compraSino} onClick={() => setCompraSino((v) => !v)}>
-              <BellIcon />
-              <span>Sininho</span>
-            </button>
-            <button type="button" className={"reminder-zap-opcao" + (compraZap ? " ativo" : "")} aria-pressed={compraZap} onClick={() => setCompraZap((v) => !v)}>
-              <WhatsAppIcon filled={compraZap} />
-              <span>Avisar no WhatsApp</span>
-            </button>
+            <AvisoEscolha valor={compraCanal} onChange={setCompraCanal} />
           </div>
           <div className="checklist-buy-linha">
             <button type="button" className="btn btn-accent" disabled={!compraData || !compraHora} onClick={() => salvarCompra(item)}>

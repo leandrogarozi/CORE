@@ -548,6 +548,7 @@ export interface ShoppingList {
   kind: "compra" | "desejo";
   name: string; // ex.: "Supermercado", "Casa", "Tecnologia"
   order: number;
+  reminderId?: string | null; // lembrete da lista inteira ("quando ir às compras"); vive em Lembretes
 }
 
 export interface ShoppingItem {
@@ -592,6 +593,8 @@ export interface Reminder {
   sourceStage?: string | null;
   // false = o aviso só vai pro celular (push/WhatsApp) e não aparece em banner nem na agenda do app.
   inApp?: boolean;
+  // false = não manda notificação push (só WhatsApp e/ou o app). Nasce ligado, como o zap.
+  push?: boolean;
   // Ícone do zap do lembrete. Nasce LIGADO: antes dele, todo lembrete com aviso
   // já ia pro WhatsApp, e desligar por padrão silenciaria tudo sem ninguém pedir.
   whatsapp: boolean;

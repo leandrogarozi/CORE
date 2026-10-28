@@ -1533,7 +1533,7 @@ export function useBoard(userId: string | null) {
       date: string | null = null,
       time: string | null = null,
       // Quem cria com avisos já decididos (ex.: o carrinho do checklist) manda o id, o aviso, o sininho e o WhatsApp.
-      opts?: { id?: string; alertMinutesBefore?: number | null; whatsapp?: boolean; inApp?: boolean }
+      opts?: { id?: string; alertMinutesBefore?: number | null; whatsapp?: boolean; inApp?: boolean; push?: boolean }
     ): Promise<boolean> => {
       if (!userId || !title.trim()) return false;
       // A trava de verdade mora aqui, não só na tela: é por esta função que
@@ -1557,6 +1557,7 @@ export function useBoard(userId: string | null) {
         sourceId: null,
         whatsapp: opts?.whatsapp ?? true,
         inApp: opts?.inApp,
+        push: opts?.push,
       };
       apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
       const { error } = await supabase.from("reminders").insert(reminderToInsertRow(r, userId));
@@ -1587,6 +1588,7 @@ export function useBoard(userId: string | null) {
           | "status"
           | "whatsapp"
           | "inApp"
+          | "push"
         >
       >
     ) => {
@@ -2902,6 +2904,17 @@ export function useBoard(userId: string | null) {
       apply((st) => ({ ...st, shoppingLists: st.shoppingLists.map((l) => (l.id === id ? { ...l, name: n } : l)) }));
       supabase.from("shopping_lists").update({ name: n }).eq("id", id).then(({ error }) => {
         if (error) reportSaveError("renameShoppingList", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  /** Liga (ou desliga, com null) o lembrete da lista inteira. */
+  const setShoppingListReminder = useCallback(
+    (id: string, reminderId: string | null) => {
+      apply((st) => ({ ...st, shoppingLists: st.shoppingLists.map((l) => (l.id === id ? { ...l, reminderId } : l)) }));
+      supabase.from("shopping_lists").update({ lembrete_id: reminderId }).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("setShoppingListReminder", error);
       });
     },
     [apply, supabase]
@@ -4366,6 +4379,7 @@ export function useBoard(userId: string | null) {
     deleteShoppingList,
     updateShoppingItem,
     toggleShoppingBought,
+    setShoppingListReminder,
     deleteShoppingItem,
     addSynapse,
     updateSynapse,

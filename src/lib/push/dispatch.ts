@@ -41,6 +41,7 @@ export async function enviarPushesDosLembretes(
     .select("*")
     .is("deleted_at", null)
     .eq("done", false)
+    .eq("push", true)
     .not("remind_date", "is", null)
     .not("remind_time", "is", null);
   if (error) {

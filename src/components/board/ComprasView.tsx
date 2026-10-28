@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { MicButton } from "./MicButton";
 import { TimePicker } from "./TimePicker";
+import { DateField } from "./DateField";
+import { AvisoEscolha, canalDe, opcoesDoCanal, type CanalDeAviso } from "./AvisoEscolha";
 import { NoteField } from "./NoteField";
 import { BellIcon, CartIcon, ChevronIcon, HeartIcon, SendIcon, TrashIcon, WhatsAppIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
@@ -286,6 +288,41 @@ function ItemCard({ item }: { item: ShoppingItem }) {
   );
 }
 
+/** Produto de uma lista de compras: só marcar, o nome e o ×. Sem cartão, sem detalhes. */
+function ItemLinha({ item }: { item: ShoppingItem }) {
+  const { board } = useBoardCtx();
+  const [nome, setNome] = useState(item.name);
+  const pendente = compraPendente(item, todayISO());
+  const comprado = item.done && !pendente;
+  return (
+    <div className={"shop-linha-simples" + (comprado ? " comprado" : "")}>
+      <input
+        type="checkbox"
+        className="shop-check"
+        checked={comprado}
+        aria-label={`Comprei ${item.name}`}
+        onChange={(e) => board.toggleShoppingBought(item.id, e.target.checked)}
+      />
+      <input
+        type="text"
+        className="shop-name"
+        value={nome}
+        aria-label="Nome do produto"
+        onChange={(e) => setNome(e.target.value)}
+        onBlur={() => {
+          const n = nome.trim();
+          if (n && n !== item.name) board.updateShoppingItem(item.id, { name: n });
+          else setNome(item.name);
+        }}
+        onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+      />
+      <button type="button" className="icon-btn danger-hover" title="Tirar da lista" aria-label={`Tirar ${item.name} da lista`} onClick={() => board.deleteShoppingItem(item.id)}>
+        <TrashIcon />
+      </button>
+    </div>
+  );
+}
+
 function Listas({ aba, aberta, onAbrir }: { aba: Aba; aberta: string | null; onAbrir: (id: string | null) => void }) {
   const { board } = useBoardCtx();
   const [novaLista, setNovaLista] = useState("");
@@ -371,6 +408,11 @@ function ListaAberta({ listaId, onVoltar, embutida = false }: { listaId: string;
   const [nome, setNome] = useState(lista?.name ?? "");
   const [verComprados, setVerComprados] = useState(false);
   const hoje = todayISO();
+  // Lembrete da lista inteira ("quando ir às compras"): vive em Lembretes, o id fica na lista.
+  const lembrete = lista?.reminderId ? board.state.reminders.find((r) => r.id === lista.reminderId && !r.deletedAt) ?? null : null;
+  const [lemData, setLemData] = useState(lembrete?.date ?? hoje);
+  const [lemHora, setLemHora] = useState(lembrete?.time ?? "09:00");
+  const [lemCanal, setLemCanal] = useState<CanalDeAviso>(canalDe(lembrete));
   if (!lista) {
     return (
       <div className="list-card">
@@ -392,6 +434,27 @@ function ListaAberta({ listaId, onVoltar, embutida = false }: { listaId: string;
     setNovo("");
     const id = await board.addShoppingItem(aba, n, lista!.id);
     if (!id) setNovo(n);
+  }
+
+  function salvarLembrete() {
+    if (!lemData || !lemHora) return;
+    const titulo = `Comprar: ${lista!.name}`;
+    if (lembrete) {
+      board.updateReminder(lembrete.id, { title: titulo, date: lemData, time: lemHora, alertMinutesBefore: 0, inApp: true, ...opcoesDoCanal(lemCanal), done: false });
+    } else {
+      const id = crypto.randomUUID();
+      board.addReminder(titulo, lemData, lemHora, { id, alertMinutesBefore: 0, inApp: true, ...opcoesDoCanal(lemCanal) });
+      board.setShoppingListReminder(lista!.id, id);
+    }
+  }
+
+  function tirarLembrete() {
+    if (lembrete) board.deleteReminder(lembrete.id);
+    board.setShoppingListReminder(lista!.id, null);
+  }
+
+  function desmarcarTudo() {
+    for (const i of comprados) board.toggleShoppingBought(i.id, false);
   }
 
   function enviarWhatsApp() {
@@ -428,6 +491,7 @@ function ListaAberta({ listaId, onVoltar, embutida = false }: { listaId: string;
           title="Excluir a lista"
           onClick={() =>
             askConfirm(`Excluir a lista "${lista.name}" e os ${itens.length} item(ns) dela?`, () => {
+              if (lembrete) board.deleteReminder(lembrete.id);
               board.deleteShoppingList(lista.id);
               onVoltar();
             })
@@ -436,6 +500,28 @@ function ListaAberta({ listaId, onVoltar, embutida = false }: { listaId: string;
           <TrashIcon />
         </button>
       </div>
+
+      {aba === "compra" && (
+        <div className="shop-lembrete-barra">
+          <span className="shop-rotulo">Lembrar de ir às compras</span>
+          <DateField value={lemData} ariaLabel="Dia do lembrete da lista" onChange={setLemData} />
+          <TimePicker value={lemHora} onChange={setLemHora} onClear={() => setLemHora("")} placeholder="hora" />
+          <AvisoEscolha valor={lemCanal} onChange={setLemCanal} />
+          <button type="button" className="btn btn-accent" disabled={!lemData || !lemHora} onClick={salvarLembrete}>
+            {lembrete ? "Atualizar lembrete" : "Salvar lembrete"}
+          </button>
+          {lembrete && (
+            <button type="button" className="link-acao perigo" onClick={tirarLembrete}>
+              Tirar o lembrete
+            </button>
+          )}
+          {lembrete?.date && (
+            <span className="hint-text" style={{ margin: 0 }}>
+              Lembrete marcado para {fmtShortDate(lembrete.date)} às {lembrete.time}.
+            </span>
+          )}
+        </div>
+      )}
 
       <div className="list-card" style={{ marginTop: 10 }}>
         <div className="quickadd-row">
@@ -462,16 +548,21 @@ function ListaAberta({ listaId, onVoltar, embutida = false }: { listaId: string;
       )}
 
       <div className="shop-list">
-        {pendentes.map((i) => (
-          <ItemCard key={i.id} item={i} />
-        ))}
+        {pendentes.map((i) => (aba === "compra" ? <ItemLinha key={i.id} item={i} /> : <ItemCard key={i.id} item={i} />))}
       </div>
 
-      {pendentes.length > 0 && (
+      {(pendentes.length > 0 || (aba === "compra" && comprados.length > 0)) && (
         <div className="edit-actions" style={{ justifyContent: "flex-start", marginTop: 10 }}>
-          <button type="button" className="btn btn-ghost" onClick={enviarWhatsApp}>
-            <SendIcon /> Enviar a lista pro WhatsApp
-          </button>
+          {pendentes.length > 0 && (
+            <button type="button" className="btn btn-ghost" onClick={enviarWhatsApp}>
+              <SendIcon /> Enviar a lista pro WhatsApp
+            </button>
+          )}
+          {aba === "compra" && comprados.length > 0 && (
+            <button type="button" className="btn btn-ghost" onClick={desmarcarTudo}>
+              Desmarcar tudo (nova compra)
+            </button>
+          )}
         </div>
       )}
 
@@ -482,9 +573,7 @@ function ListaAberta({ listaId, onVoltar, embutida = false }: { listaId: string;
           </button>
           {verComprados && (
             <div className="shop-list" style={{ marginTop: 8 }}>
-              {comprados.map((i) => (
-                <ItemCard key={i.id} item={i} />
-              ))}
+              {comprados.map((i) => (aba === "compra" ? <ItemLinha key={i.id} item={i} /> : <ItemCard key={i.id} item={i} />))}
             </div>
           )}
         </div>

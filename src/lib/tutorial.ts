@@ -252,13 +252,19 @@ export const TUTORIAL: SecaoDoTutorial[] = [
   {
     id: "compras",
     titulo: "Compras",
-    linhas: ["Listas de compras por assunto, com links (vídeo, produto) e um lembrete de quantos dias depois relembrar de comprar. Marque o que já comprou; o que sobra fica para a próxima ida."],
+    linhas: [
+      "Listas de compras por assunto (Supermercado, Casa, Farmácia...). Cada produto é uma linha simples: marque quando comprar, toque no nome para editar, toque na lixeira para tirar.",
+      "O lembrete é da lista inteira, lá em cima: escolha o dia, a hora e como avisar (Push, WhatsApp ou os dois). Ele aparece em Lembretes como “Comprar: nome da lista”.",
+      "“Enviar a lista pro WhatsApp” manda a lista pronta para quem você escolher. “Desmarcar tudo (nova compra)” zera os comprados para reaproveitar a lista na próxima ida.",
+      "Nas listas de desejos continuam os links, as anotações e o lembrete por produto.",
+    ],
   },
   {
     id: "checklists",
     titulo: "Checklists",
     linhas: [
       "Listas de passos que você repete (viagem, abertura da loja...). Marque os itens e arraste para reordenar.",
+      "O carrinho de cada item marca “comprar” e pergunta quando lembrar: dia, hora e como avisar (Push, WhatsApp ou os dois). O lembrete aparece em Lembretes.",
       "Um checklist também guarda os gastos (no que gastou, quanto e quando) e as anotações (reservas, endereços, links).",
     ],
   },
