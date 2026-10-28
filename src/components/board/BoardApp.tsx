@@ -36,6 +36,7 @@ import { ClientesView } from "./ClientesView";
 import { ConhecendoView } from "./ConhecendoView";
 import { MetanoiaView } from "./MetanoiaView";
 import { TutorialView } from "./TutorialView";
+import { EmBreveView } from "./EmBreveView";
 import { FraseDoDia } from "./FraseDoDia";
 import { StudyPlansView } from "./StudyPlansView";
 import { MaintenanceView } from "./MaintenanceView";
@@ -396,6 +397,8 @@ function BoardShell() {
         <IdeasView onBack={() => setViewMode("day")} />
       ) : viewMode === "tutorial" ? (
         <TutorialView onBack={() => { setTutorialSecao(null); setViewMode("day"); }} secao={tutorialSecao} />
+      ) : viewMode === "embreve" ? (
+        <EmBreveView onBack={() => setViewMode("day")} />
       ) : viewMode === "metanoia" ? (
         <MetanoiaView key={metaAlvo ? `${metaAlvo.id}-${metaAlvo.editar}` : "livre"} alvo={metaAlvo} onBack={() => { setMetaAlvo(null); setViewMode("day"); }} />
       ) : viewMode === "conhecendo" ? (

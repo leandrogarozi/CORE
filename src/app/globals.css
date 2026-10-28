@@ -3939,3 +3939,9 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 @media (max-width:640px){ .meta-frase{ flex-direction:column; } .meta-frase-acoes{ justify-content:flex-start; } }
 
 .meta-importar-topo{ display:block; width:calc(100% - 24px); margin:12px; padding:11px 14px; text-align:center; font-weight:600; }
+
+.embreve-selo{ display:inline-block; padding:2px 10px; border-radius:999px; background:var(--accent-soft); color:var(--accent); font-size:12px; font-weight:700; margin-bottom:8px; }
+.embreve-tela{ margin-left:0; margin-right:0; }
+.embreve-tela figcaption{ display:flex; flex-direction:column; gap:2px; margin-bottom:10px; font-size:13.5px; color:var(--text-muted); }
+.embreve-tela figcaption strong{ color:var(--text); font-size:15px; }
+.embreve-tela img{ width:100%; height:auto; display:block; border-radius:10px; border:1px solid var(--linha); }

@@ -6300,7 +6300,7 @@ Feito a partir do que o Leandro viu usando as contas de teste:
 2. **Claude:** escrever a **mensagem de boas-vindas** (teste inicial, pode haver erros, feedback) para o Leandro aprovar; entra no `WelcomeModal` e no e-mail "Bem-vindo".
 3. **Claude + Leandro:** "Conectar com o Google" (OAuth): convidados na reunião, agenda de cada pessoa e mão dupla. 2 a 3 dias de trabalho + ~15 min no Google Cloud.
 4. **Claude:** **restaurador de conta** a partir da cópia diária (hoje só por SQL).
-5. **Claude:** card **"Em breve"** com os prints do app financeiro (depois de receber os prints).
+5. ~~card **"Em breve"** com os prints do app financeiro~~ **feito (28/10)**.
 6. **Claude:** IA com a chave do cliente e mais de um provedor (Anthropic/GPT); explicar o backup no Drive da pessoa.
 7. **Antes de abrir ao público:** e-mail de contato real nos Termos, revisão jurídica, tirar a faixa "teste fechado", verificação do Google, ligar `soufaro.app.br` na Vercel (antes de os testadores instalarem o app).
 - **Atrasadas, decisão do Leandro (27/10):** vai o **quadro vermelho suave com texto branco** (`.dsh-kpi.alerta`: `#C65D5D` no claro, `#A94646` no escuro, sinal de atenção branco) enquanto houver atrasada. A opção só com o sinal vermelho ficou de lado. Em teste; se enjoar, voltar é trocar o CSS.
@@ -6317,3 +6317,7 @@ Feito a partir do que o Leandro viu usando as contas de teste:
 ### DNS do soufaro.app.br e boas-vindas (28/10)
 - **Registro.br:** o painel mostrou "domínio em transição" (~2h45m) e a zona DNS está **vazia**: nem os registros da Vercel (A `216.198.79.1` e `64.29.17.1`; CNAME `www` -> `cname.vercel-dns.com.`) nem os do Resend (`mail`) existem lá ainda. O editor se chama **Configurar endereçamento / Configurar zona DNS**; não aceita `@` nem `*` (usar nome em branco). O Leandro pediu lembrete; agendado para ~3h depois (28/10 03:16 UTC). **Conferir também que o Resend está "Verified"**: se os registros dele foram criados em outro provedor de DNS, não valem para o Registro.br.
 - **Mensagem de boas-vindas:** o `WelcomeModal` ganhou uma tela inicial antes dos 3 passos: o que é o FARO, "pessoas selecionadas para o **teste inicial**", pode haver erros e mudanças, a ideia é melhorar com o uso; aponta para o Canal de feedback, o Como usar e os backups. Texto fácil de ajustar em `WelcomeModal.tsx`. Para o teste final, trocar por um texto com acesso, limites (WhatsApp e IA) e o que mudou. O e-mail "Bem-vindo ao FARO" (Supabase) ainda não menciona o teste inicial; se quiser, acrescentar uma linha no modelo "Confirm signup".
+
+### "Em breve": vitrine do app Financeiro (28/10)
+- Item **"Em breve"** no menu (rodapé, antes de "Como usar"), tela `EmBreveView.tsx` (modo `embreve`): texto de que o app financeiro (casa e empresa) será integrado ao FARO + três telas (Painel, Dashboard, Projeção) em `public/em-breve/*.jpg`.
+- **Valores borrados** com ImageMagick (receitas, saldos, categorias, "Gasto do mês" etc.); ficaram nomes de menus e categorias e o "Olá, Leandro". Só vitrine: não lê nem grava dados. Para trocar um print, substituir o arquivo mantendo o nome.
