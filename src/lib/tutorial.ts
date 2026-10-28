@@ -143,6 +143,7 @@ export const TUTORIAL: SecaoDoTutorial[] = [
     linhas: [
       "Reunião é uma tarefa com a tag reunião, listada aqui por data (ou por cliente).",
       "Em “Nova reunião”: título, cliente, dia e hora. Escolha ali mesmo “Lembrar...” e “Avisar no WhatsApp”, e o lembrete já nasce junto, sem ir a Lembretes.",
+      "Convidados: escreva os e-mails (separados por vírgula) em “Nova reunião” ou dentro da reunião. Se você conectou o Google (Configurações > Conexões > Agenda do Google), a reunião vai para a sua agenda do Google e os convidados recebem o convite por e-mail. Sem o Google conectado, a lista só fica guardada na reunião.",
       "Dentro da reunião você escreve a pauta e as decisões; itens abertos viram “pauta aberta”. “Só com pauta em aberto” filtra as que ainda têm pendência.",
       "Não deixe nada passar: faça as suas reuniões com o FARO aberto e anote as etapas que você precisa concluir, como uma lista na observação da reunião. Assim você sempre consegue olhar fácil o que ficou combinado, voltar depois e conferir se o que foi comprometido está sendo executado. O que ainda não foi marcado aparece como pauta aberta na linha da reunião e, somado, no quadro “Tópicos abertos” do Dashboard.",
     ],
@@ -266,6 +267,7 @@ export const TUTORIAL: SecaoDoTutorial[] = [
       "Aparência: cor do fundo. Tarefas: tags e status. Painéis da tela principal e Painéis do menu: ligue só o que você usa.",
       "Avisos e custos: notificações no celular, WhatsApp e seu crédito, custo da IA.",
       "Dados e backup: o FARO guarda uma cópia sua todo dia, e você pode baixar a sua própria cópia quando quiser.",
+      "Agenda do Google (Conexões): clique em “Conectar com o Google” e autorize. Suas reuniões e eventos passam a aparecer na sua agenda, com convite para os convidados. Vai só do FARO para o Google; o que você cria direto no Google ainda não aparece no FARO. Nesta fase o Google mostra o aviso “O Google não verificou este app”: é normal. Toque em “Avançado” e depois em “Acessar FARO”. Se aparecer “acesso bloqueado”, mande seu e-mail do Google pelo Canal de feedback.",
       "Canal de feedback: conte um problema, uma ideia, uma dúvida ou um elogio. Também está no menu.",
       "Tema claro ou escuro: o botão da lua/sol, no topo, vale só para este aparelho.",
     ],

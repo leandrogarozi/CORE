@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 import { rowToTask } from "@/lib/board/mappers";
 import { entraEmReunioes, type Task } from "@/lib/types";
+import { convidadosValidos } from "@/lib/convidados";
 import { credenciaisOAuth, renovarToken } from "@/lib/google/oauth";
 
 /**
@@ -99,13 +100,6 @@ function somaMinutos(data: string, hhmm: string, min: number): { data: string; h
   const dias = Math.floor(total / 1440);
   const resto = ((total % 1440) + 1440) % 1440;
   return { data: dias ? soma(data, dias) : data, hora: `${String(Math.floor(resto / 60)).padStart(2, "0")}:${String(resto % 60).padStart(2, "0")}` };
-}
-
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-/** Só e-mails que parecem e-mails, sem repetir. */
-export function convidadosValidos(lista: string[]): string[] {
-  return [...new Set(lista.map((e) => e.trim().toLowerCase()).filter((e) => EMAIL.test(e)))];
 }
 
 /** `comConvidados`: só no caminho OAuth (a conta de serviço do Google não pode convidar ninguém). */

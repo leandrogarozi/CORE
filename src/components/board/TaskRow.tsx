@@ -45,6 +45,7 @@ import { taskEntriesOf } from "@/lib/board/task-time";
 import { PostponeModal } from "./PostponeModal";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { countOpenChecklistItems } from "@/lib/rich-text";
+import { convidadosInvalidos, separarConvidados } from "@/lib/convidados";
 import { CATEGORY_LABEL, faltaTagReuniao, isMeetingTask, type Category, type Priority, type Repeat, type Task } from "@/lib/types";
 import { oZapVaiSair } from "@/lib/board/reminder-alerts";
 import type { TaskEditFields } from "@/lib/board/use-board";
@@ -1052,7 +1053,11 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
     repeat: currentSeries ? currentSeries.repeat : "none",
     projectId: t.projectId,
     client: t.client,
+    guests: t.guests,
   });
+  // Convidados: o texto fica solto enquanto a pessoa digita; vira lista de e-mails só ao salvar.
+  const [convidadosTexto, setConvidadosTexto] = useState(t.guests.join(", "));
+  const convidadosErrados = convidadosInvalidos(convidadosTexto);
 
   // Aplica a edição e, se a data andou pra frente (ou sumiu), registra o
   // adiamento. Em tarefa desafiadora o registro vem com o motivo e a
@@ -1085,7 +1090,7 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
   }
 
   function save() {
-    const finalVals: TaskEditFields = { ...vals, title: vals.title.trim() || t.title, note: vals.note.trim() };
+    const finalVals: TaskEditFields = { ...vals, title: vals.title.trim() || t.title, note: vals.note.trim(), guests: separarConvidados(convidadosTexto) };
     const adiando = t.date !== null && (finalVals.date === null || finalVals.date > t.date);
     if (adiando && t.challenging) {
       setPostponing(finalVals);
@@ -1274,6 +1279,23 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
             </datalist>
           </div>
         </label>
+        {(t.isEvent || isMeetingTask(vals)) && (
+          <label className="prop-row">
+            <span className="prop-label">
+              <UsersGroupIcon /> Convidados
+            </span>
+            <div className="prop-value">
+              <input
+                type="text"
+                value={convidadosTexto}
+                placeholder="e-mails, separados por vírgula"
+                title="Com o Google conectado (Configurações), o convite sai do Google para esses e-mails"
+                onChange={(e) => setConvidadosTexto(e.target.value)}
+              />
+              {convidadosErrados.length > 0 && <div className="hint-text">Não parece e-mail: {convidadosErrados.join(", ")}</div>}
+            </div>
+          </label>
+        )}
         <label className="prop-row">
           <span className="prop-label">
             <RepeatIcon /> Repete

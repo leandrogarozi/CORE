@@ -806,7 +806,7 @@ function GoogleAgendaBox() {
         <>
           <a className="btn btn-accent" href="/api/google/conectar">Conectar com o Google</a>
           <div className="hint-text">
-            Na fase de teste, o Google só deixa conectar quem eu cadastrei antes. Se aparecer um aviso de “acesso bloqueado”, me mande o seu e-mail do Google pelo Canal de feedback.
+            Nesta fase o Google mostra o aviso “O Google não verificou este app”: é normal. Toque em “Avançado” e depois em “Acessar FARO”. Se aparecer “acesso bloqueado”, mande o seu e-mail do Google pelo Canal de feedback.
           </div>
         </>
       ) : (

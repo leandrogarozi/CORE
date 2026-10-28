@@ -1,5 +1,6 @@
 "use client";
 
+import { convidadosInvalidos, separarConvidados } from "@/lib/convidados";
 import { useMemo, useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { TaskEditRow } from "./TaskRow";
@@ -42,6 +43,9 @@ export function MeetingsView({ onBack }: { onBack: () => void }) {
   // Lembrete já na criação (antes era preciso abrir Lembretes para configurar): quando avisar e se vai no WhatsApp.
   const [avisar, setAvisar] = useState<number | null>(null);
   const [avisarZap, setAvisarZap] = useState(false);
+  // Convidados: com o Google conectado (Configurações), o convite sai do Google para esses e-mails.
+  const [convidadosTexto, setConvidadosTexto] = useState("");
+  const convidadosErrados = convidadosInvalidos(convidadosTexto);
 
   const hoje = todayISO();
   const meetingTasks = board.state.tasks.filter((t) => entraEmReunioes(t));
@@ -55,7 +59,7 @@ export function MeetingsView({ onBack }: { onBack: () => void }) {
 
   function criarReuniao() {
     if (!titulo.trim() || !data) return;
-    const id = board.addMeeting({ title: titulo, client: cliente.trim() || null, date: data, time: hora || null });
+    const id = board.addMeeting({ title: titulo, client: cliente.trim() || null, date: data, time: hora || null, guests: separarConvidados(convidadosTexto) });
     if (!id) return;
     const comLembrete = avisar !== null && !!hora;
     if (comLembrete) {
@@ -68,6 +72,7 @@ export function MeetingsView({ onBack }: { onBack: () => void }) {
     );
     setTitulo("");
     setHora("");
+    setConvidadosTexto("");
   }
 
   const termo = search.trim().toLowerCase();
@@ -220,6 +225,23 @@ export function MeetingsView({ onBack }: { onBack: () => void }) {
               Criar reunião
             </button>
           </div>
+          <div className="meeting-new-row">
+            <input
+              type="text"
+              className="meeting-new-nome"
+              placeholder="Convidados (e-mails, separados por vírgula)"
+              aria-label="Convidados da reunião"
+              value={convidadosTexto}
+              onChange={(e) => setConvidadosTexto(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && criarReuniao()}
+            />
+          </div>
+          {convidadosErrados.length > 0 && <div className="hint-text">Não parece e-mail: {convidadosErrados.join(", ")}</div>}
+          {convidadosTexto.trim() && (
+            <div className="hint-text">
+              Os convidados recebem o convite do Google se você conectou sua agenda em Configurações &gt; Conexões &gt; Agenda do Google. Sem isso, a lista só fica guardada na reunião.
+            </div>
+          )}
           {criada && <div className="meeting-new-ok">{criada}</div>}
         </div>
 

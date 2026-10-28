@@ -68,7 +68,15 @@ export default function PrivacidadePage() {
           não são enviados à IA.
         </li>
         <li>
-          <strong>Google</strong> (agenda): só se e quando você conectar a sua agenda, e apenas o que você autorizar.
+          <strong>Google</strong> (agenda): só se e quando você clicar em “Conectar com o Google”, e apenas o que você autorizar. O FARO usa essa
+          permissão somente para criar, atualizar e apagar, na sua agenda, os eventos e reuniões que você cria no FARO (e convidar os e-mails que você
+          informar) e para listar as suas agendas, para você escolher onde gravar. Não lemos nem guardamos os seus outros eventos, não usamos esses dados
+          para propaganda e não os compartilhamos. O FARO guarda a autorização (um código de acesso, não a sua senha do Google) enquanto você estiver
+          conectado; ao desconectar, ela é revogada e apagada. O uso das informações recebidas das APIs do Google segue a{" "}
+          <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noreferrer">
+            Política de Dados do Usuário dos Serviços de API do Google
+          </a>
+          , inclusive os requisitos de Uso Limitado.
         </li>
         <li>
           <strong>Conector de IA externa</strong> (opcional): se você gerar o endereço do conector e colar em outra IA (Claude, ChatGPT…),

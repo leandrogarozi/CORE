@@ -205,6 +205,7 @@ export interface TaskEditFields {
   repeat: Repeat;
   projectId: string | null;
   client: string | null;
+  guests: string[];
 }
 
 function uid(): string {
@@ -888,6 +889,7 @@ export function useBoard(userId: string | null) {
           note: vals.note,
           projectId: vals.projectId,
           client: vals.client,
+          guests: vals.guests,
           order,
         };
 
@@ -941,6 +943,7 @@ export function useBoard(userId: string | null) {
         note: vals.note,
         projectId: vals.projectId,
         client: vals.client,
+        guests: vals.guests,
         order,
       };
       apply((s) => ({ ...s, tasks: s.tasks.map((x) => (x.id === id ? updated : x)) }));
@@ -3808,7 +3811,7 @@ export function useBoard(userId: string | null) {
   // vai acontecer. Ela é uma tarefa comum (categoria "reunião") no dia escolhido,
   // então aparece na lista de tarefas daquele dia; com hora marcada vira evento.
   const addMeeting = useCallback(
-    (campos: { title: string; client: string | null; date: string; time: string | null }): string | null => {
+    (campos: { title: string; client: string | null; date: string; time: string | null; guests?: string[] }): string | null => {
       if (!userId || !campos.title.trim() || !campos.date) return null;
       const comHora = !!campos.time;
       const agendado = scheduledStatusId();
@@ -3839,7 +3842,7 @@ export function useBoard(userId: string | null) {
         deletedAt: null,
         projectId: null,
         client: campos.client?.trim() || null,
-        guests: [],
+        guests: campos.guests ?? [],
       };
       apply((s) => ({ ...s, tasks: [...s.tasks, t] }));
       supabase.from("tasks").insert(taskToInsertRow(t, userId)).then(({ error }) => {
