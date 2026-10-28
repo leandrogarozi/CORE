@@ -4,7 +4,10 @@ import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { NoteField } from "./NoteField";
+import { DateField } from "./DateField";
+import { TimePicker } from "./TimePicker";
 import {
+  BellIcon,
   CartIcon,
   ChecklistIcon,
   ChevronIcon,
@@ -15,6 +18,7 @@ import {
   MoneyIcon,
   SendIcon,
   TrashIcon,
+  WhatsAppIcon,
 } from "./icons";
 import { fmtAmount, fmtBRL, parseAmountToCents } from "@/lib/money";
 import { fmtShortDate, todayISO } from "@/lib/date-utils";
@@ -174,6 +178,12 @@ function ChecklistRow({
   // Editar o nome de um item sem excluir e recriar.
   const [editItemId, setEditItemId] = useState<string | null>(null);
   const [editItemText, setEditItemText] = useState("");
+  // Carrinho do item: abre "quando lembrar de comprar" (data, hora, sininho e WhatsApp). O lembrete nasce em Lembretes.
+  const [compraId, setCompraId] = useState<string | null>(null);
+  const [compraData, setCompraData] = useState(() => todayISO());
+  const [compraHora, setCompraHora] = useState("09:00");
+  const [compraZap, setCompraZap] = useState(false);
+  const [compraSino, setCompraSino] = useState(true);
 
   const total = checklist.items.length;
   const done = checklist.items.filter((i) => i.checked).length;
@@ -186,8 +196,49 @@ function ChecklistRow({
     setItems(checklist.items.map((i) => (i.id === itemId ? { ...i, checked: !i.checked } : i)));
   }
 
-  function toggleBuy(itemId: string) {
-    setItems(checklist.items.map((i) => (i.id === itemId ? { ...i, toBuy: !i.toBuy } : i)));
+  function lembreteDaCompra(item: ChecklistItem) {
+    return item.buyReminderId ? board.state.reminders.find((r) => r.id === item.buyReminderId) ?? null : null;
+  }
+
+  function abrirCompra(item: ChecklistItem) {
+    const r = lembreteDaCompra(item);
+    setCompraData(r?.date ?? todayISO());
+    setCompraHora(r?.time ?? "09:00");
+    setCompraZap(r?.whatsapp ?? false);
+    setCompraSino(r ? r.inApp !== false : true);
+    setCompraId(item.id);
+  }
+
+  // O carrinho: marca "comprar" e já pergunta quando lembrar. Com o item já marcado, abre ou fecha a pergunta.
+  function clickCarrinho(item: ChecklistItem) {
+    if (!item.toBuy) {
+      setItems(checklist.items.map((i) => (i.id === item.id ? { ...i, toBuy: true } : i)));
+      abrirCompra(item);
+      return;
+    }
+    if (compraId === item.id) setCompraId(null);
+    else abrirCompra(item);
+  }
+
+  function salvarCompra(item: ChecklistItem) {
+    if (!compraData || !compraHora) return;
+    const titulo = `Comprar: ${item.text} (${checklist.title})`;
+    const existente = lembreteDaCompra(item);
+    if (existente) {
+      board.updateReminder(existente.id, { title: titulo, date: compraData, time: compraHora, alertMinutesBefore: 0, whatsapp: compraZap, inApp: compraSino, done: false });
+    } else {
+      const id = uid();
+      board.addReminder(titulo, compraData, compraHora, { id, alertMinutesBefore: 0, whatsapp: compraZap, inApp: compraSino });
+      setItems(checklist.items.map((i) => (i.id === item.id ? { ...i, toBuy: true, buyReminderId: id } : i)));
+    }
+    setCompraId(null);
+  }
+
+  function tirarLembreteDaCompra(item: ChecklistItem, desmarcar: boolean) {
+    const r = lembreteDaCompra(item);
+    if (r) board.deleteReminder(r.id);
+    setItems(checklist.items.map((i) => (i.id === item.id ? { ...i, buyReminderId: null, toBuy: desmarcar ? false : i.toBuy } : i)));
+    setCompraId(null);
   }
 
   function startEditItem(item: ChecklistItem) {
@@ -207,6 +258,9 @@ function ChecklistRow({
   }
 
   function deleteItem(itemId: string) {
+    const item = checklist.items.find((i) => i.id === itemId);
+    const r = item ? lembreteDaCompra(item) : null;
+    if (r) board.deleteReminder(r.id);
     setItems(checklist.items.filter((i) => i.id !== itemId));
   }
 
@@ -289,8 +343,10 @@ function ChecklistRow({
   // saber qual carrinho e qual lixeira pertencem a qual item.
   function renderItem(item: ChecklistItem, index: number) {
     const editando = editItemId === item.id;
+    const lembrete = lembreteDaCompra(item);
     return (
-      <div className={"checklist-item-row" + (index % 2 === 1 ? " zebra" : "")} key={item.id}>
+      <div key={item.id}>
+      <div className={"checklist-item-row" + (index % 2 === 1 ? " zebra" : "")}>
         <button
           type="button"
           className={"checklist-item-check" + (item.checked ? " checked" : "")}
@@ -316,6 +372,13 @@ function ChecklistRow({
         ) : (
           <span className={"checklist-item-text" + (item.checked ? " checked" : "")}>{item.text}</span>
         )}
+        {lembrete?.date && !lembrete.deletedAt && (
+          <span className="checklist-buy-quando" title="Lembrete de compra (em Lembretes)">
+            <BellIcon /> {fmtShortDate(lembrete.date)}
+            {lembrete.time ? ` ${lembrete.time}` : ""}
+            {lembrete.whatsapp ? " · zap" : ""}
+          </span>
+        )}
         {checklist.expensesEnabled && (
           <ItemAmount item={item} onChange={(cents) => setItems(checklist.items.map((i) => (i.id === item.id ? { ...i, amountCents: cents } : i)))} />
         )}
@@ -334,14 +397,48 @@ function ChecklistRow({
         <button
           type="button"
           className={"checklist-buy-toggle" + (item.toBuy ? " active" : "")}
-          title={item.toBuy ? "Marcado para comprar" : "Marcar para comprar"}
-          onClick={() => toggleBuy(item.id)}
+          title={item.toBuy ? "Marcado para comprar. Toque para ver ou mudar o lembrete" : "Marcar para comprar e escolher quando lembrar"}
+          onClick={() => clickCarrinho(item)}
         >
           <CartIcon />
         </button>
         <button type="button" className="icon-btn danger-hover" title="Excluir item" onClick={() => deleteItem(item.id)}>
           <TrashIcon />
         </button>
+      </div>
+      {compraId === item.id && (
+        <div className="checklist-buy-painel">
+          <span className="checklist-buy-titulo">Quando lembrar de comprar “{item.text}”?</span>
+          <div className="checklist-buy-linha">
+            <DateField value={compraData} ariaLabel="Dia do lembrete de compra" onChange={setCompraData} />
+            <TimePicker value={compraHora} onChange={setCompraHora} onClear={() => setCompraHora("")} placeholder="hora" />
+            <button type="button" className={"reminder-zap-opcao" + (compraSino ? " ativo" : "")} aria-pressed={compraSino} onClick={() => setCompraSino((v) => !v)}>
+              <BellIcon />
+              <span>Sininho</span>
+            </button>
+            <button type="button" className={"reminder-zap-opcao" + (compraZap ? " ativo" : "")} aria-pressed={compraZap} onClick={() => setCompraZap((v) => !v)}>
+              <WhatsAppIcon filled={compraZap} />
+              <span>Avisar no WhatsApp</span>
+            </button>
+          </div>
+          <div className="checklist-buy-linha">
+            <button type="button" className="btn btn-accent" disabled={!compraData || !compraHora} onClick={() => salvarCompra(item)}>
+              Salvar lembrete
+            </button>
+            <button type="button" className="btn btn-ghost" onClick={() => setCompraId(null)}>
+              Só marcar, sem lembrete
+            </button>
+            {lembrete && (
+              <button type="button" className="link-acao perigo" onClick={() => tirarLembreteDaCompra(item, false)}>
+                Tirar o lembrete
+              </button>
+            )}
+            <button type="button" className="link-acao" onClick={() => tirarLembreteDaCompra(item, true)}>
+              Desmarcar compra
+            </button>
+          </div>
+        </div>
+      )}
       </div>
     );
   }

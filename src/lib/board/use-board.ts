@@ -1528,20 +1528,26 @@ export function useBoard(userId: string | null) {
   const addReminder = useCallback(
     // Data e hora entram já na criação: antes o lembrete nascia sem data e ele
     // tinha que caçar a linha no fim da lista pra preencher depois.
-    async (title: string, date: string | null = null, time: string | null = null): Promise<boolean> => {
+    async (
+      title: string,
+      date: string | null = null,
+      time: string | null = null,
+      // Quem cria com avisos já decididos (ex.: o carrinho do checklist) manda o id, o aviso, o sininho e o WhatsApp.
+      opts?: { id?: string; alertMinutesBefore?: number | null; whatsapp?: boolean; inApp?: boolean }
+    ): Promise<boolean> => {
       if (!userId || !title.trim()) return false;
       // A trava de verdade mora aqui, não só na tela: é por esta função que
       // TODO lembrete nasce, então nenhuma tela nova consegue criar um sem
       // quando avisar sem antes decidir o que fazer com essa regra.
       if (oQueFaltaNoLembrete(date, time)) return false;
       const r: Reminder = {
-        id: uid(),
+        id: opts?.id ?? uid(),
         title: title.trim(),
         date: date || null,
         time: time || null,
         repeat: "none",
         weekDays: null,
-        alertMinutesBefore: null,
+        alertMinutesBefore: opts?.alertMinutesBefore ?? null,
         note: null,
         done: false,
         status: "pending",
@@ -1549,7 +1555,8 @@ export function useBoard(userId: string | null) {
         taskId: null,
         sourceKind: null,
         sourceId: null,
-        whatsapp: true,
+        whatsapp: opts?.whatsapp ?? true,
+        inApp: opts?.inApp,
       };
       apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
       const { error } = await supabase.from("reminders").insert(reminderToInsertRow(r, userId));

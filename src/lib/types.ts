@@ -629,6 +629,7 @@ export interface ChecklistItem {
   id: string;
   text: string;
   checked: boolean;
+  buyReminderId?: string | null; // lembrete de "quando comprar" criado a partir do carrinho (vive em Lembretes)
   toBuy: boolean; // precisa comprar antes (ex.: supermercado) — separa da lista de itens pra levar/arrumar
   amountCents?: number | null; // quanto custou/vai custar esse item (opcional); o item marcado entra no gasto do checklist
 }
