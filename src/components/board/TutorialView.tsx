@@ -1,38 +1,56 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { TUTORIAL } from "@/lib/tutorial";
 import {
+  ArchiveIcon,
   BellIcon,
   BoltIcon,
+  BookIcon,
   BookOpenIcon,
+  BookmarkIcon,
   CalendarCheckIcon,
+  CarIcon,
+  CartIcon,
+  ChartIcon,
+  CheckCircleIcon,
   ChecklistIcon,
+  ClockIcon,
   CommentIcon,
+  DownloadIcon,
   DuplicateIcon,
   EditIcon,
+  ExpandHorizontalIcon,
   ExpandIcon,
+  EyeIcon,
   EyeOffIcon,
   FlagIcon,
+  FolderIcon,
   FollowIcon,
   GiftIcon,
   HeartIcon,
-  ExpandHorizontalIcon,
+  HomeIcon,
   InboxIcon,
+  MealIcon,
   MenuIcon,
-  MoonIcon,
-  SettingsIcon,
-  WeekIcon,
   MicIcon,
+  MoonIcon,
   PaperclipIcon,
+  PillIcon,
   PlayIcon,
   RepeatIcon,
+  RtQuoteIcon,
+  RtThoughtIcon,
+  SearchIcon,
   SendIcon,
+  SettingsIcon,
   ShieldWarningIcon,
   SunIcon,
+  TagIcon,
   TrashIcon,
   UserIcon,
   UsersGroupIcon,
+  WeekIcon,
   WhatsAppIcon,
 } from "./icons";
 
@@ -90,11 +108,55 @@ const ICONES_DO_TUTORIAL: Record<string, { grupo: string; itens: [ReactNode, str
   ],
 };
 
+/** O ícone de cada assunto: o mesmo no atalho de cima e no cartão. */
+const ICONE_DO_ASSUNTO: Record<string, ReactNode> = {
+  dicas: <BoltIcon />,
+  icones: <EyeIcon />,
+  painel: <HomeIcon />,
+  instalar: <DownloadIcon />,
+  tarefas: <ChecklistIcon />,
+  categorias: <TagIcon />,
+  voz: <MicIcon />,
+  busca: <SearchIcon />,
+  semana: <WeekIcon />,
+  dashboard: <ChartIcon />,
+  lembretes: <ClockIcon />,
+  reunioes: <UsersGroupIcon />,
+  projetos: <FolderIcon />,
+  metanoia: <RtQuoteIcon />,
+  conhecendo: <UserIcon size={16} />,
+  sinapses: <RtThoughtIcon />,
+  ideias: <BookmarkIcon />,
+  livros: <BookOpenIcon />,
+  estudo: <BookIcon />,
+  aniversarios: <GiftIcon />,
+  medicamentos: <PillIcon />,
+  dieta: <MealIcon />,
+  manutencao: <CarIcon />,
+  compras: <CartIcon />,
+  checklists: <CheckCircleIcon />,
+  configuracoes: <SettingsIcon />,
+  notificacoes: <BellIcon />,
+  backup: <ArchiveIcon />,
+  ia: <CommentIcon />,
+};
+
+function dicas(n: number): string {
+  return n === 1 ? "1 dica" : `${n} dicas`;
+}
+
 /**
  * Tela de texto com um bloco por assunto. Chega aqui pelo item “Como usar” do menu ou pelo “?” no topo de cada
  * tela, que leva direto ao bloco dela.
  */
 export function TutorialView({ onBack, secao }: { onBack: () => void; secao?: string | null }) {
+  // O assunto em destaque: o que veio do "?" da tela ou o último que a pessoa tocou.
+  const [ativo, setAtivo] = useState<string | null>(secao ?? null);
+  function ir(id: string) {
+    setAtivo(id);
+    document.getElementById("tut-" + id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   useEffect(() => {
     if (!secao) return;
     const t = setTimeout(() => document.getElementById("tut-" + secao)?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
@@ -114,14 +176,24 @@ export function TutorialView({ onBack, secao }: { onBack: () => void; secao?: st
         <p className="hint-text">Um bloco curto por assunto. Toque num assunto para pular até ele. Em cada tela do FARO, o botão “Como funciona”, no canto de cima, abre esta página no assunto dela.</p>
         <div className="tutorial-indice">
           {TUTORIAL.map((s) => (
-            <button key={s.id} type="button" className="btn btn-ghost" onClick={() => document.getElementById("tut-" + s.id)?.scrollIntoView({ behavior: "smooth", block: "start" })}>
-              {s.titulo}
+            <button key={s.id} type="button" className={"tut-chip" + (ativo === s.id ? " on" : "")} aria-pressed={ativo === s.id} onClick={() => ir(s.id)}>
+              {ICONE_DO_ASSUNTO[s.id] ?? <BookOpenIcon />}
+              <span>{s.titulo}</span>
             </button>
           ))}
         </div>
         {TUTORIAL.map((s) => (
-          <section key={s.id} id={"tut-" + s.id} className={"list-card tutorial-bloco" + (secao === s.id ? " em-foco" : "")}>
-            <h2>{s.titulo}</h2>
+          <section key={s.id} id={"tut-" + s.id} className={"list-card tutorial-bloco tut-sec" + (ativo === s.id ? " sel" : "")}>
+            <div className="tut-cab" onClick={() => setAtivo(s.id)}>
+              <span className="tut-tile" aria-hidden="true">
+                {ICONE_DO_ASSUNTO[s.id] ?? <BookOpenIcon />}
+              </span>
+              <span className="tut-nome">
+                <h2>{s.titulo}</h2>
+                <span>{dicas(s.linhas.length)}</span>
+              </span>
+              {ativo === s.id && <span className="tut-aqui">Você está aqui</span>}
+            </div>
             <ul>
               {s.linhas.map((l, i) => (
                 <li key={i}>{l}</li>
