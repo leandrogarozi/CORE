@@ -32,6 +32,8 @@ const FUSOS_DO_BRASIL = [
 export function WelcomeModal({ onAbrirConfiguracoes }: { onAbrirConfiguracoes: () => void }) {
   const { board } = useBoardCtx();
   const s = board.state.settings;
+  // Antes dos três passos: quem está entrando agora precisa saber que é um teste inicial.
+  const [intro, setIntro] = useState(true);
   const [passo, setPasso] = useState(0);
   const detectado = useMemo(() => {
     try {
@@ -58,6 +60,33 @@ export function WelcomeModal({ onAbrirConfiguracoes }: { onAbrirConfiguracoes: (
       featureFlags: { ...s.featureFlags, [FLAG_BOAS_VINDAS]: true, ...(telefone.trim() && aceitaZap ? { whatsapp_aceite: true } : {}) },
     });
     if (irParaConfiguracoes) onAbrirConfiguracoes();
+  }
+
+  if (intro) {
+    return (
+      <>
+        <div className="modal-backdrop" />
+        <div className="modal-panel welcome-panel" role="dialog" aria-modal="true" aria-label="Boas-vindas ao FARO">
+          <div className="modal-title">Bem-vindo(a) ao FARO</div>
+          <p className="welcome-texto">
+            O FARO é o seu painel de <strong>Foco, Ação, Rotina e Objetivos</strong>: tarefas, lembretes, reuniões e tudo o que você aprende e anota ficam num só lugar, como um cérebro digital que vai te conhecendo.
+          </p>
+          <p className="welcome-texto">
+            Você está entre as <strong>pessoas selecionadas para o teste inicial</strong>. Isso quer dizer que o app ainda está sendo construído: pode haver erros, e algumas coisas vão mudar pelo caminho. O que você usar e disser é o que vai mostrar onde melhorar.
+          </p>
+          <ul className="welcome-lista">
+            <li>Achou um erro ou teve uma ideia? Conte no <strong>Canal de feedback</strong>, no menu.</li>
+            <li>Ficou em dúvida de como algo funciona? Abra o <strong>Como usar</strong>, no menu, ou o botão “Como funciona” de cada tela.</li>
+            <li>Faça os seus <strong>backups</strong> de vez em quando, em Configurações, para guardar tudo o que você escreve.</li>
+          </ul>
+          <div className="welcome-fim">
+            <button type="button" className="btn btn-accent" onClick={() => setIntro(false)}>
+              Entendi, vamos começar
+            </button>
+          </div>
+        </div>
+      </>
+    );
   }
 
   return (
