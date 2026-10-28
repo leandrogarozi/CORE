@@ -6299,7 +6299,7 @@ Feito a partir do que o Leandro viu usando as contas de teste:
 1. **Leandro:** ligar o envio de e-mail (Resend no `soufaro.app.br`), colar os 5 e-mails em português e acertar Site URL/Redirect URL no Supabase (guia em artifact "Guia dos e-mails do FARO"); depois criar uma conta de fora para provar o e-mail.
 2. **Claude:** escrever a **mensagem de boas-vindas** (teste inicial, pode haver erros, feedback) para o Leandro aprovar; entra no `WelcomeModal` e no e-mail "Bem-vindo".
 3. **Claude + Leandro:** "Conectar com o Google" (OAuth): convidados na reunião, agenda de cada pessoa e mão dupla. 2 a 3 dias de trabalho + ~15 min no Google Cloud.
-4. **Claude:** **restaurador de conta** a partir da cópia diária (hoje só por SQL).
+4. ~~**restaurador de conta** a partir da cópia diária~~ **feito (28/10)**, só para o dono.
 5. ~~card **"Em breve"** com os prints do app financeiro~~ **feito (28/10)**.
 6. **Claude:** IA com a chave do cliente e mais de um provedor (Anthropic/GPT); explicar o backup no Drive da pessoa.
 7. **Antes de abrir ao público:** e-mail de contato real nos Termos, revisão jurídica, tirar a faixa "teste fechado", verificação do Google, ligar `soufaro.app.br` na Vercel (antes de os testadores instalarem o app).
@@ -6321,3 +6321,9 @@ Feito a partir do que o Leandro viu usando as contas de teste:
 ### "Em breve": vitrine do app Financeiro (28/10)
 - Item **"Em breve"** no menu (rodapé, antes de "Como usar"), tela `EmBreveView.tsx` (modo `embreve`): texto de que o app financeiro (casa e empresa) será integrado ao FARO + três telas (Painel, Dashboard, Projeção) em `public/em-breve/*.jpg`.
 - **Valores borrados** com ImageMagick (receitas, saldos, categorias, "Gasto do mês" etc.); ficaram nomes de menus e categorias e o "Olá, Leandro". Só vitrine: não lê nem grava dados. Para trocar um print, substituir o arquivo mantendo o nome.
+
+### Restaurador de conta (28/10)
+- **Banco:** função `public.faro_restaurar_conta(p_user, p_dia, p_simular)` (SQL em `docs/sql/faro_restaurar_conta.sql`; só `service_role` executa). Lê a cópia de `faro_backups_internos` e **só reinsere o que sumiu** (mesma chave); **nunca sobrescreve** o que existe hoje. Ordem das linhas resolvida por tentativas (linhas "mãe" primeiro). Colunas criadas depois da cópia ficam com o valor padrão. Ignora `push_subscriptions` e `active_timer`.
+- **Simulação fiel:** com `p_simular = true` ela faz tudo, conta e desfaz (rollback). Teste real com a conta do dono, cópia de 25/10: voltariam 26 itens (2 lembretes, 4 avisos, 20 de atividade), 2.062 já existiam, 0 falhas.
+- **App:** rota `/api/backup/restaurar-conta` (GET lista as cópias; POST `{dia, simular}`), só conta com `modo_dono`; restaura a **própria** conta de quem está logado. Em Configurações > Backup, bloco "Restaurar do backup diário" (área "Particular do dono"): escolhe o dia, **Simular**, e só então aparece **Restaurar de verdade** (com confirmação).
+- **Limite:** restaurar conta de testador ainda é por SQL (`select faro_restaurar_conta('<user>', '<dia>', true)` no SQL Editor, simulando antes). Não desfaz **edições** (só traz de volta **linhas apagadas**).

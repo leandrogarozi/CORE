@@ -602,6 +602,120 @@ type EstadoDoBackupAuto = {
   aprendizadoArquivos: number | null;
 };
 
+type ResultadoDaRestauracao = {
+  ok: boolean;
+  erro?: string;
+  simulado?: boolean;
+  dia?: string;
+  restauradas?: number;
+  ja_existiam?: number;
+  por_tabela?: Record<string, number>;
+  falhas?: { tabela: string; erro: string }[];
+};
+
+/**
+ * Restaurador da conta do dono, a partir da cópia diária guardada no banco. Sempre simula primeiro: só depois de
+ * ver o que voltaria é que o botão de restaurar de verdade aparece. Nunca sobrescreve o que existe hoje.
+ */
+function RestauradorBox() {
+  const { askConfirm } = useBoardCtx();
+  const [copias, setCopias] = useState<{ dia: string; tabelas: number; linhas: number }[] | null>(null);
+  const [dia, setDia] = useState("");
+  const [ocupado, setOcupado] = useState(false);
+  const [res, setRes] = useState<ResultadoDaRestauracao | null>(null);
+
+  useEffect(() => {
+    let vivo = true;
+    fetch("/api/backup/restaurar-conta")
+      .then((r) => r.json())
+      .then((j) => {
+        if (!vivo || !j.ok) return;
+        setCopias(j.copias);
+        if (j.copias[0]) setDia(j.copias[0].dia);
+      })
+      .catch(() => {});
+    return () => {
+      vivo = false;
+    };
+  }, []);
+
+  async function rodar(simular: boolean) {
+    setOcupado(true);
+    try {
+      const r = await fetch("/api/backup/restaurar-conta", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ dia, simular }) });
+      setRes(await r.json());
+    } catch {
+      setRes({ ok: false, erro: "Não consegui falar com o servidor." });
+    } finally {
+      setOcupado(false);
+    }
+  }
+
+  const podeRestaurar = res?.ok === true && res.simulado === true && res.dia === dia && (res.restauradas ?? 0) > 0;
+
+  return (
+    <CollapsibleBox title="Restaurar do backup diário" icon={<ArchiveIcon />} resumo="Traz de volta o que foi apagado sem querer">
+      <div className="hint-text" style={{ marginTop: 0, marginBottom: 8 }}>
+        Usa a cópia diária que o FARO guarda no banco. <strong>Só traz de volta o que sumiu</strong> desde aquele dia; nada do que existe hoje é sobrescrito. Primeiro
+        simule, para ver o que voltaria.
+      </div>
+      {copias === null ? (
+        <div className="hint-text">Carregando as cópias...</div>
+      ) : copias.length === 0 ? (
+        <div className="hint-text">Ainda não há cópia diária.</div>
+      ) : (
+        <>
+          <select className="input" value={dia} onChange={(e) => { setDia(e.target.value); setRes(null); }}>
+            {copias.map((c) => (
+              <option key={c.dia} value={c.dia}>
+                {c.dia.split("-").reverse().join("/")} ({c.linhas} linhas em {c.tabelas} tabelas)
+              </option>
+            ))}
+          </select>
+          <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+            <button type="button" className="btn btn-accent" disabled={ocupado || !dia} onClick={() => rodar(true)}>
+              {ocupado ? "Calculando..." : "Simular (não grava nada)"}
+            </button>
+            {podeRestaurar && (
+              <button
+                type="button"
+                className="btn btn-danger"
+                disabled={ocupado}
+                onClick={() =>
+                  askConfirm(`Trazer de volta ${res?.restauradas} item(ns) que sumiram desde a cópia de ${dia.split("-").reverse().join("/")}? O que existe hoje não é alterado.`, () => rodar(false))
+                }
+              >
+                Restaurar de verdade
+              </button>
+            )}
+          </div>
+        </>
+      )}
+      {res && (
+        <div className="hint-text" style={{ marginTop: 10 }}>
+          {!res.ok ? (
+            <strong>{res.erro}</strong>
+          ) : (
+            <>
+              <strong>{res.simulado ? "Simulação: voltariam" : "Restaurado:"} {res.restauradas} item(ns)</strong>; {res.ja_existiam} já estavam na conta.
+              {Object.entries(res.por_tabela ?? {}).length > 0 && (
+                <ul style={{ margin: "6px 0 0", paddingLeft: 18 }}>
+                  {Object.entries(res.por_tabela ?? {}).map(([t, n]) => (
+                    <li key={t}>
+                      {t}: {n}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {(res.falhas ?? []).length > 0 && <div style={{ marginTop: 6 }}>Não deu para trazer: {(res.falhas ?? []).map((f) => `${f.tabela} (${f.erro})`).join("; ")}</div>}
+            </>
+          )}
+        </div>
+      )}
+    </CollapsibleBox>
+  );
+}
+
 function BackupAutomaticoBox() {
   const [estado, setEstado] = useState<EstadoDoBackupAuto | null>(null);
   const [so, setSo] = useState<"mac" | "win">("mac");
@@ -2240,6 +2354,7 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
                   Segurança minha. Não vai para os clientes.
                 </div>
                 <BackupAutomaticoBox />
+                <RestauradorBox />
               </div>
             )}
 
