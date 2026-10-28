@@ -566,6 +566,7 @@ export function useBoard(userId: string | null) {
         deletedAt: null,
         projectId: null,
         client: null,
+        guests: [],
       };
       apply((s) => ({ ...s, tasks: [...s.tasks, t] }));
       const { error } = await supabase.from("tasks").insert(taskToInsertRow(t, userId));
@@ -1048,6 +1049,7 @@ export function useBoard(userId: string | null) {
             deletedAt: null,
             projectId: null,
             client: null,
+            guests: [],
           });
         });
       });
@@ -1502,6 +1504,7 @@ export function useBoard(userId: string | null) {
         deletedAt: null,
         projectId,
         client: null,
+        guests: [],
       };
       apply((s) => ({ ...s, tasks: [...s.tasks, t] }));
       const { error } = await supabase.from("tasks").insert(taskToInsertRow(t, userId));
@@ -3213,6 +3216,7 @@ export function useBoard(userId: string | null) {
         deletedAt: null,
         projectId: null,
         client: null,
+        guests: [],
       }));
 
       apply((st) => ({ ...st, tasks: [...st.tasks, ...novas] }));
@@ -3783,6 +3787,7 @@ export function useBoard(userId: string | null) {
         deletedAt: null,
         projectId: null,
         client: client?.trim() || null,
+        guests: [],
       };
       const at: ActiveTimer = { id: uid(), kind: "task", itemId: t.id, logDate: today, startedAt: Date.now() };
       apply((s) => ({ ...s, tasks: [...s.tasks, t], activeTimers: [...s.activeTimers, at] }));
@@ -3834,6 +3839,7 @@ export function useBoard(userId: string | null) {
         deletedAt: null,
         projectId: null,
         client: campos.client?.trim() || null,
+        guests: [],
       };
       apply((s) => ({ ...s, tasks: [...s.tasks, t] }));
       supabase.from("tasks").insert(taskToInsertRow(t, userId)).then(({ error }) => {

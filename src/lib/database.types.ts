@@ -2075,6 +2075,7 @@ export type Database = {
           challenging: boolean
           follows: boolean
           client: string | null
+          convidados: string[]
           code: string | null
           created_at: string
           date: string | null
@@ -2106,6 +2107,7 @@ export type Database = {
           challenging?: boolean
           follows?: boolean
           client?: string | null
+          convidados?: string[]
           code?: string | null
           created_at?: string
           date?: string | null
@@ -2137,6 +2139,7 @@ export type Database = {
           challenging?: boolean
           follows?: boolean
           client?: string | null
+          convidados?: string[]
           code?: string | null
           created_at?: string
           date?: string | null

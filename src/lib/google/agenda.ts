@@ -3,11 +3,15 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 import { rowToTask } from "@/lib/board/mappers";
 import { entraEmReunioes, type Task } from "@/lib/types";
+import { credenciaisOAuth, renovarToken } from "@/lib/google/oauth";
 
 /**
- * Espelho FARO → Google Agenda, de MÃO ÚNICA, só para o dono do FARO (conta com `modo_dono`).
+ * Espelho FARO → Google Agenda, de MÃO ÚNICA. Dois caminhos:
+ *  1. Quem clicou em "Conectar com o Google" (tabela `google_contas`): o FARO grava na agenda DELA, em nome dela,
+ *     e por isso pode convidar pessoas (`convidados` da tarefa): o convite sai do Google.
+ *  2. Só o dono, sem conectar: a conta de serviço abaixo (não consegue convidar ninguém).
  *
- * Como funciona: o FARO tem uma "conta de serviço" do Google (um robô) e a pessoa compartilha a agenda dela
+ * Como funciona o caminho 2: o FARO tem uma "conta de serviço" do Google (um robô) e a pessoa compartilha a agenda dela
  * com o e-mail desse robô. Sobe para a agenda: tarefa marcada como EVENTO e reuniões, com data (e hora, se tiver).
  * Não sobe: tarefa comum, tarefa de saúde, tarefa na Lixeira. Evento criado direto no Google não volta para o FARO.
  *
@@ -16,7 +20,6 @@ import { entraEmReunioes, type Task } from "@/lib/types";
  */
 
 const ESCOPO = "https://www.googleapis.com/auth/calendar.events";
-const LIMITE_POR_RODADA = 15; // chamadas ao Google por execução: o motor roda todo minuto, o resto fica para a próxima
 
 export interface ContaDeServico {
   client_email: string;
@@ -64,10 +67,13 @@ async function tokenDeAcesso(conta: ContaDeServico): Promise<string> {
   return j.access_token;
 }
 
-async function chamar(conta: ContaDeServico, metodo: string, caminho: string, corpo?: object): Promise<{ status: number; json: Record<string, unknown> }> {
+/** Como pegar o token de acesso: da conta de serviço (dono) ou da autorização de cada pessoa (OAuth). */
+type Acesso = () => Promise<string>;
+
+async function chamar(acesso: Acesso, metodo: string, caminho: string, corpo?: object): Promise<{ status: number; json: Record<string, unknown> }> {
   const res = await fetch(`https://www.googleapis.com/calendar/v3${caminho}`, {
     method: metodo,
-    headers: { Authorization: `Bearer ${await tokenDeAcesso(conta)}`, "Content-Type": "application/json" },
+    headers: { Authorization: `Bearer ${await acesso()}`, "Content-Type": "application/json" },
     body: corpo ? JSON.stringify(corpo) : undefined,
   });
   const json = (await res.json().catch(() => ({}))) as Record<string, unknown>;
@@ -95,9 +101,18 @@ function somaMinutos(data: string, hhmm: string, min: number): { data: string; h
   return { data: dias ? soma(data, dias) : data, hora: `${String(Math.floor(resto / 60)).padStart(2, "0")}:${String(resto % 60).padStart(2, "0")}` };
 }
 
-export function montarEvento(t: Task, fuso: string): Record<string, unknown> {
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Só e-mails que parecem e-mails, sem repetir. */
+export function convidadosValidos(lista: string[]): string[] {
+  return [...new Set(lista.map((e) => e.trim().toLowerCase()).filter((e) => EMAIL.test(e)))];
+}
+
+/** `comConvidados`: só no caminho OAuth (a conta de serviço do Google não pode convidar ninguém). */
+export function montarEvento(t: Task, fuso: string, comConvidados = false): Record<string, unknown> {
   const titulo = t.title.trim() || "(sem título)";
-  const comum = { summary: titulo, description: "Criado pelo FARO. Edite no FARO: mudanças feitas aqui não voltam.", source: { title: "FARO", url: "https://core-app-seven-gamma.vercel.app" } };
+  const convidados = comConvidados ? { attendees: convidadosValidos(t.guests).map((email) => ({ email })) } : {};
+  const comum = { ...convidados, summary: titulo, description: "Criado pelo FARO. Edite no FARO: mudanças feitas aqui não voltam.", source: { title: "FARO", url: "https://core-app-seven-gamma.vercel.app" } };
   if (!t.time) {
     // Dia inteiro. No Google o fim é exclusivo: um evento de 1 dia termina no dia seguinte.
     const fim = t.endDate && t.endDate > t.date! ? t.endDate : t.date!;
@@ -119,8 +134,8 @@ export function montarEvento(t: Task, fuso: string): Record<string, unknown> {
 }
 
 /** Muda quando algo que aparece no Google muda. */
-export function assinaturaDoEvento(t: Task, fuso: string): string {
-  return JSON.stringify(montarEvento(t, fuso));
+export function assinaturaDoEvento(t: Task, fuso: string, comConvidados = false): string {
+  return JSON.stringify(montarEvento(t, fuso, comConvidados));
 }
 
 // ---------- sincronização ----------
@@ -130,89 +145,162 @@ export interface ResultadoDoEspelho {
   criados: number;
   atualizados: number;
   removidos: number;
+  contas: number;
   erros: string[];
 }
 
-export async function espelharNoGoogle(supabase: SupabaseClient<Database>): Promise<ResultadoDoEspelho> {
-  const r: ResultadoDoEspelho = { ligado: false, criados: 0, atualizados: 0, removidos: 0, erros: [] };
-  const conta = lerContaDeServico(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
-  const agenda = (process.env.GOOGLE_CALENDAR_ID ?? "").trim();
-  if (!conta || !agenda) return r;
-  r.ligado = true;
+/** Chamadas ao Google por pessoa em cada execução (o motor roda todo minuto; o resto fica para a próxima). */
+const LIMITE_POR_PESSOA = 15;
 
-  const { data: donos, error: erroDonos } = await supabase.from("settings").select("user_id, timezone").eq("feature_flags->>modo_dono", "true");
-  if (erroDonos) {
-    r.erros.push(`donos: ${erroDonos.message}`);
-    return r;
-  }
+interface Destino {
+  userId: string;
+  fuso: string;
+  calendarId: string;
+  acesso: Acesso;
+  /** OAuth: manda convidados e avisa por e-mail (sendUpdates). */
+  oauth: boolean;
+}
+
+const soData = (d: Date) => d.toISOString().slice(0, 10);
+
+/** Espelha as tarefas de UMA pessoa na agenda dela (para quando o limite de chamadas da rodada acaba). */
+async function espelharUsuario(supabase: SupabaseClient<Database>, d: Destino, r: ResultadoDoEspelho): Promise<void> {
   let chamadas = 0;
-  const enc = encodeURIComponent(agenda);
+  const enc = encodeURIComponent(d.calendarId);
+  const aviso = d.oauth ? "?sendUpdates=all" : "";
+  const desde = soma(soData(new Date()), -2); // não mexe no passado distante
+  const [{ data: linhas, error: e1 }, { data: vinculos, error: e2 }] = await Promise.all([
+    supabase.from("tasks").select("*").eq("user_id", d.userId).gte("date", desde),
+    supabase.from("google_eventos").select("*").eq("user_id", d.userId),
+  ]);
+  if (e1 || e2) {
+    r.erros.push(`ler dados: ${(e1 ?? e2)!.message}`);
+    return;
+  }
+  const tarefas = (linhas ?? []).map(rowToTask);
+  const porId = new Map(tarefas.map((t) => [t.id, t]));
+  const vinculoPorTarefa = new Map((vinculos ?? []).map((v) => [v.task_id, v]));
 
-  for (const dono of donos ?? []) {
-    const fuso = dono.timezone || "America/Sao_Paulo";
-    const desde = soma(new Date().toISOString().slice(0, 10), -2); // não mexe no passado distante
-    const [{ data: linhas, error: e1 }, { data: vinculos, error: e2 }] = await Promise.all([
-      supabase.from("tasks").select("*").eq("user_id", dono.user_id).gte("date", desde),
-      supabase.from("google_eventos").select("*").eq("user_id", dono.user_id),
-    ]);
-    if (e1 || e2) {
-      r.erros.push(`ler dados: ${(e1 ?? e2)!.message}`);
-      continue;
-    }
-    const tarefas = (linhas ?? []).map(rowToTask);
-    const porId = new Map(tarefas.map((t) => [t.id, t]));
-    const vinculoPorTarefa = new Map((vinculos ?? []).map((v) => [v.task_id, v]));
-
-    // criar e atualizar
-    for (const t of tarefas) {
-      if (chamadas >= LIMITE_POR_RODADA) return r;
-      if (!sobeParaOGoogle(t)) continue;
-      const sig = assinaturaDoEvento(t, fuso);
-      const v = vinculoPorTarefa.get(t.id);
-      try {
-        if (!v) {
-          chamadas++;
-          const res = await chamar(conta, "POST", `/calendars/${enc}/events`, montarEvento(t, fuso));
-          if (res.status >= 300 || typeof res.json.id !== "string") throw new Error(`criar: ${res.status} ${JSON.stringify(res.json).slice(0, 160)}`);
-          await supabase.from("google_eventos").upsert({ task_id: t.id, user_id: dono.user_id, calendar_id: agenda, event_id: res.json.id, assinatura: sig });
-          r.criados++;
-        } else if (v.assinatura !== sig) {
-          chamadas++;
-          const res = await chamar(conta, "PATCH", `/calendars/${enc}/events/${encodeURIComponent(v.event_id)}`, montarEvento(t, fuso));
-          if (res.status === 404 || res.status === 410) {
-            // evento apagado à mão no Google: recria na próxima rodada
-            await supabase.from("google_eventos").delete().eq("task_id", t.id);
-            continue;
-          }
-          if (res.status >= 300) throw new Error(`atualizar: ${res.status} ${JSON.stringify(res.json).slice(0, 160)}`);
-          await supabase.from("google_eventos").update({ assinatura: sig, atualizado_em: new Date().toISOString() }).eq("task_id", t.id);
-          r.atualizados++;
-        }
-      } catch (e) {
-        r.erros.push(`${t.id}: ${e instanceof Error ? e.message : String(e)}`);
-      }
-    }
-
-    // remover o que deixou de valer (tarefa apagada, virou tarefa comum, perdeu a data ou é de saúde)
-    for (const v of vinculos ?? []) {
-      if (chamadas >= LIMITE_POR_RODADA) return r;
-      const t = porId.get(v.task_id);
-      if (t && sobeParaOGoogle(t)) continue;
-      // tarefa fora da janela de datas (passado distante) não é lida: não mexe
-      if (!t) {
-        // fora da janela lida: só remove se a tarefa não existe mais, foi apagada ou perdeu a data
-        const { data: existe } = await supabase.from("tasks").select("id, date, deleted_at").eq("id", v.task_id).maybeSingle();
-        if (existe && !existe.deleted_at && existe.date && existe.date < desde) continue; // passado: deixa o evento lá
-      }
-      try {
+  // criar e atualizar
+  for (const t of tarefas) {
+    if (chamadas >= LIMITE_POR_PESSOA) return;
+    if (!sobeParaOGoogle(t)) continue;
+    const sig = assinaturaDoEvento(t, d.fuso, d.oauth);
+    let v = vinculoPorTarefa.get(t.id);
+    try {
+      if (v && v.calendar_id !== d.calendarId) {
+        // a pessoa trocou de agenda: tira o evento da antiga e recria na nova
         chamadas++;
-        const res = await chamar(conta, "DELETE", `/calendars/${enc}/events/${encodeURIComponent(v.event_id)}`);
-        if (res.status >= 300 && res.status !== 404 && res.status !== 410) throw new Error(`remover: ${res.status}`);
-        await supabase.from("google_eventos").delete().eq("task_id", v.task_id);
-        r.removidos++;
-      } catch (e) {
-        r.erros.push(`${v.task_id}: ${e instanceof Error ? e.message : String(e)}`);
+        await chamar(d.acesso, "DELETE", `/calendars/${encodeURIComponent(v.calendar_id)}/events/${encodeURIComponent(v.event_id)}${aviso}`);
+        await supabase.from("google_eventos").delete().eq("task_id", t.id);
+        v = undefined;
       }
+      if (!v) {
+        chamadas++;
+        const res = await chamar(d.acesso, "POST", `/calendars/${enc}/events${aviso}`, montarEvento(t, d.fuso, d.oauth));
+        if (res.status >= 300 || typeof res.json.id !== "string") throw new Error(`criar: ${res.status} ${JSON.stringify(res.json).slice(0, 160)}`);
+        await supabase.from("google_eventos").upsert({ task_id: t.id, user_id: d.userId, calendar_id: d.calendarId, event_id: res.json.id, assinatura: sig });
+        r.criados++;
+      } else if (v.assinatura !== sig) {
+        chamadas++;
+        const res = await chamar(d.acesso, "PATCH", `/calendars/${enc}/events/${encodeURIComponent(v.event_id)}${aviso}`, montarEvento(t, d.fuso, d.oauth));
+        if (res.status === 404 || res.status === 410) {
+          // evento apagado à mão no Google: recria na próxima rodada
+          await supabase.from("google_eventos").delete().eq("task_id", t.id);
+          continue;
+        }
+        if (res.status >= 300) throw new Error(`atualizar: ${res.status} ${JSON.stringify(res.json).slice(0, 160)}`);
+        await supabase.from("google_eventos").update({ assinatura: sig, atualizado_em: new Date().toISOString() }).eq("task_id", t.id);
+        r.atualizados++;
+      }
+    } catch (e) {
+      r.erros.push(`${t.id}: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+
+  // remover o que deixou de valer (tarefa apagada, virou tarefa comum, perdeu a data ou é de saúde)
+  for (const v of vinculos ?? []) {
+    if (chamadas >= LIMITE_POR_PESSOA) return;
+    const t = porId.get(v.task_id);
+    if (t && sobeParaOGoogle(t)) continue;
+    if (!t) {
+      // fora da janela lida: só remove se a tarefa não existe mais, foi apagada ou perdeu a data
+      const { data: existe } = await supabase.from("tasks").select("id, date, deleted_at").eq("id", v.task_id).maybeSingle();
+      if (existe && !existe.deleted_at && existe.date && existe.date < desde) continue; // passado: deixa o evento lá
+    }
+    try {
+      chamadas++;
+      const res = await chamar(d.acesso, "DELETE", `/calendars/${encodeURIComponent(v.calendar_id)}/events/${encodeURIComponent(v.event_id)}${aviso}`);
+      if (res.status >= 300 && res.status !== 404 && res.status !== 410) throw new Error(`remover: ${res.status}`);
+      await supabase.from("google_eventos").delete().eq("task_id", v.task_id);
+      r.removidos++;
+    } catch (e) {
+      r.erros.push(`${v.task_id}: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+}
+
+const tokensDasPessoas = new Map<string, { valor: string; expiraEm: number }>();
+
+/** O acesso de uma pessoa conectada: renova o token só quando preciso e anota na conta se ela revogou a permissão. */
+function acessoDaPessoa(supabase: SupabaseClient<Database>, userId: string, refresh: string): Acesso {
+  return async () => {
+    const agora = Math.floor(Date.now() / 1000);
+    const guardado = tokensDasPessoas.get(userId);
+    if (guardado && guardado.expiraEm - 60 > agora) return guardado.valor;
+    const cred = credenciaisOAuth();
+    if (!cred) throw new Error("credenciais do Google (OAuth) não configuradas");
+    const t = await renovarToken(cred, refresh);
+    if (!("token" in t)) {
+      await (supabase as unknown as SupabaseClient)
+        .from("google_contas")
+        .update({ ultimo_erro: t.revogado ? "A permissão foi retirada. Conecte o Google de novo." : `Falha ao renovar: ${t.erro}` })
+        .eq("user_id", userId);
+      throw new Error(t.revogado ? "permissão do Google retirada" : t.erro);
+    }
+    tokensDasPessoas.set(userId, { valor: t.token, expiraEm: t.expiraEm });
+    await (supabase as unknown as SupabaseClient).from("google_contas").update({ ultimo_erro: null }).eq("user_id", userId).not("ultimo_erro", "is", null);
+    return t.token;
+  };
+}
+
+export async function espelharNoGoogle(supabase: SupabaseClient<Database>): Promise<ResultadoDoEspelho> {
+  const r: ResultadoDoEspelho = { ligado: false, criados: 0, atualizados: 0, removidos: 0, contas: 0, erros: [] };
+  const destinos: Destino[] = [];
+
+  // Caminho 1: quem conectou a própria conta.
+  const conectados = new Set<string>();
+  if (credenciaisOAuth()) {
+    const { data: contas, error } = await (supabase as unknown as SupabaseClient).from("google_contas").select("user_id, refresh_token, calendar_id");
+    if (error) r.erros.push(`contas Google: ${error.message}`);
+    const ids = (contas ?? []).map((c: { user_id: string }) => c.user_id);
+    const { data: configs } = ids.length ? await supabase.from("settings").select("user_id, timezone").in("user_id", ids) : { data: [] };
+    const fusos = new Map((configs ?? []).map((c) => [c.user_id, c.timezone]));
+    for (const c of (contas ?? []) as { user_id: string; refresh_token: string; calendar_id: string }[]) {
+      conectados.add(c.user_id);
+      destinos.push({ userId: c.user_id, fuso: fusos.get(c.user_id) || "America/Sao_Paulo", calendarId: c.calendar_id, acesso: acessoDaPessoa(supabase, c.user_id, c.refresh_token), oauth: true });
+    }
+    r.contas = destinos.length;
+  }
+
+  // Caminho 2: o dono pela conta de serviço (se ele ainda não conectou a própria conta).
+  const servico = lerContaDeServico(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+  const agenda = (process.env.GOOGLE_CALENDAR_ID ?? "").trim();
+  if (servico && agenda) {
+    const { data: donos, error } = await supabase.from("settings").select("user_id, timezone").eq("feature_flags->>modo_dono", "true");
+    if (error) r.erros.push(`donos: ${error.message}`);
+    for (const dono of donos ?? []) {
+      if (conectados.has(dono.user_id)) continue;
+      destinos.push({ userId: dono.user_id, fuso: dono.timezone || "America/Sao_Paulo", calendarId: agenda, acesso: () => tokenDeAcesso(servico), oauth: false });
+    }
+  }
+
+  r.ligado = destinos.length > 0;
+  for (const d of destinos) {
+    try {
+      await espelharUsuario(supabase, d, r);
+    } catch (e) {
+      r.erros.push(`${d.userId}: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
   return r;

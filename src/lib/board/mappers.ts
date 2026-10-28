@@ -106,6 +106,7 @@ export function rowToTask(row: TaskRow): Task {
     deletedAt: row.deleted_at,
     projectId: row.project_id,
     client: row.client,
+    guests: row.convidados ?? [],
   };
 }
 
@@ -137,6 +138,7 @@ export function taskToRow(t: Partial<Task> & { id: string }, userId: string): Ta
   if (t.deletedAt !== undefined) row.deleted_at = t.deletedAt;
   if (t.projectId !== undefined) row.project_id = t.projectId;
   if (t.client !== undefined) row.client = t.client;
+  if (t.guests !== undefined) row.convidados = t.guests;
   return row;
 }
 
@@ -171,6 +173,7 @@ export function taskToInsertRow(t: Task, userId: string): TablesInsert<"tasks"> 
     deleted_at: t.deletedAt,
     project_id: t.projectId,
     client: t.client,
+    convidados: t.guests,
   };
 }
 

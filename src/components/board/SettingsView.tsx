@@ -31,6 +31,7 @@ import {
 import { temConteudo } from "@/lib/html-para-markdown";
 import {
   ArchiveIcon,
+  CalendarCheckIcon,
   CommentIcon,
   BellIcon,
   BoltIcon,
@@ -711,6 +712,128 @@ function RestauradorBox() {
             </>
           )}
         </div>
+      )}
+    </CollapsibleBox>
+  );
+}
+
+type SituacaoDoGoogle = {
+  ok: boolean;
+  disponivel?: boolean;
+  conectado?: boolean;
+  precisaReconectar?: boolean;
+  email?: string | null;
+  agendaId?: string;
+  agendaNome?: string | null;
+  erro?: string | null;
+  agendas?: { id: string; nome: string; principal: boolean }[];
+};
+
+const MENSAGENS_DO_GOOGLE: Record<string, string> = {
+  ok: "Pronto! Seu Google está conectado.",
+  negado: "A conexão foi cancelada. Se foi sem querer, clique em Conectar de novo.",
+  erro: "Não consegui conectar. Tente de novo; se repetir, avise pelo Canal de feedback.",
+  indisponivel: "A conexão com o Google ainda não está ligada neste FARO.",
+  "sem-agenda": "Não encontrei uma agenda em que o FARO possa gravar nessa conta.",
+};
+
+/**
+ * "Conectar com o Google": o FARO passa a gravar as reuniões e eventos na agenda da própria pessoa, e os convidados
+ * recebem o convite do Google. Mão única por enquanto (FARO → Google).
+ */
+function GoogleAgendaBox() {
+  const [sit, setSit] = useState<SituacaoDoGoogle | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
+  const [ocupado, setOcupado] = useState(false);
+
+  async function carregar() {
+    try {
+      const r = await fetch("/api/google/status");
+      setSit(await r.json());
+    } catch {
+      setSit({ ok: false });
+    }
+  }
+
+  useEffect(() => {
+    let vivo = true;
+    fetch("/api/google/status")
+      .then((r) => r.json())
+      .then((j) => vivo && setSit(j))
+      .catch(() => vivo && setSit({ ok: false }));
+    try {
+      const volta = window.sessionStorage.getItem("faro:google-retorno");
+      if (volta) {
+        window.sessionStorage.removeItem("faro:google-retorno");
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- recado único da volta do Google, lido do armazenamento do navegador
+        setAviso(MENSAGENS_DO_GOOGLE[volta] ?? null);
+      }
+    } catch {
+      /* sem armazenamento: só não mostra o recado */
+    }
+    return () => {
+      vivo = false;
+    };
+  }, []);
+
+  async function trocarAgenda(agendaId: string) {
+    setOcupado(true);
+    await fetch("/api/google/agenda", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ agendaId }) }).catch(() => {});
+    await carregar();
+    setOcupado(false);
+  }
+
+  async function desconectar() {
+    setOcupado(true);
+    await fetch("/api/google/desconectar", { method: "POST" }).catch(() => {});
+    await carregar();
+    setOcupado(false);
+  }
+
+  const conectado = sit?.conectado === true;
+  return (
+    <CollapsibleBox title="Agenda do Google" icon={<CalendarCheckIcon />} resumo={conectado ? `Conectada${sit?.email ? ` (${sit.email})` : ""}` : "Reuniões e eventos na sua agenda, com convidados"}>
+      <div className="hint-text" style={{ marginTop: 0, marginBottom: 8 }}>
+        Conectando, o FARO grava suas <strong>reuniões e eventos</strong> na sua agenda do Google. Se a reunião tiver <strong>convidados</strong>, o Google manda o convite
+        por e-mail. Vai só do FARO para o Google: o que você criar direto no Google ainda não aparece aqui.
+      </div>
+      {aviso && <div className="hint-text" style={{ marginBottom: 8 }}><strong>{aviso}</strong></div>}
+      {sit === null ? (
+        <div className="hint-text">Carregando...</div>
+      ) : sit.disponivel === false ? (
+        <div className="hint-text">Ainda não está ligado neste FARO.</div>
+      ) : !conectado ? (
+        <>
+          <a className="btn btn-accent" href="/api/google/conectar">Conectar com o Google</a>
+          <div className="hint-text">
+            Na fase de teste, o Google só deixa conectar quem eu cadastrei antes. Se aparecer um aviso de “acesso bloqueado”, me mande o seu e-mail do Google pelo Canal de feedback.
+          </div>
+        </>
+      ) : (
+        <>
+          {sit.precisaReconectar && (
+            <div className="hint-text" style={{ marginBottom: 8 }}>
+              <strong>O Google retirou a permissão.</strong> <a href="/api/google/conectar">Conectar de novo</a>.
+            </div>
+          )}
+          {sit.erro && !sit.precisaReconectar && <div className="hint-text" style={{ marginBottom: 8 }}>Último problema: {sit.erro}</div>}
+          {(sit.agendas ?? []).length > 1 && (
+            <label style={{ display: "block", marginBottom: 8 }}>
+              <span className="settings-label">Gravar na agenda</span>
+              <select className="input" value={sit.agendaId} disabled={ocupado} onChange={(e) => trocarAgenda(e.target.value)}>
+                {(sit.agendas ?? []).map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.nome}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          <button type="button" className="btn btn-ghost" disabled={ocupado} onClick={desconectar}>
+            Desconectar
+          </button>
+          <div className="hint-text">Desconectar não apaga os eventos que já estão na sua agenda.</div>
+        </>
       )}
     </CollapsibleBox>
   );
@@ -2367,6 +2490,7 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
           </GrupoDeConfiguracao>
 
           <GrupoDeConfiguracao id="conexoes">
+            <GoogleAgendaBox />
             <ConectorFaroBox />
           </GrupoDeConfiguracao>
 

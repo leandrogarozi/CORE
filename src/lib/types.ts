@@ -71,6 +71,7 @@ export interface Task {
   deletedAt: string | null; // ISO datetime — soft delete, tarefa vai pra Lixeira em vez de sumir na hora
   projectId: string | null; // vincula essa tarefa como etapa de um Projeto (PDA)
   client: string | null; // nome do cliente — usado quando é reunião, pra agrupar na aba Reuniões
+  guests: string[]; // e-mails dos convidados de uma reunião/evento; com o Google conectado, o convite sai da agenda da pessoa
 }
 
 // Reunião = categoria ou 2ª categoria "reuniao" — cobre tanto reunião criada

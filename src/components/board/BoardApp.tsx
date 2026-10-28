@@ -102,6 +102,20 @@ function BoardShell() {
     window.addEventListener("faro:tutorial", abrir);
     return () => window.removeEventListener("faro:tutorial", abrir);
   }, []);
+  // A volta do "Conectar com o Google" chega como ?google=ok (ou um erro): abre as Configurações e deixa o recado para a caixa do Google.
+  useEffect(() => {
+    const volta = new URLSearchParams(window.location.search).get("google");
+    if (!volta) return;
+    try {
+      window.sessionStorage.setItem("faro:google-retorno", volta);
+    } catch {
+      /* sem armazenamento: abre as Configurações sem recado */
+    }
+    window.history.replaceState(null, "", window.location.pathname);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- a volta do Google é lida da URL, só no navegador, uma vez
+    setViewMode("settings");
+    setTimeout(() => document.getElementById("cfg-conexoes")?.scrollIntoView({ block: "start" }), 400);
+  }, []);
   const [metaCheia, setMetaCheia] = useState(false);
   // Frase do cartão da tela inicial que a pessoa quis abrir (ou editar) na Metanoia.
   const [metaAlvo, setMetaAlvo] = useState<{ id: string; editar: boolean } | null>(null);
