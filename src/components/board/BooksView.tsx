@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { EnviarBtn } from "./EnviarBtn";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { AttachmentsButton } from "./AttachmentsButton";
@@ -612,6 +613,7 @@ export function BooksView({ onBack }: { onBack: () => void }) {
               onChange={(e) => setNewTitle(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             />
+            <EnviarBtn onClick={() => handleAdd()} label="Adicionar" />
           </div>
         </div>
 

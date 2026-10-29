@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { EnviarBtn } from "./EnviarBtn";
 import { useBoardCtx } from "./board-context";
 import { CheckIcon, ChevronIcon, DownloadIcon, TrashIcon, UserIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
@@ -429,6 +430,7 @@ export function ConhecendoView({ onBack }: { onBack: () => void }) {
                 onChange={(e) => setNovoTitulo(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && escrever()}
               />
+              <EnviarBtn onClick={() => escrever()} label="Adicionar" />
             </div>
           </div>
         )}

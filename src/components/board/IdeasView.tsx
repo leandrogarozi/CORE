@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { EnviarBtn } from "./EnviarBtn";
 import { useBoardCtx } from "./board-context";
 import { SynapseCard } from "./SynapsesView";
 import { MicButton } from "./MicButton";
@@ -154,6 +155,7 @@ export function IdeasView({ onBack }: { onBack: () => void }) {
               onBlur={handleAdd}
             />
             <MicButton onText={(t) => setNewTitle((v) => (v ? `${v} ${t}` : t))} ariaLabel="Ditar o título da ideia" />
+            <EnviarBtn onClick={() => handleAdd()} label="Adicionar" />
           </div>
         </div>
 

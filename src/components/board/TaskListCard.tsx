@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { EnviarBtn } from "./EnviarBtn";
 import { useBoardCtx } from "./board-context";
 import { TaskRow } from "./TaskRow";
 import { MicButton } from "./MicButton";
@@ -184,6 +185,7 @@ export function TaskListCard({
           }}
           ariaLabel="Falar uma tarefa"
         />
+        <EnviarBtn onClick={() => handleAdd()} label="Adicionar a tarefa" />
       </div>
       {!items.length && <div className="empty-row">{emptyLabel}</div>}
       {items.length > 0 && (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { EnviarBtn } from "./EnviarBtn";
 import { useBoardCtx } from "./board-context";
 import { NoteField } from "./NoteField";
 import { MicButton } from "./MicButton";
@@ -506,6 +507,7 @@ export function StudyPlansView({ onBack }: { onBack: () => void }) {
               onBlur={handleAdd}
             />
             <MicButton onText={(t) => setNewName((v) => (v ? `${v} ${t}` : t))} ariaLabel="Ditar o nome do estudo" />
+            <EnviarBtn onClick={() => handleAdd()} label="Criar o estudo" />
           </div>
         </div>
 

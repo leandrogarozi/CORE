@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { EnviarBtn } from "./EnviarBtn";
 import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
 import { MicButton } from "./MicButton";
@@ -823,6 +824,12 @@ function AssetCard({ asset }: { asset: MaintenanceAsset }) {
 
   const proximos = itens.filter((i) => maintenanceStatus(i, asset, readings).state === "proximo").length;
 
+  function adicionarItem() {
+    if (!novoItem.trim()) return;
+    board.addMaintenanceItem(asset.id, novoItem, null, null);
+    setNovoItem("");
+  }
+
   return (
     <div className={"maint-asset" + (aberto ? " open" : "")}>
       <div className="maint-asset-head">
@@ -1018,12 +1025,11 @@ function AssetCard({ asset }: { asset: MaintenanceAsset }) {
             value={novoItem}
             onChange={(e) => setNovoItem(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key !== "Enter" || !novoItem.trim()) return;
-              board.addMaintenanceItem(asset.id, novoItem, null, null);
-              setNovoItem("");
+              if (e.key === "Enter") adicionarItem();
             }}
           />
           <MicButton onText={(t) => setNovoItem((v) => (v ? `${v} ${t}` : t))} ariaLabel="Ditar o item" />
+          <EnviarBtn onClick={adicionarItem} label="Adicionar o item" />
         </div>
       )}
     </div>
@@ -1092,6 +1098,7 @@ export function MaintenanceView({ onBack }: { onBack: () => void }) {
                 </option>
               ))}
             </select>
+            <EnviarBtn onClick={() => adicionar()} label="Adicionar" />
           </div>
         </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { EnviarBtn } from "./EnviarBtn";
 import { useBoardCtx } from "./board-context";
 import { NoteField } from "./NoteField";
 import { StudyParts } from "./StudyParts";
@@ -252,6 +253,7 @@ export function SynapsesView({ onBack }: { onBack: () => void }) {
               onBlur={handleAdd}
             />
             <MicButton onText={(t) => setNewTitle((v) => (v ? `${v} ${t}` : t))} ariaLabel="Ditar a sinapse" />
+            <EnviarBtn onClick={() => handleAdd()} label="Adicionar" />
           </div>
         </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { EnviarBtn } from "./EnviarBtn";
 import { useBoardCtx } from "./board-context";
 import { MicButton } from "./MicButton";
 import { TimePicker } from "./TimePicker";
@@ -362,6 +363,7 @@ function Listas({ aba, aberta, onAbrir }: { aba: Aba; aberta: string | null; onA
             onBlur={criar}
           />
           <MicButton onText={(t) => setNovaLista((v) => (v ? `${v} ${t}` : t))} ariaLabel="Ditar o nome da lista" />
+          <EnviarBtn onClick={() => criar()} label="Criar a lista" />
         </div>
       </div>
       {!listas.length && (
@@ -538,6 +540,7 @@ function ListaAberta({ listaId, onVoltar, embutida = false }: { listaId: string;
             onBlur={adicionar}
           />
           <MicButton onText={(t) => setNovo((v) => (v ? `${v} ${t}` : t))} ariaLabel="Ditar o produto" />
+          <EnviarBtn onClick={() => adicionar()} label="Adicionar o produto" />
         </div>
       </div>
 

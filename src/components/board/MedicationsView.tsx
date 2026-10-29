@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { EnviarBtn } from "./EnviarBtn";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
@@ -480,6 +481,7 @@ function MedicationGroupCard({ group, medications }: { group: MedicationGroup; m
               onChange={(e) => setNewMedName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddMedication()}
             />
+            <EnviarBtn onClick={() => handleAddMedication()} label="Adicionar o remédio" />
           </div>
         </>
       )}
@@ -541,6 +543,7 @@ export function MedicationsView({ onBack }: { onBack: () => void }) {
               onChange={(e) => setNewGroupName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddGroup()}
             />
+            <EnviarBtn onClick={() => handleAddGroup()} label="Adicionar o tratamento" />
           </div>
         </div>
         {groups.length === 0 ? (
@@ -577,6 +580,7 @@ export function MedicationsView({ onBack }: { onBack: () => void }) {
               onChange={(e) => setNewMedName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddMedication()}
             />
+            <EnviarBtn onClick={() => handleAddMedication()} label="Adicionar o remédio" />
           </div>
         </div>
         <div className="med-recorrentes">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { EnviarBtn } from "./EnviarBtn";
 import { useBoardCtx } from "./board-context";
 import { StatusPicker } from "./StatusPicker";
 import { TaskEditRow } from "./TaskRow";
@@ -49,16 +50,19 @@ function DiaDaSemana({ iso, date, hoje, tasks }: { iso: string; date: Date; hoje
           </div>
         )
       )}
-      <input
-        type="text"
-        id={`qa-week-${iso}`}
-        className="week-quickadd"
-        placeholder="Adicionar tarefa e pressionar Enter"
-        value={novo}
-        onChange={(e) => setNovo(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && adicionar()}
-        onBlur={adicionar}
-      />
+      <div className="week-quickadd-linha">
+        <input
+          type="text"
+          id={`qa-week-${iso}`}
+          className="week-quickadd"
+          placeholder="Adicionar tarefa e pressionar Enter"
+          value={novo}
+          onChange={(e) => setNovo(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && adicionar()}
+          onBlur={adicionar}
+        />
+        <EnviarBtn onClick={adicionar} label="Adicionar a tarefa" />
+      </div>
     </section>
   );
 }

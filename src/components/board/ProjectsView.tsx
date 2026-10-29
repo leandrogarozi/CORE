@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { EnviarBtn } from "./EnviarBtn";
 import { createPortal } from "react-dom";
 import { useBoardCtx } from "./board-context";
 import { AttachmentsButton } from "./AttachmentsButton";
@@ -134,6 +135,7 @@ function ProjectListView({ onBack, onOpen }: { onBack: () => void; onOpen: (id: 
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             />
+            <EnviarBtn onClick={() => handleAdd()} label="Criar o projeto" />
           </div>
         </div>
 
@@ -447,6 +449,7 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
                 onKeyDown={(e) => e.key === "Enter" && addStep()}
                 onBlur={addStep}
               />
+              <EnviarBtn onClick={() => addStep()} label="Adicionar a etapa" />
             </div>
             {steps.length === 0 ? (
               <div className="empty-row">Nenhuma etapa vinculada ainda.</div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { EnviarBtn } from "./EnviarBtn";
 import { useBoardCtx } from "./board-context";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { NoteField } from "./NoteField";
@@ -661,6 +662,7 @@ function ChecklistRow({
                   onChange={(e) => setNewItemText(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addItem()}
                 />
+                <EnviarBtn onClick={() => addItem()} label="Adicionar o item" />
               </div>
             </>
           )}
@@ -771,6 +773,7 @@ export function ChecklistsView({ onBack }: { onBack: () => void }) {
                 <option key={t} value={t} />
               ))}
             </datalist>
+            <EnviarBtn onClick={() => handleAdd()} label="Criar o checklist" />
           </div>
         </div>
 
