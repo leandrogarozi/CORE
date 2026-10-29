@@ -96,3 +96,13 @@ export async function PATCH(req: NextRequest) {
   if (error) return NextResponse.json({ erro: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }
+
+/** Exclui um feedback de vez (só o dono). Corpo: { id }. */
+export async function DELETE(req: NextRequest) {
+  if (!(await donoLogado())) return NextResponse.json({ erro: "so_dono" }, { status: 403 });
+  const corpo = (await req.json().catch(() => null)) as { id?: unknown } | null;
+  if (typeof corpo?.id !== "string") return NextResponse.json({ erro: "pedido_invalido" }, { status: 400 });
+  const { error } = await createServiceClient().from("faro_feedback").delete().eq("id", corpo.id);
+  if (error) return NextResponse.json({ erro: error.message }, { status: 500 });
+  return NextResponse.json({ ok: true });
+}

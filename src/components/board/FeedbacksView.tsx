@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CheckIcon, CommentIcon } from "./icons";
+import { useBoardCtx } from "./board-context";
+import { CommentIcon, TrashIcon } from "./icons";
 
 /**
  * Feedbacks recebidos (só o dono vê). Cada mensagem enviada pelo "Canal de feedback" fica guardada para sempre
@@ -33,12 +34,13 @@ function aparelhoCurto(ua: string | null): string {
   return so ? `${nav} no ${so}` : nav;
 }
 
-type Aba = "novos" | "lidos" | "todos";
+type Aba = "aresolver" | "resolvidos" | "todos";
 
 export function FeedbacksView({ onBack }: { onBack: () => void }) {
+  const { askConfirm } = useBoardCtx();
   const [lista, setLista] = useState<Feedback[] | null>(null);
   const [erro, setErro] = useState<string | null>(null);
-  const [aba, setAba] = useState<Aba>("novos");
+  const [aba, setAba] = useState<Aba>("aresolver");
 
   const carregar = useCallback(async () => {
     try {
@@ -62,9 +64,14 @@ export function FeedbacksView({ onBack }: { onBack: () => void }) {
     await fetch("/api/feedback", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: f.id, lido }) }).catch(() => {});
   }
 
-  const novos = (lista ?? []).filter((f) => !f.lido_em);
-  const lidos = (lista ?? []).filter((f) => !!f.lido_em);
-  const visiveis = aba === "novos" ? novos : aba === "lidos" ? lidos : lista ?? [];
+  async function excluir(f: Feedback) {
+    setLista((l) => (l ? l.filter((x) => x.id !== f.id) : l));
+    await fetch("/api/feedback", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: f.id }) }).catch(() => {});
+  }
+
+  const aResolver = (lista ?? []).filter((f) => !f.lido_em);
+  const resolvidos = (lista ?? []).filter((f) => !!f.lido_em);
+  const visiveis = aba === "aresolver" ? aResolver : aba === "resolvidos" ? resolvidos : lista ?? [];
 
   return (
     <div className="section">
@@ -76,12 +83,12 @@ export function FeedbacksView({ onBack }: { onBack: () => void }) {
         <span style={{ width: 32 }} />
       </div>
       <div className="narrow-list">
-        <p className="hint-text">Tudo o que as pessoas mandaram pelo Canal de feedback fica guardado aqui. Marque como lido quando resolver; nada some.</p>
+        <p className="hint-text">Tudo o que as pessoas mandaram pelo Canal de feedback fica guardado aqui. Marque a caixinha quando resolver: o que não está marcado fica em &ldquo;A resolver&rdquo;.</p>
         <div className="view-toggle">
           {(
             [
-              ["novos", `Novos (${novos.length})`],
-              ["lidos", `Lidos (${lidos.length})`],
+              ["aresolver", `A resolver (${aResolver.length})`],
+              ["resolvidos", `Resolvidos (${resolvidos.length})`],
               ["todos", `Todos (${lista?.length ?? 0})`],
             ] as const
           ).map(([v, rotulo]) => (
@@ -94,7 +101,7 @@ export function FeedbacksView({ onBack }: { onBack: () => void }) {
         {lista === null && !erro && <div className="hint-text">Carregando...</div>}
         {lista !== null && visiveis.length === 0 && (
           <div className="list-card">
-            <div className="hp-empty">{aba === "novos" ? "Nenhum feedback novo. Tudo lido." : "Nada por aqui ainda."}</div>
+            <div className="hp-empty">{aba === "aresolver" ? "Nada a resolver. Tudo resolvido." : "Nada por aqui ainda."}</div>
           </div>
         )}
         {visiveis.map((f) => (
@@ -113,15 +120,21 @@ export function FeedbacksView({ onBack }: { onBack: () => void }) {
                 {f.pagina && f.aparelho ? " · " : ""}
                 {aparelhoCurto(f.aparelho)}
               </span>
-              {f.lido_em ? (
-                <button type="button" className="link-acao" onClick={() => marcar(f, false)}>
-                  Voltar para novos
+              <span className="fb-acoes">
+                <label className="fb-check">
+                  <input type="checkbox" checked={!!f.lido_em} onChange={(e) => marcar(f, e.target.checked)} />
+                  <span>{f.lido_em ? "Resolvido" : "A resolver"}</span>
+                </label>
+                <button
+                  type="button"
+                  className="icon-btn danger-hover"
+                  title="Excluir este feedback"
+                  aria-label="Excluir este feedback"
+                  onClick={() => askConfirm("Tem certeza que deseja excluir este feedback? Essa ação não pode ser desfeita.", () => excluir(f))}
+                >
+                  <TrashIcon />
                 </button>
-              ) : (
-                <button type="button" className="btn btn-ghost" onClick={() => marcar(f, true)}>
-                  <CheckIcon /> Marcar como lido
-                </button>
-              )}
+              </span>
             </div>
           </article>
         ))}

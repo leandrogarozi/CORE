@@ -4023,3 +4023,7 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .fb-texto{ margin:0; font-size:14px; line-height:1.55; white-space:pre-wrap; overflow-wrap:anywhere; }
 .fb-rodape{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
 .fb-meta{ font-size:11.5px; color:var(--text-faint); }
+.fb-acoes{ display:inline-flex; align-items:center; gap:10px; }
+.fb-check{ display:inline-flex; align-items:center; gap:8px; font-size:13px; cursor:pointer; }
+.fb-check input{ width:18px; height:18px; accent-color:var(--accent); }
+.fb-card.lido .fb-texto{ text-decoration:line-through; text-decoration-color:var(--text-faint); }
