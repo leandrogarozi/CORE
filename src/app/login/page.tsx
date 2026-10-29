@@ -136,7 +136,6 @@ export default function LoginPage() {
     return (
       <div className="auth-wrap">
         <div className="auth-card auth-sucesso" role="status">
-          <AuthMarca />
           <span className="auth-sucesso-selo" aria-hidden="true">
             <CheckIcon />
           </span>
@@ -144,7 +143,13 @@ export default function LoginPage() {
           <p className="auth-sucesso-texto">
             Enviamos um e-mail de confirmação para <strong>{contaCriadaPara}</strong>. Abra o e-mail e toque em <strong>confirmar</strong> para ativar o seu acesso. Depois é só entrar.
           </p>
-          <p className="auth-sucesso-dica">Não chegou? Veja a caixa de spam e a de promoções. Pode levar alguns minutos.</p>
+          <p className="auth-sucesso-dica">
+            Não chegou?
+            <br />
+            Veja a caixa de spam e a de promoções.
+            <br />
+            Pode levar alguns minutos.
+          </p>
           {reenvio && <div className="auth-message">{reenvio}</div>}
           <button type="button" className="auth-submit" onClick={voltarParaEntrar}>
             Já confirmei, quero entrar
