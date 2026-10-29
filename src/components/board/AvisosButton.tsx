@@ -33,6 +33,7 @@ const ONDE: Record<string, { rotulo: string; modo: ViewMode }> = {
   day: { rotulo: "Ver as tarefas", modo: "day" },
   reminders: { rotulo: "Abrir Lembretes", modo: "reminders" },
   manutencao: { rotulo: "Abrir Manutenção", modo: "manutencao" },
+  feedbacks: { rotulo: "Ver feedbacks", modo: "feedbacks" },
 };
 
 function quando(iso: string): string {

@@ -30,6 +30,7 @@ export type ViewMode =
   | "metanoia"
   | "tutorial"
   | "embreve"
+  | "feedbacks"
   | "trash";
 
 type ItemDoMenu = {
@@ -71,6 +72,7 @@ export const GRUPOS_DO_MENU: { titulo: string; itens: ItemDoMenu[] }[] = [
       { modo: "aniversarios", rotulo: "Aniversários", icone: <GiftIcon />, selo: "aniversarios" },
       { modo: "cadastros", rotulo: "Cadastros", icone: <LinkIcon />, somenteDono: true },
       { modo: "clientes", rotulo: "Clientes", icone: <UsersGroupIcon />, somenteDono: true },
+      { modo: "feedbacks", rotulo: "Feedbacks recebidos", icone: <CommentIcon />, somenteDono: true },
     ],
   },
   {

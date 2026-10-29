@@ -1,22 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/server";
+import { donoLogado } from "@/lib/supabase/dono";
 import { createServiceClient } from "@/lib/supabase/service";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-
-/** Quem é o dono do FARO (conta marcada no banco), ou null. Só ele usa o restaurador. */
-async function donoLogado() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data } = await supabase.from("settings").select("feature_flags").eq("user_id", user.id).maybeSingle();
-  const flags = (data?.feature_flags ?? {}) as Record<string, boolean>;
-  return flags.modo_dono === true ? user.id : null;
-}
 
 /** As cópias diárias guardadas no banco para a conta do dono (mais nova primeiro). */
 export async function GET() {
