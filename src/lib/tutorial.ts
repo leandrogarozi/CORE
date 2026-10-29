@@ -296,6 +296,9 @@ export const TUTORIAL: SecaoDoTutorial[] = [
     linhas: [
       "Todo dia o FARO tira uma cópia de tudo que é seu e guarda as últimas 14.",
       "Em Configurações > Dados e backup você também baixa uma cópia sua, em texto, para guardar onde quiser (no seu Drive, por exemplo). Uma vez por semana o FARO lembra você de baixar.",
+      "Levar o seu aprendizado para outro lugar, passo a passo: 1) em Configurações > Dados e backup, abra “Backup de aprendizado (.zip de textos)”; 2) escolha o que entra (Conhecendo você, Sinapses, Ideias, Livros, Metanoia...); 3) toque em gerar e baixe o .zip; 4) abra o .zip: cada item é um arquivo de texto (.md, Markdown); 5) arraste a pasta para o seu Google Drive, ou abra a pasta no Obsidian, ou suba os arquivos numa conversa ou projeto da sua IA (Claude, ChatGPT...). Assim o que você aprendeu no FARO vai com você.",
+      "Quer que a sua IA leia tudo sem baixar nada? Use o Conector (Configurações > Conexões): ela lê o que você aprovou direto do FARO.",
+      "O “Backup completo do app (.json)” é o cofre técnico, com todas as áreas, para restaurar o app se algo der errado. Ninguém lê; o de texto, acima, é o que você usa para levar o seu aprendizado.",
     ],
   },
   {
