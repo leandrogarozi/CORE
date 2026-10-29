@@ -33,7 +33,7 @@ PARA QUE VOCÊ SERVE:
 4. Anotar por ele, usando as ferramentas: criar lembrete, criar tarefa, adicionar pessoa à lista de aniversários (uma chamada por pessoa; precisa de dia e mês; se ele pedir o lembrete no WhatsApp já na criação, marque), ligar ou desligar o sininho e o WhatsApp do aniversário de quem já está na lista, marcar tarefa como feita, criar reunião, acrescentar texto na anotação de uma tarefa ou reunião (pauta, decisões, próximos passos; sempre só acrescenta), anotar gasto em checklist, e registrar no dia de hoje o humor, o sono (hora de acordar e de dormir), a água e a % da dieta.
 
 5. Reajustar plano de estudo: compare o tempo planejado com o REAL (seção ESTUDOS, por módulo) e, se o plano não fecha no prazo ou o ritmo real é outro, proponha o ajuste com a ferramenta. Explique em 1 ou 2 frases com os números. As sessões já feitas e o tempo registrado nunca são apagados.
-6. Ensinar a usar o FARO: quando ele perguntar como usar uma parte do app ou o que um ícone significa, explique com o MANUAL DO FARO que vem no fim desta instrução (quando vier). Diga onde clicar e os passos, em poucas linhas; se o manual não cobrir, diga que não sabe e sugira o item Como usar do menu.
+6. Ensinar a usar o FARO: quando ele perguntar como usar uma parte do app ou o que um ícone significa, explique com o MANUAL DO FARO que vem no fim desta instrução (quando vier). Diga onde clicar e os passos, numerados (1., 2., 3.), em poucas linhas; se o manual não cobrir, diga que não sabe e sugira o item Como usar do menu. A tela mostra texto puro: NÃO use markdown (nada de ** nem # nem _) em nenhuma resposta.
 
 AÇÕES: quando ele pedir algo que uma ferramenta faz, CHAME a ferramenta (não só diga que fez). Ele confirma na tela antes de gravar, então não pergunte "posso criar?": proponha direto e escreva uma frase curta. Resolva datas relativas ("amanhã", "sexta") com a data de hoje do resumo. Lembrete exige data E hora: se faltar a hora, pergunte só a hora. Gasto exige o valor e o checklist: se ele não disser qual checklist e houver mais de um com Gastos ligado, pergunte qual.
 
@@ -65,9 +65,17 @@ export function prepararMensagens(entrada: unknown): MensagemDaConversa[] {
   return ultimas;
 }
 
-/** A pessoa está pedindo para ser ensinada a usar o app? ("como uso...", "me ensina...", "o que significa..."). */
+/**
+ * A pessoa está pedindo para ser ensinada a usar o app? Pega "como + qualquer verbo" ("como instalar", "como uso",
+ * "como posso cancelar"), pedidos de ajuda ("me ensina", "passo a passo", "não sei como") e perguntas de "onde fica /
+ * o que significa". O manual é grande, então só vai quando isto casa.
+ */
 export function pedeAjudaDeUso(texto: string): boolean {
-  return /\b(como\s+(eu\s+)?(uso|usar|faço|fazer|funciona|ativo|ativar|ligo|ligar|conecto|conectar|configuro|configurar|crio|criar)|me\s+ensina|ensina|explica|tutorial|o\s+que\s+(é|significa|faz)|para\s+que\s+serve|pra\s+que\s+serve|onde\s+(fica|acho|está|encontro))\b/i.test(texto);
+  const t = texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const comoVerbo = /(^|[^a-z])como\s+(eu\s+)?(posso\s+|faco\s+(para|pra)\s+|consigo\s+|devo\s+)?[a-z]+(ar|er|ir|or)([^a-z]|$)/;
+  const comoConjugado = /(^|[^a-z])como\s+(eu\s+)?(uso|faco|funciona|ativo|ligo|conecto|configuro|crio|instalo|baixo|abro|adiciono|cadastro|cancelo|marco|edito|excluo|apago|mudo|troco|vejo|acho|acesso|entro|salvo|envio|mando|lembro|aviso|desligo|deixo|coloco|tiro|volto|importo|exporto)([^a-z]|$)/;
+  const pedido = /(me\s+ensina|ensina|explica|tutorial|passo\s+a\s+passo|nao\s+sei\s+(como|usar|onde)|nao\s+consigo|tem\s+como|da\s+(pra|para)\s+\w+|o\s+que\s+(e|significa|faz)|para\s+que\s+serve|pra\s+que\s+serve|onde\s+(fica|acho|esta|encontro|clico)|instalar|instalacao|ajuda\b)/;
+  return comoVerbo.test(t) || comoConjugado.test(t) || pedido.test(t);
 }
 
 /**
