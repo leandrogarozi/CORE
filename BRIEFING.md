@@ -6399,3 +6399,6 @@ Feito a partir do que o Leandro viu usando as contas de teste:
 ### Botão "enviar" nos campos de adicionar, para o celular (29/10)
 - Pedido do Leandro: no celular (ex.: adicionar livro) só dava para cadastrar apertando o Enter do teclado. Novo componente `EnviarBtn.tsx` (botão redondo com o aviãozinho, `.quickadd-enviar`, 40px no celular) colocado ao lado de todos os campos que criam algo com Enter: tarefas (dia e Semana), livros/filmes/séries, ideias, sinapses, projetos (projeto e etapa), checklists (checklist e item), Compras (lista e produto), Medicamentos (3 campos), Manutenção (item e cadastro), Plano de Estudo e Conhecendo você. Os campos que já tinham botão de texto ("Adicionar", "Lançar", "Criar") ficaram como estavam; Lembretes já tinha.
 - Conferido em tela só numa página de teste no tamanho de celular (390px); não foi aberto o app logado.
+
+### Metanoia: excluir direto na aba "Não listadas" (29/10)
+- As frases marcadas como "não listar mais" já iam para a aba **Não listadas** (com "Voltar a listar"), mas excluir só existia dentro do editor. Agora cada cartão dessa aba tem a **lixeira "Excluir de vez"** (com confirmação, não dá para desfazer), ao lado de "Voltar a listar" e do lápis.

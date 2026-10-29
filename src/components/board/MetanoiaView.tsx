@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { TimePicker } from "./TimePicker";
-import { CheckIcon, EditIcon, EyeOffIcon, HeartIcon } from "./icons";
+import { TrashIcon, CheckIcon, EditIcon, EyeOffIcon, HeartIcon } from "./icons";
 import { MicButton } from "./MicButton";
 import { ImportarFrases } from "./ImportarFrases";
 import { todayISO } from "@/lib/date-utils";
@@ -110,7 +110,7 @@ function EditorDaFrase({ frase, onFechar }: { frase: MetanoiaFrase; onFechar: ()
 }
 
 function Cartao({ frase, aprovando, naoListada }: { frase: MetanoiaFrase; aprovando: boolean; naoListada: boolean }) {
-  const { board } = useBoardCtx();
+  const { board, askConfirm } = useBoardCtx();
   const [editando, setEditando] = useState(false);
 
   if (editando) return <EditorDaFrase frase={frase} onFechar={() => setEditando(false)} />;
@@ -129,6 +129,22 @@ function Cartao({ frase, aprovando, naoListada }: { frase: MetanoiaFrase; aprova
         {naoListada && (
           <button type="button" className="btn btn-ghost" onClick={() => board.updateMetanoiaFrase(frase.id, { status: "aprovada" })}>
             Voltar a listar
+          </button>
+        )}
+        {naoListada && (
+          <button
+            type="button"
+            className="icon-btn danger-hover"
+            title="Excluir de vez"
+            aria-label={frase.tipo === "pergunta" ? "Excluir a pergunta de vez" : "Excluir a frase de vez"}
+            onClick={() =>
+              askConfirm(
+                frase.tipo === "pergunta" ? "Excluir essa pergunta de vez? Não dá para desfazer." : "Excluir essa frase de vez? Não dá para desfazer.",
+                () => board.deleteMetanoiaFrase(frase.id)
+              )
+            }
+          >
+            <TrashIcon />
           </button>
         )}
         {aprovando && (
