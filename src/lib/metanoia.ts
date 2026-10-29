@@ -145,27 +145,49 @@ export function horariosDePerguntasEmUso(vezes: number, inicio: string, fim: str
   return horariosDaJanela(vezes, inicio, fim, MAX_PERGUNTAS_POR_DIA);
 }
 
-/**
- * O que está em destaque agora: o que o FARO mandou por último hoje (frase ou pergunta, nos horários que a pessoa
- * escolheu). Antes da primeira do dia, a primeira frase. O cartão da tela inicial e o bloco "Hoje" da Metanoia
- * usam esta mesma conta, para mostrarem sempre a mesma frase.
- */
-export function fraseEmDestaque(frases: MetanoiaFrase[], s: Settings, diaISO: string, agora: Date, passos = 0): MetanoiaFrase | null {
-  const min = agora.getHours() * 60 + agora.getMinutes();
-  let melhor: { quando: number; tipo: MetanoiaTipo; slot: number } = { quando: -1, tipo: "frase", slot: 0 };
+function somaDias(iso: string, dias: number): string {
+  const [a, m, d] = iso.split("-").map(Number);
+  return new Date(Date.UTC(a, m - 1, d + dias)).toISOString().slice(0, 10);
+}
+
+/** Os horários do dia, frases e perguntas juntos, em ordem. `slot` é a posição dentro do próprio tipo. */
+function agendaDoDia(s: Settings): { min: number; tipo: MetanoiaTipo; slot: number }[] {
   const grupos: [MetanoiaTipo, string[]][] = [
     ["frase", horariosEmUso(s.metanoiaVezes, s.metanoiaInicio, s.metanoiaFim)],
     ["pergunta", horariosDePerguntasEmUso(s.metanoiaPerguntasVezes, s.metanoiaPerguntasInicio, s.metanoiaPerguntasFim)],
   ];
-  for (const [tipo, horarios] of grupos) {
-    horarios.forEach((h, slot) => {
-      const m = paraMinutos(h);
-      if (m <= min && m > melhor.quando) melhor = { quando: m, tipo, slot };
-    });
+  const lista = grupos.flatMap(([tipo, horarios]) => horarios.map((h, slot) => ({ min: paraMinutos(h), tipo, slot })));
+  return lista.sort((a, b) => a.min - b.min || (a.tipo === b.tipo ? 0 : a.tipo === "frase" ? -1 : 1));
+}
+
+/**
+ * O que está em destaque agora: o que o FARO mandou por último hoje (frase ou pergunta, nos horários que a pessoa
+ * escolheu). Antes da primeira do dia, a primeira da agenda. O cartão da tela inicial e o bloco "Hoje" da Metanoia
+ * usam esta mesma conta, para mostrarem sempre a mesma frase.
+ *
+ * `passos` anda para frente (positivo) ou para trás (negativo) pela MESMA agenda de frases e perguntas, na ordem
+ * dos horários, e segue para os dias seguintes (ou anteriores). Assim as setas alternam entre frase e pergunta
+ * do jeito que a pessoa configurou ("quantas por dia"), mesmo que haja só uma pergunta.
+ */
+export function fraseEmDestaque(frases: MetanoiaFrase[], s: Settings, diaISO: string, agora: Date, passos = 0): MetanoiaFrase | null {
+  const agenda = agendaDoDia(s);
+  if (!agenda.length) return fraseDaVez(frases, diaISO, 0, "frase", vezesPorDia(s, "frase")) ?? fraseDaVez(frases, diaISO, 0, "pergunta", vezesPorDia(s, "pergunta"));
+  const min = agora.getHours() * 60 + agora.getMinutes();
+  let atual = 0;
+  agenda.forEach((a, i) => {
+    if (a.min <= min) atual = i;
+  });
+  const n = agenda.length;
+  const sentido = passos < 0 ? -1 : 1;
+  // Se o tipo da vez não tem nada aprovado, segue na mesma direção até achar (no máximo dois dias).
+  for (let tentativa = 0; tentativa <= 2 * n; tentativa++) {
+    const pos = atual + passos + sentido * tentativa;
+    const dia = Math.floor(pos / n);
+    const slot = agenda[pos - dia * n];
+    const f = fraseDaVez(frases, somaDias(diaISO, dia), slot.slot, slot.tipo, vezesPorDia(s, slot.tipo));
+    if (f) return f;
   }
-  // `passos` anda para frente (positivo) ou para trás (negativo) na mesma fila, para ver outra frase sem esperar.
-  const da = (slot: number, tipo: MetanoiaTipo) => fraseDaVez(frases, diaISO, slot + passos, tipo, vezesPorDia(s, tipo));
-  return da(melhor.slot, melhor.tipo) ?? da(0, "frase") ?? da(0, "pergunta");
+  return null;
 }
 
 export interface FraseSeparada {
