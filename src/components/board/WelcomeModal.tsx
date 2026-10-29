@@ -162,10 +162,16 @@ export function WelcomeModal({ onAbrirConfiguracoes }: { onAbrirConfiguracoes: (
                 <b>Android:</b> no Chrome, menu (três pontinhos) e &quot;Instalar app&quot; ou &quot;Adicionar à tela inicial&quot;.
               </li>
               <li>
+                <b>Computador (Chrome ou Edge):</b> clique no ícone de instalar no fim da barra de endereço (um monitor com uma seta), ou no menu do navegador e em &quot;Instalar FARO&quot;. No Mac com Safari: menu Arquivo e &quot;Adicionar ao Dock&quot;.
+              </li>
+              <li>
                 <b>Depois:</b> em Configurações, grupo &quot;Avisos e custos&quot;, toque em &quot;Ativar notificações&quot; para o celular te avisar dos lembretes.
               </li>
             </ul>
-            <p className="welcome-texto">No computador não precisa instalar nada: os avisos funcionam com o FARO aberto no navegador.</p>
+            <p className="welcome-texto">
+              No computador você pode usar o FARO direto no navegador ou instalar como aplicativo, com ícone próprio e sem a barra do navegador. Instalado, os avisos chegam com mais segurança. Esse passo a passo
+              também está na tela <b>Como usar</b> (no menu), em &quot;Instalar o FARO no celular e no computador&quot;.
+            </p>
             <p className="welcome-texto">
               <b>Seus dados:</b> o FARO guarda uma cópia diária da sua conta por 14 dias. Mesmo assim, de vez em quando baixe a sua em Configurações,
               grupo &quot;Dados e backup&quot;, e guarde no seu computador ou no seu Drive.
