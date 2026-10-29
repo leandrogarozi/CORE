@@ -4004,3 +4004,10 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 /* O botão enviar dentro das linhas de adicionar: tamanho de toque no celular e nunca espremido. */
 .quickadd-row .quickadd-enviar{ flex:none; }
 @media (max-width:640px){ .quickadd-row .quickadd-enviar{ width:40px; height:40px; } .week-quickadd-linha .quickadd-enviar{ width:36px; height:36px; } }
+.auth-sucesso{ display:flex; flex-direction:column; align-items:stretch; text-align:center; gap:12px; }
+.auth-sucesso-selo{ align-self:center; width:56px; height:56px; border-radius:50%; background:color-mix(in srgb, var(--success) 14%, var(--surface)); color:var(--success); display:grid; place-items:center; margin-top:2px; }
+.auth-sucesso-selo svg{ width:28px; height:28px; }
+.auth-sucesso-titulo{ margin:0; font-size:20px; font-weight:650; letter-spacing:-0.02em; }
+.auth-sucesso-texto{ margin:0; font-size:13.5px; line-height:1.55; color:var(--text); }
+.auth-sucesso-texto strong{ overflow-wrap:anywhere; }
+.auth-sucesso-dica{ margin:0; font-size:12px; line-height:1.5; color:var(--text-muted); }

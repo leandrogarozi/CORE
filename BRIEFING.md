@@ -6402,3 +6402,6 @@ Feito a partir do que o Leandro viu usando as contas de teste:
 
 ### Metanoia: excluir direto na aba "Não listadas" (29/10)
 - As frases marcadas como "não listar mais" já iam para a aba **Não listadas** (com "Voltar a listar"), mas excluir só existia dentro do editor. Agora cada cartão dessa aba tem a **lixeira "Excluir de vez"** (com confirmação, não dá para desfazer), ao lado de "Voltar a listar" e do lápis.
+
+### Tela "Conta criada!" depois do cadastro (29/10)
+- Ao criar a conta (quando falta confirmar o e-mail), o login troca para uma **tela nova**: logo e marca FARO em cima, selo verde de check, "Conta criada!", o e-mail digitado em negrito, "toque em confirmar", dica de spam/promoções, botão **"Já confirmei, quero entrar"** (volta à aba Entrar) e **"Reenviar o e-mail"** (`auth.resend`, com aviso de sucesso ou de limite). Substitui a frase verde solta embaixo do formulário. Código em `src/app/login/page.tsx` (`contaCriadaPara`) e classes `.auth-sucesso*` em `globals.css`. Conferido numa página de teste em 420px; o fluxo real com o Supabase não foi executado.

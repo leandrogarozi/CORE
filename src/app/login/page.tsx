@@ -4,7 +4,7 @@ import { AuthMarca } from "@/components/AuthMarca";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { EyeIcon, EyeOffIcon } from "@/components/board/icons";
+import { CheckIcon, EyeIcon, EyeOffIcon } from "@/components/board/icons";
 
 /** Erros do Supabase que a pessoa vê ao criar conta, em português e com o que fazer. */
 function traduzirErro(error: { message: string; code?: string }): string {
@@ -33,6 +33,9 @@ export default function LoginPage() {
   const [verSenha, setVerSenha] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Depois de criar a conta: a tela inteira vira o aviso "confira seu e-mail" (com o e-mail que a pessoa digitou).
+  const [contaCriadaPara, setContaCriadaPara] = useState<string | null>(null);
+  const [reenvio, setReenvio] = useState<string | null>(null);
 
   // Link do e-mail vencido ou já usado: a tela de entrada explica em vez de mostrar página de erro.
   useEffect(() => {
@@ -84,7 +87,29 @@ export default function LoginPage() {
       router.refresh();
       return;
     }
-    setMessage("Conta criada. Confira seu e-mail para confirmar o acesso antes de entrar.");
+    setContaCriadaPara(email);
+    setReenvio(null);
+  }
+
+  async function reenviarConfirmacao() {
+    if (!contaCriadaPara) return;
+    setLoading(true);
+    setReenvio(null);
+    const { error } = await createClient().auth.resend({
+      type: "signup",
+      email: contaCriadaPara,
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+    });
+    setLoading(false);
+    setReenvio(error ? traduzirErro(error) : "Enviamos de novo. Pode levar alguns minutos para chegar.");
+  }
+
+  function voltarParaEntrar() {
+    setContaCriadaPara(null);
+    setMode("signin");
+    setPassword("");
+    setError(null);
+    setMessage(null);
   }
 
   async function handleForgotPassword() {
@@ -105,6 +130,31 @@ export default function LoginPage() {
       return;
     }
     setMessage("Enviamos um e-mail com um link para redefinir sua senha.");
+  }
+
+  if (contaCriadaPara) {
+    return (
+      <div className="auth-wrap">
+        <div className="auth-card auth-sucesso" role="status">
+          <AuthMarca />
+          <span className="auth-sucesso-selo" aria-hidden="true">
+            <CheckIcon />
+          </span>
+          <h1 className="auth-sucesso-titulo">Conta criada!</h1>
+          <p className="auth-sucesso-texto">
+            Enviamos um e-mail de confirmação para <strong>{contaCriadaPara}</strong>. Abra o e-mail e toque em <strong>confirmar</strong> para ativar o seu acesso. Depois é só entrar.
+          </p>
+          <p className="auth-sucesso-dica">Não chegou? Veja a caixa de spam e a de promoções. Pode levar alguns minutos.</p>
+          {reenvio && <div className="auth-message">{reenvio}</div>}
+          <button type="button" className="auth-submit" onClick={voltarParaEntrar}>
+            Já confirmei, quero entrar
+          </button>
+          <button type="button" className="auth-forgot" onClick={reenviarConfirmacao} disabled={loading}>
+            {loading ? "Enviando…" : "Reenviar o e-mail"}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
