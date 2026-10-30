@@ -471,7 +471,7 @@ export function rowToSettings(row: SettingsRow | null): Settings {
     metanoiaInicio: row?.metanoia_inicio ?? "09:00",
     metanoiaFim: row?.metanoia_fim ?? "20:00",
     metanoiaPush: row?.metanoia_push ?? true,
-    metanoiaTema: (row?.metanoia_tema as MetanoiaTema | undefined) ?? "escuro",
+    metanoiaTema: (row?.metanoia_tema as MetanoiaTema | undefined) ?? "auto",
     metanoiaCor: corValida(row?.metanoia_cor) ? (row?.metanoia_cor as string) : null,
     metanoiaPerguntasVezes: row?.metanoia_perguntas_vezes ?? 1,
     metanoiaPerguntasInicio: row?.metanoia_perguntas_inicio ?? "12:00",

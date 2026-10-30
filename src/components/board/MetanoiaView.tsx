@@ -352,7 +352,7 @@ export function MetanoiaView({ onBack, alvo }: { onBack: () => void; alvo?: { id
           <div className="meta-aparencia">
             <span className="hint-text">Aparência do cartão na tela inicial e ao abrir pela notificação</span>
             <div className="meta-vezes" role="group" aria-label="Aparência">
-              {(["claro", "escuro"] as const).map((t) => (
+              {(["auto", "claro", "escuro"] as const).map((t) => (
                 <button
                   key={t}
                   type="button"
@@ -362,7 +362,7 @@ export function MetanoiaView({ onBack, alvo }: { onBack: () => void; alvo?: { id
                     board.updateSettings({ metanoiaTema: t, metanoiaCor: null });
                   }}
                 >
-                  {t === "claro" ? "Fundo branco" : "Fundo preto"}
+                  {t === "auto" ? "Igual ao app" : t === "claro" ? "Fundo branco" : "Fundo preto"}
                 </button>
               ))}
               <button
