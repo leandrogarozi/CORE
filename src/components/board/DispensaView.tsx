@@ -3,8 +3,9 @@
 import { useState, type CSSProperties } from "react";
 import { EnviarBtn } from "./EnviarBtn";
 import { useBoardCtx } from "./board-context";
-import { ArchiveIcon, BellIcon, CartIcon, CheckIcon, TrashIcon } from "./icons";
+import { BellIcon, CartIcon, CheckIcon, TrashIcon } from "./icons";
 import { TutorialLink } from "./TutorialLink";
+import { EmConstrucao } from "./EmConstrucao";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import {
   CATEGORIAS_DA_DISPENSA,
@@ -25,6 +26,53 @@ type Filtro = "tudo" | "comprar" | "vence" | "vender";
 const COR_DA_SITUACAO: Record<PantryStatus, string> = { ok: "#3E8E5A", low: "#C28A1E", out: "#C0392B" };
 const PROXIMA: Record<PantryStatus, PantryStatus> = { ok: "low", low: "out", out: "ok" };
 
+/**
+ * Quantidade da linha (versão C do desenho): frasco medido em % mostra uma barrinha de nível (tocar nela escolhe
+ * 0, 25, 50, 75 ou 100) e o número; item contado mostra só o número. Tocar no número abre para digitar.
+ */
+function Quantidade({ valor, unidade, emPorcento, onChange }: { valor: number; unidade: string; emPorcento: boolean; onChange: (n: number) => void }) {
+  const [editando, setEditando] = useState(false);
+  function escolherNivel(e: React.MouseEvent<HTMLButtonElement>) {
+    const r = e.currentTarget.getBoundingClientRect();
+    const frac = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+    onChange([0, 25, 50, 75, 100].reduce((m, n) => (Math.abs(n - frac * 100) < Math.abs(m - frac * 100) ? n : m), 0));
+  }
+  return (
+    <span className="disp-qtd">
+      {emPorcento && (
+        <button type="button" className="disp-nivel" aria-label="Nível do frasco: toque para escolher" title="Toque na barra para escolher o nível" onClick={escolherNivel}>
+          <i style={{ width: `${Math.min(100, valor)}%` }} />
+        </button>
+      )}
+      {editando ? (
+        <input
+          type="number"
+          min={0}
+          max={emPorcento ? 100 : 9999}
+          className="disp-qtd-input"
+          autoFocus
+          defaultValue={valor}
+          aria-label="Quantidade"
+          onBlur={(e) => {
+            setEditando(false);
+            const n = Math.round(Number(e.target.value));
+            if (Number.isFinite(n)) onChange(n);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur();
+            if (e.key === "Escape") setEditando(false);
+          }}
+        />
+      ) : (
+        <button type="button" className="disp-qtd-num" title="Tocar para editar" onClick={() => setEditando(true)}>
+          {valor}
+          {emPorcento ? "%" : unidade ? ` ${unidade}` : ""}
+        </button>
+      )}
+    </span>
+  );
+}
+
 function Linha({ item, aberto, onAbrir }: { item: PantryItem; aberto: boolean; onAbrir: () => void }) {
   const { board, askConfirm } = useBoardCtx();
   const hoje = todayISO();
@@ -37,7 +85,6 @@ function Linha({ item, aberto, onAbrir }: { item: PantryItem; aberto: boolean; o
 
   // Itens medidos em % (nível do frasco) andam de 10 em 10 e vão até 100.
   const emPorcento = item.unit === "%";
-  const passo = emPorcento ? 10 : 1;
   function mudarQuantidade(n: number) {
     const q = Math.min(emPorcento ? 100 : 9999, Math.max(0, n));
     if (q === item.quantity) return;
@@ -93,12 +140,9 @@ function Linha({ item, aberto, onAbrir }: { item: PantryItem; aberto: boolean; o
   );
 
   return (
-    <div className={"disp-linha com-filete" + (aberto ? " open" : "")} style={{ "--k": cor } as CSSProperties}>
+    <div className={"disp-linha" + (aberto ? " open" : "")} style={{ "--k": cor } as CSSProperties}>
       <div className="disp-topo">
         <button type="button" className="disp-abrir" onClick={onAbrir} aria-expanded={aberto}>
-          <span className="tile-tipo">
-            <ArchiveIcon />
-          </span>
           <span className="disp-textos">
             <span className="disp-nome">{item.name}</span>
             {sub && <span className="disp-sub">{sub}</span>}
@@ -111,27 +155,23 @@ function Linha({ item, aberto, onAbrir }: { item: PantryItem; aberto: boolean; o
             </span>
           )}
           {item.forSale && <span className="disp-chip venda">{item.salePriceCents ? `à venda · ${fmtBRL(item.salePriceCents)}` : "à venda"}</span>}
-          <button
-            type="button"
-            className={"disp-chip situacao s-" + item.status}
-            title="Tocar para mudar: tenho, acabando, acabou"
-            onClick={() => salvar({ status: PROXIMA[item.status] })}
-          >
-            {ROTULO_DA_SITUACAO[item.status]}
-          </button>
+          {item.status !== "ok" && (
+            <button
+              type="button"
+              className={"disp-chip situacao s-" + item.status}
+              title="Tocar para mudar a situação"
+              onClick={() => salvar({ status: PROXIMA[item.status] })}
+            >
+              {ROTULO_DA_SITUACAO[item.status]}
+            </button>
+          )}
         </span>
-        <span className="disp-qtd">
-          <button type="button" aria-label="Diminuir" onClick={() => mudarQuantidade(item.quantity - passo)}>
-            −
-          </button>
-          <b>
-            {item.quantity}
-            {item.unit ? <small> {item.unit}</small> : null}
-          </b>
-          <button type="button" aria-label="Aumentar" onClick={() => mudarQuantidade(item.quantity + passo)}>
-            +
-          </button>
-        </span>
+        <Quantidade
+          valor={item.quantity}
+          unidade={item.unit}
+          emPorcento={emPorcento}
+          onChange={mudarQuantidade}
+        />
       </div>
 
       {aberto && (
@@ -348,6 +388,7 @@ export function DispensaView({ onBack }: { onBack: () => void }) {
         <span className="dash-range-label">Dispensa</span>
         <TutorialLink secao="dispensa" />
       </div>
+      <EmConstrucao tela="A Dispensa" />
       <div className="hint-text" style={{ marginBottom: 12 }}>
         O que você tem guardado em casa: produto de piscina, refil de filtro, lâmpada, remédio, ferramenta. Marque quando estiver acabando e o FARO
         lembra de comprar. Pergunte a ele: “eu tenho tal produto na dispensa?”.

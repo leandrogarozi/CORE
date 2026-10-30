@@ -269,12 +269,15 @@ export function FaroMascot({ comDock = false }: { comDock?: boolean }) {
     <div className={"faro-mascot" + (comDock ? " com-dock" : "")}>
       {open && (
         <div className="faro-bubble faro-bubble-chat">
-          <button className="faro-bubble-close" type="button" aria-label="Fechar" onClick={() => setOpen(false)}>
-            ×
-          </button>
+          <div className="faro-janela-cab">
+            <b>FARO</b>
+            <button className="faro-bubble-close" type="button" aria-label="Fechar" onClick={() => setOpen(false)}>
+              ×
+            </button>
+          </div>
           {aviso ? (
             <div className="faro-aviso">
-              <div className="faro-bubble-text">{aviso.texto}</div>
+              <div className="faro-bubble-text faro-fala-abertura">{aviso.texto}</div>
               {aviso.escalaDeHumor && (
                 <div className="faro-humor">
                   {MOODS.filter((m) => m.v >= 1).map((m) => (
@@ -300,7 +303,7 @@ export function FaroMascot({ comDock = false }: { comDock?: boolean }) {
               </div>
             </div>
           ) : (
-            <div className="faro-bubble-text">
+            <div className="faro-bubble-text faro-fala-abertura">
               {avisoFeito ?? `${greetingMessage(mood, board.state.settings.preferredName)} ${falas.length === 0 ? "O que você precisa?" : ""}`}
             </div>
           )}
@@ -353,8 +356,8 @@ export function FaroMascot({ comDock = false }: { comDock?: boolean }) {
                 onClick={() => ditado.toggle()}
               >
                 <MicIcon />
-                <span>{ditado.listening ? "Ouvindo… toque para enviar" : pensando ? "Pensando…" : "Toque e fale"}</span>
               </button>
+              <div className="faro-mic-legenda">{ditado.listening ? "Ouvindo… toque de novo para enviar" : pensando ? "Pensando…" : "Toque e fale"}</div>
               {ditado.listening && (
                 <div className="faro-ouvindo">{ditado.heard || "Pode falar. Envio automático 3 s depois que você parar."}</div>
               )}
