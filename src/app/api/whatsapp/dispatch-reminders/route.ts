@@ -10,6 +10,7 @@ import { fmtDayMonth } from "@/lib/date-utils";
 import { enviarPushesDosLembretes } from "@/lib/push/dispatch";
 import { enviarFrasesDaMetanoia } from "@/lib/push/metanoia";
 import { espelharNoGoogle } from "@/lib/google/agenda";
+import { avisarFeriadosDaSemana } from "@/lib/push/feriados";
 
 export const dynamic = "force-dynamic";
 
@@ -83,9 +84,16 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     google = { erro: e instanceof Error ? e.message : "falha no espelho do Google" };
   }
+  // Aviso semanal de feriados (domingo à noite). Canal próprio: falha aqui não derruba o resto.
+  let feriados: Awaited<ReturnType<typeof avisarFeriadosDaSemana>> | { erro: string };
+  try {
+    feriados = await avisarFeriadosDaSemana(createServiceClient(), Date.now());
+  } catch (e) {
+    feriados = { erro: e instanceof Error ? e.message : "falha no aviso de feriados" };
+  }
   const resposta = await dispararWhatsApp();
   const corpo = await resposta.json();
-  return NextResponse.json({ ...corpo, push, metanoia, backup, google }, { status: resposta.status });
+  return NextResponse.json({ ...corpo, push, metanoia, backup, google, feriados }, { status: resposta.status });
 }
 
 async function dispararWhatsApp(): Promise<NextResponse> {

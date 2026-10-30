@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useBoardCtx } from "./board-context";
+import { feriadoDe } from "@/lib/feriados";
+import { isFeatureEnabled } from "@/lib/types";
 import { isoFromDate, monthAnchorOf, monthGridDates, todayISO, MONTH_NAMES_FULL, DAY_NAMES } from "@/lib/date-utils";
 
 export function CalendarView({
@@ -18,6 +20,7 @@ export function CalendarView({
   const today = todayISO();
   const statuses = useMemo(() => [...board.state.taskStatuses].sort((a, b) => a.order - b.order), [board.state.taskStatuses]);
 
+  const verFeriados = isFeatureEnabled(board.state.settings.featureFlags, "feriados");
   const cells = useMemo(() => {
     return monthGridDates(monthAnchor).map((d) => {
       const iso = isoFromDate(d);
@@ -25,9 +28,9 @@ export function CalendarView({
       const chips = statuses
         .map((st) => ({ id: st.id, color: st.color, count: dayTasks.filter((t) => t.statusId === st.id).length }))
         .filter((c) => c.count > 0);
-      return { iso, dayNum: d.getDate(), inMonth: d.getMonth() === monthAnchor.getMonth(), chips };
+      return { iso, dayNum: d.getDate(), inMonth: d.getMonth() === monthAnchor.getMonth(), chips, feriado: verFeriados ? feriadoDe(iso) : null };
     });
-  }, [monthAnchor, board.state.tasks, statuses]);
+  }, [monthAnchor, board.state.tasks, statuses, verFeriados]);
 
   function prevMonth() {
     setMonthAnchor((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1));
@@ -95,6 +98,11 @@ export function CalendarView({
               onClick={() => onSelectDay(cell.iso)}
             >
               <span className="cal-day-num">{cell.dayNum}</span>
+              {cell.feriado && (
+                <span className={"cal-day-feriado" + (cell.feriado.tipo === "facultativo" ? " facultativo" : "")} title={cell.feriado.nome}>
+                  {cell.feriado.nome}
+                </span>
+              )}
               {cell.chips.length > 0 && (
                 <div className="cal-day-chips">
                   {cell.chips.map((c) => (

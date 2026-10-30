@@ -1,13 +1,29 @@
 "use client";
 
 import { useBoardCtx } from "./board-context";
-import { GiftIcon } from "./icons";
+import { CalendarCheckIcon, GiftIcon } from "./icons";
+import { feriadosEntre } from "@/lib/feriados";
 import { diasAteAniversario, idadeQueFara, ordenarPorProximos } from "@/lib/board/aniversarios";
 import { todayISO } from "@/lib/date-utils";
-import { isMeetingTask } from "@/lib/types";
+import { isFeatureEnabled, isMeetingTask } from "@/lib/types";
 
 /** Até quantos dias antes o aniversário aparece na linha sob a saudação (igual ao bolinho da barra de cima). */
 const DIAS_NA_SAUDACAO = 3;
+
+function somaDias(iso: string, n: number): string {
+  const [a, m, d] = iso.split("-").map(Number);
+  return new Date(Date.UTC(a, m - 1, d + n)).toISOString().slice(0, 10);
+}
+
+const SEMANA = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+
+/** "Hoje", "Amanhã" ou "segunda, 02/11". */
+function rotuloDoDia(iso: string, hoje: string): string {
+  if (iso === hoje) return "Hoje";
+  if (iso === somaDias(hoje, 1)) return "Amanhã";
+  const dia = SEMANA[new Date(`${iso}T12:00:00Z`).getUTCDay()];
+  return `${dia[0].toUpperCase()}${dia.slice(1)}, ${iso.split("-").reverse().slice(0, 2).join("/")}`;
+}
 
 /**
  * Saudação da tela do dia, em uma frase só: "Bom dia, Leandro. 2 reuniões hoje e 3
@@ -36,6 +52,10 @@ export function DayGreeting({ onAtrasadas }: { onAtrasadas?: () => void }) {
   ).filter((b) => diasAteAniversario(b, hoje) <= DIAS_NA_SAUDACAO);
   const dias = [...new Set(aniversarios.map((b) => diasAteAniversario(b, hoje)))];
 
+  // Feriados e pontos facultativos nacionais dos próximos 7 dias (some em Configurações > Feriados).
+  const verFeriados = isFeatureEnabled(board.state.settings.featureFlags, "feriados");
+  const feriados = verFeriados ? feriadosEntre(hoje, somaDias(hoje, 6)).slice(0, 3) : [];
+
   return (
     <div className="day-greeting">
       <h1 className="day-greeting-text">
@@ -62,6 +82,20 @@ export function DayGreeting({ onAtrasadas }: { onAtrasadas?: () => void }) {
           </span>
         )}
       </h1>
+      {feriados.length > 0 && (
+        <div className="day-greeting-aniv day-greeting-feriado">
+          <CalendarCheckIcon />
+          <span>
+            {feriados.map((f, i) => (
+              <span key={f.data}>
+                {i > 0 && " · "}
+                <b>{rotuloDoDia(f.data, hoje)}:</b> {f.nome}
+                {f.tipo === "facultativo" ? " (ponto facultativo)" : ""}
+              </span>
+            ))}
+          </span>
+        </div>
+      )}
       {aniversarios.length > 0 && (
         <div className="day-greeting-aniv">
           <GiftIcon />

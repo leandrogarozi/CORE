@@ -6,12 +6,14 @@ import { useBoardCtx } from "./board-context";
 import { StatusPicker } from "./StatusPicker";
 import { TaskEditRow } from "./TaskRow";
 import { fmtDayLabel, isoFromDate, todayISO, weekDatesFrom } from "@/lib/date-utils";
-import type { Task } from "@/lib/types";
+import { feriadoDe } from "@/lib/feriados";
+import { isFeatureEnabled, type Task } from "@/lib/types";
 
 function DiaDaSemana({ iso, date, hoje, tasks }: { iso: string; date: Date; hoje: boolean; tasks: Task[] }) {
   const { board } = useBoardCtx();
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [novo, setNovo] = useState("");
+  const feriado = isFeatureEnabled(board.state.settings.featureFlags, "feriados") ? feriadoDe(iso) : null;
   const ordenadas = [...tasks].sort((a, b) => (a.time || "99:99").localeCompare(b.time || "99:99") || (a.order || 0) - (b.order || 0));
 
   async function adicionar() {
@@ -29,6 +31,11 @@ function DiaDaSemana({ iso, date, hoje, tasks }: { iso: string; date: Date; hoje
           {fmtDayLabel(date)} {date.getDate()}
         </strong>
         {hoje && <span className="week-card-hoje">hoje</span>}
+        {feriado && (
+          <span className={"week-card-feriado" + (feriado.tipo === "facultativo" ? " facultativo" : "")} title={feriado.tipo === "facultativo" ? "Ponto facultativo" : "Feriado nacional"}>
+            {feriado.nome}
+          </span>
+        )}
         <span className="week-card-n">
           {tasks.length} {tasks.length === 1 ? "tarefa" : "tarefas"}
         </span>

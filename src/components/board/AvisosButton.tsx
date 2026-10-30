@@ -31,6 +31,7 @@ const ONDE: Record<string, { rotulo: string; modo: ViewMode }> = {
   cadastros: { rotulo: "Abrir Cadastros", modo: "cadastros" },
   clientes: { rotulo: "Abrir Clientes", modo: "clientes" },
   day: { rotulo: "Ver as tarefas", modo: "day" },
+  week: { rotulo: "Ver a semana", modo: "week" },
   reminders: { rotulo: "Abrir Lembretes", modo: "reminders" },
   manutencao: { rotulo: "Abrir Manutenção", modo: "manutencao" },
   feedbacks: { rotulo: "Ver feedbacks", modo: "feedbacks" },

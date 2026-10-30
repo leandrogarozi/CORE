@@ -2300,6 +2300,9 @@ function PaineisDaTela() {
       >
         <HorasConfig />
       </CollapsibleBox>
+      <CollapsibleBox title="Feriados" icon={<CalendarCheckIcon />} resumo="Feriados e pontos facultativos do Brasil" ligado={ligado("feriados")} onLigar={ligar("feriados")}>
+        {texto("Mostra os feriados e pontos facultativos nacionais no Calendário, na Semana e embaixo da saudação, e avisa no domingo à noite quando a semana seguinte tem feriado. Feriados de estado e de cidade não entram.")}
+      </CollapsibleBox>
       <CollapsibleBox title="Agenda" icon={<WeekIcon />} resumo="Compromissos e lembretes do dia" ligado={ligado("panel_agenda")} onLigar={ligar("panel_agenda")}>
         {texto("Mostra os compromissos com horário e os lembretes do dia escolhido. Nada para cadastrar aqui: vem das tarefas e dos lembretes.")}
       </CollapsibleBox>
