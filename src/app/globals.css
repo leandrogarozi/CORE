@@ -4224,3 +4224,23 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 
 .note-field-box.collapsed{ margin-bottom:2px; }
 .study-part-body .note-field{ margin-bottom:6px; }
+
+/* Estudo e sinapse: os cartões de dentro flutuam (sombra leve, sem borda), em vez de caixas dentro de caixas. */
+.study-part-num{ flex:none; width:24px; height:24px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; background:var(--accent-soft); color:var(--accent); font-variant-numeric:tabular-nums; }
+:root[data-estilo="suave"] .study-parts, :root[data-estilo="flutuante"] .study-parts{ gap:14px; padding:6px 2px 10px; }
+:root[data-estilo="suave"] .study-part, :root[data-estilo="flutuante"] .study-part{
+  border:0; border-radius:var(--r-3); background:var(--surface);
+  box-shadow:0 10px 22px -14px rgba(20,20,60,.30), 0 1px 2px rgba(20,20,60,.05);
+}
+:root[data-estilo="suave"] .study-part.open, :root[data-estilo="flutuante"] .study-part.open{
+  box-shadow:0 16px 30px -16px rgba(74,71,213,.38), 0 1px 2px rgba(20,20,60,.05);
+}
+:root[data-estilo="suave"] .study-part-new, :root[data-estilo="flutuante"] .study-part-new{
+  border:0; background:var(--surface); box-shadow:0 10px 22px -14px rgba(20,20,60,.30); border-radius:var(--r-3);
+}
+:root[data-estilo="suave"] .synapse-field-question, :root[data-estilo="flutuante"] .synapse-field-question{
+  border:0; border-radius:var(--r-3); box-shadow:0 10px 22px -16px rgba(74,71,213,.35);
+}
+:root[data-theme="dark"][data-estilo="suave"] .study-part, :root[data-theme="dark"][data-estilo="flutuante"] .study-part{
+  background:color-mix(in srgb, var(--surface) 80%, transparent); box-shadow:0 14px 28px -16px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.07);
+}

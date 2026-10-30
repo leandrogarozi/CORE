@@ -90,10 +90,10 @@ export function IdeasView({ onBack }: { onBack: () => void }) {
           <p>
             <strong>Ideia</strong> é um insight rápido: fale ou escreva aqui, e o FARO guarda, dá um título e arquiva.{" "}
             <strong>Estudo</strong> é um conteúdo com várias partes (série, documentário, mentoria, curso): cada encontro ou
-            episódio vira uma parte, com o próprio texto. Troque a tag dentro do item para virar Estudo.
+            episódio vira um conhecimento, com o próprio texto. Troque a tag dentro do item para virar Estudo.
           </p>
           <p>
-            Em cada parte do estudo você escreve as <strong>perguntas poderosas</strong> daquele conteúdo ou pede para a IA
+            Em cada conhecimento do estudo você escreve as <strong>perguntas poderosas</strong> daquele conteúdo ou pede para a IA
             criar (sem repetir as que você já tem) e escolhe o que vai para a Metanoia. Aprendizado curto, de uma ideia só,
             com a pergunta que te reconecta, é <strong>Sinapse</strong>. Tudo entra no seu mapa de aprendizado.
           </p>

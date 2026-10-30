@@ -389,7 +389,7 @@ function BookEnviarAnotacoes({ book }: { book: Book }) {
         ? {
             kind: "ideia",
             tag: "estudo",
-            learning: `<p>Anotações ${info.um === "livro" ? "do livro" : info.um === "filme" ? "do filme" : "da série"} “${escaparHtml(book.title)}”. O texto está na parte <strong>Conteúdo original</strong>; divida em partes quando quiser.</p>`,
+            learning: `<p>Anotações ${info.um === "livro" ? "do livro" : info.um === "filme" ? "do filme" : "da série"} “${escaparHtml(book.title)}”. O texto está no conhecimento <strong>Conteúdo original</strong>; divida em vários quando quiser.</p>`,
             source: fonte,
           }
         : { kind: "sinapse", learning: book.insights ?? "", questions: perguntas, source: fonte }
@@ -441,7 +441,7 @@ function BookEnviarAnotacoes({ book }: { book: Book }) {
                       <button type="button" className="book-enviar-opcao" disabled={enviando} onClick={() => void enviar("estudo")}>
                         <strong>Estudo</strong>
                         <span>
-                          O texto passa de {LIMITE_DA_SINAPSE.toLocaleString("pt-BR")} caracteres, grande demais para uma sinapse. Vira a parte “Conteúdo
+                          O texto passa de {LIMITE_DA_SINAPSE.toLocaleString("pt-BR")} caracteres, grande demais para uma sinapse. Vira o conhecimento “Conteúdo
                           original” de um estudo, e você divide depois. Nada se perde.
                         </span>
                       </button>

@@ -31,7 +31,7 @@ export function PerguntasDaIA({
   texto: string;
   existentes: string[];
   podeNaSinapse: boolean;
-  /** Como o check do lugar de origem se chama ("Na sinapse", "Na parte"). */
+  /** Como o check do lugar de origem se chama ("Na sinapse", "No conhecimento"). */
   rotuloAqui?: string;
   /** Já existem perguntas no campo: o botão passa a oferecer "mais", sempre sem repetir. */
   jaTem?: boolean;

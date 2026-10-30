@@ -16,7 +16,7 @@ function fmtData(iso: string | null) {
   return iso ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}` : "sem data";
 }
 
-function PartCard({ part, estudo, aberta, onToggle }: { part: SynapsePart; estudo: string; aberta: boolean; onToggle: () => void }) {
+function PartCard({ part, numero, estudo, aberta, onToggle }: { part: SynapsePart; numero: number; estudo: string; aberta: boolean; onToggle: () => void }) {
   const { board, askConfirm } = useBoardCtx();
   const [title, setTitle] = useState(part.title);
   const [body, setBody] = useState(part.body);
@@ -38,11 +38,14 @@ function PartCard({ part, estudo, aberta, onToggle }: { part: SynapsePart; estud
         <button type="button" className="synapse-card-toggle" aria-expanded={aberta} onClick={onToggle}>
           <ChevronIcon />
         </button>
+        <span className="study-part-num" aria-hidden="true">
+          {numero}
+        </span>
         <input
           type="text"
           className="study-part-title"
           value={title}
-          aria-label="Nome da parte"
+          aria-label="Nome do conhecimento"
           onChange={(e) => setTitle(e.target.value)}
           onBlur={() => {
             const t = title.trim();
@@ -51,20 +54,19 @@ function PartCard({ part, estudo, aberta, onToggle }: { part: SynapsePart; estud
           }}
           onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
         />
-        <span className="study-part-kind">{part.kind}</span>
         <input
           type="date"
           className="study-part-date"
           value={part.date ?? ""}
-          aria-label="Data da parte"
+          aria-label="Data do conhecimento"
           title={fmtData(part.date)}
           onChange={(e) => board.updateSynapsePart(part.id, { date: e.target.value || null })}
         />
         <button
           type="button"
           className="icon-btn danger-hover"
-          title="Excluir parte"
-          onClick={() => askConfirm(`Excluir a parte "${part.title}"? O texto dela some.`, () => board.deleteSynapsePart(part.id))}
+          title="Excluir conhecimento"
+          onClick={() => askConfirm(`Excluir "${part.title}"? O texto dele some.`, () => board.deleteSynapsePart(part.id))}
         >
           <TrashIcon />
         </button>
@@ -101,7 +103,7 @@ function PartCard({ part, estudo, aberta, onToggle }: { part: SynapsePart; estud
                 .map((f) => f.texto),
             ]}
             podeNaSinapse
-            rotuloAqui="Na parte"
+            rotuloAqui="No conhecimento"
             jaTem={stripHtml(perguntas).length > 0}
             onEnviar={(naParte, naMetanoia) => {
               let nParte = 0;
@@ -139,6 +141,8 @@ export function StudyParts({ synapse }: { synapse: Synapse }) {
   const partes = board.state.synapseParts
     .filter((p) => p.synapseId === synapse.id)
     .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? "") || b.order - a.order);
+  // Número de cada conhecimento pela ordem em que foi adicionado (o 1 é o primeiro), mesmo com a lista mostrando o mais novo em cima.
+  const numeros = new Map([...partes].sort((a, b) => a.order - b.order || a.createdAt.localeCompare(b.createdAt)).map((x, i) => [x.id, i + 1] as const));
   const [abertaId, setAbertaId] = useState<string | null>(partes[0]?.id ?? null);
   const [criando, setCriando] = useState(false);
   const [tipo, setTipo] = useState<string>(TIPOS_DE_PARTE[0]);
@@ -168,18 +172,18 @@ export function StudyParts({ synapse }: { synapse: Synapse }) {
     <div className="study-parts">
       <div className="study-parts-head">
         <span className="synapse-field-label">
-          Partes <span className="study-parts-n">{partes.length}</span>
+          Conhecimentos <span className="study-parts-n">{partes.length}</span>
         </span>
         {!criando && (
           <button type="button" className="btn btn-accent" onClick={abrirForm}>
-            + Nova parte
+            + Adicionar conhecimento
           </button>
         )}
       </div>
 
       {criando && (
         <div className="study-part-new">
-          <select value={tipo} aria-label="Tipo da parte" onChange={(e) => trocarTipo(e.target.value)}>
+          <select value={tipo} aria-label="Tipo do conhecimento" onChange={(e) => trocarTipo(e.target.value)}>
             {TIPOS_DE_PARTE.map((t) => (
               <option key={t} value={t}>
                 {t}
@@ -189,12 +193,12 @@ export function StudyParts({ synapse }: { synapse: Synapse }) {
           <input
             type="text"
             value={nome}
-            aria-label="Nome da parte"
+            aria-label="Nome do conhecimento"
             autoFocus
             onChange={(e) => setNome(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && criar()}
           />
-          <input type="date" value={data} aria-label="Data da parte" onChange={(e) => setData(e.target.value)} />
+          <input type="date" value={data} aria-label="Data do conhecimento" onChange={(e) => setData(e.target.value)} />
           <button type="button" className="btn btn-accent" disabled={!nome.trim()} onClick={criar}>
             Criar
           </button>
@@ -205,10 +209,10 @@ export function StudyParts({ synapse }: { synapse: Synapse }) {
       )}
 
       {partes.length === 0 && !criando && (
-        <div className="hint-text">Nenhuma parte ainda. Crie o primeiro encontro, aula ou módulo.</div>
+        <div className="hint-text">Nenhum conhecimento ainda. Adicione o primeiro encontro, aula ou módulo.</div>
       )}
       {partes.map((p) => (
-        <PartCard key={p.id} part={p} estudo={synapse.title} aberta={abertaId === p.id} onToggle={() => setAbertaId((cur) => (cur === p.id ? null : p.id))} />
+        <PartCard key={p.id} part={p} numero={numeros.get(p.id) ?? 0} estudo={synapse.title} aberta={abertaId === p.id} onToggle={() => setAbertaId((cur) => (cur === p.id ? null : p.id))} />
       ))}
     </div>
   );
