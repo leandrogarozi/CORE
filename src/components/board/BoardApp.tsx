@@ -50,6 +50,7 @@ import { TrashView } from "./TrashView";
 import { ScopeModal } from "./ScopeModal";
 import { ConfirmModal } from "./ConfirmModal";
 import { FaroMascot } from "./FaroMascot";
+import { AnotacoesView } from "./AnotacoesView";
 import { DispensaView } from "./DispensaView";
 import { DockFaro } from "./DockFaro";
 import { MobileNav } from "./MobileNav";
@@ -440,6 +441,8 @@ function BoardShell() {
         <ClientesView onBack={() => setViewMode("day")} />
       ) : viewMode === "estudo" ? (
         <StudyPlansView onBack={() => setViewMode("day")} />
+      ) : viewMode === "anotacoes" ? (
+        <AnotacoesView onBack={() => setViewMode("day")} />
       ) : viewMode === "dispensa" ? (
         <DispensaView onBack={() => setViewMode("day")} />
       ) : viewMode === "manutencao" ? (
@@ -559,7 +562,7 @@ function BoardShell() {
           {viewMode === "day" && <QuickActions onOpen={setViewMode} />}
 
           {viewMode === "dashboard" ? (
-            <Dashboard key={dashAtrasadas ? "atrasadas" : "normal"} abrirAtrasadas={dashAtrasadas} />
+            <Dashboard key={dashAtrasadas ? "atrasadas" : "normal"} abrirAtrasadas={dashAtrasadas} onAbrirAnotacoes={() => setViewMode("anotacoes")} />
           ) : (
             <div className="day-layout">
               <div className="section">

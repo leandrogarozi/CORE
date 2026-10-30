@@ -601,6 +601,16 @@ export interface Reminder {
   whatsapp: boolean;
 }
 
+/** Anotação rápida sem casa própria: nasce "nova" (para revisar) e vai sendo arquivada, movida ou apagada. */
+export interface QuickNote {
+  id: string;
+  body: string;
+  tag: string;
+  status: "new" | "archived";
+  isPrivate: boolean; // o FARO não lê
+  createdAt: string; // ISO datetime
+}
+
 export type PantryStatus = "ok" | "low" | "out";
 
 /** Algo que a pessoa guarda em casa (estoque): produto de piscina, refil de filtro, remédio, ferramenta. */
@@ -734,6 +744,7 @@ export interface BoardState {
   trashedReminders: Reminder[]; // lembretes excluídos (soft delete) — Lixeira
   medications: Medication[];
   pantryItems: PantryItem[];
+  quickNotes: QuickNote[];
   medicationGroups: MedicationGroup[];
   checklists: Checklist[];
   settings: Settings;

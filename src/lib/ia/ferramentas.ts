@@ -41,6 +41,19 @@ export type AcaoProposta =
   | { tipo: "registrar_agua"; ml: number }
   | { tipo: "registrar_dieta"; percentual: number }
   | { tipo: "repor_dispensa"; item: string; quantidade: number | null }
+  | { tipo: "anotar"; texto: string; etiqueta: string | null }
+  | {
+      tipo: "adicionar_na_dispensa";
+      itens: {
+        nome: string;
+        quantidade: number;
+        unidade: string;
+        onde: string;
+        categoria: string;
+        situacao: "ok" | "low" | "out";
+        validade: string | null;
+      }[];
+    }
   | {
       tipo: "ajustar_plano_de_estudo";
       plano: string;
@@ -230,6 +243,48 @@ export const FERRAMENTAS_DO_FARO: Anthropic.Tool[] = [
     },
   },
   {
+    name: "anotar",
+    description:
+      "Guarda uma anotação solta na caixa ANOTAÇÕES (para ele revisar depois). Use quando ele pedir 'anota isso' e o assunto NÃO for de um lugar específico (tarefa/reunião existente: use anotar_em_tarefa; itens que ele tem em casa: use adicionar_na_dispensa). Se estiver em dúvida sobre onde guardar, PERGUNTE antes (Dispensa, Manutenção, Checklist ou só Anotações). Não use para saúde ou remédios.",
+    input_schema: {
+      type: "object",
+      properties: {
+        texto: { type: "string", description: "A anotação, nas palavras dele, sem inventar." },
+        etiqueta: { type: "string", description: "Uma palavra de assunto, opcional (ex.: Casa, Piscina)." },
+      },
+      required: ["texto"],
+    },
+  },
+  {
+    name: "adicionar_na_dispensa",
+    description:
+      "Cadastra na DISPENSA os itens que ele disse que TEM em casa (vários de uma vez). Ex.: 'tenho dois refis de filtro no armário da área, cloro 2 kg acabando'. Um objeto por item. NÃO use para remédios: diga que remédio ele cadastra à mão na Dispensa. Não repita um item que já está em DISPENSA (para isso, repor_dispensa).",
+    input_schema: {
+      type: "object",
+      properties: {
+        itens: {
+          type: "array",
+          minItems: 1,
+          maxItems: 40,
+          items: {
+            type: "object",
+            properties: {
+              nome: { type: "string" },
+              quantidade: { type: "integer", minimum: 0, description: "Quantas tem. Padrão 1; 0 se acabou." },
+              unidade: { type: "string", description: "kg, L, caixas... só se ele disse." },
+              onde: { type: "string", description: "Onde está guardado, só se ele disse." },
+              categoria: { type: "string", description: "Casa, Piscina, Ferramentas... só se ficou claro." },
+              situacao: { type: "string", enum: ["ok", "low", "out"], description: "ok = tem; low = acabando; out = acabou." },
+              validade: { type: "string", description: "AAAA-MM-DD, só se ele disse." },
+            },
+            required: ["nome"],
+          },
+        },
+      },
+      required: ["itens"],
+    },
+  },
+  {
     name: "ajustar_plano_de_estudo",
     description:
       "Reajusta um plano de estudo (total de horas, minutos por sessão, prazo, dias da semana) e, se pedido, refaz as sessões FUTURAS na agenda. As sessões já feitas e o tempo registrado NUNCA são apagados. Use quando ele pedir para reorganizar o plano ou quando o plano não fecha no prazo; baseie-se no tempo real gasto (ESTUDOS e módulos). Passe só o que muda.",
@@ -415,6 +470,36 @@ export function validarAcao(nome: string, entrada: unknown): ResultadoDaValidaca
       const q = typeof e.quantidade === "number" && Number.isFinite(e.quantidade) && e.quantidade >= 1 && e.quantidade <= 9999 ? Math.round(e.quantidade) : null;
       return { ok: true, acao: { tipo: "repor_dispensa", item, quantidade: q } };
     }
+    case "anotar": {
+      const t = texto(e.texto, 4000);
+      if (!t) return { ok: false, motivo: "faltou o texto da anotação" };
+      return { ok: true, acao: { tipo: "anotar", texto: t, etiqueta: texto(e.etiqueta, 30) } };
+    }
+    case "adicionar_na_dispensa": {
+      const bruto = Array.isArray(e.itens) ? e.itens.slice(0, 40) : [];
+      const itens: Extract<AcaoProposta, { tipo: "adicionar_na_dispensa" }>["itens"] = [];
+      for (const x of bruto) {
+        const o = (x && typeof x === "object" ? x : {}) as Record<string, unknown>;
+        const nome = texto(o.nome, 120);
+        if (!nome) continue;
+        const categoria = texto(o.categoria, 40) ?? "";
+        // Remédio e saúde: só à mão na tela, nunca por aqui.
+        if (/rem[eé]dio|medicamento|sa[uú]de/i.test(categoria)) continue;
+        const qtd = typeof o.quantidade === "number" && Number.isFinite(o.quantidade) ? Math.min(9999, Math.max(0, Math.round(o.quantidade))) : 1;
+        const sit = o.situacao === "low" || o.situacao === "out" ? o.situacao : "ok";
+        itens.push({
+          nome,
+          quantidade: sit === "out" ? 0 : qtd,
+          unidade: texto(o.unidade, 20) ?? "",
+          onde: texto(o.onde, 120) ?? "",
+          categoria,
+          situacao: sit,
+          validade: dataValida(o.validade),
+        });
+      }
+      if (itens.length === 0) return { ok: false, motivo: "nenhum item válido para a dispensa (remédios não entram por aqui)" };
+      return { ok: true, acao: { tipo: "adicionar_na_dispensa", itens } };
+    }
     default:
       return { ok: false, motivo: `ferramenta desconhecida: ${nome}` };
   }
@@ -459,6 +544,12 @@ export function descreverAcao(a: AcaoProposta): string {
       return `Registrar a dieta de hoje: ${a.percentual}%`;
     case "repor_dispensa":
       return `Dispensa: marcar "${a.item}" como comprado${a.quantidade ? ` (agora ${a.quantidade})` : ""}`;
+    case "anotar":
+      return `Guardar em Anotações: ${a.texto.length > 120 ? a.texto.slice(0, 117) + "…" : a.texto}`;
+    case "adicionar_na_dispensa":
+      return `Dispensa: adicionar ${a.itens.length} ${a.itens.length === 1 ? "item" : "itens"}: ${a.itens
+        .map((i) => `${i.nome} (${i.quantidade}${i.unidade ? " " + i.unidade : ""}${i.situacao === "low" ? ", acabando" : i.situacao === "out" ? ", acabou" : ""}${i.onde ? `, ${i.onde}` : ""})`)
+        .join("; ")}`;
     case "ajustar_plano_de_estudo": {
       const mudancas = [
         a.horasTotais !== null ? `total ${a.horasTotais} h` : null,

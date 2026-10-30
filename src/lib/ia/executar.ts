@@ -31,6 +31,8 @@ export interface QuadroParaAcoes {
   updateStudyPlan: (id: string, patch: Partial<StudyPlan>) => void;
   generateStudySessions: (planId: string) => Promise<number>;
   pantryItems: PantryItem[];
+  addPantryItem: (name: string, extra?: Partial<Omit<PantryItem, "id" | "name">>) => void;
+  addQuickNote: (body: string, extra?: { tag?: string }) => string | null;
   updatePantryItem: (id: string, patch: Partial<Omit<PantryItem, "id">>) => void;
   reminders: Reminder[];
   completeReminder: (id: string) => void;
@@ -207,6 +209,31 @@ export async function executarAcao(acaoBruta: AcaoProposta, quadro: QuadroParaAc
       if (lembrete) quadro.completeReminder(lembrete.id);
       return { ok: true, mensagem: `"${item.name}" voltou para a dispensa${lembrete ? " e o lembrete de compra foi concluído" : ""}.` };
     }
+    case "anotar": {
+      const id = quadro.addQuickNote(acao.texto, { tag: acao.etiqueta ?? undefined });
+      return id ? { ok: true, mensagem: "Guardei em Anotações, para você revisar depois." } : { ok: false, mensagem: "Não consegui guardar a anotação." };
+    }
+    case "adicionar_na_dispensa": {
+      let criados = 0;
+      const jaTinha: string[] = [];
+      for (const i of acao.itens) {
+        if (acharUmItemPeloNome(quadro.pantryItems, i.nome)?.name.toLowerCase() === i.nome.toLowerCase()) {
+          jaTinha.push(i.nome);
+          continue;
+        }
+        quadro.addPantryItem(i.nome, {
+          quantity: i.quantidade,
+          unit: i.unidade,
+          place: i.onde,
+          category: i.categoria,
+          status: i.situacao,
+          expiresOn: i.validade,
+        });
+        criados++;
+      }
+      const resto = jaTinha.length ? ` Já estavam lá: ${jaTinha.join(", ")}.` : "";
+      return criados > 0 ? { ok: true, mensagem: `${criados} ${criados === 1 ? "item entrou" : "itens entraram"} na Dispensa.${resto}` } : { ok: false, mensagem: `Nada novo para a Dispensa.${resto}` };
+    }
     case "ajustar_plano_de_estudo": {
       const alvo = semAcento(acao.plano);
       const plano =
@@ -264,6 +291,20 @@ function converterParaEntrada(a: AcaoProposta): Record<string, unknown> {
       return { percentual: a.percentual };
     case "repor_dispensa":
       return { item: a.item, quantidade: a.quantidade ?? undefined };
+    case "anotar":
+      return { texto: a.texto, etiqueta: a.etiqueta ?? undefined };
+    case "adicionar_na_dispensa":
+      return {
+        itens: a.itens.map((i) => ({
+          nome: i.nome,
+          quantidade: i.quantidade,
+          unidade: i.unidade || undefined,
+          onde: i.onde || undefined,
+          categoria: i.categoria || undefined,
+          situacao: i.situacao,
+          validade: i.validade ?? undefined,
+        })),
+      };
     case "ajustar_plano_de_estudo":
       return {
         plano: a.plano,

@@ -254,6 +254,8 @@ export function FaroMascot({ comDock = false }: { comDock?: boolean }) {
         updateStudyPlan: board.updateStudyPlan,
         generateStudySessions: board.generateStudySessions,
         pantryItems: board.state.pantryItems,
+        addPantryItem: board.addPantryItem,
+        addQuickNote: board.addQuickNote,
         updatePantryItem: board.updatePantryItem,
         reminders: board.state.reminders,
         completeReminder: board.completeReminder,

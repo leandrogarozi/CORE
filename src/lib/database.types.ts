@@ -641,6 +641,36 @@ export type Database = {
         }
         Relationships: []
       }
+      quick_notes: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          is_private: boolean
+          status: string
+          tag: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          is_private?: boolean
+          status?: string
+          tag?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          is_private?: boolean
+          status?: string
+          tag?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pantry_items: {
         Row: {
           category: string

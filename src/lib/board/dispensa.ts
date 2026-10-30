@@ -70,3 +70,90 @@ export function acharUmItemPeloNome(itens: PantryItem[], nome: string): PantryIt
   const contem = acharNaDispensa(itens, nome);
   return contem.length === 1 ? contem[0] : null;
 }
+
+export interface ItemDeTexto {
+  name: string;
+  quantity: number;
+  unit: string;
+  status: PantryStatus;
+  place: string;
+  expiresOn: string | null;
+}
+
+const UNIDADES = /^(kg|g|l|ml|un|unid|unidades?|caixas?|pacotes?|potes?|litros?|frascos?|tubos?|sacos?|latas?)$/i;
+
+/** "vence 12/12" ou "vence em 12/12/2026" -> ISO. Sem ano, vale o próximo 12/12. */
+function validadeDoTexto(t: string, hoje: string): { resto: string; iso: string | null } {
+  const m = t.match(/\bvenc\w*\s+(?:em\s+|dia\s+)?(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/i);
+  if (!m) return { resto: t, iso: null };
+  const dia = Number(m[1]);
+  const mes = Number(m[2]);
+  let ano = m[3] ? Number(m[3]) : Number(hoje.slice(0, 4));
+  if (ano < 100) ano += 2000;
+  let iso = `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+  if (!m[3] && iso < hoje) iso = `${ano + 1}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+  const d = new Date(iso + "T12:00:00");
+  const valido = !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === iso;
+  return { resto: t.replace(m[0], " "), iso: valido ? iso : null };
+}
+
+/**
+ * Lê uma anotação escrita ou ditada como lista ("2 refis de filtro no armário; cloro 2 kg acabando, protetor vence 12/12")
+ * e separa em itens. Um item por linha, ponto e vírgula ou vírgula. Entende quantidade no começo, "acabando"/"acabou",
+ * "no/na lugar" e "vence dd/mm". Serve de prévia: a pessoa confere antes de criar.
+ */
+export function itensDeUmTexto(texto: string, hoje: string): ItemDeTexto[] {
+  const pedacos = texto
+    .split(/\n|;|,(?!\d)/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  const itens: ItemDeTexto[] = [];
+  for (const bruto of pedacos.slice(0, 60)) {
+    let t = bruto.replace(/^[\s\-•*–—]+/, "").trim();
+    if (t.length < 2) continue;
+    let status: PantryStatus = "ok";
+    if (/\b(acabou|zerou|n[aã]o tenho mais)\b/i.test(t)) status = "out";
+    else if (/\b(acabando|quase acabando|pouco|baixo)\b/i.test(t)) status = "low";
+    t = t.replace(/\b(quase acabando|acabando|acabou|zerou|n[aã]o tenho mais|pouco|baixo)\b/gi, " ");
+    const v = validadeDoTexto(t, hoje);
+    t = v.resto;
+    let place = "";
+    const lugar = t.match(/\s(?:no|na|nos|nas|em)\s+(?!\d)(.+)$/i);
+    if (lugar) {
+      place = lugar[1].replace(/\s+/g, " ").trim();
+      t = t.slice(0, lugar.index);
+    }
+    let quantity = 1;
+    let unit = "";
+    const q = t.trim().match(/^(\d+)\s*(.*)$/);
+    if (q && q[2].trim()) {
+      quantity = Number(q[1]);
+      const palavras = q[2].trim().split(/\s+/);
+      if (UNIDADES.test(palavras[0]) && palavras.length > 1) {
+        unit = palavras.shift()!.toLowerCase();
+        if (palavras[0]?.toLowerCase() === "de") palavras.shift();
+      }
+      t = palavras.join(" ");
+    } else if (!q) {
+      // "cloro 2 kg": quantidade depois do nome, só quando vem com unidade (senão "FPS 50" viraria 50 unidades)
+      const fim = t.trim().match(/^(.*?)\s+(\d+)\s*([a-zA-Z]+)$/);
+      if (fim && fim[1].trim() && UNIDADES.test(fim[3])) {
+        quantity = Number(fim[2]);
+        unit = fim[3].toLowerCase();
+        t = fim[1];
+      }
+    }
+    const name = t.replace(/\s+/g, " ").replace(/[\s.:-]+$/, "").trim();
+    if (!name) continue;
+    // "lâmpada 9W, 4 na gaveta": o pedaço só com número completa o item anterior.
+    if (/^\d+$/.test(name) && itens.length > 0) {
+      const anterior = itens[itens.length - 1];
+      anterior.quantity = Number(name);
+      if (place && !anterior.place) anterior.place = place;
+      continue;
+    }
+    if (status === "out") quantity = 0;
+    itens.push({ name: name[0].toUpperCase() + name.slice(1), quantity, unit, status, place, expiresOn: v.iso });
+  }
+  return itens;
+}

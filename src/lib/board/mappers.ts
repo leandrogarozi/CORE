@@ -25,6 +25,7 @@ import type {
   Medication,
   PantryItem,
   PantryStatus,
+  QuickNote,
   OdometerReading,
   MedicationGroup,
   MedicationTimeMode,
@@ -75,6 +76,7 @@ type BookRow = Tables<"books">;
 type ReminderRow = Tables<"reminders">;
 type MedicationRow = Tables<"medications">;
 type PantryItemRow = Tables<"pantry_items">;
+type QuickNoteRow = Tables<"quick_notes">;
 type MedicationGroupRow = Tables<"medication_groups">;
 type ChecklistRow = Tables<"checklists">;
 type DietMealRow = Tables<"diet_meals">;
@@ -902,6 +904,30 @@ export function medicationToUpdateRow(m: Partial<Medication>): TablesUpdate<"med
   if (m.intervalHours !== undefined) row.interval_hours = m.intervalHours;
   if (m.active !== undefined) row.active = m.active;
   if (m.whatsapp !== undefined) row.whatsapp = m.whatsapp;
+  return row;
+}
+
+export function rowToQuickNote(row: QuickNoteRow): QuickNote {
+  return {
+    id: row.id,
+    body: row.body,
+    tag: row.tag,
+    status: row.status === "archived" ? "archived" : "new",
+    isPrivate: row.is_private,
+    createdAt: row.created_at,
+  };
+}
+
+export function quickNoteToInsertRow(n: QuickNote, userId: string): TablesInsert<"quick_notes"> {
+  return { id: n.id, user_id: userId, body: n.body, tag: n.tag, status: n.status, is_private: n.isPrivate, created_at: n.createdAt };
+}
+
+export function quickNoteToUpdateRow(n: Partial<QuickNote>): TablesUpdate<"quick_notes"> {
+  const row: TablesUpdate<"quick_notes"> = {};
+  if (n.body !== undefined) row.body = n.body;
+  if (n.tag !== undefined) row.tag = n.tag;
+  if (n.status !== undefined) row.status = n.status;
+  if (n.isPrivate !== undefined) row.is_private = n.isPrivate;
   return row;
 }
 

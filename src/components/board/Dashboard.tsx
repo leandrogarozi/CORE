@@ -1,5 +1,6 @@
 "use client";
 
+import { AnotacoesPainel } from "./AnotacoesPainel";
 import { useMemo, useState } from "react";
 import { useBoardCtx } from "./board-context";
 import {
@@ -136,7 +137,7 @@ function Variacao({ atual, antes }: { atual: number; antes: number }) {
   return <span className={"dsh-delta " + (pct > 0 ? "sobe" : "desce")}>{pct > 0 ? "▲" : "▼"} {Math.abs(pct)}%</span>;
 }
 
-export function Dashboard({ abrirAtrasadas = false }: { abrirAtrasadas?: boolean }) {
+export function Dashboard({ abrirAtrasadas = false, onAbrirAnotacoes }: { abrirAtrasadas?: boolean; onAbrirAnotacoes?: () => void }) {
   const { board, openTaskInDay } = useBoardCtx();
   const [period, setPeriod] = useState<Period>("week");
   const [dayAnchor, setDayAnchor] = useState(() => todayISO());
@@ -381,6 +382,8 @@ export function Dashboard({ abrirAtrasadas = false }: { abrirAtrasadas?: boolean
           </button>
         </div>
       </div>
+
+      {onAbrirAnotacoes && <AnotacoesPainel onAbrir={onAbrirAnotacoes} />}
 
       {/* Uma faixa só, dividida por linha de 1px — não sete cartões soltos.
           Os números são irmãos: separá-los em cartões fazia cada um pedir

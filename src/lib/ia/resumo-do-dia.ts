@@ -24,7 +24,7 @@ const LIMITE_LINHAS = 25;
 
 
 type Estado = Pick<BoardState, "tasks" | "reminders" | "habits" | "fixedBlocks" | "checklists" | "dailyLogs" | "taskTimeEntries" | "studyPlans"> &
-  Partial<Pick<BoardState, "maintenanceAssets" | "maintenanceItems" | "maintenanceServices" | "odometerReadings" | "pantryItems">>;
+  Partial<Pick<BoardState, "maintenanceAssets" | "maintenanceItems" | "maintenanceServices" | "odometerReadings" | "pantryItems" | "quickNotes">>;
 
 const dataBr = (iso: string) => iso.split("-").reverse().slice(0, 2).join("/");
 
@@ -156,6 +156,7 @@ export function resumoDoDia(estado: Estado, hoje: string): string {
 
   linhas.push(manutencao(estado, hoje));
   linhas.push(dispensa(estado, hoje));
+  linhas.push(anotacoes(estado));
   linhas.push(panoramaDosDias(estado, hoje, 14));
   return linhas.join("\n");
 }
@@ -185,6 +186,15 @@ export function panoramaDosDias(estado: Estado, hoje: string, dias: number): str
     ];
     linhas.push(`${dataBr(iso)} (${DIAS[dateFromISO(iso).getDay()].slice(0, 3)}): ${partes.join(", ")}`);
   }
+  return linhas.join("\n");
+}
+
+/** Anotações novas (as que ele ainda não revisou), sem as marcadas "só minha". */
+function anotacoes(estado: Estado): string {
+  const novas = (estado.quickNotes ?? []).filter((n) => n.status === "new" && !n.isPrivate);
+  if (!novas.length) return "";
+  const linhas = [`\nANOTAÇÕES PARA REVISAR (${novas.length}):`];
+  for (const n of novas.slice(-10)) linhas.push(`- ${n.body.replace(/\s+/g, " ").slice(0, 160)}`);
   return linhas.join("\n");
 }
 

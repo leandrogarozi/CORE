@@ -18,6 +18,8 @@ import {
   medicationToUpdateRow,
   pantryItemToInsertRow,
   pantryItemToUpdateRow,
+  quickNoteToInsertRow,
+  quickNoteToUpdateRow,
   projectToInsertRow,
   projectToUpdateRow,
   reminderToInsertRow,
@@ -54,6 +56,7 @@ import {
   rowToMedication,
   rowToMedicationGroup,
   rowToPantryItem,
+  rowToQuickNote,
   rowToAttachment,
   rowToProject,
   rowToReminder,
@@ -106,6 +109,7 @@ import type {
   Medication,
   MedicationGroup,
   PantryItem,
+  QuickNote,
   Priority,
   Project,
   Repeat,
@@ -156,6 +160,7 @@ const EMPTY_STATE: BoardState = {
   trashedReminders: [],
   medications: [],
   pantryItems: [],
+  quickNotes: [],
   medicationGroups: [],
   checklists: [],
   settings: {
@@ -325,6 +330,7 @@ export function useBoard(userId: string | null) {
       medicationsRes,
       medicationGroupsRes,
       pantryRes,
+      quickNotesRes,
       checklistsRes,
       dietMealsRes,
       settingsRes,
@@ -362,6 +368,7 @@ export function useBoard(userId: string | null) {
       supabase.from("medications").select("*").order("created_at"),
       supabase.from("medication_groups").select("*").order("created_at"),
       supabase.from("pantry_items").select("*").order("created_at"),
+      supabase.from("quick_notes").select("*").order("created_at"),
       // Pela ordem manual, não pela criação: é ele quem decide qual checklist
       // fica no topo. `nullsFirst: false` manda linha sem ordem (salva antes
       // desta coluna existir) pro fim, em vez de pro começo.
@@ -422,6 +429,7 @@ export function useBoard(userId: string | null) {
       medications: (medicationsRes.data ?? []).map(rowToMedication),
       medicationGroups: (medicationGroupsRes.data ?? []).map(rowToMedicationGroup),
       pantryItems: (pantryRes.data ?? []).map(rowToPantryItem),
+      quickNotes: (quickNotesRes.data ?? []).map(rowToQuickNote),
       checklists: (checklistsRes.data ?? []).map(rowToChecklist),
       dietMeals: (dietMealsRes.data ?? []).map(rowToDietMeal),
       settings: rowToSettings(settingsRes.data ?? null),
@@ -1893,6 +1901,40 @@ export function useBoard(userId: string | null) {
       });
     },
     [apply, deleteReminder, supabase]
+  );
+
+  // ---------- anotações rápidas ----------
+  const addQuickNote = useCallback(
+    (body: string, extra: Partial<Pick<QuickNote, "tag" | "isPrivate">> = {}): string | null => {
+      if (!userId || !body.trim()) return null;
+      const n: QuickNote = { id: uid(), body: body.trim(), tag: extra.tag?.trim() ?? "", status: "new", isPrivate: extra.isPrivate ?? false, createdAt: new Date().toISOString() };
+      apply((s) => ({ ...s, quickNotes: [...s.quickNotes, n] }));
+      supabase.from("quick_notes").insert(quickNoteToInsertRow(n, userId)).then(({ error }) => {
+        if (error) reportSaveError("addQuickNote", error);
+      });
+      return n.id;
+    },
+    [apply, supabase, userId]
+  );
+
+  const updateQuickNote = useCallback(
+    (id: string, patch: Partial<Omit<QuickNote, "id" | "createdAt">>) => {
+      apply((s) => ({ ...s, quickNotes: s.quickNotes.map((n) => (n.id === id ? { ...n, ...patch } : n)) }));
+      supabase.from("quick_notes").update(quickNoteToUpdateRow(patch)).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("updateQuickNote", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  const deleteQuickNote = useCallback(
+    (id: string) => {
+      apply((s) => ({ ...s, quickNotes: s.quickNotes.filter((n) => n.id !== id) }));
+      supabase.from("quick_notes").delete().eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("deleteQuickNote", error);
+      });
+    },
+    [apply, supabase]
   );
 
   // ---------- dispensa (estoque de casa) ----------
@@ -4552,6 +4594,9 @@ export function useBoard(userId: string | null) {
     purgeReminder,
     setTaskReminder,
     completeReminder,
+    addQuickNote,
+    updateQuickNote,
+    deleteQuickNote,
     addPantryItem,
     updatePantryItem,
     deletePantryItem,
