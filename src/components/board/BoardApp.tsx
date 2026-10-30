@@ -50,6 +50,7 @@ import { TrashView } from "./TrashView";
 import { ScopeModal } from "./ScopeModal";
 import { ConfirmModal } from "./ConfirmModal";
 import { FaroMascot } from "./FaroMascot";
+import { MobileNav } from "./MobileNav";
 import { WelcomeModal } from "./WelcomeModal";
 import { ActiveTimerBadge } from "./TimerButton";
 import { ProfileView } from "./ProfileView";
@@ -349,12 +350,12 @@ function BoardShell() {
           <AniversariosButton onNavigate={selectView} />
           <ActiveTimerBadge />
           <div className="today-date mono">{longLabel(todayISO())}</div>
-          <button className="today-btn" type="button" onClick={goToday}>
+          <button className="today-btn so-desktop" type="button" onClick={goToday}>
             Hoje
           </button>
           <ThemeButton />
           <button
-            className={"icon-btn" + (wide ? " active" : "")}
+            className={"icon-btn so-desktop" + (wide ? " active" : "")}
             type="button"
             aria-label={wide ? "Voltar à largura normal" : "Usar a tela toda"}
             title={wide ? "Voltar à largura normal" : "Usar a tela toda"}
@@ -623,6 +624,17 @@ function BoardShell() {
         </>
       )}
 
+      <MobileNav
+        viewMode={viewMode}
+        onHoje={goToday}
+        onSelect={selectView}
+        onMenu={() => setSidebarOpen(true)}
+        onNovaTarefa={() => {
+          goToday();
+          // Leva o cursor para o campo de nova tarefa assim que a tela do dia aparecer.
+          setTimeout(() => document.querySelector<HTMLInputElement>(".quickadd-input")?.focus(), 150);
+        }}
+      />
       <FaroMascot />
       <WelcomeModal onAbrirConfiguracoes={() => setViewMode("settings")} />
     </div>
