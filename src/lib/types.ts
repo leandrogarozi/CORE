@@ -502,6 +502,7 @@ export interface SynapsePart {
   kind: string; // livre; sugestões: encontro, aula, módulo, atividade
   date: string | null; // ISO date
   body: string; // HTML
+  perguntas: string; // HTML: perguntas poderosas desta parte (escritas à mão ou criadas pela IA)
   order: number;
   createdAt: string;
 }

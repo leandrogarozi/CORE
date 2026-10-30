@@ -67,6 +67,7 @@ export interface ParteParaExportar {
   kind: string;
   date: string | null;
   body: string | null;
+  perguntas?: string | null;
   order: number;
 }
 
@@ -405,6 +406,7 @@ export function arquivosDoEstudo(estudo: SinapseParaExportar, partes: ParteParaE
     ];
     if (p.date) corpo.push(`**Data:** ${p.date}`, "");
     corpo.push(temConteudo(p.body) ? htmlParaMarkdown(p.body) : "_Ainda sem anotações._", "");
+    if (temConteudo(p.perguntas)) corpo.push("## Perguntas poderosas", "", htmlParaMarkdown(p.perguntas ?? ""), "");
     arquivos.push({ nome: `${pasta}/${nomeDeArquivo(`${String(i + 1).padStart(2, "0")} - ${p.title}`)}`, conteudo: corpo.join("\n") });
   });
   return arquivos;

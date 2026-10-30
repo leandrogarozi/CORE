@@ -6,6 +6,8 @@ import { NoteField } from "./NoteField";
 import { PerguntasDaIA } from "./PerguntasDaIA";
 import { ChevronIcon, TrashIcon } from "./icons";
 import { stripHtml } from "@/lib/rich-text";
+import { extrairPerguntas } from "@/lib/ia/perguntas";
+import { escaparHtml } from "./PerguntasDaIA";
 import { todayISO } from "@/lib/date-utils";
 import { ROTEIRO_DA_PARTE, proximoNomeDeParte, TIPOS_DE_PARTE } from "@/lib/board/estudos";
 import type { Synapse, SynapsePart } from "@/lib/types";
@@ -18,6 +20,7 @@ function PartCard({ part, estudo, aberta, onToggle }: { part: SynapsePart; estud
   const { board, askConfirm } = useBoardCtx();
   const [title, setTitle] = useState(part.title);
   const [body, setBody] = useState(part.body);
+  const [perguntas, setPerguntas] = useState(part.perguntas);
   // Trocar o texto de fora (roteiro) pede um campo novo: o editor não relê o valor sozinho.
   const [versao, setVersao] = useState(0);
 
@@ -77,21 +80,47 @@ function PartCard({ part, estudo, aberta, onToggle }: { part: SynapsePart; estud
             onChange={setBody}
             onPersist={(html) => html !== part.body && board.updateSynapsePart(part.id, { body: html })}
           />
+          <div className="synapse-field synapse-field-question">
+            <span className="synapse-field-label">Perguntas poderosas deste conteúdo</span>
+            <NoteField
+              value={perguntas}
+              placeholder="Escreva as suas ou crie com a IA aqui embaixo..."
+              ariaLabel={`Perguntas de ${part.title}`}
+              onChange={setPerguntas}
+              onPersist={(html) => html !== part.perguntas && board.updateSynapsePart(part.id, { perguntas: html })}
+            />
+          </div>
           <PerguntasDaIA
             titulo={`${estudo} — ${part.title}`}
             texto={stripHtml(body)}
-            existentes={board.state.metanoiaFrases
-              .filter((f) => f.tipo === "pergunta")
-              .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-              .map((f) => f.texto)}
-            podeNaSinapse={false}
-            onEnviar={(_naSinapse, naMetanoia) => ({
-              naSinapse: 0,
+            existentes={[
+              ...extrairPerguntas(stripHtml(perguntas)),
+              ...board.state.metanoiaFrases
+                .filter((f) => f.tipo === "pergunta")
+                .sort((x, y) => y.createdAt.localeCompare(x.createdAt))
+                .map((f) => f.texto),
+            ]}
+            podeNaSinapse
+            rotuloAqui="Na parte"
+            jaTem={stripHtml(perguntas).length > 0}
+            onEnviar={(naParte, naMetanoia) => {
+              let nParte = 0;
+              if (naParte.length) {
+                const jaTemTexto = stripHtml(perguntas).toLowerCase();
+                const novas = naParte.filter((q) => !jaTemTexto.includes(q.toLowerCase()));
+                if (novas.length) {
+                  const html = perguntas + novas.map((q) => `<p>${escaparHtml(q)}</p>`).join("");
+                  setPerguntas(html);
+                  board.updateSynapsePart(part.id, { perguntas: html });
+                }
+                nParte = novas.length;
+              }
               // Marcar o check é a aprovação: a pergunta entra na Metanoia já aprovada.
-              naMetanoia: naMetanoia.filter(
+              const nMetanoia = naMetanoia.filter(
                 (q) => board.addMetanoiaFrase({ texto: q, tipo: "pergunta", origem: "ia", fonte: `Estudo: ${estudo} — ${part.title}`, status: "aprovada" }) !== null
-              ).length,
-            })}
+              ).length;
+              return { naSinapse: nParte, naMetanoia: nMetanoia };
+            }}
           />
           {!stripHtml(body) && (
             <button type="button" className="btn btn-ghost study-part-roteiro" onClick={usarRoteiro}>

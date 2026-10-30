@@ -85,11 +85,17 @@ export function IdeasView({ onBack }: { onBack: () => void }) {
       <div className={"narrow-list" + (wide ? " list-xl" : "")}>
         <div className="synapse-intro">
           <div className="synapse-intro-title">
-            <BoltIcon filled /> Teve uma ideia?
+            <BoltIcon filled /> Ideias e Estudos
           </div>
           <p>
-            Jogue rápido aqui: fale ou escreva. O FARO guarda, dá um título e arquiva, e a ideia entra no
-            seu mapa de aprendizado.
+            <strong>Ideia</strong> é um insight rápido: fale ou escreva aqui, e o FARO guarda, dá um título e arquiva.{" "}
+            <strong>Estudo</strong> é um conteúdo com várias partes (série, documentário, mentoria, curso): cada encontro ou
+            episódio vira uma parte, com o próprio texto. Troque a tag dentro do item para virar Estudo.
+          </p>
+          <p>
+            Em cada parte do estudo você escreve as <strong>perguntas poderosas</strong> daquele conteúdo ou pede para a IA
+            criar (sem repetir as que você já tem) e escolhe o que vai para a Metanoia. Aprendizado curto, de uma ideia só,
+            com a pergunta que te reconecta, é <strong>Sinapse</strong>. Tudo entra no seu mapa de aprendizado.
           </p>
           {supported ? (
             <div className="idea-voice">

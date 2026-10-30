@@ -23,12 +23,18 @@ export function PerguntasDaIA({
   texto,
   existentes,
   podeNaSinapse,
+  rotuloAqui = "Na sinapse",
+  jaTem = false,
   onEnviar,
 }: {
   titulo: string;
   texto: string;
   existentes: string[];
   podeNaSinapse: boolean;
+  /** Como o check do lugar de origem se chama ("Na sinapse", "Na parte"). */
+  rotuloAqui?: string;
+  /** Já existem perguntas no campo: o botão passa a oferecer "mais", sempre sem repetir. */
+  jaTem?: boolean;
   onEnviar: (naSinapse: string[], naMetanoia: string[]) => { naSinapse: number; naMetanoia: number };
 }) {
   const [gerando, setGerando] = useState(false);
@@ -85,7 +91,7 @@ export function PerguntasDaIA({
       lista.filter((p) => p.naMetanoia && p.texto.trim()).map((p) => p.texto.trim())
     );
     const partes = [
-      feito.naSinapse ? `${feito.naSinapse} na sinapse` : "",
+      feito.naSinapse ? `${feito.naSinapse} ${rotuloAqui.toLowerCase().replace(/^na /, "na ")}` : "",
       feito.naMetanoia ? `${feito.naMetanoia} na Metanoia` : "",
     ].filter(Boolean);
     setAviso(partes.length ? `Enviado: ${partes.join(" e ")}.` : "Nada novo para enviar (já estavam lá).");
@@ -97,7 +103,7 @@ export function PerguntasDaIA({
     <div className="perg-ia">
       <div className="perg-ia-topo">
         <button type="button" className="btn btn-ghost" disabled={gerando || texto.length < 40} onClick={gerar}>
-          <BoltIcon /> {gerando ? "Criando perguntas…" : lista.length ? "Criar outras perguntas" : "Criar perguntas poderosas"}
+          <BoltIcon /> {gerando ? "Criando perguntas…" : lista.length ? "Criar outras perguntas" : jaTem ? "Criar mais perguntas" : "Criar perguntas poderosas"}
         </button>
         <span className="perg-ia-dica">A IA lê só este texto e não repete o que você já tem. Você marca para onde cada pergunta vai.</span>
       </div>
@@ -107,7 +113,7 @@ export function PerguntasDaIA({
         <div className="perg-ia-lista">
           {aviso && <p className="perg-ia-aviso">{aviso}</p>}
           <div className="perg-ia-cab" aria-hidden="true">
-            {podeNaSinapse && <span>Na sinapse</span>}
+            {podeNaSinapse && <span>{rotuloAqui}</span>}
             <span>Na Metanoia</span>
           </div>
           {lista.map((p) => (
@@ -140,9 +146,9 @@ export function PerguntasDaIA({
                 {editando === p.id ? "Pronto" : "Editar"}
               </button>
               {podeNaSinapse && (
-                <label className="perg-ia-check" title="Guardar esta pergunta na sinapse">
+                <label className="perg-ia-check" title={`Guardar esta pergunta (${rotuloAqui.toLowerCase()})`}>
                   <input type="checkbox" checked={p.naSinapse} onChange={(e) => marcar(p.id, "naSinapse", e.target.checked)} />
-                  <span className="sr-only">Na sinapse</span>
+                  <span className="sr-only">{rotuloAqui}</span>
                 </label>
               )}
               <label className="perg-ia-check" title="Mandar para a Metanoia">

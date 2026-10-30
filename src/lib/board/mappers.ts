@@ -591,6 +591,7 @@ export function rowToSynapsePart(row: Tables<"synapse_parts">): SynapsePart {
     kind: row.part_kind,
     date: row.part_date,
     body: row.body,
+    perguntas: row.perguntas,
     order: row.sort_order,
     createdAt: row.created_at,
   };
@@ -605,6 +606,7 @@ export function synapsePartToInsertRow(p: SynapsePart, userId: string): TablesIn
     part_kind: p.kind,
     part_date: p.date,
     body: p.body,
+    perguntas: p.perguntas,
     sort_order: p.order,
   };
 }

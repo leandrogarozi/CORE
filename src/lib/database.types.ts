@@ -1792,6 +1792,7 @@ export type Database = {
           id: string
           part_date: string | null
           part_kind: string
+          perguntas: string
           sort_order: number
           synapse_id: string
           title: string
@@ -1804,6 +1805,7 @@ export type Database = {
           id?: string
           part_date?: string | null
           part_kind?: string
+          perguntas?: string
           sort_order?: number
           synapse_id: string
           title: string
@@ -1816,6 +1818,7 @@ export type Database = {
           id?: string
           part_date?: string | null
           part_kind?: string
+          perguntas?: string
           sort_order?: number
           synapse_id?: string
           title?: string

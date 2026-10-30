@@ -181,6 +181,7 @@ export function SynapseCard({ synapse, ideia = false }: { synapse: Synapse; idei
                 .map((f) => f.texto),
             ]}
             podeNaSinapse={!ideia}
+            jaTem={stripHtml(questions).length > 0}
             onEnviar={(naSinapse, naMetanoia) => {
               let nSinapse = 0;
               if (naSinapse.length) {

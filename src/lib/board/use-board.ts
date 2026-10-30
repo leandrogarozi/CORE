@@ -1290,6 +1290,7 @@ export function useBoard(userId: string | null) {
         kind: extra.kind ?? "encontro",
         date: extra.date === undefined ? todayISO() : extra.date,
         body: extra.body ?? "",
+        perguntas: "",
         order: doEstudo.length ? Math.max(...doEstudo.map((p) => p.order)) + 1 : 0,
         createdAt: new Date().toISOString(),
       };
@@ -1306,7 +1307,7 @@ export function useBoard(userId: string | null) {
   );
 
   const updateSynapsePart = useCallback(
-    (id: string, patch: Partial<Pick<SynapsePart, "title" | "kind" | "date" | "body">>) => {
+    (id: string, patch: Partial<Pick<SynapsePart, "title" | "kind" | "date" | "body" | "perguntas">>) => {
       apply((s) => ({ ...s, synapseParts: s.synapseParts.map((x) => (x.id === id ? { ...x, ...patch } : x)) }));
       supabase
         .from("synapse_parts")
@@ -1315,6 +1316,7 @@ export function useBoard(userId: string | null) {
           ...(patch.kind !== undefined ? { part_kind: patch.kind } : {}),
           ...(patch.date !== undefined ? { part_date: patch.date } : {}),
           ...(patch.body !== undefined ? { body: patch.body } : {}),
+          ...(patch.perguntas !== undefined ? { perguntas: patch.perguntas } : {}),
           updated_at: new Date().toISOString(),
         })
         .eq("id", id)
