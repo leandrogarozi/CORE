@@ -42,6 +42,7 @@ import {
   FlagIcon,
   HomeIcon,
   MicIcon,
+  SettingsIcon,
   LinkIcon,
   MealIcon,
   MoodFaceIcon,
@@ -2384,8 +2385,7 @@ function PaineisDaTela() {
 const GRUPOS_DE_CONFIGURACAO = [
   { id: "avisos", titulo: "Assistente e avisos", sub: "Quando o FARO avisa e quanto custa", cor: "#3E8E8A" },
   { id: "conexoes", titulo: "Conexões", sub: "O FARO falando com outras ferramentas", cor: "#4A47D5" },
-  { id: "paineis", titulo: "Painéis da tela principal", sub: "Cada painel tem a sua configuração. Aqui você cadastra e liga ou desliga; na tela principal só se preenche.", cor: "#C28A1E" },
-  { id: "menu", titulo: "Painéis do menu", sub: "Escolha o que aparece no menu lateral. Desligado, some do menu; o que você escreveu continua guardado.", cor: "#C28A1E" },
+  { id: "paineis", titulo: "Painéis da tela principal e do menu", sub: "Escolha o que aparece na tela principal e no menu lateral. Desligado, some; o que você escreveu continua guardado.", cor: "#C28A1E" },
   { id: "tarefas", titulo: "Tarefas", sub: "Como as tarefas são organizadas", cor: "#B65C8B" },
   { id: "aparencia", titulo: "Aparência", sub: "Como o app aparece neste aparelho", cor: "#B65C8B" },
   { id: "dados", titulo: "Dados e backup", sub: "Cópias de segurança do que você escreveu", cor: "#6E6E78" },
@@ -2471,11 +2471,13 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
           </GrupoDeConfiguracao>
 
           <GrupoDeConfiguracao id="paineis">
-            <PaineisDaTela />
-          </GrupoDeConfiguracao>
-
-          <GrupoDeConfiguracao id="menu">
-            <PaineisDoMenu />
+            {/* Um ícone só abre tudo: os painéis da tela principal e os do menu lateral (a tela de configurações fica compacta). */}
+            <CollapsibleBox title="Painéis" icon={<SettingsIcon />} resumo="Tela principal e menu lateral">
+              <div className="cfg-sub">Tela principal</div>
+              <PaineisDaTela />
+              <div className="cfg-sub">Menu lateral</div>
+              <PaineisDoMenu />
+            </CollapsibleBox>
           </GrupoDeConfiguracao>
 
           <GrupoDeConfiguracao id="tarefas">

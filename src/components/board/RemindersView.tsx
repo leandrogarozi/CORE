@@ -1002,9 +1002,10 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
   const [filter, setFilter] = useState<ReminderFilter>("todos");
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("");
-  // Como avisar este lembrete novo: quanto antes e se também no WhatsApp (o padrão de sempre é ligado).
+  // Como avisar este lembrete novo: quanto antes, no app (sininho, ligado) e no WhatsApp (desligado até a pessoa pedir).
   const [newAntes, setNewAntes] = useState(0);
-  const [newZap, setNewZap] = useState(true);
+  const [newZap, setNewZap] = useState(false);
+  const [newSino, setNewSino] = useState(true);
   const [faltando, setFaltando] = useState<string | null>(null);
   const openMeetingsCount = board.state.tasks.filter(
     (t) => entraEmReunioes(t) && countOpenChecklistItems(t.note) > 0
@@ -1032,7 +1033,7 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
 
     setFaltando(null);
     setNewTitle("");
-    const ok = await board.addReminder(title, newDate, newTime, { alertMinutesBefore: newAntes, whatsapp: newZap });
+    const ok = await board.addReminder(title, newDate, newTime, { alertMinutesBefore: newAntes, whatsapp: newZap, inApp: newSino });
     if (!ok) setNewTitle(title);
     else {
       setNewDate("");
@@ -1147,7 +1148,11 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
                 </option>
               ))}
             </select>
-            <button type="button" className={"reminder-zap-opcao" + (newZap ? " ativo" : "")} aria-pressed={newZap} onClick={() => setNewZap((v) => !v)}>
+            <button type="button" className={"aviso-pilula" + (newSino ? " ativo" : "")} aria-pressed={newSino} onClick={() => setNewSino((v) => !v)} title="Avisa dentro do app (banner e agenda)">
+              <BellIcon filled={newSino} />
+              <span>Avisar no app</span>
+            </button>
+            <button type="button" className={"aviso-pilula zap" + (newZap ? " ativo" : "")} aria-pressed={newZap} onClick={() => setNewZap((v) => !v)} title="Manda também uma mensagem no WhatsApp">
               <WhatsAppIcon filled={newZap} />
               <span>Avisar no WhatsApp</span>
             </button>

@@ -69,7 +69,6 @@ function ResumoDoFaro({ aprovados, aprovadosDepoisDoResumo }: { aprovados: numbe
       {dados?.resumo ? (
         <>
           <TextoDoResumo texto={dados.resumo} />
-          <p className="know-resumo-meta">Escrito pela IA em {quando}, com o que você aprovou. Entra no backup e é lido pelo conector.</p>
         </>
       ) : (
         <p>
@@ -78,19 +77,22 @@ function ResumoDoFaro({ aprovados, aprovadosDepoisDoResumo }: { aprovados: numbe
             : "Aprove alguns itens abaixo e a IA escreve aqui, em texto corrido, o que o FARO sabe sobre você."}
         </p>
       )}
-      {erro && <p className="know-resumo-erro">{erro}</p>}
-      {dados?.resumo && (
-        <p className="know-feito">
-          ✓ Você atualizou o resumo em {quando}.
-          {emDia ? " Nada novo foi aprovado desde então." : ""}
-          {novidades > 0 && (
-            <span className="know-feito-aviso">
-              {" "}
-              {novidades} {novidades === 1 ? "item aprovado ou editado" : "itens aprovados ou editados"} depois dele: vale atualizar.
-            </span>
-          )}
-        </p>
-      )}
+      <div className="know-atualizacao">
+        <div className="know-atualizacao-titulo">Atualização do resumo</div>
+        {dados?.resumo && <p className="know-resumo-meta">Escrito pela IA em {quando}, com o que você aprovou. Entra no backup e é lido pelo conector.</p>}
+        {erro && <p className="know-resumo-erro">{erro}</p>}
+        {dados?.resumo && (
+          <p className="know-feito">
+            ✓ Você atualizou o resumo em {quando}.
+            {emDia ? " Nada novo foi aprovado desde então." : ""}
+            {novidades > 0 && (
+              <span className="know-feito-aviso">
+                {" "}
+                {novidades} {novidades === 1 ? "item aprovado ou editado" : "itens aprovados ou editados"} depois dele: vale atualizar.
+              </span>
+            )}
+          </p>
+        )}
       {/* Azul só quando ainda não existe resumo; depois fica cinza, como "Atualizar conhecimento". */}
       <button
         type="button"
@@ -101,6 +103,7 @@ function ResumoDoFaro({ aprovados, aprovadosDepoisDoResumo }: { aprovados: numbe
         {gerando ? "Escrevendo…" : dados?.resumo ? "Atualizar resumo" : "Gerar resumo"}
       </button>
       <span className="know-resumo-custo"> Custa cerca de R$ 0,30 por vez (entra no painel de custo).</span>
+      </div>
     </div>
   );
 }
@@ -140,21 +143,30 @@ function LadoDaTroca({ rotulo, titulo, texto, novo = false }: { rotulo: string; 
   );
 }
 
-/** O resumo escrito pela IA vem com títulos "## Assim": aqui eles viram títulos de verdade. */
+/** O resumo escrito pela IA vem com títulos "## Assim": aqui eles viram títulos de verdade. Longo, abre recolhido com "Exibir mais". */
 function TextoDoResumo({ texto }: { texto: string }) {
+  const [tudo, setTudo] = useState(false);
   const blocos = texto.split(/\n{2,}/).map((b) => b.trim()).filter(Boolean);
+  const longo = texto.length > 700;
   return (
-    <div className="know-resumo-texto">
-      {blocos.map((b, i) =>
-        b.startsWith("## ") ? (
-          <h4 key={i} className="know-resumo-titulo">
-            {b.replace(/^##\s+/, "")}
-          </h4>
-        ) : (
-          <p key={i}>{b}</p>
-        ),
+    <>
+      <div className={"know-resumo-texto" + (longo && !tudo ? " recolhido" : "")}>
+        {blocos.map((b, i) =>
+          b.startsWith("## ") ? (
+            <h4 key={i} className="know-resumo-titulo">
+              {b.replace(/^##\s+/, "")}
+            </h4>
+          ) : (
+            <p key={i}>{b}</p>
+          ),
+        )}
+      </div>
+      {longo && (
+        <button type="button" className={"note-field-toggle" + (tudo ? " open" : "")} onClick={() => setTudo((v) => !v)}>
+          <ChevronIcon /> {tudo ? "Exibir menos" : "Exibir mais"}
+        </button>
       )}
-    </div>
+    </>
   );
 }
 
