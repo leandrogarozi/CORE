@@ -4516,3 +4516,17 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .reminder-novo-avisos .reminder-icones{ display:inline-flex; gap:6px; margin:0; flex:none; }
 .reminder-novo-avisos .icon-btn{ width:34px; height:34px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:var(--surface-2); }
 .reminder-novo-avisos .icon-btn svg{ width:16px; height:16px; }
+
+/* Conhecendo você: resumo recolhido com "Exibir mais"; atualização num bloco à parte; Antes branco e Depois azulado. */
+.know-resumo-texto{ max-height:none; overflow:visible; padding-right:0; }
+.know-resumo-texto.recolhido{ max-height:230px; overflow:hidden; -webkit-mask-image:linear-gradient(#000 68%, transparent); mask-image:linear-gradient(#000 68%, transparent); }
+.know-resumo .note-field-toggle{ margin-top:6px; }
+.know-atualizacao{ margin-top:18px; padding:14px 16px; border-radius:var(--r-3); background:color-mix(in srgb, var(--accent) 6%, var(--surface)); display:flex; flex-direction:column; gap:8px; align-items:flex-start; }
+.know-atualizacao-titulo{ font-size:12px; font-weight:700; letter-spacing:.02em; color:var(--accent); }
+.know-atualizacao p{ margin:0; }
+:root[data-estilo="suave"] .know-troca-lado:not(.know-troca-novo), :root[data-estilo="flutuante"] .know-troca-lado:not(.know-troca-novo){ background:var(--surface); box-shadow:var(--sh-1); }
+:root[data-estilo="suave"] .know-troca-novo, :root[data-estilo="flutuante"] .know-troca-novo{ background:color-mix(in srgb, var(--accent) 7%, var(--surface)); box-shadow:none; }
+
+/* Configurações: subtítulos dentro do bloco único "Painéis". */
+.cfg-sub{ margin:16px 0 8px; font-size:12px; font-weight:700; letter-spacing:.02em; color:var(--text-muted); text-transform:uppercase; }
+.cfg-sub:first-child{ margin-top:2px; }
