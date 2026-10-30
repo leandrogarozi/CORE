@@ -6445,3 +6445,8 @@ O FARO guarda a versão vigente de cada coisa; a antiga não é apagada nem vale
 - **Cópia diária em .md** (`/api/backup/aprendizado`, zip das Configurações): superados vão para `Conhecendo você/_superados/` (com `status: superado`, `superado_em`, `superado_por`) e saem da lista do `00 — Índice.md` (fica só uma linha com a contagem).
 - **Atenção (Drive):** o script do computador **nunca apaga**; então a cópia antiga que já estava em `Conhecendo você/` continua lá até ser movida à mão. O índice é a fonte de verdade (o que não está nele é ignorado).
 - Pendente: revisar o acervo com o Leandro e marcar os duplicados (primeiro caso: LinkedIn abril/2026 → versão final).
+
+## Ideias como proposta + "Criar perguntas poderosas" na sinapse (30/10/2026)
+
+- **Conector:** a IA é instruída a ser **proativa** (varrer o acervo inteiro quando a conversa tocar em criar algo e trazer ideias pela visão do Leandro) e a **propor as ideias** com `faro_propor_aprendizado` (tipo `ideia`, `origem` = itens do acervo, `tags` = ebook/livro/conteudo/projeto). Caem em "Para revisar".
+- **Botão na sinapse (e na ideia):** "Criar perguntas poderosas" → `POST /api/ia/perguntas` (IA lê só aquele texto, 5 a 7 perguntas, mesmo teto de gasto das outras IAs, `ia_uso.funcao = 'perguntas'`). Nada é gravado pela rota. Na tela, cada pergunta tem dois checks: **Na sinapse** (acrescenta ao campo de perguntas) e **Na Metanoia** (entra como pergunta, origem `ia`, já aprovada porque o check é a aprovação; ideia/estudo só tem o check da Metanoia). O que foi enviado sai da lista; o resto fica para decidir.
