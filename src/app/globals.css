@@ -1597,6 +1597,7 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .maint-asset-nomecol .maint-asset-name{ flex:none; }
 .maint-asset-sub{ font-size:12px; color:var(--text-muted); padding:0 5px; }
 .maint-flag.em-dia{ color:#2F7D3E; background:color-mix(in srgb, #2F9E44 14%, var(--surface)); }
+.maint-ultimo{ flex:none; font-size:11px; color:var(--text-faint); white-space:nowrap; }
 .maint-asset-count{ flex:none; font-size:10px; color:var(--text-faint); white-space:nowrap; }
 .maint-asset-name{
   flex:1; min-width:0; font-size:13.5px; font-weight:600; color:var(--text);

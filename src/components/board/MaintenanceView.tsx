@@ -68,8 +68,10 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
   const { feitas: rodadas, atual: cicloAtual } = ciclosDoItem(item, historico, st.dueDate);
   // "Início do novo ciclo": a data já vem sugerida (o fim do ciclo atual) e dá pra mudar. O Feito ao lado
   // registra o serviço nessa data e o ciclo seguinte começa nela.
-  const [novoInicioDraft, setNovoInicioDraft] = useState<string | null>(null);
-  const novoInicio = novoInicioDraft ?? cicloAtual.sugestaoNovoInicio ?? todayISO();
+  // O rascunho vale só para o ciclo em que foi digitado: ao fechar o ciclo, o próximo volta a sugerir o fim dele
+  // (antes a data digitada ficava e o Ciclo 4 aparecia começando no mesmo dia do Ciclo 3).
+  const [novoInicioDraft, setNovoInicioDraft] = useState<{ n: number; data: string } | null>(null);
+  const novoInicio = (novoInicioDraft && novoInicioDraft.n === cicloAtual.n ? novoInicioDraft.data : null) ?? cicloAtual.sugestaoNovoInicio ?? todayISO();
   const rotuloDoCiclo = item.waiting
     ? `Ciclo ${cicloAtual.n} · aguardando começar`
     : cicloAtual.inicio && cicloAtual.fim
@@ -77,6 +79,22 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
       : cicloAtual.fim
         ? `Ciclo ${cicloAtual.n} · até ${fmtShortDate(cicloAtual.fim)}`
         : null;
+
+  // "Feito" fecha o ciclo atual de uma vez: registra o serviço na data e o próximo ciclo já nasce com o intervalo
+  // cadastrado. Km, valor e anotação ficam em "Editar ciclo". Sempre pergunta antes, para ninguém fechar o ciclo errado.
+  function fecharCiclo(data: string) {
+    const meses = item.intervalMonths && item.intervalMonths > 0 ? item.intervalMonths : null;
+    const venceEm = meses ? isoAddMonths(data, meses) : null;
+    const atual = lastReading(readings);
+    const km = asset.tracksOdometer && atual && data === todayISO() ? atual.reading : null;
+    const pergunta = cicloAtual.inicio
+      ? `Marcar o Ciclo ${cicloAtual.n} como feito em ${fmtShortDate(data)}? O Ciclo ${cicloAtual.n + 1} começa nessa data${venceEm ? ` e vence em ${fmtShortDate(venceEm)}` : ""}.`
+      : `Registrar que "${item.name}" foi feito em ${fmtShortDate(data)}? O próximo ciclo começa nessa data${venceEm ? ` e vence em ${fmtShortDate(venceEm)}` : ""}.`;
+    askConfirm(pergunta, () => {
+      board.registerMaintenanceService(item.id, data, km, null, "");
+      setNovoInicioDraft(null);
+    });
+  }
 
   // Abre o formulário já com o que foi registrado: clicar em "Feito" de novo é
   // pra CORRIGIR, não pra criar outro registro. Sem serviço gravado mas com data
@@ -114,6 +132,7 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
     }
     setRegistrando(false);
     setEditandoId(null);
+    setNovoInicioDraft(null);
   }
 
   // "a cada 12 meses ou 10.000 km" — o que o item usa pra calcular o próximo.
@@ -245,25 +264,25 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
         >
           <WhatsAppIcon filled={!!(item.whatsapp && st.dueDate)} />
         </button>
-        {/* "Fiz" era a ação na voz de quem clica; "Feito" é o estado do item,
-            que é o que ele quer ler na linha. Quando já existe um serviço
-            registrado, a data vem junto: a linha passa a dizer o que aconteceu,
-            e não só o que dá pra fazer.
-            Marcar feito registra o serviço e a próxima data é recalculada a
-            partir dele — é assim que uma manutenção puxa a seguinte. */}
-        <button
-          type="button"
-          className={"btn btn-ghost maint-done-btn" + (item.lastDoneOn ? " concluido" : "")}
-          title={
-            item.lastDoneOn
-              ? `Último em ${fmtShortDate(item.lastDoneOn)}. Clique pra fechar este ciclo e começar o próximo. Pra corrigir uma rodada, abra o item e use o lápis em "Rodadas já feitas".`
-              : "Registrar que essa manutenção foi feita"
-          }
-          onClick={() => (registrando ? setRegistrando(false) : abrirForm(null, "novo"))}
-        >
-          <CheckIcon /> Feito
-          {item.lastDoneOn && <span className="maint-done-data mono">{fmtShortDate(item.lastDoneOn)}</span>}
-        </button>
+        {/* O que importa na linha é o ciclo que precisa de atenção. O último "feito" é só informação (não clica: antes
+            parecia o botão do ciclo vencido). Só quando o ciclo está vencido, chegando ou sem registro aparece o
+            "Feito", que pergunta e já abre o próximo ciclo. */}
+        {!item.waiting && st.state !== "ok" ? (
+          <button
+            type="button"
+            className="btn btn-ghost maint-done-btn"
+            title={st.state === "sem_base" ? "Registrar que essa manutenção foi feita" : `Fechar o Ciclo ${cicloAtual.n}: marca como feito e abre o próximo`}
+            onClick={() => fecharCiclo(todayISO())}
+          >
+            <CheckIcon /> Feito
+          </button>
+        ) : (
+          item.lastDoneOn && (
+            <span className="maint-ultimo mono" title={`Último serviço registrado em ${fmtShortDate(item.lastDoneOn)}`}>
+              último {fmtShortDate(item.lastDoneOn)}
+            </span>
+          )
+        )}
         {/* Editar não tinha botão: pra mudar intervalo ou antecedência era
             preciso adivinhar que o nome e a etiqueta de intervalo abriam o
             item. Dois cliques escondidos não são um caminho. */}
@@ -409,26 +428,28 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
                 <input
                   type="date"
                   value={novoInicio}
-                  onChange={(e) => setNovoInicioDraft(e.target.value || null)}
+                  onChange={(e) => setNovoInicioDraft(e.target.value ? { n: cicloAtual.n, data: e.target.value } : null)}
                   aria-label="Data de início do novo ciclo"
                 />
                 <button
                   type="button"
                   className="btn btn-ghost maint-done-btn"
                   title="Registra que foi feito nessa data e começa o próximo ciclo a partir dela"
-                  onClick={() => {
-                    abrirForm(null, "novo");
-                    setDoneOn(novoInicio);
-                  }}
+                  onClick={() => fecharCiclo(novoInicio)}
                 >
                   <CheckIcon /> Feito
                 </button>
+                {historico.length > 0 && (
+                  <button type="button" className="link-acao" onClick={() => abrirForm(historico[0])}>
+                    Editar ciclo {rodadas.length}
+                  </button>
+                )}
               </div>
             )}
             {!item.waiting && (
               <div className="maint-explain">
-                A data vem sugerida (o fim do ciclo atual) e pode ser mudada. Ao clicar em <strong>Feito</strong> o Ciclo {cicloAtual.n} fecha nessa
-                data e o Ciclo {cicloAtual.n + 1} começa a contar dela.
+                A data vem sugerida (o fim do ciclo atual) e pode ser mudada. Ao clicar em <strong>Feito</strong> (ele pergunta antes) o Ciclo {cicloAtual.n} fecha nessa
+                data e o Ciclo {cicloAtual.n + 1} já começa a contar dela. Para registrar km, valor ou anotação, use <strong>Editar ciclo</strong>.
               </div>
             )}
           </div>
@@ -749,7 +770,12 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
                         className="icon-btn"
                         title="Corrigir este serviço"
                         aria-label={`Corrigir o serviço de ${fmtShortDate(s.doneOn)}`}
-                        onClick={() => abrirForm(s)}
+                        onClick={() =>
+                          askConfirm(
+                            `Tem certeza que quer mudar o Ciclo ${r.n}? Ele já passou. O seu ciclo atual é o Ciclo ${cicloAtual.n}.`,
+                            () => abrirForm(s)
+                          )
+                        }
                       >
                         <EditIcon />
                       </button>
