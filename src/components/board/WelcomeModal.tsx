@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useBoardCtx } from "./board-context";
+import { ArchiveIcon, BellIcon, BookOpenIcon, CommentIcon, HomeIcon } from "./icons";
 
 /** Marca no `featureFlags` (já existe e já é gravado) que a pessoa passou ou pulou as boas-vindas. */
 export const FLAG_BOAS_VINDAS = "onboarding_done";
@@ -67,18 +68,38 @@ export function WelcomeModal({ onAbrirConfiguracoes }: { onAbrirConfiguracoes: (
       <>
         <div className="modal-backdrop" />
         <div className="modal-panel welcome-panel" role="dialog" aria-modal="true" aria-label="Boas-vindas ao FARO">
-          <div className="modal-title">Bem-vindo(a) ao FARO</div>
-          <p className="welcome-texto">
-            O FARO é o seu painel de <strong>Foco, Ação, Rotina e Objetivos</strong>: tarefas, lembretes, reuniões e tudo o que você aprende e anota ficam num só lugar, como um cérebro digital que vai te conhecendo.
-          </p>
-          <p className="welcome-texto">
-            Você está entre as <strong>pessoas selecionadas para o teste inicial</strong>. Isso quer dizer que o app ainda está sendo construído: pode haver erros, e algumas coisas vão mudar pelo caminho. O que você usar e disser é o que vai mostrar onde melhorar.
-          </p>
-          <ul className="welcome-lista">
-            <li>Achou um erro ou teve uma ideia? Conte no <strong>Canal de feedback</strong>, no menu.</li>
-            <li>Ficou em dúvida de como algo funciona? Abra o <strong>Como usar</strong>, no menu, ou o botão “Como funciona” de cada tela.</li>
-            <li>Faça os seus <strong>backups</strong> de vez em quando, em Configurações, para guardar tudo o que você escreve.</li>
-          </ul>
+          <div className="welcome-cab">
+            <div className="modal-title">Bem-vindo(a) ao FARO</div>
+            <p className="welcome-texto">
+              Seu painel de <strong>Foco, Ação, Rotina e Objetivos</strong>: tarefas, lembretes, reuniões e tudo o que você aprende ficam num só lugar, como um cérebro digital que vai te conhecendo.
+            </p>
+          </div>
+          <div className="welcome-aviso">
+            Você está entre as <strong>pessoas do teste inicial</strong>. O app ainda está sendo construído: pode haver erros, e algumas coisas vão mudar. O que você usar e disser mostra onde melhorar.
+          </div>
+          <div className="welcome-linhas">
+            <div className="welcome-linha">
+              <span className="welcome-icone"><CommentIcon /></span>
+              <div>
+                <b>Achou um erro ou teve uma ideia?</b>
+                <span>Conte no <strong>Canal de feedback</strong>, no menu.</span>
+              </div>
+            </div>
+            <div className="welcome-linha">
+              <span className="welcome-icone"><BookOpenIcon /></span>
+              <div>
+                <b>Ficou em dúvida?</b>
+                <span>Abra o <strong>Como usar</strong>, no menu, ou o botão “Como funciona” de cada tela.</span>
+              </div>
+            </div>
+            <div className="welcome-linha">
+              <span className="welcome-icone"><ArchiveIcon /></span>
+              <div>
+                <b>Guarde o que você escreve</b>
+                <span>Faça os seus <strong>backups</strong> de vez em quando, em Configurações.</span>
+              </div>
+            </div>
+          </div>
           <div className="welcome-fim">
             <button type="button" className="btn btn-accent" onClick={() => setIntro(false)}>
               Entendi, vamos começar
@@ -93,12 +114,18 @@ export function WelcomeModal({ onAbrirConfiguracoes }: { onAbrirConfiguracoes: (
     <>
       <div className="modal-backdrop" />
       <div className="modal-panel welcome-panel" role="dialog" aria-modal="true" aria-label="Boas-vindas ao FARO">
-        <div className="welcome-passos">Passo {passo + 1} de 3</div>
+        <div className="welcome-progresso" role="progressbar" aria-valuemin={1} aria-valuemax={3} aria-valuenow={passo + 1} aria-label={`Passo ${passo + 1} de 3`}>
+          {[0, 1, 2].map((i) => (
+            <span key={i} className={i <= passo ? "feito" : ""} />
+          ))}
+        </div>
 
         {passo === 0 && (
           <>
-            <div className="modal-title">Bem-vindo(a) ao FARO</div>
-            <p className="welcome-texto">Duas coisas rápidas para o app ficar do seu jeito.</p>
+            <div className="welcome-cab">
+              <div className="modal-title">Vamos deixar o app do seu jeito</div>
+              <p className="welcome-texto">Duas coisas rápidas.</p>
+            </div>
             <label className="welcome-campo">
               <span>Como você quer ser chamado(a)?</span>
               <input
@@ -126,11 +153,12 @@ export function WelcomeModal({ onAbrirConfiguracoes }: { onAbrirConfiguracoes: (
 
         {passo === 1 && (
           <>
-            <div className="modal-title">Lembretes no WhatsApp (opcional)</div>
-            <p className="welcome-texto">
-              Se quiser receber lembretes no WhatsApp, coloque seu número. O FARO só manda mensagem das coisas em que <b>você</b> ligar o
-              ícone do zap, e você desliga quando quiser. Cada mensagem tem um custo pequeno, que aparece no app e tem teto.
-            </p>
+            <div className="welcome-cab">
+              <div className="modal-title">Lembretes no WhatsApp (opcional)</div>
+              <p className="welcome-texto">
+                O FARO só manda mensagem das coisas em que <b>você</b> ligar o ícone do zap, e você desliga quando quiser. Cada mensagem tem um custo pequeno, que aparece no app e tem teto.
+              </p>
+            </div>
             <label className="welcome-campo">
               <span>WhatsApp com DDD</span>
               <input
@@ -153,29 +181,43 @@ export function WelcomeModal({ onAbrirConfiguracoes }: { onAbrirConfiguracoes: (
 
         {passo === 2 && (
           <>
-            <div className="modal-title">Instale o app e ligue os avisos</div>
-            <ul className="welcome-lista">
-              <li>
-                <b>iPhone:</b> abra o FARO no Safari, toque em Compartilhar e em &quot;Adicionar à Tela de Início&quot;. Abra pelo ícone novo.
-              </li>
-              <li>
-                <b>Android:</b> no Chrome, menu (três pontinhos) e &quot;Instalar app&quot; ou &quot;Adicionar à tela inicial&quot;.
-              </li>
-              <li>
-                <b>Computador (Chrome ou Edge):</b> clique no ícone de instalar no fim da barra de endereço (um monitor com uma seta), ou no menu do navegador e em &quot;Instalar FARO&quot;. No Mac com Safari: menu Arquivo e &quot;Adicionar ao Dock&quot;.
-              </li>
-              <li>
-                <b>Depois:</b> em Configurações, grupo &quot;Avisos e custos&quot;, toque em &quot;Ativar notificações&quot; para o celular te avisar dos lembretes.
-              </li>
-            </ul>
-            <p className="welcome-texto">
-              No computador você pode usar o FARO direto no navegador ou instalar como aplicativo, com ícone próprio e sem a barra do navegador. Instalado, os avisos chegam com mais segurança. Esse passo a passo
-              também está na tela <b>Como usar</b> (no menu), em &quot;Instalar o FARO no celular e no computador&quot;.
-            </p>
-            <p className="welcome-texto">
-              <b>Seus dados:</b> o FARO guarda uma cópia diária da sua conta por 14 dias. Mesmo assim, de vez em quando baixe a sua em Configurações,
-              grupo &quot;Dados e backup&quot;, e guarde no seu computador ou no seu Drive.
-            </p>
+            <div className="welcome-cab">
+              <div className="modal-title">Instale o app e ligue os avisos</div>
+              <p className="welcome-texto">Instalado, o FARO abre com ícone próprio e os avisos chegam com mais segurança. Também dá para usar direto no navegador.</p>
+            </div>
+            <div className="welcome-linhas">
+              <div className="welcome-linha">
+                <span className="welcome-icone"><HomeIcon /></span>
+                <div>
+                  <b>iPhone</b>
+                  <span>Abra no Safari, toque em Compartilhar e em “Adicionar à Tela de Início”.</span>
+                </div>
+              </div>
+              <div className="welcome-linha">
+                <span className="welcome-icone"><HomeIcon /></span>
+                <div>
+                  <b>Android</b>
+                  <span>No Chrome, menu (três pontinhos) e “Instalar app”.</span>
+                </div>
+              </div>
+              <div className="welcome-linha">
+                <span className="welcome-icone"><HomeIcon /></span>
+                <div>
+                  <b>Computador</b>
+                  <span>No Chrome ou Edge, clique no ícone de instalar no fim da barra de endereço. No Mac com Safari: Arquivo e “Adicionar ao Dock”.</span>
+                </div>
+              </div>
+              <div className="welcome-linha">
+                <span className="welcome-icone"><BellIcon /></span>
+                <div>
+                  <b>Depois, ligue os avisos</b>
+                  <span>Em Configurações, grupo “Assistente e avisos”, toque em “Ativar notificações”.</span>
+                </div>
+              </div>
+            </div>
+            <div className="welcome-aviso">
+              <strong>Seus dados:</strong> o FARO guarda uma cópia diária da sua conta por 14 dias. Mesmo assim, de vez em quando baixe a sua em Configurações, grupo “Dados e backup”. O passo a passo completo está no <b>Como usar</b>.
+            </div>
           </>
         )}
 

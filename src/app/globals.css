@@ -4244,3 +4244,44 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 :root[data-theme="dark"][data-estilo="suave"] .study-part, :root[data-theme="dark"][data-estilo="flutuante"] .study-part{
   background:color-mix(in srgb, var(--surface) 80%, transparent); box-shadow:0 14px 28px -16px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.07);
 }
+
+/* ===== Boas-vindas, login e janelas no padrão novo ===== */
+.welcome-cab{ display:flex; flex-direction:column; gap:6px; }
+.welcome-progresso{ display:flex; gap:6px; }
+.welcome-progresso span{ flex:1; height:5px; border-radius:999px; background:var(--trilho); }
+.welcome-progresso span.feito{ background:var(--accent); }
+.welcome-aviso{ font-size:12.5px; line-height:1.5; color:var(--text-muted); background:var(--accent-soft); border-radius:var(--r-2); padding:12px 14px; }
+.welcome-linhas{ display:flex; flex-direction:column; }
+.welcome-linha{ display:flex; gap:14px; align-items:flex-start; padding:12px 0; border-top:1px solid var(--linha); }
+.welcome-linha:first-child{ border-top:0; }
+.welcome-linha b{ display:block; font-size:13.5px; font-weight:600; }
+.welcome-linha span:not(.welcome-icone){ display:block; font-size:12.5px; line-height:1.5; color:var(--text-muted); margin-top:1px; }
+.welcome-icone{ flex:none; width:36px; height:36px; border-radius:12px; display:inline-flex; align-items:center; justify-content:center; background:var(--accent-soft); color:var(--accent); }
+.welcome-icone svg{ width:16px; height:16px; }
+.welcome-panel{ gap:16px; }
+:root[data-estilo="suave"] .modal-panel, :root[data-estilo="flutuante"] .modal-panel{
+  border:0; border-radius:var(--r-4); padding:26px 28px; box-shadow:0 30px 60px -24px rgba(20,20,60,.45), 0 2px 6px rgba(20,20,60,.08);
+}
+:root[data-theme="dark"][data-estilo="suave"] .modal-panel, :root[data-theme="dark"][data-estilo="flutuante"] .modal-panel{
+  box-shadow:0 30px 60px -24px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.08);
+}
+/* Entrada (login, cadastro): o cartão flutua sobre o fundo, abas em pílula, campos redondos e botão em degradê. */
+:root[data-estilo="suave"] .auth-wrap, :root[data-estilo="flutuante"] .auth-wrap{ background:transparent; }
+:root[data-estilo="suave"] .auth-card, :root[data-estilo="flutuante"] .auth-card{
+  width:min(400px, 100%); border:0; border-radius:var(--r-4); padding:34px 30px;
+  box-shadow:0 30px 60px -26px rgba(20,20,60,.4), 0 2px 6px rgba(20,20,60,.06);
+}
+:root[data-estilo="suave"] .auth-tabs, :root[data-estilo="flutuante"] .auth-tabs{ border:0; background:var(--segmento-fundo); border-radius:999px; padding:4px; gap:4px; margin-bottom:20px; }
+:root[data-estilo="suave"] .auth-tabs button, :root[data-estilo="flutuante"] .auth-tabs button{ border-radius:999px; padding:9px; background:transparent; }
+:root[data-estilo="suave"] .auth-tabs button + button, :root[data-estilo="flutuante"] .auth-tabs button + button{ border-left:0; }
+:root[data-estilo="suave"] .auth-tabs button.active, :root[data-estilo="flutuante"] .auth-tabs button.active{ background:var(--grad-roxo); color:#fff; box-shadow:0 10px 20px -10px rgba(94,77,235,.7); }
+:root[data-estilo="suave"] .auth-form, :root[data-estilo="flutuante"] .auth-form{ gap:16px; }
+:root[data-estilo="suave"] .auth-form input, :root[data-estilo="flutuante"] .auth-form input{ border-radius:14px; border-color:var(--linha); padding:12px 14px; }
+:root[data-estilo="suave"] .auth-submit, :root[data-estilo="flutuante"] .auth-submit{ background:var(--grad-roxo); color:#fff; border-radius:999px; padding:13px; box-shadow:0 12px 24px -10px rgba(94,77,235,.65); margin-top:8px; }
+/* Mais respiro entre o texto e os botões nos conhecimentos do estudo e nas anotações. */
+.note-field{ gap:10px; }
+.note-field-toggle{ margin-top:2px; }
+.study-part-body{ gap:16px; padding:6px 16px 16px; }
+.study-part-body .perg-ia{ gap:14px; margin-top:4px; }
+.study-part-body .synapse-field-question{ margin-top:2px; }
+:root[data-estilo="suave"] .auth-forgot, :root[data-estilo="flutuante"] .auth-forgot{ color:var(--text-muted); margin-top:6px; }

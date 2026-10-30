@@ -6481,3 +6481,22 @@ Escolha **neste aparelho** (como o tema), em Configurações > Aparência > **Es
 - **Padrão uniforme em todos os controles (30/10):** nos estilos Suave e Flutuante (o Flutuante é o padrão), chips, segmentos (`.note-chip`, `.meeting-modo-btn`, `.view-toggle-btn`), botões (`.btn`) e campos (`input`, `select`, `textarea`, seletor de hora) viram pílulas/cantos redondos, com o ativo em degradê roxo e foco roxo; vale para toda tela que usa essas classes. Metanoia: seções com título ("Quantas frases por dia", "Em que horário", "Cartão da tela inicial") e a cor atrás do botão recolhido **Configuração de cor**. Telas com controles próprios (não usam essas classes) ainda precisam ser conferidas uma a uma.
 - **Organização por linhas (30/10, a partir dos prints do Leandro):** Medicamentos e Dieta ficaram como referência (linhas separando). **Metanoia > "Quando o FARO me lembra"** virou linhas com fio (rótulo + explicação à esquerda, controle à direita: quantas por dia, em que horário, notificação, cartão da tela inicial). **Estudo (partes):** corrigido o texto cortado sem aviso e a sobreposição com "Perguntas poderosas" (o `NoteField` media a altura antes do editor aparecer; agora um observador mede de novo, mostra o esmaecido e o "Exibir mais"), e as prévias fechadas mostram 2 linhas inteiras (o padding deixava a 3ª linha aparecer). Padrão a repetir nas outras telas: título + explicação curta à esquerda, controle à direita, fio entre as linhas.
 - **Estudo: "conhecimentos" flutuantes (30/10):** o que era "partes" virou **Conhecimentos** (botão **+ Adicionar conhecimento**; cada um com o número, o título e a data, sem o selo "Encontro"). Os cartões de dentro flutuam (sombra leve, sem borda), no Flutuante e no Suave; "Perguntas poderosas" também. O nome interno (`synapse_parts`) não mudou.
+
+## Layout novo do FARO: resumo do que mudou (30/10/2026)
+
+**Princípios.** (1) Antes de aplicar, desenhar na prancha "Layouts FARO" e esperar o OK. (2) Uma cor diz **uma coisa só** por tela. (3) Organização por **linhas**: título e explicação curta à esquerda, controle à direita, fio entre as linhas (modelo: Medicamentos e Dieta). (4) Nada é apagado: o que muda de lugar é copiado (cópias em `synapses_antes_da_conversao` e `metanoia_frases_antes_das_aspas`).
+
+**Estilo dos cartões** (Configurações > Aparência; `data-estilo` no `<html>`, `localStorage` `faro-estilo`, por aparelho). **Padrão: Cartão flutuante**; também **Suave** (vidro) e **Clássico** (o antigo). No tema escuro viram o "roxo profundo". Fundo padrão: **Sem cor** (cinza liso); quem escolheu outro mantém. O botão principal é degradê roxo (#4A47D5 → #7C4DF0).
+
+**Aplicado nos estilos novos, em todo o app:**
+- Chips, abas, segmentos, botões e campos: pílulas e cantos redondos; ativo em degradê roxo; foco roxo.
+- Cartões: raio maior, sombra em camadas; vidro (translúcido) no Suave.
+- **Ícone em quadradinho + filete de cor** por tipo/situação: Sinapses, Ideias e Estudos, Livros/filmes/séries, Reuniões, Manutenção (lista de bens), Projetos, Checklists, Compras/Desejos.
+- **Configurações** em grupos coloridos (ponto, filete e ícone), na ordem: Assistente e avisos, Conexões, Painéis (tela e menu), Tarefas, Aparência, Dados e backup, Canal de feedback.
+- **Tela do dia**: saudação numa linha ("Boa tarde, Leandro — nada atrasado… | Feriado …"); Metanoia como cartão em destaque (roxo no Flutuante; "Igual ao app" por padrão).
+- **Metanoia**: ajustes em linhas com fio; cor atrás do botão "Configuração de cor", com amostras redondas (Igual ao app, Preto, Branco, Escolher cor, Escolher degradê).
+- **Estudo**: "Partes" virou **Conhecimentos** (numerados, flutuantes, "+ Adicionar conhecimento"); texto longo com esmaecido e "Exibir mais" (corrigido o corte sem aviso).
+- **Manutenção**: lista de bens com ícone e filete pela situação; item aberto com Rodadas → Ciclo atual → abas (Prazo, Anotações, Quando o FARO avisa); Feito pergunta e abre o próximo ciclo.
+- **Entrada (login/cadastro) e janelas (modais)**: cartão flutuante, abas em pílula, campos redondos, botão em degradê. **Boas-vindas**: barra de progresso em 3 passos, cabeçalho curto, linhas com ícone, avisos em faixa; texto do passo 3 usa os nomes novos dos grupos.
+
+**Ainda não aplicado:** menu inferior flutuante do celular; telas fora do pacote (Lembretes, Cadastros, Semana, Lixeira, Dashboard, Aniversários, Plano de estudo, Dieta, Medicamentos); troca do azul do logo da entrada pelo roxo (decisão do Leandro); Dispensa (combinada, desenhada na prancha, não construída).
