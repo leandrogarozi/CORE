@@ -43,6 +43,10 @@ import {
   type BookStatus,
 } from "@/lib/types";
 
+// Anotação curta ("do que se trata") fica aqui, como lembrete da lista. Só a partir deste tamanho ela
+// já é um aprendizado que pode ser levado: até LIMITE_DA_SINAPSE vai para uma Sinapse, acima disso para um Estudo.
+const MINIMO_PARA_LEVAR = 1500;
+
 // Ícone de cada tipo (a cor vem de .k-livro, .k-filme e .k-serie).
 const BOOK_KIND_ICON: Record<BookKind, () => React.JSX.Element> = {
   livro: BookIcon,
@@ -288,8 +292,14 @@ function BookInsightsButton({ book }: { book: Book }) {
               <div className="modal-head">
                 <span className="modal-title">{book.title}</span>
               </div>
-              <div className="hint-text">Resumo, trechos marcantes, insights — o que quiser guardar sobre {book.kind === "livro" ? "esse livro" : book.kind === "filme" ? "esse filme" : "essa série"}.</div>
-              <RichTextEditor value={draft} onChange={setDraft} placeholder="Escreva aqui..." autoFocus />
+              <div className="hint-text">
+                Do que se trata {book.kind === "livro" ? "esse livro" : book.kind === "filme" ? "esse filme" : "essa série"} e por que você quer {book.kind === "livro" ? "ler" : "ver"}: poucas linhas já bastam. Se você escrever um aprendizado de verdade, a partir de {MINIMO_PARA_LEVAR.toLocaleString("pt-BR")} caracteres, aparece o botão <strong>Levar para…</strong>.
+              </div>
+              <RichTextEditor value={draft} onChange={setDraft} placeholder="Do que se trata, o que chamou atenção..." autoFocus />
+              <div className="hint-text" style={{ marginTop: 4 }}>
+                {stripHtml(draft).length.toLocaleString("pt-BR")} caracteres
+                {stripHtml(draft).length >= MINIMO_PARA_LEVAR ? " · já dá para levar para " + (stripHtml(draft).length <= LIMITE_DA_SINAPSE ? "uma Sinapse" : "um Estudo") : ""}
+              </div>
               <div className="edit-actions" style={{ marginTop: 10 }}>
                 <button type="button" className="btn btn-ghost" onClick={() => setOpen(false)}>
                   Cancelar
@@ -350,7 +360,8 @@ function BookEnviarAnotacoes({ book }: { book: Book }) {
       </span>
     );
   }
-  if (!stripHtml(book.insights ?? "").trim()) return null;
+  // Anotação curta é só a descrição da lista: não oferece levar para lugar nenhum.
+  if (stripHtml(book.insights ?? "").trim().length < MINIMO_PARA_LEVAR) return null;
 
   function jaEnviado(para: "estudo" | "sinapse") {
     return board.state.synapses.some((s) => s.source === fonte && (para === "estudo" ? s.kind === "ideia" : s.kind === "sinapse"));
@@ -415,26 +426,26 @@ function BookEnviarAnotacoes({ book }: { book: Book }) {
               {etapa === "escolher" ? (
                 <>
                   <div className="hint-text">
-                    Para onde você quer levar as anotações? ({notas.length.toLocaleString("pt-BR")} caracteres)
+                    Anotação com {notas.length.toLocaleString("pt-BR")} caracteres. Pelo tamanho, o melhor lugar é:
                   </div>
                   <div className="book-enviar-opcoes">
-                    <button
-                      type="button"
-                      className="book-enviar-opcao"
-                      disabled={!cabeNaSinapse}
-                      onClick={() => setEtapa("perguntas")}
-                    >
-                      <strong>Sinapse</strong>
-                      <span>
-                        {cabeNaSinapse
-                          ? `Um aprendizado curto, com a pergunta que te reconecta. Cabe: ${notas.length.toLocaleString("pt-BR")} de ${LIMITE_DA_SINAPSE.toLocaleString("pt-BR")}.`
-                          : `Grande demais: ${notas.length.toLocaleString("pt-BR")} de ${LIMITE_DA_SINAPSE.toLocaleString("pt-BR")}. Sinapse é uma ideia curta.`}
-                      </span>
-                    </button>
-                    <button type="button" className="book-enviar-opcao" disabled={enviando} onClick={() => void enviar("estudo")}>
-                      <strong>Estudo{!cabeNaSinapse ? " (recomendado)" : ""}</strong>
-                      <span>Para um conteúdo com várias partes. A anotação vira a parte “Conteúdo original” e você divide depois. Nada se perde.</span>
-                    </button>
+                    {cabeNaSinapse ? (
+                      <button type="button" className="book-enviar-opcao" onClick={() => setEtapa("perguntas")}>
+                        <strong>Sinapse</strong>
+                        <span>
+                          Um aprendizado curto, com a pergunta que te reconecta. Cabe: {notas.length.toLocaleString("pt-BR")} de{" "}
+                          {LIMITE_DA_SINAPSE.toLocaleString("pt-BR")}.
+                        </span>
+                      </button>
+                    ) : (
+                      <button type="button" className="book-enviar-opcao" disabled={enviando} onClick={() => void enviar("estudo")}>
+                        <strong>Estudo</strong>
+                        <span>
+                          O texto passa de {LIMITE_DA_SINAPSE.toLocaleString("pt-BR")} caracteres, grande demais para uma sinapse. Vira a parte “Conteúdo
+                          original” de um estudo, e você divide depois. Nada se perde.
+                        </span>
+                      </button>
+                    )}
                   </div>
                   <div className="edit-actions" style={{ marginTop: 10 }}>
                     <button type="button" className="btn btn-ghost" onClick={fechar}>
@@ -624,10 +635,11 @@ export function BooksView({ onBack }: { onBack: () => void }) {
             <BookIcon /> Sua estante
           </div>
           <p>
-            É uma <strong>lista</strong> do que você leu, está lendo ou quer ver: serve para achar rápido e não perder a fila.
-            O que a obra te <strong>ensinou</strong> (ou, numa série, o que ela conta) vai nas <strong>anotações</strong>, para
-            você rever no futuro. Se a anotação merece virar aprendizado, use <strong>Levar para…</strong>: ela vai para uma
-            Sinapse (ideia curta) ou para um Estudo (conteúdo maior).
+            É uma <strong>lista</strong> do que você leu, está lendo ou quer ver: serve para achar rápido e não perder a fila. Nas
+            anotações, escreva só <strong>do que se trata</strong> e por que quer ver. Se você escrever um aprendizado de verdade
+            (a partir de {MINIMO_PARA_LEVAR.toLocaleString("pt-BR")} caracteres), aparece <strong>Levar para…</strong>: de{" "}
+            {MINIMO_PARA_LEVAR.toLocaleString("pt-BR")} a {LIMITE_DA_SINAPSE.toLocaleString("pt-BR")} caracteres vai para uma Sinapse; acima disso,
+            para um Estudo.
           </p>
         </div>
         <div className="note-options-chips book-kind-abas" role="tablist" aria-label="Escolha a lista">
