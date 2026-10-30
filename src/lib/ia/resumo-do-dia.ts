@@ -1,6 +1,7 @@
 import { dateFromISO, isoAddDays } from "@/lib/date-utils";
 import { duracaoDoSonoMin, fmtHorasMin } from "@/lib/board/sono";
 import { studyPlanMath, tempoPorModulo } from "@/lib/board/study-plan";
+import { ciclosDoItem, maintenanceStatus } from "@/lib/board/maintenance";
 import type { BoardState } from "@/lib/types";
 
 /**
@@ -21,7 +22,8 @@ const LIMITE_ATRASADAS = 12;
 const LIMITE_LINHAS = 25;
 
 
-type Estado = Pick<BoardState, "tasks" | "reminders" | "habits" | "fixedBlocks" | "checklists" | "dailyLogs" | "taskTimeEntries" | "studyPlans">;
+type Estado = Pick<BoardState, "tasks" | "reminders" | "habits" | "fixedBlocks" | "checklists" | "dailyLogs" | "taskTimeEntries" | "studyPlans"> &
+  Partial<Pick<BoardState, "maintenanceAssets" | "maintenanceItems" | "maintenanceServices" | "odometerReadings">>;
 
 const dataBr = (iso: string) => iso.split("-").reverse().slice(0, 2).join("/");
 
@@ -151,6 +153,7 @@ export function resumoDoDia(estado: Estado, hoje: string): string {
     }
   }
 
+  linhas.push(manutencao(estado, hoje));
   linhas.push(panoramaDosDias(estado, hoje, 14));
   return linhas.join("\n");
 }
@@ -179,6 +182,35 @@ export function panoramaDosDias(estado: Estado, hoje: string, dias: number): str
       `dieta ${log?.dietPct === null || log?.dietPct === undefined ? "—" : log.dietPct + "%"}`,
     ];
     linhas.push(`${dataBr(iso)} (${DIAS[dateFromISO(iso).getDay()].slice(0, 3)}): ${partes.join(", ")}`);
+  }
+  return linhas.join("\n");
+}
+
+/** Manutenção (casa, carro...): cada item com o ciclo atual e os dias que faltam, para responder "quanto falta para...". */
+function manutencao(estado: Estado, hoje: string): string {
+  const itens = (estado.maintenanceItems ?? []).filter((i) => i.active);
+  if (!itens.length) return "";
+  const linhas = ["\nMANUTENÇÃO (cada item: ciclo atual e quanto falta; nomes exatos):"];
+  for (const item of itens.slice(0, 40)) {
+    const bem = (estado.maintenanceAssets ?? []).find((a) => a.id === item.assetId);
+    if (!bem) continue;
+    const leituras = (estado.odometerReadings ?? []).filter((r) => r.assetId === bem.id);
+    const st = maintenanceStatus(item, bem, leituras, hoje);
+    const servicos = (estado.maintenanceServices ?? []).filter((s) => s.itemId === item.id);
+    const { atual } = ciclosDoItem(item, servicos, st.dueDate);
+    let situacao: string;
+    if (item.waiting) situacao = "aguardando começar (nada conta ainda)";
+    else if (st.state === "sem_base") situacao = "nunca registrado";
+    else {
+      const partes: string[] = [];
+      if (st.dueDate) {
+        const dias = diasEntre(st.dueDate, hoje);
+        partes.push(dias < 0 ? `VENCIDO há ${-dias} dia(s) (venceu ${dataBr(st.dueDate)})` : `vence em ${dataBr(st.dueDate)} (faltam ${dias} dia(s))`);
+      }
+      if (st.distanceLeft !== null) partes.push(st.distanceLeft > 0 ? `faltam ${st.distanceLeft} ${bem.odometerUnit}` : `passou ${-st.distanceLeft} ${bem.odometerUnit}`);
+      situacao = partes.join("; ") || "sem intervalo definido";
+    }
+    linhas.push(`- ${item.name} (${bem.name}): Ciclo ${atual.n}${atual.inicio ? `, começou em ${dataBr(atual.inicio)}` : ""}; ${situacao}`);
   }
   return linhas.join("\n");
 }
