@@ -5,6 +5,7 @@ import { EnviarBtn } from "./EnviarBtn";
 import { useBoardCtx } from "./board-context";
 import { NoteField } from "./NoteField";
 import { StudyParts } from "./StudyParts";
+import { PerguntasDaIA, escaparHtml } from "./PerguntasDaIA";
 import { MicButton } from "./MicButton";
 import { AttachmentsButton } from "./AttachmentsButton";
 import { BoltIcon, CheckIcon, ChevronIcon, DownloadIcon, TrashIcon } from "./icons";
@@ -16,172 +17,14 @@ import { extrairPerguntas } from "@/lib/ia/perguntas";
 import type { Synapse } from "@/lib/types";
 import { TutorialLink } from "./TutorialLink";
 
+// Sinapse é uma ideia curta. O limite vem das sinapses que já funcionam (a maior tem uns 2.400 caracteres);
+// conteúdo maior que isso é um Estudo, com partes. Só vale ao escrever: o que já existe nunca é cortado.
+export const LIMITE_DA_SINAPSE = 3000;
+
 function fmtDate(iso: string) {
   return `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}`;
 }
 
-
-const ERROS_DAS_PERGUNTAS: Record<string, string> = {
-  texto_curto: "Escreva um pouco mais no aprendizado antes de criar as perguntas.",
-  sem_chave: "A IA ainda não está ligada (falta a chave na Vercel).",
-  teto: "O teto de gasto da IA deste mês foi atingido. Ajuste em Configurações.",
-  chave_invalida: "A chave da IA não foi aceita pela Anthropic.",
-};
-
-const escaparHtml = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
-type PerguntaGerada = { id: number; texto: string; naSinapse: boolean; naMetanoia: boolean };
-
-/**
- * "Criar perguntas poderosas": a IA lê o texto da sinapse e sugere perguntas. Nada vai a lugar nenhum
- * sozinho: cada pergunta tem dois checks (na sinapse, na Metanoia) e só o que está marcado é enviado.
- */
-function PerguntasDaIA({
-  titulo,
-  texto,
-  existentes,
-  podeNaSinapse,
-  onEnviar,
-}: {
-  titulo: string;
-  texto: string;
-  existentes: string[];
-  podeNaSinapse: boolean;
-  onEnviar: (naSinapse: string[], naMetanoia: string[]) => { naSinapse: number; naMetanoia: number };
-}) {
-  const [gerando, setGerando] = useState(false);
-  const [lista, setLista] = useState<PerguntaGerada[]>([]);
-  const [erro, setErro] = useState("");
-  const [aviso, setAviso] = useState("");
-  // Pergunta aberta para edição (antes de aprovar): o texto editado é o que vai para os lugares marcados.
-  const [editando, setEditando] = useState<number | null>(null);
-
-  async function gerar() {
-    setGerando(true);
-    setErro("");
-    setAviso("");
-    try {
-      const r = await fetch("/api/ia/perguntas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ titulo, texto, existentes }),
-      });
-      const d = await r.json().catch(() => ({}));
-      if (!r.ok) setErro(ERROS_DAS_PERGUNTAS[d.erro] ?? "Não consegui criar agora. Tente de novo em instantes.");
-      else {
-        const novas = d.perguntas as string[];
-        setLista(novas.map((t, i) => ({ id: i, texto: t, naSinapse: false, naMetanoia: false })));
-        setEditando(null);
-        if (!novas.length) setAviso("Nada novo: este texto não abre nenhuma reflexão que você já não tenha nas suas perguntas.");
-      }
-    } catch {
-      setErro("Sem conexão. Tente de novo.");
-    } finally {
-      setGerando(false);
-    }
-  }
-
-  const marcadas = lista.filter((p) => p.naSinapse || p.naMetanoia).length;
-
-  function marcar(id: number, campo: "naSinapse" | "naMetanoia", valor: boolean) {
-    setLista((l) => l.map((p) => (p.id === id ? { ...p, [campo]: valor } : p)));
-  }
-
-  function editar(id: number, texto: string) {
-    setLista((l) => l.map((p) => (p.id === id ? { ...p, texto } : p)));
-  }
-
-  function fecharEdicao(id: number) {
-    // Pergunta apagada por inteiro some da lista em vez de seguir vazia.
-    setLista((l) => l.filter((p) => p.id !== id || p.texto.trim()));
-    setEditando(null);
-  }
-
-  function enviar() {
-    const feito = onEnviar(
-      lista.filter((p) => p.naSinapse && p.texto.trim()).map((p) => p.texto.trim()),
-      lista.filter((p) => p.naMetanoia && p.texto.trim()).map((p) => p.texto.trim())
-    );
-    const partes = [
-      feito.naSinapse ? `${feito.naSinapse} na sinapse` : "",
-      feito.naMetanoia ? `${feito.naMetanoia} na Metanoia` : "",
-    ].filter(Boolean);
-    setAviso(partes.length ? `Enviado: ${partes.join(" e ")}.` : "Nada novo para enviar (já estavam lá).");
-    // O que foi enviado sai da lista; o que ficou sem marca continua para você decidir.
-    setLista((l) => l.filter((p) => !p.naSinapse && !p.naMetanoia));
-  }
-
-  return (
-    <div className="perg-ia">
-      <div className="perg-ia-topo">
-        <button type="button" className="btn btn-ghost" disabled={gerando || texto.length < 40} onClick={gerar}>
-          <BoltIcon /> {gerando ? "Criando perguntas…" : lista.length ? "Criar outras perguntas" : "Criar perguntas poderosas"}
-        </button>
-        <span className="perg-ia-dica">A IA lê só este texto e não repete o que você já tem. Você marca para onde cada pergunta vai.</span>
-      </div>
-      {erro && <p className="perg-ia-erro">{erro}</p>}
-      {aviso && !lista.length && <p className="perg-ia-aviso">{aviso}</p>}
-      {lista.length > 0 && (
-        <div className="perg-ia-lista">
-          {aviso && <p className="perg-ia-aviso">{aviso}</p>}
-          <div className="perg-ia-cab" aria-hidden="true">
-            {podeNaSinapse && <span>Na sinapse</span>}
-            <span>Na Metanoia</span>
-          </div>
-          {lista.map((p) => (
-            <div key={p.id} className="perg-ia-linha">
-              {editando === p.id ? (
-                <textarea
-                  className="perg-ia-edicao"
-                  rows={2}
-                  autoFocus
-                  value={p.texto}
-                  aria-label="Editar a pergunta"
-                  onChange={(e) => editar(p.id, e.target.value)}
-                  onBlur={() => fecharEdicao(p.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      fecharEdicao(p.id);
-                    }
-                  }}
-                />
-              ) : (
-                <span className="perg-ia-texto">{p.texto}</span>
-              )}
-              <button
-                type="button"
-                className="link-acao perg-ia-editar"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => (editando === p.id ? fecharEdicao(p.id) : setEditando(p.id))}
-              >
-                {editando === p.id ? "Pronto" : "Editar"}
-              </button>
-              {podeNaSinapse && (
-                <label className="perg-ia-check" title="Guardar esta pergunta na sinapse">
-                  <input type="checkbox" checked={p.naSinapse} onChange={(e) => marcar(p.id, "naSinapse", e.target.checked)} />
-                  <span className="sr-only">Na sinapse</span>
-                </label>
-              )}
-              <label className="perg-ia-check" title="Mandar para a Metanoia">
-                <input type="checkbox" checked={p.naMetanoia} onChange={(e) => marcar(p.id, "naMetanoia", e.target.checked)} />
-                <span className="sr-only">Na Metanoia</span>
-              </label>
-            </div>
-          ))}
-          <div className="perg-ia-rodape">
-            <button type="button" className={"btn" + (marcadas ? " btn-accent" : " btn-ghost")} disabled={!marcadas} onClick={enviar}>
-              Enviar {marcadas ? `as ${marcadas} marcadas` : "marcadas"}
-            </button>
-            <button type="button" className="btn btn-ghost" onClick={() => setLista([])}>
-              Descartar o resto
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 // Cada sinapse é um card que abre: o aprendizado em cima, a pergunta embaixo.
 // A pergunta tem destaque próprio de propósito — é ela que faz o aprendizado
@@ -198,6 +41,8 @@ export function SynapseCard({ synapse, ideia = false }: { synapse: Synapse; idei
   const [learning, setLearning] = useState(synapse.learning);
   const [questions, setQuestions] = useState(synapse.questions);
   const [source, setSource] = useState(synapse.source ?? "");
+  const [passouDoLimite, setPassouDoLimite] = useState(false);
+  const usados = stripHtml(learning).length;
 
   const cleanTitle = title.trim() || synapse.title;
   const cleanSource = source.trim() || null;
@@ -303,15 +148,26 @@ export function SynapseCard({ synapse, ideia = false }: { synapse: Synapse; idei
           )}
           <label className="synapse-field">
             <span className="synapse-field-label">
-              {ideia ? (synapse.tag === "estudo" ? "Visão geral do estudo" : "A ideia") : "Qual a nova sinapse — o aprendizado?"}
+              {ideia ? (synapse.tag === "estudo" ? "Visão geral do estudo" : "A ideia") : "Qual a nova sinapse? Uma ideia curta, o aprendizado"}
             </span>
             <NoteField
               value={learning}
               placeholder={ideia ? "A ideia, do jeito que veio..." : "O que aconteceu e o que isso te ensinou..."}
               ariaLabel={ideia ? "Texto da ideia" : "Aprendizado da sinapse"}
-              onChange={setLearning}
+              onChange={(html) => {
+                setLearning(html);
+                setPassouDoLimite(false);
+              }}
               onPersist={(html) => board.updateSynapse(synapse.id, { learning: html })}
+              maxChars={ideia ? undefined : LIMITE_DA_SINAPSE}
+              onLimit={() => setPassouDoLimite(true)}
             />
+            {!ideia && (
+              <span className={"synapse-contador" + (passouDoLimite || usados > LIMITE_DA_SINAPSE * 0.9 ? " cheio" : "")}>
+                {usados.toLocaleString("pt-BR")} de {LIMITE_DA_SINAPSE.toLocaleString("pt-BR")} caracteres
+                {passouDoLimite ? ". Não coube: sinapse é uma ideia curta. Para um conteúdo maior, crie um Estudo em Ideias e Estudos." : ""}
+              </span>
+            )}
           </label>
 
           <PerguntasDaIA

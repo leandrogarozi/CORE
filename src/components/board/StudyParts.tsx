@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { NoteField } from "./NoteField";
+import { PerguntasDaIA } from "./PerguntasDaIA";
 import { ChevronIcon, TrashIcon } from "./icons";
 import { stripHtml } from "@/lib/rich-text";
 import { todayISO } from "@/lib/date-utils";
@@ -13,7 +14,7 @@ function fmtData(iso: string | null) {
   return iso ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}` : "sem data";
 }
 
-function PartCard({ part, aberta, onToggle }: { part: SynapsePart; aberta: boolean; onToggle: () => void }) {
+function PartCard({ part, estudo, aberta, onToggle }: { part: SynapsePart; estudo: string; aberta: boolean; onToggle: () => void }) {
   const { board, askConfirm } = useBoardCtx();
   const [title, setTitle] = useState(part.title);
   const [body, setBody] = useState(part.body);
@@ -75,6 +76,22 @@ function PartCard({ part, aberta, onToggle }: { part: SynapsePart; aberta: boole
             ariaLabel={`Texto de ${part.title}`}
             onChange={setBody}
             onPersist={(html) => html !== part.body && board.updateSynapsePart(part.id, { body: html })}
+          />
+          <PerguntasDaIA
+            titulo={`${estudo} — ${part.title}`}
+            texto={stripHtml(body)}
+            existentes={board.state.metanoiaFrases
+              .filter((f) => f.tipo === "pergunta")
+              .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+              .map((f) => f.texto)}
+            podeNaSinapse={false}
+            onEnviar={(_naSinapse, naMetanoia) => ({
+              naSinapse: 0,
+              // Marcar o check é a aprovação: a pergunta entra na Metanoia já aprovada.
+              naMetanoia: naMetanoia.filter(
+                (q) => board.addMetanoiaFrase({ texto: q, tipo: "pergunta", origem: "ia", fonte: `Estudo: ${estudo} — ${part.title}`, status: "aprovada" }) !== null
+              ).length,
+            })}
           />
           {!stripHtml(body) && (
             <button type="button" className="btn btn-ghost study-part-roteiro" onClick={usarRoteiro}>
@@ -162,7 +179,7 @@ export function StudyParts({ synapse }: { synapse: Synapse }) {
         <div className="hint-text">Nenhuma parte ainda. Crie o primeiro encontro, aula ou módulo.</div>
       )}
       {partes.map((p) => (
-        <PartCard key={p.id} part={p} aberta={abertaId === p.id} onToggle={() => setAbertaId((cur) => (cur === p.id ? null : p.id))} />
+        <PartCard key={p.id} part={p} estudo={synapse.title} aberta={abertaId === p.id} onToggle={() => setAbertaId((cur) => (cur === p.id ? null : p.id))} />
       ))}
     </div>
   );

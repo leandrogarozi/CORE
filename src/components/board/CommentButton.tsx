@@ -78,12 +78,16 @@ export function CommentModal({
   title,
   onSave,
   onClose,
+  maxChars,
+  onLimit,
 }: {
   initialValue: string;
   placeholder: string;
   title: string;
   onSave: (text: string) => void;
   onClose: () => void;
+  maxChars?: number;
+  onLimit?: () => void;
 }) {
   const [draft, setDraft] = useState(initialValue);
   const draftRef = useRef(draft);
@@ -112,7 +116,7 @@ export function CommentModal({
         <div className="modal-head">
           <span className="modal-title">{title}</span>
         </div>
-        <RichTextEditor value={draft} onChange={setDraft} placeholder={placeholder} autoFocus />
+        <RichTextEditor value={draft} onChange={setDraft} placeholder={placeholder} autoFocus maxChars={maxChars} onLimit={onLimit} />
         <div className="edit-actions" style={{ marginTop: 10 }}>
           <button type="button" className="btn btn-ghost" onClick={onClose}>
             Cancelar

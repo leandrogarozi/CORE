@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { EditorContent, useEditor, Node as TiptapNode, mergeAttributes } from "@tiptap/react";
+import { EditorContent, useEditor, Extension, Node as TiptapNode, mergeAttributes } from "@tiptap/react";
+import { Plugin } from "@tiptap/pm/state";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
@@ -242,11 +243,17 @@ export function RichTextEditor({
   placeholder,
   autoFocus,
   hideToolbar = false,
+  maxChars,
+  onLimit,
 }: {
   value: string;
   onChange: (html: string) => void;
   placeholder?: string;
   autoFocus?: boolean;
+  // Limite de caracteres de texto (sem formatação). Quem digita ou cola além dele é barrado, nada é cortado
+  // em silêncio; `onLimit` avisa a tela. Texto que já passa do limite continua podendo ser lido e apagado.
+  maxChars?: number;
+  onLimit?: () => void;
   // No campo de observação inline a barra só aparece quando o campo tem foco.
   hideToolbar?: boolean;
 }) {
@@ -257,6 +264,10 @@ export function RichTextEditor({
   const highlightBtnRef = useRef<HTMLButtonElement>(null);
   const raizRef = useRef<HTMLDivElement>(null);
   const barraRef = useRef<HTMLDivElement>(null);
+  const limiteRef = useRef({ maxChars, onLimit });
+  useEffect(() => {
+    limiteRef.current = { maxChars, onLimit };
+  }, [maxChars, onLimit]);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -270,6 +281,27 @@ export function RichTextEditor({
       Highlight.configure({ multicolor: true }),
       Pensamento,
       Placeholder.configure({ placeholder: placeholder ?? "" }),
+      // O filtro lê o limite de um ref só quando o usuário digita, nunca durante a renderização.
+      // eslint-disable-next-line react-hooks/refs
+      Extension.create({
+        name: "limiteDeCaracteres",
+        addProseMirrorPlugins() {
+          return [
+            new Plugin({
+              filterTransaction: (tr, state) => {
+                const { maxChars: max, onLimit: avisar } = limiteRef.current;
+                // Troca de conteúdo vinda de fora (abrir outro item) não é digitação: passa sempre.
+                if (!max || !tr.docChanged || tr.getMeta("preventUpdate")) return true;
+                const conta = (d: typeof tr.doc) => d.textBetween(0, d.content.size, "\n", " ").length;
+                const novo = conta(tr.doc);
+                if (novo <= max || novo <= conta(state.doc)) return true;
+                avisar?.();
+                return false;
+              },
+            }),
+          ];
+        },
+      }),
     ],
     content: value,
     autofocus: autoFocus ? "end" : false,

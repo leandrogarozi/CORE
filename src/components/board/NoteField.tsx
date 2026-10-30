@@ -17,6 +17,8 @@ export function NoteField({
   ariaLabel,
   onChange,
   onPersist,
+  maxChars,
+  onLimit,
 }: {
   value: string;
   placeholder: string;
@@ -25,6 +27,9 @@ export function NoteField({
   onChange: (html: string) => void;
   // Grava no banco — com atraso, pra não escrever a cada tecla digitada.
   onPersist: (html: string) => void;
+  // Limite de caracteres de texto; vale no campo e na caixa expandida.
+  maxChars?: number;
+  onLimit?: () => void;
 }) {
   const [focused, setFocused] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -98,6 +103,8 @@ export function NoteField({
           onChange={handleChange}
           placeholder={placeholder}
           hideToolbar={!focused}
+          maxChars={maxChars}
+          onLimit={onLimit}
         />
       </div>
       <button
@@ -132,6 +139,8 @@ export function NoteField({
             persistRef.current(html);
           }}
           onClose={() => setModalOpen(false)}
+          maxChars={maxChars}
+          onLimit={onLimit}
         />
       )}
     </div>
