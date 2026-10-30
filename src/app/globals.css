@@ -4465,3 +4465,40 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .dl-estrategia{ margin:2px 0 8px; }
 .dl-estrategia .comment-field-btn{ width:100%; text-align:left; align-items:flex-start; gap:8px; padding:8px 10px; border-radius:var(--r-2, 10px); background:color-mix(in srgb, #3B82C4 8%, var(--surface)); border:0; color:var(--text); font-size:12.5px; line-height:1.4; }
 .dl-estrategia .comment-field-preview{ white-space:normal; overflow-wrap:anywhere; text-align:left; }
+
+/* Sinapses, Ideias e Estudos: linhas mais altas e limpas. Título sem caixa (toca e edita), ícone maior e um fio entre o título e a descrição. */
+:root .synapse-card .synapse-card-head{ gap:12px; padding:16px 18px; align-items:center; }
+:root .synapse-card .synapse-card-head .tile-tipo{ width:44px; height:44px; border-radius:13px; }
+:root .synapse-card .synapse-card-head .tile-tipo svg{ width:21px; height:21px; }
+:root .synapse-card .synapse-card-headings{ gap:0; }
+:root .synapse-card input.synapse-card-title{
+  border:0; box-shadow:none; background:transparent; outline:none; border-radius:6px;
+  padding:2px 4px; margin:0 -4px; font-size:15.5px; font-weight:650; cursor:text;
+}
+:root .synapse-card input.synapse-card-title:hover{ background:color-mix(in srgb, var(--text) 4%, transparent); border:0; }
+:root .synapse-card input.synapse-card-title:focus{ background:var(--surface-2); border:0; box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }
+:root .synapse-card .synapse-card-preview{
+  display:block; margin-top:8px; padding:8px 0 0; border-top:1px solid var(--linha);
+  font-size:12.5px; color:var(--text-muted); line-height:1.45;
+}
+
+/* Conhecendo você no layout novo: blocos sem borda roxa, itens com filete e ícone, comparação Antes/Depois sem texto cortado. */
+:root[data-estilo="suave"] .synapse-intro, :root[data-estilo="flutuante"] .synapse-intro{
+  border:0; background:var(--surface); box-shadow:var(--sh-1); border-radius:var(--r-3); padding:18px 20px;
+}
+.know-resumo-texto{ max-height:460px; overflow:auto; padding-right:6px; font-size:13.5px; line-height:1.6; }
+.know-resumo-texto p{ margin:0 0 10px; }
+.know-resumo-titulo{ margin:16px 0 6px; font-size:14px; font-weight:700; color:var(--text); }
+.know-resumo-titulo:first-child{ margin-top:2px; }
+.know-list{ gap:12px; }
+:root[data-estilo="suave"] .know-item, :root[data-estilo="flutuante"] .know-item{ border:0; border-radius:var(--r-3); padding:14px 16px 14px 20px; box-shadow:var(--sh-1); }
+.know-item .know-item-head{ gap:10px; }
+.know-item .tile-tipo{ width:38px; height:38px; border-radius:12px; }
+.know-item .tile-tipo svg{ width:18px; height:18px; }
+.know-item .know-titulo{ font-size:14.5px; font-weight:650; }
+.know-troca{ gap:14px; margin-top:12px; align-items:start; }
+:root[data-estilo="suave"] .know-troca-lado, :root[data-estilo="flutuante"] .know-troca-lado{ border:0; border-radius:var(--r-3); padding:14px 16px; background:var(--surface-2); }
+:root[data-estilo="suave"] .know-troca-novo, :root[data-estilo="flutuante"] .know-troca-novo{ background:color-mix(in srgb, var(--accent) 9%, var(--surface)); box-shadow:inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 45%, transparent); }
+.know-troca-lado .know-troca-texto{ max-height:300px; overflow:auto; font-size:12.5px; line-height:1.55; margin-top:8px; padding-right:4px; }
+.know-troca-lado .know-troca-texto.inteiro{ max-height:none; overflow:visible; }
+.know-troca-mais{ margin-top:8px; }

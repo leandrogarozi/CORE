@@ -68,7 +68,7 @@ function ResumoDoFaro({ aprovados, aprovadosDepoisDoResumo }: { aprovados: numbe
       </div>
       {dados?.resumo ? (
         <>
-          <div className="know-resumo-texto">{dados.resumo}</div>
+          <TextoDoResumo texto={dados.resumo} />
           <p className="know-resumo-meta">Escrito pela IA em {quando}, com o que você aprovou. Entra no backup e é lido pelo conector.</p>
         </>
       ) : (
@@ -122,6 +122,42 @@ function versoesAnteriores(todos: KnowledgeItem[], id: string): KnowledgeItem[] 
 
 const dataCurta = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("pt-BR") : "");
 
+/** Texto inteiro de um lado da comparação: cabe numa caixa com rolagem e pode abrir por completo. Nada é cortado. */
+function LadoDaTroca({ rotulo, titulo, texto, novo = false }: { rotulo: string; titulo: string; texto: string; novo?: boolean }) {
+  const [inteiro, setInteiro] = useState(false);
+  const longo = texto.length > 700 || texto.split("\n").length > 14;
+  return (
+    <div className={"know-troca-lado" + (novo ? " know-troca-novo" : "")}>
+      <div className="know-troca-rotulo">{rotulo}</div>
+      <div className="know-troca-titulo">{titulo}</div>
+      <div className={"know-troca-texto" + (inteiro ? " inteiro" : "")}>{texto}</div>
+      {longo && (
+        <button type="button" className="link-acao know-troca-mais" onClick={() => setInteiro((v) => !v)}>
+          {inteiro ? "Recolher" : "Ver o texto inteiro"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+/** O resumo escrito pela IA vem com títulos "## Assim": aqui eles viram títulos de verdade. */
+function TextoDoResumo({ texto }: { texto: string }) {
+  const blocos = texto.split(/\n{2,}/).map((b) => b.trim()).filter(Boolean);
+  return (
+    <div className="know-resumo-texto">
+      {blocos.map((b, i) =>
+        b.startsWith("## ") ? (
+          <h4 key={i} className="know-resumo-titulo">
+            {b.replace(/^##\s+/, "")}
+          </h4>
+        ) : (
+          <p key={i}>{b}</p>
+        ),
+      )}
+    </div>
+  );
+}
+
 function ItemCard({ item }: { item: KnowledgeItem }) {
   const { board, askConfirm } = useBoardCtx();
   const [aberto, setAberto] = useState(false);
@@ -145,11 +181,14 @@ function ItemCard({ item }: { item: KnowledgeItem }) {
   }
 
   return (
-    <div className={"know-item know-" + item.status}>
+    <div className={"know-item com-filete know-" + item.status} style={{ "--k": item.status === "aprovado" ? "#3E8E5A" : item.status === "pendente" ? "#C28A1E" : "#9C9CA5" } as React.CSSProperties}>
       <div className="know-item-head">
         <button type="button" className="synapse-card-toggle" aria-expanded={aberto} onClick={() => setAberto((v) => !v)}>
           <ChevronIcon />
         </button>
+        <span className="tile-tipo" aria-hidden="true">
+          <UserIcon />
+        </span>
         <select
           className="know-tipo"
           value={item.tipo}
@@ -198,16 +237,8 @@ function ItemCard({ item }: { item: KnowledgeItem }) {
       </div>
       {antes && (
         <div className="know-troca">
-          <div className="know-troca-lado">
-            <div className="know-troca-rotulo">Antes (vale hoje)</div>
-            <div className="know-troca-titulo">{antes.titulo}</div>
-            <div className="know-troca-texto">{antes.conteudo.slice(0, 600)}</div>
-          </div>
-          <div className="know-troca-lado know-troca-novo">
-            <div className="know-troca-rotulo">Depois (proposta)</div>
-            <div className="know-troca-titulo">{item.titulo}</div>
-            <div className="know-troca-texto">{item.conteudo.slice(0, 600)}</div>
-          </div>
+          <LadoDaTroca rotulo="Antes (vale hoje)" titulo={antes.titulo} texto={antes.conteudo} />
+          <LadoDaTroca rotulo="Depois (proposta)" titulo={item.titulo} texto={item.conteudo} novo />
           <p className="know-troca-nota">Ao aprovar, a versão de antes não é apagada: vira “superada” e fica no histórico deste item.</p>
         </div>
       )}
@@ -236,7 +267,7 @@ function ItemCard({ item }: { item: KnowledgeItem }) {
                     Voltar a valer
                   </button>
                 </div>
-                <div className="know-troca-texto">{v.conteudo.slice(0, 600)}</div>
+                <div className="know-troca-texto">{v.conteudo}</div>
               </div>
             ))}
         </div>
