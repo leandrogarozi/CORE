@@ -4604,3 +4604,129 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 
 .disp-chip.s-low{ background:color-mix(in srgb, #C0392B 12%, var(--surface)); color:#A02A1D; }
 .disp-chip.s-out{ background:color-mix(in srgb, #C0392B 18%, var(--surface)); color:#8E2418; }
+
+/* ==========================================================================
+   PADRÃO DE CONTROLES (aprovado em 30/10): um desenho para cada tipo de controle.
+   1 segmento em bandeja · 2 pílula de ligar/desligar · 3 dias da semana · 4 campo cinza sem borda · 5 botões de ação.
+   Vale nos estilos suave e flutuante (o clássico fica como era).
+   ========================================================================== */
+:root[data-estilo="suave"], :root[data-estilo="flutuante"]{
+  --campo-fundo:color-mix(in srgb, var(--text) 5%, var(--surface));
+  --campo-fundo-foco:color-mix(in srgb, var(--text) 9%, var(--surface));
+  --bandeja-fundo:color-mix(in srgb, var(--text) 4.5%, var(--surface));
+}
+
+/* 2. Pílula de ligar e desligar. Desligada cinza, ligada lilás com visto; WhatsApp ligado em verde suave. */
+:root[data-estilo="suave"] :is(.pill-liga,.reminder-zap-opcao,.chip-btn,.meeting-modo-btn,.note-options-chips .note-chip),
+:root[data-estilo="flutuante"] :is(.pill-liga,.reminder-zap-opcao,.chip-btn,.meeting-modo-btn,.note-options-chips .note-chip){
+  display:inline-flex; align-items:center; gap:8px; height:34px; padding:0 14px; border:0; border-radius:999px; box-shadow:none;
+  background:var(--campo-fundo); color:var(--text-muted); font-size:12.5px; font-weight:600; cursor:pointer; width:auto;
+}
+:root[data-estilo="suave"] :is(.pill-liga,.reminder-zap-opcao,.chip-btn,.meeting-modo-btn,.note-options-chips .note-chip) svg,
+:root[data-estilo="flutuante"] :is(.pill-liga,.reminder-zap-opcao,.chip-btn,.meeting-modo-btn,.note-options-chips .note-chip) svg{ width:15px; height:15px; flex:none; color:currentColor; }
+:root[data-estilo="suave"] :is(.pill-liga,.reminder-zap-opcao,.chip-btn,.meeting-modo-btn,.note-options-chips .note-chip):hover,
+:root[data-estilo="flutuante"] :is(.pill-liga,.reminder-zap-opcao,.chip-btn,.meeting-modo-btn,.note-options-chips .note-chip):hover{ background:var(--campo-fundo-foco); color:var(--text); border:0; }
+:root[data-estilo="suave"] :is(.pill-liga.on,.reminder-zap-opcao.ativo,.chip-btn.active,.meeting-modo-btn.ativo,.note-options-chips .note-chip.active),
+:root[data-estilo="flutuante"] :is(.pill-liga.on,.reminder-zap-opcao.ativo,.chip-btn.active,.meeting-modo-btn.ativo,.note-options-chips .note-chip.active){
+  background:var(--accent-soft); color:var(--accent); border:0; box-shadow:none; font-weight:650;
+}
+:root[data-estilo="suave"] :is(.pill-liga.zap.on,.reminder-zap-opcao.ativo),
+:root[data-estilo="flutuante"] :is(.pill-liga.zap.on,.reminder-zap-opcao.ativo){ background:color-mix(in srgb, var(--success) 14%, var(--surface)); color:var(--success); }
+.pill-liga svg{ width:15px; height:15px; }
+.diet-channel-options{ gap:10px; }
+
+/* 1. Segmento em bandeja: Dia/Semana/Mês, filtros, abas. Ativo em degradê. */
+:root[data-estilo="suave"] :is(.view-toggle,.dsh-seg,.idea-filter,.book-kind-abas,.abas-plano,.disp-categorias-linha,.maint-abas),
+:root[data-estilo="flutuante"] :is(.view-toggle,.dsh-seg,.idea-filter,.book-kind-abas,.abas-plano,.disp-categorias-linha,.maint-abas){
+  display:inline-flex; flex-wrap:wrap; gap:4px; padding:4px; border:0; border-radius:14px; background:var(--bandeja-fundo); overflow:visible; width:auto; max-width:100%;
+}
+:root[data-estilo="suave"] :is(.view-toggle-btn,.dsh-seg-btn,.idea-filter .note-chip,.book-kind-abas .note-chip,.aba-plano,.disp-cat,.maint-abas .note-chip),
+:root[data-estilo="flutuante"] :is(.view-toggle-btn,.dsh-seg-btn,.idea-filter .note-chip,.book-kind-abas .note-chip,.aba-plano,.disp-cat,.maint-abas .note-chip){
+  display:inline-flex; align-items:center; justify-content:center; gap:6px; height:32px; padding:0 14px; border:0; border-radius:10px; box-shadow:none;
+  background:transparent; color:var(--text-muted); font-size:12.5px; font-weight:600; cursor:pointer; line-height:1;
+}
+:root[data-estilo="suave"] :is(.view-toggle-btn,.dsh-seg-btn,.idea-filter .note-chip,.book-kind-abas .note-chip,.aba-plano,.disp-cat,.maint-abas .note-chip):hover:not(.active):not(.on),
+:root[data-estilo="flutuante"] :is(.view-toggle-btn,.dsh-seg-btn,.idea-filter .note-chip,.book-kind-abas .note-chip,.aba-plano,.disp-cat,.maint-abas .note-chip):hover:not(.active):not(.on){ color:var(--text); background:color-mix(in srgb, var(--text) 4%, transparent); border:0; }
+:root[data-estilo="suave"] :is(.view-toggle-btn.active,.dsh-seg-btn.on,.idea-filter .note-chip.active,.book-kind-abas .note-chip.active,.aba-plano.on,.disp-cat.active,.maint-abas .note-chip.active),
+:root[data-estilo="flutuante"] :is(.view-toggle-btn.active,.dsh-seg-btn.on,.idea-filter .note-chip.active,.book-kind-abas .note-chip.active,.aba-plano.on,.disp-cat.active,.maint-abas .note-chip.active){
+  background:var(--grad-roxo, linear-gradient(135deg,#4A47D5,#7C4DF0)); color:#fff; border:0; box-shadow:0 8px 16px -10px rgba(94,77,235,.7);
+}
+:root[data-estilo="suave"] .aba-plano.on svg, :root[data-estilo="flutuante"] .aba-plano.on svg{ color:#fff; }
+
+/* 3. Dias da semana: pílulas redondas. */
+:root[data-estilo="suave"] :is(.weekday-btn,.study-day),
+:root[data-estilo="flutuante"] :is(.weekday-btn,.study-day){
+  width:34px; height:34px; border-radius:50%; border:0; background:var(--campo-fundo); color:var(--text-muted); font-size:12px; font-weight:700;
+  display:inline-flex; align-items:center; justify-content:center; padding:0; cursor:pointer;
+}
+:root[data-estilo="suave"] :is(.weekday-btn,.study-day):hover, :root[data-estilo="flutuante"] :is(.weekday-btn,.study-day):hover{ background:var(--campo-fundo-foco); color:var(--text); border:0; }
+:root[data-estilo="suave"] :is(.weekday-btn.active,.study-day.on), :root[data-estilo="flutuante"] :is(.weekday-btn.active,.study-day.on){ background:var(--accent-soft); color:var(--accent); border:0; }
+.study-days-row, .weekday-picker{ gap:6px; flex-wrap:wrap; }
+
+/* 4. Campo: cinza suave, sem borda, 36 px, cantos arredondados; ao digitar o fundo escurece, sem anel. */
+:root[data-estilo="suave"] :is(.budget-input,.settings-input,.reminder-repeat-select,.synapse-source-input,.know-edit-titulo,.know-edit-conteudo,.know-colar,.know-tipo,.study-modulo input,.prop-value :is(input,select,textarea):not([type="checkbox"]):not([type="radio"]),.edit-field :is(input,select,textarea):not([type="checkbox"]):not([type="radio"]),.cfg-bloco :is(input,select,textarea):not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),.diet-page-card :is(input,select,textarea):not([type="checkbox"]):not([type="radio"])),
+:root[data-estilo="flutuante"] :is(.budget-input,.settings-input,.reminder-repeat-select,.synapse-source-input,.know-edit-titulo,.know-edit-conteudo,.know-colar,.know-tipo,.study-modulo input,.prop-value :is(input,select,textarea):not([type="checkbox"]):not([type="radio"]),.edit-field :is(input,select,textarea):not([type="checkbox"]):not([type="radio"]),.cfg-bloco :is(input,select,textarea):not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),.diet-page-card :is(input,select,textarea):not([type="checkbox"]):not([type="radio"])){
+  background-color:var(--campo-fundo); border:0; border-radius:10px; min-height:36px; padding:0 12px; font-size:13px; color:var(--text); box-shadow:none;
+}
+:root[data-estilo="suave"] :is(textarea.settings-input,textarea.know-edit-conteudo,textarea.know-colar,.prop-value textarea,.edit-field textarea),
+:root[data-estilo="flutuante"] :is(textarea.settings-input,textarea.know-edit-conteudo,textarea.know-colar,.prop-value textarea,.edit-field textarea){ padding:10px 12px; }
+:root[data-estilo="suave"] :is(.budget-input,.settings-input,.reminder-repeat-select,.synapse-source-input,.know-edit-titulo,.know-edit-conteudo,.know-colar,.know-tipo,.study-modulo input,.prop-value input,.prop-value select,.prop-value textarea,.edit-field input,.edit-field select,.edit-field textarea,.cfg-bloco input,.cfg-bloco select,.cfg-bloco textarea,.diet-page-card input,.diet-page-card select,.diet-page-card textarea):focus,
+:root[data-estilo="flutuante"] :is(.budget-input,.settings-input,.reminder-repeat-select,.synapse-source-input,.know-edit-titulo,.know-edit-conteudo,.know-colar,.know-tipo,.study-modulo input,.prop-value input,.prop-value select,.prop-value textarea,.edit-field input,.edit-field select,.edit-field textarea,.cfg-bloco input,.cfg-bloco select,.cfg-bloco textarea,.diet-page-card input,.diet-page-card select,.diet-page-card textarea):focus{
+  background-color:var(--campo-fundo-foco); border:0; box-shadow:none; outline:none;
+}
+.prop-value input::placeholder{ color:var(--text-faint); }
+
+/* 5. Botões de ação: principal em degradê, secundário branco com sombra (sem borda), apagar em texto vermelho. */
+:root[data-estilo="suave"] .btn, :root[data-estilo="flutuante"] .btn{ min-height:34px; padding:0 16px; font-size:12.5px; font-weight:600; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+:root[data-estilo="suave"] .btn-ghost, :root[data-estilo="flutuante"] .btn-ghost{
+  background:var(--surface); border:0; color:var(--text-muted); box-shadow:0 4px 12px -6px rgba(20,20,60,.35), 0 0 0 1px color-mix(in srgb, var(--text) 5%, transparent);
+}
+:root[data-estilo="suave"] .btn-ghost:hover:not(:disabled), :root[data-estilo="flutuante"] .btn-ghost:hover:not(:disabled){ color:var(--text); border:0; }
+:root[data-estilo="suave"] .btn-ghost.danger-hover, :root[data-estilo="flutuante"] .btn-ghost.danger-hover{ background:transparent; box-shadow:none; color:var(--danger); }
+:root[data-estilo="suave"] .btn-ghost.danger-hover:hover, :root[data-estilo="flutuante"] .btn-ghost.danger-hover:hover{ background:color-mix(in srgb, var(--danger) 8%, transparent); color:var(--danger); }
+
+/* ==========================================================================
+   CAMADAS SOBREPOSTAS (aprovado em 30/10): cartão branco com sombra, bandeja de fundo suave dentro dele, e sobre a
+   bandeja blocos brancos (e azulado) com sombra leve. Nenhuma borda ou linha em volta. Vale em Sinapse, Ideias e
+   Estudos, Conhecendo você, Manutenção e Aniversários.
+   ========================================================================== */
+:root[data-estilo="suave"], :root[data-estilo="flutuante"]{
+  --bloco-sombra:0 6px 16px -12px rgba(20,20,60,.16), 0 1px 2px rgba(20,20,60,.04);
+  --cartao-sombra:0 12px 30px -18px rgba(30,30,90,.20), 0 1px 2px rgba(30,30,90,.04);
+}
+:root[data-estilo="suave"] :is(.synapse-card,.know-item,.maint-asset),
+:root[data-estilo="flutuante"] :is(.synapse-card,.know-item,.maint-asset){ border:0; border-radius:22px; box-shadow:var(--cartao-sombra); }
+:root[data-estilo="suave"] .synapse-card-body, :root[data-estilo="flutuante"] .synapse-card-body{
+  border-top:0; margin:0 16px 16px 22px; padding:14px; gap:12px; border-radius:18px; background:var(--bandeja-fundo);
+}
+:root[data-estilo="suave"] .synapse-card-body .synapse-field, :root[data-estilo="flutuante"] .synapse-card-body .synapse-field{
+  background:var(--surface); border:0; border-radius:14px; padding:14px 16px; gap:8px; box-shadow:var(--bloco-sombra);
+}
+:root[data-estilo="suave"] .synapse-card-body .synapse-field-question, :root[data-estilo="flutuante"] .synapse-card-body .synapse-field-question{
+  background:color-mix(in srgb, var(--accent) 6.5%, var(--surface));
+}
+:root[data-estilo="suave"] .study-parts, :root[data-estilo="flutuante"] .study-parts{ padding:14px; border-radius:18px; background:var(--bandeja-fundo); gap:12px; }
+:root[data-estilo="suave"] .study-part, :root[data-estilo="flutuante"] .study-part{ border:0; border-radius:14px; box-shadow:var(--bloco-sombra); }
+/* Conhecendo você: Antes (branco) e Depois (azulado) sobre a bandeja. */
+:root[data-estilo="suave"] .know-troca, :root[data-estilo="flutuante"] .know-troca{ margin-top:12px; padding:14px; gap:14px; border-radius:18px; background:var(--bandeja-fundo); }
+:root[data-estilo="suave"] .know-troca-lado:not(.know-troca-novo), :root[data-estilo="flutuante"] .know-troca-lado:not(.know-troca-novo){ background:var(--surface); border:0; border-radius:14px; box-shadow:var(--bloco-sombra); }
+:root[data-estilo="suave"] .know-troca-novo, :root[data-estilo="flutuante"] .know-troca-novo{ background:color-mix(in srgb, var(--accent) 6.5%, var(--surface)); border:0; border-radius:14px; box-shadow:var(--bloco-sombra); }
+:root[data-estilo="suave"] .know-body, :root[data-estilo="flutuante"] .know-body{ padding:14px; border-radius:18px; background:var(--bandeja-fundo); }
+:root[data-estilo="suave"] .know-versao, :root[data-estilo="flutuante"] .know-versao{ border-left:0; background:var(--bandeja-fundo); border-radius:14px; padding:10px 12px; }
+/* Manutenção e Aniversários: itens como blocos brancos sobre a bandeja, sem as linhas de separação. */
+:root[data-estilo="suave"] .maint-items, :root[data-estilo="flutuante"] .maint-items{ gap:12px; padding:12px; border-radius:18px; background:var(--bandeja-fundo); margin-top:10px; }
+:root[data-estilo="suave"] .maint-item, :root[data-estilo="flutuante"] .maint-item{ border-top:0; padding:12px 14px; border-radius:14px; background:var(--surface); box-shadow:var(--bloco-sombra); }
+:root[data-estilo="suave"] .maint-item-body, :root[data-estilo="flutuante"] .maint-item-body{ border-top:0; margin-top:10px; padding-top:0; }
+:root[data-estilo="suave"] .maint-momentos, :root[data-estilo="flutuante"] .maint-momentos{ border-top:0; padding-top:4px; }
+:root[data-estilo="suave"] .maint-register, :root[data-estilo="flutuante"] .maint-register{ background:var(--bandeja-fundo); border:0; border-radius:12px; }
+:root[data-estilo="suave"] .maint-odo-box, :root[data-estilo="flutuante"] .maint-odo-box{ border:0; background:var(--bandeja-fundo); border-radius:14px; }
+:root[data-estilo="suave"] .bday-body, :root[data-estilo="flutuante"] .bday-body{ background:var(--bandeja-fundo); border-radius:18px; margin:0 12px 12px; }
+:root[data-estilo="suave"] .bday-body .prop-list, :root[data-estilo="suave"] .bday-body .prop-row-empilhada,
+:root[data-estilo="flutuante"] .bday-body .prop-list, :root[data-estilo="flutuante"] .bday-body .prop-row-empilhada{ background:var(--surface); border:0; border-radius:14px; box-shadow:var(--bloco-sombra); }
+/* Escuro: bandeja mais funda que o bloco, sem anel claro. */
+:root[data-theme="dark"][data-estilo="suave"] :is(.synapse-card-body,.study-parts,.know-troca,.know-body,.maint-items,.bday-body),
+:root[data-theme="dark"][data-estilo="flutuante"] :is(.synapse-card-body,.study-parts,.know-troca,.know-body,.maint-items,.bday-body){ background:color-mix(in srgb, #000 22%, var(--surface)); }
+:root[data-theme="dark"][data-estilo="suave"] .synapse-card-body .synapse-field, :root[data-theme="dark"][data-estilo="flutuante"] .synapse-card-body .synapse-field{
+  background:var(--surface); box-shadow:0 8px 18px -12px rgba(0,0,0,.7);
+}
+.study-card-body .prop-value input:not([type="checkbox"]){ width:200px; max-width:100%; box-sizing:border-box; }

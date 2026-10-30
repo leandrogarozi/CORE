@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { BellIcon, CheckIcon, EditIcon, TrashIcon, WhatsAppIcon } from "./icons";
-import { ToggleSwitch } from "./ToggleSwitch";
 import { TimePicker } from "./TimePicker";
 import { DAY_NAMES } from "@/lib/date-utils";
 import type { DietMeal } from "@/lib/types";
@@ -217,14 +216,12 @@ export function DietView({ onBack }: { onBack: () => void }) {
         <div className="diet-page-card">
           <span className="diet-card-titulo">Onde quer ser lembrado?</span>
           <div className="diet-channel-options">
-            <label className="diet-channel-option">
-              <ToggleSwitch checked={appOptIn} ariaLabel="Lembrar dentro do app" onChange={(v) => board.updateSettings({ dietAppOptIn: v })} />
-              No app
-            </label>
-            <label className="diet-channel-option">
-              <ToggleSwitch checked={whatsappOptIn} ariaLabel="Lembrar no WhatsApp" onChange={(v) => board.updateSettings({ dietWhatsappOptIn: v })} />
-              No WhatsApp
-            </label>
+            <button type="button" className={"pill-liga" + (appOptIn ? " on" : "")} aria-pressed={appOptIn} onClick={() => board.updateSettings({ dietAppOptIn: !appOptIn })}>
+              {appOptIn && <CheckIcon />} No app
+            </button>
+            <button type="button" className={"pill-liga zap" + (whatsappOptIn ? " on" : "")} aria-pressed={whatsappOptIn} onClick={() => board.updateSettings({ dietWhatsappOptIn: !whatsappOptIn })}>
+              <WhatsAppIcon filled={whatsappOptIn} /> No WhatsApp
+            </button>
           </div>
           {whatsappOptIn && (
             <div className="diet-whatsapp-phone-row">
