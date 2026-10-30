@@ -4778,3 +4778,28 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
   .cal-day:has(.cal-day-feriado) .cal-day-num::after{ content:""; display:inline-block; width:5px; height:5px; border-radius:50%; background:var(--danger); margin-left:3px; vertical-align:middle; }
   .cal-day:has(.cal-day-feriado.facultativo) .cal-day-num::after{ background:var(--text-faint); }
 }
+
+/* Entrada: o nome FARO no mesmo degradê do símbolo. */
+.auth-marca-nome{ display:inline-block; padding-right:2px; background:linear-gradient(135deg,#4A47D5 0%,#7C4DF0 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent; }
+
+/* WhatsApp: botão verde com degradê, o par do degradê roxo (Testar WhatsApp no perfil). */
+:root{ --grad-verde:linear-gradient(135deg,#1E8E55 0%,#3FC47E 100%); }
+.btn-zap{ background:var(--grad-verde); color:#fff; border:0; box-shadow:0 10px 22px -8px rgba(30,142,85,.6); border-radius:var(--r-full, 999px); min-height:34px; padding:0 16px; font-size:12.5px; font-weight:600; display:inline-flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; }
+.btn-zap:hover:not(:disabled){ filter:brightness(1.06); }
+.btn-zap:disabled{ opacity:.55; cursor:not-allowed; }
+
+/* Filete padrão: uma faixa de 4 px que acompanha a curva do cartão e vai até o fim dele (nada fora, nada solto).
+   O cartão com filete tem cantos menos curvos para a faixa não ficar pequena perto das pontas. */
+.synapse-card::before, .com-filete::before, .cfg-grupo .cfg-bloco::before{
+  content:""; position:absolute; inset:0; width:auto; height:auto; border-radius:inherit; background:none;
+  border-left:4px solid var(--k, transparent); pointer-events:none;
+}
+:root[data-estilo="suave"] :is(.com-filete,.synapse-card,.cfg-grupo .cfg-bloco).com-filete,
+:root[data-estilo="flutuante"] :is(.com-filete,.synapse-card,.cfg-grupo .cfg-bloco).com-filete{ border-radius:16px; }
+:root[data-estilo="suave"] .synapse-card, :root[data-estilo="flutuante"] .synapse-card,
+:root[data-estilo="suave"] .know-item, :root[data-estilo="flutuante"] .know-item,
+:root[data-estilo="suave"] .maint-asset, :root[data-estilo="flutuante"] .maint-asset,
+:root[data-estilo="suave"] .study-card, :root[data-estilo="flutuante"] .study-card,
+:root[data-estilo="suave"] .cfg-grupo .cfg-bloco, :root[data-estilo="flutuante"] .cfg-grupo .cfg-bloco{ border-radius:16px; }
+:root[data-estilo="suave"] .synapse-card-body, :root[data-estilo="flutuante"] .synapse-card-body{ margin:0 14px 14px 18px; }
+:root[data-estilo="suave"] .cfg-grupo .cfg-bloco, :root[data-estilo="flutuante"] .cfg-grupo .cfg-bloco{ border:0; }

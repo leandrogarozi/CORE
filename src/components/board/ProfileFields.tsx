@@ -63,7 +63,7 @@ function WhatsAppTestButton({ phone }: { phone: string | null }) {
   if (!phone) return null;
   return (
     <div style={{ marginTop: 6 }}>
-      <button type="button" className="btn btn-ghost" disabled={busy} onClick={sendTest}>
+      <button type="button" className="btn btn-zap" disabled={busy} onClick={sendTest}>
         Testar WhatsApp
       </button>
       {status && <div className="hint-text">{status}</div>}
