@@ -1140,22 +1140,37 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
               <SendIcon />
             </button>
           </div>
-          <div className="lembrete-de-tarefa-linha reminder-novo-avisos">
-            <select aria-label="Quando avisar" className="reminder-repeat-select" value={newAntes} onChange={(e) => setNewAntes(Number(e.target.value))}>
+          <div className="reminder-novo-avisos">
+            <span className="reminder-novo-rotulo">Avisar</span>
+            <select aria-label="Quando avisar" className="aviso-select" value={newAntes} onChange={(e) => setNewAntes(Number(e.target.value))}>
               {REMINDER_ALERT_PRESETS.map((p) => (
                 <option key={p.l} value={p.v ?? 0}>
-                  {p.v === 0 ? "Avisar no horário" : `Avisar ${p.l}`}
+                  {p.l}
                 </option>
               ))}
             </select>
-            <button type="button" className={"aviso-pilula" + (newSino ? " ativo" : "")} aria-pressed={newSino} onClick={() => setNewSino((v) => !v)} title="Avisa dentro do app (banner e agenda)">
-              <BellIcon filled={newSino} />
-              <span>Avisar no app</span>
-            </button>
-            <button type="button" className={"aviso-pilula zap" + (newZap ? " ativo" : "")} aria-pressed={newZap} onClick={() => setNewZap((v) => !v)} title="Manda também uma mensagem no WhatsApp">
-              <WhatsAppIcon filled={newZap} />
-              <span>Avisar no WhatsApp</span>
-            </button>
+            {/* Os mesmos dois ícones que cada lembrete da lista tem: sininho (dentro do app) e WhatsApp. */}
+            <span className="reminder-icones">
+              <button
+                type="button"
+                className={"icon-btn" + (newSino ? " active" : "")}
+                aria-pressed={newSino}
+                title={newSino ? "Avisa dentro do app. Clique pra desligar." : "Não avisa dentro do app. Clique pra ligar."}
+                onClick={() => setNewSino((v) => !v)}
+              >
+                <BellIcon filled={newSino} />
+              </button>
+              <button
+                type="button"
+                className={"icon-btn zap-btn" + (newZap ? " active" : "")}
+                aria-pressed={newZap}
+                title={newZap ? "Também chega no WhatsApp. Clique pra desligar." : "Só avisa no app. Clique pra mandar no WhatsApp também."}
+                onClick={() => setNewZap((v) => !v)}
+              >
+                <WhatsAppIcon filled={newZap} />
+              </button>
+            </span>
+            <span className="reminder-novo-estado">{newSino && newZap ? "no app e no WhatsApp" : newZap ? "no WhatsApp" : newSino ? "no app" : "só o push do celular"}</span>
           </div>
           {faltando && <div className="reminder-zap-erro">{faltando}</div>}
         </div>
