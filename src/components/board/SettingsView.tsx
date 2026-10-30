@@ -41,6 +41,7 @@ import {
   ClockIcon,
   FlagIcon,
   HomeIcon,
+  MicIcon,
   LinkIcon,
   MealIcon,
   MoodFaceIcon,
@@ -2371,6 +2372,9 @@ function PaineisDaTela() {
       </CollapsibleBox>
       <CollapsibleBox title="Sem data" icon={<WarningIcon />} resumo="Lista recolhida embaixo das tarefas" ligado={ligado("panel_semdata")} onLigar={ligar("panel_semdata")}>
         {texto("As tarefas que ainda esperam uma data.")}
+      </CollapsibleBox>
+      <CollapsibleBox title="Bolinha do FARO" icon={<MicIcon />} resumo="Atalhos no centro, embaixo da tela (computador)" ligado={ligado("dock_faro")} onLigar={ligar("dock_faro")}>
+        {texto("No computador, o símbolo do FARO fica no centro, embaixo. Com o mouse em cima abre Hoje, Criar, Aprender e Lembretes; um clique nele abre o assistente e já começa a ouvir. Desligando, o assistente volta para o botão do canto. No celular vale o menu de baixo.")}
       </CollapsibleBox>
     </>
   );

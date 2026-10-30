@@ -64,7 +64,7 @@ function ehCelular(): boolean {
   return typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches;
 }
 
-export function FaroMascot() {
+export function FaroMascot({ comDock = false }: { comDock?: boolean }) {
   const { board } = useBoardCtx();
   const [open, setOpen] = useState(false);
   const [falas, setFalas] = useState<Fala[]>([]);
@@ -260,7 +260,7 @@ export function FaroMascot() {
   }
 
   return (
-    <div className="faro-mascot">
+    <div className={"faro-mascot" + (comDock ? " com-dock" : "")}>
       {open && (
         <div className="faro-bubble faro-bubble-chat">
           <button className="faro-bubble-close" type="button" aria-label="Fechar" onClick={() => setOpen(false)}>

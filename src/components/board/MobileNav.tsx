@@ -10,14 +10,36 @@ import type { ViewMode } from "./Sidebar";
  * "Criar" e "Aprender" abrem uma folha curta com as opções; "Menu" abre a gaveta de sempre.
  * Só aparece em tela pequena (CSS); no computador o menu continua na lateral.
  */
-const MODOS_DE_APRENDER: ViewMode[] = ["synapses", "ideias", "metanoia", "conhecendo", "books", "estudo"];
+export const MODOS_DE_APRENDER: ViewMode[] = ["synapses", "ideias", "metanoia", "conhecendo", "books", "estudo"];
 
-function Mais() {
+export function Mais() {
   return (
     <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
       <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
     </svg>
   );
+}
+
+/** As opções das folhas "Criar" e "Aprender", as mesmas no celular e na bolinha do computador. */
+export function opcoesDoMenu(
+  onSelect: (modo: ViewMode) => void,
+  onNovaTarefa: () => void,
+): Record<"criar" | "aprender", { rotulo: string; acao: () => void }[]> {
+  return {
+    criar: [
+      { rotulo: "Nova tarefa", acao: onNovaTarefa },
+      { rotulo: "Lembrete", acao: () => onSelect("reminders") },
+      { rotulo: "Ideia ou estudo", acao: () => onSelect("ideias") },
+      { rotulo: "Sinapse", acao: () => onSelect("synapses") },
+    ],
+    aprender: [
+      { rotulo: "Metanoia", acao: () => onSelect("metanoia") },
+      { rotulo: "Sinapses", acao: () => onSelect("synapses") },
+      { rotulo: "Ideias e Estudos", acao: () => onSelect("ideias") },
+      { rotulo: "Conhecendo você", acao: () => onSelect("conhecendo") },
+      { rotulo: "Livros, filmes e séries", acao: () => onSelect("books") },
+    ],
+  };
 }
 
 export function MobileNav({
@@ -44,21 +66,7 @@ export function MobileNav({
     fn();
   }
 
-  const opcoes: Record<"criar" | "aprender", { rotulo: string; acao: () => void }[]> = {
-    criar: [
-      { rotulo: "Nova tarefa", acao: onNovaTarefa },
-      { rotulo: "Lembrete", acao: () => onSelect("reminders") },
-      { rotulo: "Ideia ou estudo", acao: () => onSelect("ideias") },
-      { rotulo: "Sinapse", acao: () => onSelect("synapses") },
-    ],
-    aprender: [
-      { rotulo: "Metanoia", acao: () => onSelect("metanoia") },
-      { rotulo: "Sinapses", acao: () => onSelect("synapses") },
-      { rotulo: "Ideias e Estudos", acao: () => onSelect("ideias") },
-      { rotulo: "Conhecendo você", acao: () => onSelect("conhecendo") },
-      { rotulo: "Livros, filmes e séries", acao: () => onSelect("books") },
-    ],
-  };
+  const opcoes = opcoesDoMenu(onSelect, onNovaTarefa);
 
   const item = (rotulo: string, icone: ReactNode, ativo: boolean, onClick: () => void, extra = "") => (
     <button type="button" className={"mnav-item" + (ativo ? " ativo" : "") + extra} onClick={onClick} aria-current={ativo ? "page" : undefined}>

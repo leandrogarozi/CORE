@@ -50,6 +50,7 @@ import { TrashView } from "./TrashView";
 import { ScopeModal } from "./ScopeModal";
 import { ConfirmModal } from "./ConfirmModal";
 import { FaroMascot } from "./FaroMascot";
+import { DockFaro } from "./DockFaro";
 import { MobileNav } from "./MobileNav";
 import { WelcomeModal } from "./WelcomeModal";
 import { ActiveTimerBadge } from "./TimerButton";
@@ -247,6 +248,13 @@ function BoardShell() {
   // Cada painel da tela principal pode ser ligado ou desligado em Configurações
   // (Painéis da tela principal). Desligado, ele some daqui e o dado fica guardado.
   const painel = (chave: string) => isFeatureEnabled(board.state.settings.featureFlags, chave);
+  const dockLigado = painel("dock_faro");
+
+  function novaTarefaPelaBarra() {
+    goToday();
+    // Leva o cursor para o campo de nova tarefa assim que a tela do dia aparecer.
+    setTimeout(() => document.querySelector<HTMLInputElement>(".quickadd-input")?.focus(), 150);
+  }
 
   const semDataBlock = painel("panel_semdata") ? (
     <>
@@ -630,13 +638,18 @@ function BoardShell() {
         onSelect={selectView}
         onMenu={() => setSidebarOpen(true)}
         onFalarComFaro={() => window.dispatchEvent(new Event("faro:falar"))}
-        onNovaTarefa={() => {
-          goToday();
-          // Leva o cursor para o campo de nova tarefa assim que a tela do dia aparecer.
-          setTimeout(() => document.querySelector<HTMLInputElement>(".quickadd-input")?.focus(), 150);
-        }}
+        onNovaTarefa={novaTarefaPelaBarra}
       />
-      <FaroMascot />
+      {dockLigado && (
+        <DockFaro
+          viewMode={viewMode}
+          onHoje={goToday}
+          onSelect={selectView}
+          onFalarComFaro={() => window.dispatchEvent(new Event("faro:falar"))}
+          onNovaTarefa={novaTarefaPelaBarra}
+        />
+      )}
+      <FaroMascot comDock={dockLigado} />
       <WelcomeModal onAbrirConfiguracoes={() => setViewMode("settings")} />
     </div>
   );
