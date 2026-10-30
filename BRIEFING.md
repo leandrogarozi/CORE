@@ -6433,3 +6433,15 @@ Feito a partir do que o Leandro viu usando as contas de teste:
 - **Telas:** Calendário (nome do feriado na célula, vermelho = feriado, cinza = facultativo), Semana (selo no cabeçalho do dia), saudação do Painel (linha "Hoje / Amanhã / Segunda, 02/11: Finados", próximos 7 dias).
 - **Aviso semanal:** `src/lib/push/feriados.ts`, chamado pelo cron por minuto (`dispatch-reminders`): no **domingo a partir das 18h** (fuso da pessoa), ou na **segunda a partir das 7h** se não avisou, manda aviso na caixa (botão "Ver a semana") + push com os feriados dos 7 dias seguintes. Tabela nova `feriados_avisados (user_id, semana)` trava para nunca repetir. Chave de desligar: `feature_flags.feriados` (Configurações > Painéis da tela principal > Feriados; ligado por padrão).
 - Não foi gerado nada no banco por ano (nem tarefas): os feriados são calculados na hora, então valem para qualquer ano, sem "varredura" anual.
+
+## Versões: "superado" em Conhecendo você (30/10/2026)
+
+O FARO guarda a versão vigente de cada coisa; a antiga não é apagada nem vale como se fosse atual.
+
+- **Banco** (`knowledge_items`): `substitui_id` (proposta pendente que vai trocar um item), `superado_por` e `superado_em` (item antigo). `status` ganhou o valor `superado`. Nada é apagado.
+- **MCP escrita** (`faro_propor_aprendizado`): campo opcional `substitui_id` por item. Só aceita o id de um item **aprovado**; recusa id inexistente, já superado ou que já tem proposta de troca esperando. O título pode ser igual ao do antigo. A descrição da ferramenta e as instruções do conector dizem à IA: "quando algo que já existe no FARO mudar, proponha com substitui_id do item antigo".
+- **Tela** (Conhecendo você): em "Para revisar", a proposta de troca mostra **ANTES** e **DEPOIS** e o botão vira "Aprovar e substituir". Ao aprovar (um ou "Aprovar os N") o novo vale e o antigo vira `superado`, ligado ao novo, com a data. No item aprovado aparece "Ver versões anteriores (N)" (cadeia inteira, com "Voltar a valer" para desfazer).
+- **MCP leitura**: `faro_sobre_mim`, `faro_buscar`, `faro_listar` e `faro_novidades` ignoram superados; `incluir_superados=true` os traz (marcados "SUPERADO em … por …"). `faro_ler` com o id abre qualquer um, com aviso de versão antiga. O resumo geral (`/api/ia/resumo`) já só lia `aprovado`.
+- **Cópia diária em .md** (`/api/backup/aprendizado`, zip das Configurações): superados vão para `Conhecendo você/_superados/` (com `status: superado`, `superado_em`, `superado_por`) e saem da lista do `00 — Índice.md` (fica só uma linha com a contagem).
+- **Atenção (Drive):** o script do computador **nunca apaga**; então a cópia antiga que já estava em `Conhecendo você/` continua lá até ser movida à mão. O índice é a fonte de verdade (o que não está nele é ignorado).
+- Pendente: revisar o acervo com o Leandro e marcar os duplicados (primeiro caso: LinkedIn abril/2026 → versão final).

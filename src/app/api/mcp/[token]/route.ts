@@ -47,7 +47,7 @@ async function carregarAcervo(usuario: string): Promise<AcervoDoFaro> {
       .from("knowledge_items")
       .select("*")
       .eq("user_id", usuario)
-      .eq("status", "aprovado")
+      .in("status", ["aprovado", "superado"])
       .is("deleted_at", null),
     supabase.from("settings").select("backup_name, preferred_name, faro_resumo").eq("user_id", usuario).maybeSingle(),
   ]);
@@ -176,12 +176,12 @@ function repositorioDe(usuario: string): Repositorio {
     async conhecimentoExistente() {
       const { data, error } = await supabase
         .from("knowledge_items")
-        .select("tipo, titulo")
+        .select("id, tipo, titulo, status, substitui_id")
         .eq("user_id", usuario)
         .is("deleted_at", null)
         .neq("status", "descartado");
       falhou("ler conhecimento", error);
-      return data ?? [];
+      return (data ?? []).map((k) => ({ id: k.id, tipo: k.tipo, titulo: k.titulo, status: k.status, substituiId: k.substitui_id }));
     },
     async frasesExistentes() {
       const { data, error } = await supabase.from("metanoia_frases").select("texto").eq("user_id", usuario);
@@ -216,6 +216,7 @@ function repositorioDe(usuario: string): Repositorio {
           data_ref: k.dataRef,
           origem: k.origem,
           tags: k.tags,
+          substitui_id: k.substituiId,
           status: "pendente",
           fonte: "conector",
           lote,

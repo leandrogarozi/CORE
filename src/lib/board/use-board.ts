@@ -2581,6 +2581,9 @@ export function useBoard(userId: string | null) {
           status,
           fonte,
           lote,
+          replacesId: null,
+          supersededBy: null,
+          supersededAt: null,
           createdAt: lote,
           updatedAt: lote,
         });
@@ -2654,6 +2657,89 @@ export function useBoard(userId: string | null) {
         .then(({ error }) => {
           if (error) reportSaveError("setKnowledgeStatus", error);
         });
+    },
+    [apply, supabase]
+  );
+
+  /**
+   * Aprova itens de Conhecendo você. Se um deles é a proposta de uma versão nova de algo que já existe
+   * (replacesId), o item antigo vira "superado": fica ligado ao novo, com a data, e sai de tudo que a IA
+   * lê. Nunca apaga nada.
+   */
+  const approveKnowledge = useCallback(
+    (ids: string[]) => {
+      if (!ids.length) return;
+      const agora = new Date().toISOString();
+      const itens = stateRef.current.knowledgeItems;
+      const alvo = new Set(ids);
+      // novo id -> id do antigo que ele passa a substituir (só se o antigo ainda vale)
+      const trocas = new Map<string, string>();
+      for (const id of ids) {
+        const novo = itens.find((k) => k.id === id);
+        const antigo = novo?.replacesId ? itens.find((k) => k.id === novo.replacesId) : undefined;
+        if (novo && antigo && antigo.id !== novo.id && antigo.status === "aprovado") trocas.set(novo.id, antigo.id);
+      }
+      const antigos = new Map([...trocas].map(([novoId, antigoId]) => [antigoId, novoId]));
+      apply((st) => ({
+        ...st,
+        knowledgeItems: st.knowledgeItems.map((k) => {
+          if (alvo.has(k.id)) return { ...k, status: "aprovado" as const, updatedAt: agora };
+          const por = antigos.get(k.id);
+          return por ? { ...k, status: "superado" as const, supersededBy: por, supersededAt: agora, updatedAt: agora } : k;
+        }),
+      }));
+      supabase
+        .from("knowledge_items")
+        .update({ status: "aprovado", updated_at: agora })
+        .in("id", ids)
+        .then(({ error }) => {
+          if (error) reportSaveError("approveKnowledge", error);
+        });
+      for (const [antigoId, novoId] of antigos) {
+        supabase
+          .from("knowledge_items")
+          .update({ status: "superado", superado_por: novoId, superado_em: agora, updated_at: agora })
+          .eq("id", antigoId)
+          .then(({ error }) => {
+            if (error) reportSaveError("approveKnowledge (superar)", error);
+          });
+      }
+    },
+    [apply, supabase]
+  );
+
+  /** Desfaz uma substituição: a versão antiga volta a valer e a que a substituiu passa a ser a superada. */
+  const restoreKnowledgeVersion = useCallback(
+    (id: string) => {
+      const itens = stateRef.current.knowledgeItems;
+      const antigo = itens.find((k) => k.id === id);
+      if (!antigo || antigo.status !== "superado") return;
+      const atual = antigo.supersededBy ? itens.find((k) => k.id === antigo.supersededBy) : undefined;
+      const agora = new Date().toISOString();
+      apply((st) => ({
+        ...st,
+        knowledgeItems: st.knowledgeItems.map((k) => {
+          if (k.id === id) return { ...k, status: "aprovado" as const, supersededBy: null, supersededAt: null, updatedAt: agora };
+          if (atual && k.id === atual.id) return { ...k, status: "superado" as const, supersededBy: id, supersededAt: agora, updatedAt: agora };
+          return k;
+        }),
+      }));
+      supabase
+        .from("knowledge_items")
+        .update({ status: "aprovado", superado_por: null, superado_em: null, updated_at: agora })
+        .eq("id", id)
+        .then(({ error }) => {
+          if (error) reportSaveError("restoreKnowledgeVersion", error);
+        });
+      if (atual) {
+        supabase
+          .from("knowledge_items")
+          .update({ status: "superado", superado_por: id, superado_em: agora, updated_at: agora })
+          .eq("id", atual.id)
+          .then(({ error }) => {
+            if (error) reportSaveError("restoreKnowledgeVersion (atual)", error);
+          });
+      }
     },
     [apply, supabase]
   );
@@ -4367,6 +4453,8 @@ export function useBoard(userId: string | null) {
     importKnowledge,
     updateKnowledge,
     setKnowledgeStatus,
+    approveKnowledge,
+    restoreKnowledgeVersion,
     deleteKnowledge,
     addShoppingItem,
     addBirthday,

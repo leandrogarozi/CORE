@@ -1232,6 +1232,12 @@ function BackupDeAprendizadoBox() {
     ideias: board.state.synapses.filter((s) => s.kind === "ideia"),
     partesDeEstudo: board.state.synapseParts,
     conhecendo: board.state.knowledgeItems.filter((k) => k.status === "aprovado").map(conhecimentoParaExportar),
+    conhecendoSuperados: board.state.knowledgeItems
+      .filter((k) => k.status === "superado")
+      .map((k) => {
+        const novo = board.state.knowledgeItems.find((x) => x.id === k.supersededBy);
+        return { ...conhecimentoParaExportar(k), superadoEm: k.supersededAt ?? "", superadoPor: novo ? { id: novo.id, titulo: novo.titulo } : null };
+      }),
     aniversarios: board.state.birthdays,
     crm,
     metanoia: board.state.metanoiaFrases,
@@ -1252,7 +1258,7 @@ function BackupDeAprendizadoBox() {
     sinapses: dados.sinapses.length,
     livros: dados.livros.length,
     ideias: dados.ideias.length,
-    conhecendo: board.state.knowledgeItems.filter((k) => k.status !== "descartado").length,
+    conhecendo: board.state.knowledgeItems.filter((k) => k.status !== "descartado" && k.status !== "superado").length,
     aniversarios: board.state.birthdays.length,
     crm: crm?.clientes.length ?? 0,
     metanoia: board.state.metanoiaFrases.filter((f) => f.status !== "arquivada").length,

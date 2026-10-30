@@ -34,13 +34,22 @@ export interface Repositorio {
   statusConcluido(): Promise<string | null>;
   concluirTarefas(ids: string[], statusId: string | null): Promise<void>;
   anexarNota(id: string, notaNova: string): Promise<void>;
-  /** "tipo|título" (normalizado) dos itens de Conhecendo você que não foram descartados. */
-  conhecimentoExistente(): Promise<{ tipo: string; titulo: string }[]>;
+  /** Itens de Conhecendo você que não foram descartados nem apagados (inclui os superados, para o título não voltar). */
+  conhecimentoExistente(): Promise<{ id: string; tipo: string; titulo: string; status: string; substituiId: string | null }[]>;
   /** Textos de todas as frases da Metanoia, inclusive as recusadas (para a IA não propor de novo). */
   frasesExistentes(): Promise<string[]>;
   inserirFrases(itens: { id: string; texto: string; autor: string | null; fonte: string | null; origemRef: string | null; tipo: "frase" | "pergunta" }[]): Promise<void>;
   inserirConhecimento(
-    itens: { id: string; tipo: string; titulo: string; conteudo: string; dataRef: string | null; origem: string | null; tags: string[] }[]
+    itens: {
+      id: string;
+      tipo: string;
+      titulo: string;
+      conteudo: string;
+      dataRef: string | null;
+      origem: string | null;
+      tags: string[];
+      substituiId: string | null;
+    }[]
   ): Promise<void>;
 }
 
@@ -252,7 +261,7 @@ export const FERRAMENTAS_DE_ESCRITA = [
     name: "faro_propor_aprendizado",
     title: "Propor aprendizado ao FARO",
     description:
-      "Envia ao FARO o que você aprendeu sobre o usuário nas conversas (perfil, valor, objetivo, preferência, decisão, projeto, aprendizado...). Vai como PROPOSTA: cai na aba 'Para revisar' de 'Conhecendo você' e o FARO avisa o usuário; só vale depois que ele aprovar. Use quando ele revelar algo novo e durável sobre si, ou quando decidir algo importante. Não repita o que já existe (use faro_buscar antes), não invente, use as palavras dele, e nunca envie saúde, medicamentos, senhas ou dados bancários. Depois de enviar, diga a ele em uma linha o que você propôs.",
+      "Envia ao FARO o que você aprendeu sobre o usuário nas conversas (perfil, valor, objetivo, preferência, decisão, projeto, aprendizado...). Vai como PROPOSTA: cai na aba 'Para revisar' de 'Conhecendo você' e o FARO avisa o usuário; só vale depois que ele aprovar. Use quando ele revelar algo novo e durável sobre si, ou quando decidir algo importante. Não repita o que já existe (use faro_buscar antes), não invente, use as palavras dele, e nunca envie saúde, medicamentos, senhas ou dados bancários. QUANDO ALGO QUE JÁ EXISTE NO FARO MUDAR (uma versão nova de um texto, um objetivo que evoluiu, uma decisão revista), NÃO crie um item solto ao lado do antigo: proponha o item novo com substitui_id = o id do item antigo (o id vem de faro_buscar, faro_listar ou faro_ler). A proposta aparece em 'Para revisar' mostrando ANTES e DEPOIS; se ele aprovar, o novo passa a valer e o antigo vira 'superado' (fica só no histórico, nunca é apagado) e deixa de aparecer nas buscas. Escreva o item novo completo, não só o que mudou. Só dá para substituir um item aprovado. Depois de enviar, diga a ele em uma linha o que você propôs.",
     inputSchema: {
       type: "object",
       properties: {
@@ -269,6 +278,11 @@ export const FERRAMENTAS_DE_ESCRITA = [
               data: { type: "string", description: "AAAA-MM-DD de quando surgiu, se souber." },
               tags: { type: "array", items: { type: "string" } },
               origem: { type: "string", description: "De que conversa ou assunto veio. Ex.: 'conversa no Claude sobre o funil'." },
+              substitui_id: {
+                type: "string",
+                description:
+                  "Opcional. Id do item APROVADO que este item novo substitui (a versão atual dele). Use sempre que o que existe no FARO mudou. O título pode ser igual ao do antigo.",
+              },
             },
             required: ["tipo", "titulo", "conteudo"],
             additionalProperties: false,
@@ -689,7 +703,8 @@ const PALAVRAS_DE_SAUDE = /(medicament|rem[eé]dio|rosuvastatina|dosagem|diagn[o
 export async function proporAprendizado(args: Args, repo: Repositorio, ctx: Contexto): Promise<Resposta> {
   const semAcentoMin = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/\s+/g, " ").trim();
   const chave = (tipo: string, titulo: string) => `${tipo}|${semAcentoMin(titulo)}`;
-  const ja = new Set((await repo.conhecimentoExistente()).map((k) => chave(k.tipo, k.titulo)));
+  const existentes = await repo.conhecimentoExistente();
+  const ja = new Set(existentes.map((k) => chave(k.tipo, k.titulo)));
   const novos: Parameters<Repositorio["inserirConhecimento"]>[0] = [];
   const problemas: string[] = [];
 
@@ -707,7 +722,25 @@ export async function proporAprendizado(args: Args, repo: Repositorio, ctx: Cont
       problemas.push(`${titulo}: parece conter saúde, medicamento, senha ou dado bancário. Isso não vai para o FARO.`);
       continue;
     }
-    if (ja.has(chave(tipo, titulo))) {
+    const substituiId = texto(bruto.substitui_id);
+    const antigo = substituiId ? existentes.find((k) => k.id === substituiId) : undefined;
+    if (substituiId) {
+      if (!antigo) {
+        problemas.push(`${titulo}: não achei o item ${substituiId} para substituir (confira o id com faro_buscar).`);
+        continue;
+      }
+      if (antigo.status !== "aprovado") {
+        problemas.push(`${titulo}: o item "${antigo.titulo}" ${antigo.status === "superado" ? "já foi superado por outra versão" : "ainda não foi aprovado"}, então não dá para substituí-lo. Use o id da versão vigente.`);
+        continue;
+      }
+      if (existentes.some((k) => k.status === "pendente" && k.substituiId === substituiId) || novos.some((n) => n.substituiId === substituiId)) {
+        problemas.push(`${titulo}: já existe uma proposta esperando aprovação para substituir "${antigo.titulo}".`);
+        continue;
+      }
+    }
+    // Versão nova de um item costuma manter o título: nesse caso a igualdade com o antigo é esperada.
+    const mesmaChaveDoAntigo = !!antigo && chave(antigo.tipo, antigo.titulo) === chave(tipo, titulo);
+    if (ja.has(chave(tipo, titulo)) && !mesmaChaveDoAntigo) {
       problemas.push(`${titulo}: já existe no FARO (mesmo tipo e título).`);
       continue;
     }
@@ -721,20 +754,33 @@ export async function proporAprendizado(args: Args, repo: Repositorio, ctx: Cont
       dataRef: ehData(data) ? data : null,
       origem: texto(bruto.origem) || "conector (IA)",
       tags: lista<unknown>(bruto.tags).map((t) => texto(t)).filter(Boolean).slice(0, 10),
+      substituiId: antigo ? antigo.id : null,
     });
   }
 
   if (!novos.length) return { texto: ["Nada foi enviado.", ...problemas.map((p) => `- ${p}`)].join("\n"), erro: true };
   await repo.inserirConhecimento(novos);
-  const linhas = novos.map((n) => `- [${n.tipo}] ${n.titulo}`);
+  const linhas = novos.map((n) => {
+    const antigo = n.substituiId ? existentes.find((k) => k.id === n.substituiId) : undefined;
+    return `- [${n.tipo}] ${n.titulo}${antigo ? ` (substitui "${antigo.titulo}")` : ""}`;
+  });
+  const trocas = novos.filter((n) => n.substituiId).length;
   return {
     texto: [
       `Enviado ao FARO como PROPOSTA (${novos.length}). Está na aba "Para revisar" de "Conhecendo você"; só vale depois que o usuário aprovar, e o FARO já avisou ele.`,
+      ...(trocas ? [`${trocas === 1 ? "Uma das propostas substitui" : `${trocas} propostas substituem`} um item existente: ele verá ANTES e DEPOIS e, ao aprovar, o antigo vira "superado" (fica no histórico, nada é apagado).`] : []),
       ...linhas,
       ...(problemas.length ? ["", "Não enviados:", ...problemas.map((p) => `- ${p}`)] : []),
     ].join("\n"),
     aviso: {
-      titulo: novos.length === 1 ? "Tem 1 aprendizado novo para você aprovar" : `Tem ${novos.length} aprendizados novos para você aprovar`,
+      titulo:
+        trocas === novos.length
+          ? novos.length === 1
+            ? "Tem 1 atualização para você aprovar"
+            : `Tem ${novos.length} atualizações para você aprovar`
+          : novos.length === 1
+            ? "Tem 1 aprendizado novo para você aprovar"
+            : `Tem ${novos.length} aprendizados novos para você aprovar`,
       corpo: `A IA propôs: ${novos.map((n) => `"${n.titulo}"`).join(", ")}. Abra Conhecendo você → aba Para revisar para aprovar, editar ou descartar. Nada vale antes da sua aprovação.`,
       destino: "conhecendo",
     },

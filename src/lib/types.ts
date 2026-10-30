@@ -677,9 +677,12 @@ export interface KnowledgeItem {
   dataRef: string | null;
   origem: string | null;
   tags: string[];
-  status: "pendente" | "aprovado" | "descartado";
+  status: "pendente" | "aprovado" | "descartado" | "superado"; // superado = existe uma versão mais nova; fica no histórico, nunca é apagado
   fonte: "importacao" | "manual" | "conector";
   lote: string | null;
+  replacesId: string | null; // proposta pendente: id do item que ela substitui quando for aprovada
+  supersededBy: string | null; // superado: id do item que passou a valer no lugar
+  supersededAt: string | null;
   createdAt: string;
   updatedAt: string; // última vez que foi editado ou teve o status mudado (aprovado, descartado...)
 }

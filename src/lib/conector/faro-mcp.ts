@@ -44,7 +44,7 @@ export interface AcervoDoFaro {
   sinapses: Synapse[]; // sinapses e ideias (kind)
   partes?: SynapsePart[]; // partes (encontros, aulas, módulos) dos estudos
   livros: LivroDoAcervo[];
-  conhecimento: KnowledgeItem[]; // só os aprovados
+  conhecimento: KnowledgeItem[]; // aprovados e superados (os superados só aparecem com incluir_superados=true)
 }
 
 // Tipos que contam "quem a pessoa é": vão inteiros no faro_sobre_mim.
@@ -61,7 +61,7 @@ Como usar:
 
 O que está aqui é a palavra dele: prefira isso ao que você supõe. Responda em português do Brasil.
 
-Agenda: faro_ver_agenda mostra o que ele tem (tarefas, reuniões, lembretes, atrasadas) com o id de cada item. Você também pode CRIAR no FARO: faro_criar_aniversarios (lista de Aniversários), faro_criar_tarefas (reunião é tarefa com tag reuniao) e faro_criar_lembretes; e fazer dois ajustes leves em tarefas que já existem: faro_concluir_tarefas (marcar como feita) e faro_anotar_em_tarefa (só ACRESCENTA texto na anotação, ótimo para pauta e decisões de reunião). Você nunca apaga nem reescreve nada. Regra de ouro: toda escrita (criar, concluir, anotar) tem 2 passos. Primeiro chame a ferramenta sem "confirmado": ela NÃO grava e devolve a prévia. Mostre a prévia ao Leandro, espere ele dizer que pode, e só então chame de novo, com os mesmos dados, e confirmado=true. Nunca confirme por conta própria. Se faltar um dado (dia, hora, mês), pergunte; não invente. APRENDIZADOS: quando o Leandro revelar algo novo e durável sobre si (valor, objetivo, preferência, decisão, projeto), ou decidir algo importante, proponha registrar com faro_propor_aprendizado. Vai como proposta para a aba "Para revisar"; o FARO avisa o Leandro e só vale depois que ele aprovar. Antes, confira com faro_buscar para não repetir; não invente; nunca mande saúde, medicamentos, senhas ou dados bancários. Depois de propor, diga a ele em uma linha o que você enviou. FRASES: a Metanoia é o lugar das frases que o FARO manda a ele durante o dia. Quando ele pedir, ou quando você tiver lido o que ele aprendeu e achar frases curtas fiéis ao que ele disse (ou de um autor que ele citou), proponha com faro_propor_frases: vão para "Para revisar" e só valem depois da aprovação. Não invente autoria e não repita (faro_buscar antes).`;
+Agenda: faro_ver_agenda mostra o que ele tem (tarefas, reuniões, lembretes, atrasadas) com o id de cada item. Você também pode CRIAR no FARO: faro_criar_aniversarios (lista de Aniversários), faro_criar_tarefas (reunião é tarefa com tag reuniao) e faro_criar_lembretes; e fazer dois ajustes leves em tarefas que já existem: faro_concluir_tarefas (marcar como feita) e faro_anotar_em_tarefa (só ACRESCENTA texto na anotação, ótimo para pauta e decisões de reunião). Você nunca apaga nem reescreve nada. Regra de ouro: toda escrita (criar, concluir, anotar) tem 2 passos. Primeiro chame a ferramenta sem "confirmado": ela NÃO grava e devolve a prévia. Mostre a prévia ao Leandro, espere ele dizer que pode, e só então chame de novo, com os mesmos dados, e confirmado=true. Nunca confirme por conta própria. Se faltar um dado (dia, hora, mês), pergunte; não invente. APRENDIZADOS: quando o Leandro revelar algo novo e durável sobre si (valor, objetivo, preferência, decisão, projeto), ou decidir algo importante, proponha registrar com faro_propor_aprendizado. Vai como proposta para a aba "Para revisar" (com ANTES e DEPOIS quando substitui algo); o FARO avisa o Leandro e só vale depois que ele aprovar. Antes, confira com faro_buscar para não repetir; se o que ele disse muda algo que já existe no FARO, proponha o item novo com substitui_id = id do item antigo (o antigo vira "superado" e sai das buscas, sem ser apagado), em vez de criar um segundo item parecido; não invente; nunca mande saúde, medicamentos, senhas ou dados bancários. Depois de propor, diga a ele em uma linha o que você enviou. FRASES: a Metanoia é o lugar das frases que o FARO manda a ele durante o dia. Quando ele pedir, ou quando você tiver lido o que ele aprendeu e achar frases curtas fiéis ao que ele disse (ou de um autor que ele citou), proponha com faro_propor_frases: vão para "Para revisar" e só valem depois da aprovação. Não invente autoria e não repita (faro_buscar antes).`;
 
 /**
  * Os textos do conector foram escritos quando o FARO tinha um dono só. Para ele servir a outras pessoas
@@ -96,14 +96,23 @@ export const FERRAMENTAS = [
     title: "Quem é o Leandro",
     description:
       "Perfil do Leandro aprovado por ele no FARO: perfil, valores, objetivos, preferências e decisões (texto inteiro), mais um resumo do resto do acervo. Use no começo de conversas em que contexto pessoal ajuda.",
-    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    inputSchema: {
+      type: "object",
+      properties: {
+        incluir_superados: {
+          type: "boolean",
+          description: "Padrão false: versões antigas (superadas por outra mais nova) ficam de fora. Mande true só se o usuário pedir o histórico.",
+        },
+      },
+      additionalProperties: false,
+    },
     annotations: { readOnlyHint: true, openWorldHint: false },
   },
   {
     name: "faro_buscar",
     title: "Buscar no FARO",
     description:
-      "Busca por palavras em todo o acervo: Conhecendo você, Sinapses, Ideias e anotações de livros. Ignora acentos e maiúsculas. Devolve título, tipo, id e um trecho; use faro_ler com o id para o texto inteiro.",
+      "Busca por palavras em todo o acervo vigente: Conhecendo você, Sinapses, Ideias e anotações de livros (versões antigas, já superadas por outra mais nova, ficam de fora, a menos que incluir_superados=true). Ignora acentos e maiúsculas. Devolve título, tipo, id e um trecho; use faro_ler com o id para o texto inteiro.",
     inputSchema: {
       type: "object",
       properties: {
@@ -114,6 +123,10 @@ export const FERRAMENTAS = [
           description: "Opcional: restringe a um tipo (sinapse, ideia, parte_de_estudo, livro, conhecimento ou um tipo de Conhecendo você).",
         },
         limite: { type: "integer", minimum: 1, maximum: 50, description: "Máximo de resultados (padrão 15)." },
+        incluir_superados: {
+          type: "boolean",
+          description: "Padrão false: versões antigas (superadas por outra mais nova) ficam de fora. Mande true só se o usuário pedir o histórico.",
+        },
       },
       required: ["consulta"],
       additionalProperties: false,
@@ -123,7 +136,7 @@ export const FERRAMENTAS = [
   {
     name: "faro_ler",
     title: "Ler um item",
-    description: "Texto inteiro de um item do FARO (em Markdown), pelo id que veio de faro_buscar, faro_listar ou faro_novidades.",
+    description: "Texto inteiro de um item do FARO (em Markdown), pelo id que veio de faro_buscar, faro_listar ou faro_novidades. Também abre um item superado (versão antiga), se você tiver o id dele.",
     inputSchema: {
       type: "object",
       properties: { id: { type: "string", description: "O id do item." } },
@@ -142,6 +155,10 @@ export const FERRAMENTAS = [
       properties: {
         tipo: { type: "string", enum: TIPOS_LISTAVEIS },
         limite: { type: "integer", minimum: 1, maximum: 200, description: "Máximo de itens (padrão 50)." },
+        incluir_superados: {
+          type: "boolean",
+          description: "Padrão false: versões antigas (superadas por outra mais nova) ficam de fora. Mande true só se o usuário pedir o histórico.",
+        },
       },
       required: ["tipo"],
       additionalProperties: false,
@@ -154,7 +171,13 @@ export const FERRAMENTAS = [
     description: "Itens que entraram no FARO desde uma data (padrão: últimos 7 dias). Bom para saber o que ele andou aprendendo.",
     inputSchema: {
       type: "object",
-      properties: { desde: { type: "string", description: "Data no formato AAAA-MM-DD." } },
+      properties: {
+        desde: { type: "string", description: "Data no formato AAAA-MM-DD." },
+        incluir_superados: {
+          type: "boolean",
+          description: "Padrão false: versões antigas (superadas por outra mais nova) ficam de fora. Mande true só se o usuário pedir o histórico.",
+        },
+      },
       additionalProperties: false,
     },
     annotations: { readOnlyHint: true, openWorldHint: false },
@@ -180,6 +203,9 @@ interface Item {
   texto: string; // Markdown, para busca e trecho
   data: string; // ISO
   completo: () => string;
+  /** Versão antiga: outra mais nova passou a valer no lugar. Só aparece com incluir_superados=true. */
+  superadoPor?: string;
+  superadoEm?: string;
 }
 
 function itensDoAcervo(a: AcervoDoFaro): Item[] {
@@ -255,7 +281,9 @@ function itensDoAcervo(a: AcervoDoFaro): Item[] {
     });
   }
   for (const k of a.conhecimento) {
-    if (k.status !== "aprovado") continue;
+    const superado = k.status === "superado";
+    if (k.status !== "aprovado" && !superado) continue;
+    const novo = superado && k.supersededBy ? a.conhecimento.find((x) => x.id === k.supersededBy) : undefined;
     itens.push({
       id: k.id,
       tipo: k.tipo,
@@ -263,7 +291,11 @@ function itensDoAcervo(a: AcervoDoFaro): Item[] {
       titulo: k.titulo.trim(),
       texto: [k.tags.join(" "), k.conteudo].join("\n"),
       data: k.createdAt,
-      completo: () => arquivoDoConhecimento(conhecimentoParaExportar(k)).conteudo,
+      completo: () =>
+        (superado
+          ? `> VERSÃO ANTIGA (superada em ${(k.supersededAt ?? "").slice(0, 10)}${novo ? ` por "${novo.titulo.trim()}", id ${novo.id}` : ""}). Não vale mais; use a versão vigente.\n\n`
+          : "") + arquivoDoConhecimento(conhecimentoParaExportar(k)).conteudo,
+      ...(superado ? { superadoPor: k.supersededBy ?? "", superadoEm: k.supersededAt ?? "" } : {}),
     });
   }
   return itens.sort((x, y) => y.data.localeCompare(x.data));
@@ -278,7 +310,8 @@ function filtraTipo(itens: Item[], tipo: string | undefined): Item[] {
 }
 
 function linhaDoItem(i: Item): string {
-  return `- [${i.rotulo}] ${i.titulo} (id: ${i.id}, ${i.data.slice(0, 10)})`;
+  const superado = i.superadoPor !== undefined ? ` — SUPERADO em ${i.superadoEm?.slice(0, 10) ?? "?"} por ${i.superadoPor || "outra versão"}` : "";
+  return `- [${i.rotulo}] ${i.titulo} (id: ${i.id}, ${i.data.slice(0, 10)})${superado}`;
 }
 
 function trecho(texto: string, termos: string[]): string {
@@ -390,7 +423,9 @@ export function executarFerramenta(
   acervo: AcervoDoFaro,
   agora: Date
 ): { texto: string; erro?: boolean } {
-  const itens = itensDoAcervo(acervo);
+  const todos = itensDoAcervo(acervo);
+  // Só o que vale hoje. As versões superadas só entram com incluir_superados=true (e faro_ler abre qualquer id).
+  const itens = args.incluir_superados === true ? todos : todos.filter((i) => i.superadoPor === undefined);
   const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
   const num = (v: unknown, padrao: number, max: number) =>
     typeof v === "number" && Number.isFinite(v) ? Math.max(1, Math.min(max, Math.round(v))) : padrao;
@@ -416,7 +451,7 @@ export function executarFerramenta(
 
     case "faro_ler": {
       const id = str(args.id);
-      const item = itens.find((i) => i.id === id);
+      const item = todos.find((i) => i.id === id);
       if (!item) return { texto: `Não achei item com id ${id || "(vazio)"}.`, erro: true };
       return { texto: cortar(item.completo()) };
     }

@@ -331,7 +331,13 @@ export interface ConhecimentoParaExportar {
   origem: string | null;
   tags: string[];
   fonte: string;
+  /** Só nas versões antigas: quando foi superada e por qual item (título e id). */
+  superadoEm?: string | null;
+  superadoPor?: { id: string; titulo: string } | null;
 }
+
+/** Subpasta das versões antigas (superadas) de Conhecendo você: fora do índice e das buscas. */
+export const PASTA_DOS_SUPERADOS = "_superados";
 
 /** Um item aprovado de "Conhecendo você" (o que veio da IA ou foi escrito à mão). */
 export function arquivoDoConhecimento(k: ConhecimentoParaExportar): ArquivoDeAprendizado {
@@ -344,15 +350,25 @@ export function arquivoDoConhecimento(k: ConhecimentoParaExportar): ArquivoDeApr
       origem_na_ia: k.origem,
       id: k.id,
       origem: "FARO",
+      ...(k.superadoEm !== undefined
+        ? { status: "superado", superado_em: k.superadoEm?.slice(0, 10), superado_por: k.superadoPor?.id }
+        : {}),
     }),
     `# ${k.titulo.trim()}`,
     "",
     `**${k.rotuloDoTipo}**${k.dataRef ? ` · ${k.dataRef}` : ""}`,
     "",
+    ...(k.superadoEm !== undefined
+      ? [
+          `> Versão antiga, superada${k.superadoEm ? ` em ${k.superadoEm.slice(0, 10)}` : ""}${k.superadoPor ? ` por "${k.superadoPor.titulo.trim()}"` : ""}. Não vale mais; fica aqui só como histórico.`,
+          "",
+        ]
+      : []),
     k.conteudo.trim(),
     "",
   ];
-  return { nome: `${pastaDaArea("conhecendo")}/${nomeDeArquivo(k.titulo)}`, conteudo: partes.join("\n") };
+  const pasta = k.superadoEm !== undefined ? `${pastaDaArea("conhecendo")}/${PASTA_DOS_SUPERADOS}` : pastaDaArea("conhecendo");
+  return { nome: `${pasta}/${nomeDeArquivo(k.titulo)}`, conteudo: partes.join("\n") };
 }
 
 /**
@@ -401,6 +417,8 @@ export interface DadosDoBackup {
   /** Partes (encontros, aulas, módulos) dos estudos; cada estudo com partes vira uma pasta. */
   partesDeEstudo?: ParteParaExportar[];
   conhecendo: ConhecimentoParaExportar[];
+  /** Versões antigas (superadas) de itens de Conhecendo você: vão para a subpasta `_superados/` e ficam fora do índice. */
+  conhecendoSuperados?: ConhecimentoParaExportar[];
   aniversarios?: AniversarioParaExportar[];
   crm?: { clientes: Tables<"clientes_cadastro">[]; links: Tables<"cadastro_links">[] };
   /** Todas as frases e perguntas da Metanoia, de qualquer situação. */
@@ -444,6 +462,8 @@ export function indiceDoBackup(
     linhas.push(`## Conhecendo você (${dados.conhecendo.length})`, "");
     if (!dados.conhecendo.length) linhas.push("_Nada aprovado ainda._", "");
     for (const k of dados.conhecendo) linhas.push(`- ${k.titulo.trim()} — ${k.rotuloDoTipo}`);
+    const antigos = dados.conhecendoSuperados?.length ?? 0;
+    if (antigos) linhas.push("", `_${antigos} ${antigos === 1 ? "versão antiga" : "versões antigas"} em \`${PASTA_DOS_SUPERADOS}/\`: histórico, não vale mais._`);
     linhas.push("");
   }
 
@@ -529,6 +549,7 @@ export function arquivosDoBackup(
   }
   if (areas.includes("conhecendo")) {
     for (const k of dados.conhecendo) arquivos.push(arquivoDoConhecimento(k));
+    for (const k of dados.conhecendoSuperados ?? []) arquivos.push(arquivoDoConhecimento({ ...k, superadoEm: k.superadoEm ?? "" }));
   }
   if (areas.includes("aniversarios")) arquivos.push(...arquivosDosAniversarios(dados.aniversarios ?? [], geradoEm));
   if (areas.includes("crm") && dados.crm) arquivos.push(...arquivosDoCrm(dados.crm, geradoEm));

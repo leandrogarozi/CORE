@@ -107,12 +107,33 @@ function ResumoDoFaro({ aprovados, aprovadosDepoisDoResumo }: { aprovados: numbe
 
 type Aba = "pendente" | "aprovado" | "descartado";
 
+function versoesAnteriores(todos: KnowledgeItem[], id: string): KnowledgeItem[] {
+  const achadas: KnowledgeItem[] = [];
+  const vistos = new Set([id]);
+  let fila = [id];
+  while (fila.length) {
+    const filhos = todos.filter((k) => k.status === "superado" && k.supersededBy && fila.includes(k.supersededBy) && !vistos.has(k.id));
+    filhos.forEach((k) => vistos.add(k.id));
+    achadas.push(...filhos);
+    fila = filhos.map((k) => k.id);
+  }
+  return achadas.sort((a, b) => (b.supersededAt ?? "").localeCompare(a.supersededAt ?? ""));
+}
+
+const dataCurta = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString("pt-BR") : "");
+
 function ItemCard({ item }: { item: KnowledgeItem }) {
   const { board, askConfirm } = useBoardCtx();
   const [aberto, setAberto] = useState(false);
   const [titulo, setTitulo] = useState(item.titulo);
   const [conteudo, setConteudo] = useState(item.conteudo);
   const mudou = titulo.trim() !== item.titulo || conteudo !== item.conteudo;
+  const [verVersoes, setVerVersoes] = useState(false);
+  const todos = board.state.knowledgeItems;
+  // Proposta de versão nova: mostra o item que ela vai substituir (ANTES) ao lado do que chega (DEPOIS).
+  const antes = item.status !== "aprovado" && item.replacesId ? todos.find((k) => k.id === item.replacesId) : undefined;
+  // Histórico: tudo que já foi superado por este item, direta ou indiretamente (mais recente primeiro).
+  const anteriores = item.status === "aprovado" ? versoesAnteriores(todos, item.id) : [];
 
   function salvar() {
     board.updateKnowledge(item.id, { titulo: titulo.trim() || item.titulo, conteudo });
@@ -151,8 +172,8 @@ function ItemCard({ item }: { item: KnowledgeItem }) {
         {item.status === "aprovado" && <span className="know-pill-aprovado">aprovado</span>}
         <span className="know-acoes">
           {item.status !== "aprovado" && (
-            <button type="button" className="btn btn-ghost know-aprovar" onClick={() => board.setKnowledgeStatus([item.id], "aprovado")}>
-              <CheckIcon /> Aprovar
+            <button type="button" className="btn btn-ghost know-aprovar" onClick={() => board.approveKnowledge([item.id])}>
+              <CheckIcon /> {antes ? "Aprovar e substituir" : "Aprovar"}
             </button>
           )}
           {item.status === "pendente" && (
@@ -175,7 +196,51 @@ function ItemCard({ item }: { item: KnowledgeItem }) {
           </button>
         </span>
       </div>
-      {!aberto && item.conteudo && <div className="know-preview">{item.conteudo.slice(0, 220)}</div>}
+      {antes && (
+        <div className="know-troca">
+          <div className="know-troca-lado">
+            <div className="know-troca-rotulo">Antes (vale hoje)</div>
+            <div className="know-troca-titulo">{antes.titulo}</div>
+            <div className="know-troca-texto">{antes.conteudo.slice(0, 600)}</div>
+          </div>
+          <div className="know-troca-lado know-troca-novo">
+            <div className="know-troca-rotulo">Depois (proposta)</div>
+            <div className="know-troca-titulo">{item.titulo}</div>
+            <div className="know-troca-texto">{item.conteudo.slice(0, 600)}</div>
+          </div>
+          <p className="know-troca-nota">Ao aprovar, a versão de antes não é apagada: vira “superada” e fica no histórico deste item.</p>
+        </div>
+      )}
+      {item.status === "pendente" && item.replacesId && !antes && (
+        <p className="know-troca-nota">Esta proposta substituiria um item que não está mais aprovado; aprovar apenas a adiciona.</p>
+      )}
+      {!aberto && !antes && item.conteudo && <div className="know-preview">{item.conteudo.slice(0, 220)}</div>}
+      {anteriores.length > 0 && (
+        <div className="know-versoes">
+          <button type="button" className="link-acao" aria-expanded={verVersoes} onClick={() => setVerVersoes((v) => !v)}>
+            {verVersoes ? "Esconder" : "Ver"} versões anteriores ({anteriores.length})
+          </button>
+          {verVersoes &&
+            anteriores.map((v) => (
+              <div key={v.id} className="know-versao">
+                <div className="know-versao-head">
+                  <span className="know-troca-titulo">{v.titulo}</span>
+                  <span className="know-meta">
+                    {v.dataRef ? `${v.dataRef} · ` : ""}superada em {dataCurta(v.supersededAt)}
+                  </span>
+                  <button
+                    type="button"
+                    className="link-acao"
+                    onClick={() => askConfirm(`Voltar a valer a versão "${v.titulo}"? A atual passa a ser a superada.`, () => board.restoreKnowledgeVersion(v.id))}
+                  >
+                    Voltar a valer
+                  </button>
+                </div>
+                <div className="know-troca-texto">{v.conteudo.slice(0, 600)}</div>
+              </div>
+            ))}
+        </div>
+      )}
       {aberto && (
         <div className="know-body">
           <input type="text" className="know-edit-titulo" value={titulo} onChange={(e) => setTitulo(e.target.value)} aria-label="Título" />
@@ -410,7 +475,7 @@ export function ConhecendoView({ onBack }: { onBack: () => void }) {
             ))}
           </select>
           {aba === "pendente" && daAba.length > 1 && (
-            <button type="button" className="btn btn-ghost" onClick={() => board.setKnowledgeStatus(daAba.map((k) => k.id), "aprovado")}>
+            <button type="button" className="btn btn-ghost" onClick={() => board.approveKnowledge(daAba.map((k) => k.id))}>
               <CheckIcon /> Aprovar os {daAba.length}
             </button>
           )}

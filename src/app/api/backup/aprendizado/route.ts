@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
       .from("knowledge_items")
       .select("*")
       .eq("user_id", usuario)
-      .eq("status", "aprovado")
+      .in("status", ["aprovado", "superado"])
       .is("deleted_at", null),
     supabase.from("birthdays").select("*").eq("user_id", usuario).is("deleted_at", null),
     supabase.from("clientes_cadastro").select("*").eq("user_id", usuario).order("criado_em"),
@@ -45,13 +45,23 @@ export async function GET(req: NextRequest) {
 
   const areas = (config.data?.backup_areas ?? AREAS_PADRAO).filter(ehAreaDeBackup);
   const todas = (sinapses.data ?? []).map(rowToSynapse);
+  const itensDeConhecimento = (conhecimento.data ?? []).map(rowToKnowledgeItem);
+  const vigentes = itensDeConhecimento.filter((k) => k.status === "aprovado");
+  // Versão antiga vai para `_superados/`, com a data e o item que a substituiu.
+  const superados = itensDeConhecimento
+    .filter((k) => k.status === "superado")
+    .map((k) => {
+      const novo = itensDeConhecimento.find((x) => x.id === k.supersededBy);
+      return { ...conhecimentoParaExportar(k), superadoEm: k.supersededAt ?? "", superadoPor: novo ? { id: novo.id, titulo: novo.titulo } : null };
+    });
   const arquivos = arquivosDoBackup(
     {
       livros: (livros.data ?? []).map(rowToBook),
       sinapses: todas.filter((s) => s.kind !== "ideia"),
       ideias: todas.filter((s) => s.kind === "ideia"),
       partesDeEstudo: (partesRes.data ?? []).map(rowToSynapsePart),
-      conhecendo: (conhecimento.data ?? []).map(rowToKnowledgeItem).map(conhecimentoParaExportar),
+      conhecendo: vigentes.map(conhecimentoParaExportar),
+      conhecendoSuperados: superados,
       aniversarios: (aniversarios.data ?? []).map(rowToBirthday),
       crm: { clientes: clientesCrm.data ?? [], links: linksCrm.data ?? [] },
       metanoia: (metanoia.data ?? []).map(rowToMetanoiaFrase),

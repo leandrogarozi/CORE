@@ -1259,6 +1259,9 @@ export type Database = {
           lote: string | null
           origem: string | null
           status: string
+          substitui_id: string | null
+          superado_em: string | null
+          superado_por: string | null
           tags: string[]
           tipo: string
           titulo: string
@@ -1275,6 +1278,9 @@ export type Database = {
           lote?: string | null
           origem?: string | null
           status?: string
+          substitui_id?: string | null
+          superado_em?: string | null
+          superado_por?: string | null
           tags?: string[]
           tipo?: string
           titulo: string
@@ -1291,6 +1297,9 @@ export type Database = {
           lote?: string | null
           origem?: string | null
           status?: string
+          substitui_id?: string | null
+          superado_em?: string | null
+          superado_por?: string | null
           tags?: string[]
           tipo?: string
           titulo?: string

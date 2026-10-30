@@ -681,9 +681,13 @@ export function rowToKnowledgeItem(row: Tables<"knowledge_items">): KnowledgeIte
     dataRef: row.data_ref,
     origem: row.origem,
     tags: row.tags ?? [],
-    status: row.status === "aprovado" ? "aprovado" : row.status === "descartado" ? "descartado" : "pendente",
+    status:
+      row.status === "aprovado" ? "aprovado" : row.status === "descartado" ? "descartado" : row.status === "superado" ? "superado" : "pendente",
     fonte: row.fonte === "manual" ? "manual" : row.fonte === "conector" ? "conector" : "importacao",
     lote: row.lote,
+    replacesId: row.substitui_id,
+    supersededBy: row.superado_por,
+    supersededAt: row.superado_em,
     createdAt: row.created_at,
     updatedAt: row.updated_at ?? row.created_at,
   };
