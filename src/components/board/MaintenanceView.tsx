@@ -6,7 +6,7 @@ import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
 import { MicButton } from "./MicButton";
 import { ToggleSwitch } from "./ToggleSwitch";
-import { BellIcon, CarIcon, CheckIcon, ChecklistIcon, ChevronIcon, EditIcon, HeartIcon, HomeIcon, SettingsIcon, TrashIcon, WarningIcon, WhatsAppIcon } from "./icons";
+import { BellIcon, CarIcon, CheckIcon, ChevronIcon, EditIcon, HeartIcon, HomeIcon, SettingsIcon, TrashIcon, WarningIcon, WhatsAppIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { ciclosDoItem } from "@/lib/board/maintenance";
 import {
@@ -156,17 +156,12 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
   })();
 
   return (
-    <div
-      className={"maint-item com-filete maint-" + st.state}
-      style={{ "--k": item.waiting || st.state === "sem_base" ? "#8A8A94" : st.state === "vencido" ? "#E5484D" : st.state === "proximo" ? "#C28A1E" : "#2F9E44" } as React.CSSProperties}
-    >
+    <div className={"maint-item maint-" + st.state}>
       <div className="maint-item-head">
         <button type="button" className="synapse-card-toggle" onClick={() => setAberto((v) => !v)}>
           <ChevronIcon />
         </button>
-        <span className="tile-tipo" aria-hidden="true">
-          {asset.kind === "veiculo" ? <CarIcon /> : asset.kind === "casa" ? <HomeIcon /> : <ChecklistIcon />}
-        </span>
+
         <input
           type="text"
           className="maint-item-name"
@@ -837,7 +832,10 @@ function AssetCard({ asset }: { asset: MaintenanceAsset }) {
   }
 
   return (
-    <div className={"maint-asset" + (aberto ? " open" : "")}>
+    <div
+      className={"maint-asset com-filete" + (aberto ? " open" : "")}
+      style={{ "--k": vencidos > 0 ? "#E5484D" : proximos > 0 ? "#C28A1E" : itens.length > 0 ? "#2F9E44" : "#8A8A94" } as React.CSSProperties}
+    >
       <div className="maint-asset-head">
         <button
           type="button"
@@ -852,7 +850,7 @@ function AssetCard({ asset }: { asset: MaintenanceAsset }) {
             celular. */}
         <button
           type="button"
-          className="maint-asset-icon"
+          className="maint-asset-icon tile-tipo"
           aria-label={aberto ? "Recolher" : "Abrir"}
           onClick={() => setAberto((v) => !v)}
         >
@@ -860,6 +858,7 @@ function AssetCard({ asset }: { asset: MaintenanceAsset }) {
         </button>
         {/* Recolhido o nome é botão (clicar abre); aberto vira campo, pra
             continuar dando pra renomear. */}
+        <span className="maint-asset-nomecol">
         {aberto ? (
           <input
             type="text"
@@ -879,17 +878,22 @@ function AssetCard({ asset }: { asset: MaintenanceAsset }) {
             {asset.name}
           </button>
         )}
+        {!aberto && (
+          <span className="maint-asset-sub">
+            {itens.length === 0 ? "nenhum item ainda" : `${itens.length} ${itens.length === 1 ? "item" : "itens"}`}
+            {asset.tracksOdometer && atual ? ` · ${fmtKm(atual.reading)} ${asset.odometerUnit}` : ""}
+          </span>
+        )}
+        </span>
         {vencidos > 0 && <span className="maint-flag vencido">{vencidos} vencido(s)</span>}
         {!aberto && vencidos === 0 && proximos > 0 && (
           <span className="maint-flag proximo">{proximos} chegando</span>
         )}
-        {!aberto && vencidos === 0 && proximos === 0 && itens.length > 0 && (
-          <span className="maint-asset-count">{itens.length} em dia</span>
-        )}
+        {!aberto && vencidos === 0 && proximos === 0 && itens.length > 0 && <span className="maint-flag em-dia">em dia</span>}
         {!aberto && precisaConferir && asset.tracksOdometer && (
           <span className="maint-flag proximo">conferir {asset.odometerUnit}</span>
         )}
-        {asset.tracksOdometer && atual && (
+        {aberto && asset.tracksOdometer && atual && (
           <span className="maint-odometer mono">
             {fmtKm(atual.reading)} {asset.odometerUnit}
             {ritmo ? ` · ~${Math.round(ritmo)} ${asset.odometerUnit}/dia` : ""}

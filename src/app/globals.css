@@ -1587,6 +1587,16 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
   background:none; border:none; padding:2px; cursor:pointer;
 }
 .maint-asset-icon:hover{ color:var(--accent); }
+/* Lista inicial da Manutenção: linhas maiores, com ícone em quadradinho e filete pela situação (aberto, volta ao desenho de antes). */
+.maint-asset:not(.open){ padding:14px 16px; }
+.maint-asset:not(.open) .maint-asset-head{ gap:12px; }
+.maint-asset-icon.tile-tipo{ width:36px; height:36px; padding:0; color:var(--k); cursor:pointer; }
+.maint-asset-icon.tile-tipo:hover{ color:var(--k); filter:brightness(.92); }
+.maint-asset.open .maint-asset-icon.tile-tipo{ width:28px; height:28px; }
+.maint-asset-nomecol{ flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; }
+.maint-asset-nomecol .maint-asset-name{ flex:none; }
+.maint-asset-sub{ font-size:12px; color:var(--text-muted); padding:0 5px; }
+.maint-flag.em-dia{ color:#2F7D3E; background:color-mix(in srgb, #2F9E44 14%, var(--surface)); }
 .maint-asset-count{ flex:none; font-size:10px; color:var(--text-faint); white-space:nowrap; }
 .maint-asset-name{
   flex:1; min-width:0; font-size:13.5px; font-weight:600; color:var(--text);
