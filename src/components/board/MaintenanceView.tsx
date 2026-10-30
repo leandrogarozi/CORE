@@ -6,7 +6,7 @@ import { useBoardCtx } from "./board-context";
 import { CommentButton } from "./CommentButton";
 import { MicButton } from "./MicButton";
 import { ToggleSwitch } from "./ToggleSwitch";
-import { BellIcon, CarIcon, CheckIcon, ChevronIcon, EditIcon, HeartIcon, HomeIcon, SettingsIcon, TrashIcon, WarningIcon, WhatsAppIcon } from "./icons";
+import { BellIcon, CarIcon, CheckIcon, ChecklistIcon, ChevronIcon, EditIcon, HeartIcon, HomeIcon, SettingsIcon, TrashIcon, WarningIcon, WhatsAppIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { ciclosDoItem } from "@/lib/board/maintenance";
 import {
@@ -156,11 +156,17 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
   })();
 
   return (
-    <div className={"maint-item maint-" + st.state}>
+    <div
+      className={"maint-item com-filete maint-" + st.state}
+      style={{ "--k": item.waiting || st.state === "sem_base" ? "#8A8A94" : st.state === "vencido" ? "#E5484D" : st.state === "proximo" ? "#C28A1E" : "#2F9E44" } as React.CSSProperties}
+    >
       <div className="maint-item-head">
         <button type="button" className="synapse-card-toggle" onClick={() => setAberto((v) => !v)}>
           <ChevronIcon />
         </button>
+        <span className="tile-tipo" aria-hidden="true">
+          {asset.kind === "veiculo" ? <CarIcon /> : asset.kind === "casa" ? <HomeIcon /> : <ChecklistIcon />}
+        </span>
         <input
           type="text"
           className="maint-item-name"

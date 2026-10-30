@@ -7,7 +7,7 @@ import { TaskEditRow } from "./TaskRow";
 import { StatusPicker } from "./StatusPicker";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { TimePicker } from "./TimePicker";
-import { EditIcon, SearchIcon, TrashIcon, UserIcon, UsersGroupIcon, WhatsAppIcon } from "./icons";
+import { CalendarCheckIcon, EditIcon, SearchIcon, TrashIcon, UserIcon, UsersGroupIcon, WhatsAppIcon } from "./icons";
 import { countOpenChecklistItems } from "@/lib/rich-text";
 import { agruparReunioes, dataDaReuniao } from "@/lib/board/reunioes";
 import { fmtDayMonth, todayISO } from "@/lib/date-utils";
@@ -127,8 +127,14 @@ export function MeetingsView({ onBack }: { onBack: () => void }) {
     if (editandoId === task.id) return <TaskEditRow key={task.id} task={task} onDone={() => setEditandoId(null)} />;
     const pautas = countOpenChecklistItems(task.note);
     const quando = task.date ? `${fmtDayMonth(task.date)}${task.time ? ` · ${task.time}` : ""}` : "sem data";
+    // A cor do filete diz o estado: hoje (roxo), agendada (azul), concluída (verde); o resto, cinza.
+    const st = board.state.taskStatuses.find((s) => s.id === task.statusId);
+    const cor = st?.isDone ? "#2F9E44" : task.date === hoje ? "var(--accent)" : st?.isScheduled ? "#3B82C4" : "#8A8A94";
     return (
-      <div className="meeting-card-row" key={task.id}>
+      <div className="meeting-card-row com-filete" style={{ "--k": cor } as React.CSSProperties} key={task.id}>
+        <span className="tile-tipo" aria-hidden="true">
+          <CalendarCheckIcon />
+        </span>
         <StatusPicker
           statuses={board.state.taskStatuses}
           currentId={task.statusId}

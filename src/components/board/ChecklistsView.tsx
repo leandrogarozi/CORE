@@ -19,6 +19,7 @@ import {
   EditIcon,
   MoneyIcon,
   SendIcon,
+  SuitcaseIcon,
   TrashIcon,
 } from "./icons";
 import { fmtAmount, fmtBRL, parseAmountToCents } from "@/lib/money";
@@ -444,7 +445,8 @@ function ChecklistRow({
 
   return (
     <div
-      className={"checklist-card" + (arrastando ? " dragging" : "")}
+      className={"checklist-card com-filete" + (arrastando ? " dragging" : "")}
+      style={{ "--k": total > 0 && done === total ? "#2F9E44" : done > 0 ? "#C28A1E" : "#8A8A94" } as React.CSSProperties}
       onDragOver={(e) => {
         e.preventDefault();
         onDragOverCard(checklist.id);
@@ -478,6 +480,9 @@ function ChecklistRow({
       >
         <span className={"chevron" + (open ? "" : " collapsed")}>
           <ChevronIcon />
+        </span>
+        <span className="tile-tipo" aria-hidden="true">
+          {/viag|mala/i.test(checklist.type) ? <SuitcaseIcon /> : <ChecklistIcon />}
         </span>
         <input
           type="text"

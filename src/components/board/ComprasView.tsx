@@ -377,7 +377,7 @@ function Listas({ aba, aberta, onAbrir }: { aba: Aba; aberta: string | null; onA
           const pend = itens.filter((i) => aba === "desejo" || compraPendente(i, hoje)).length;
           const aberta1 = aberta === l.id;
           return (
-            <div key={l.id} className={"shop-lista-cartao" + (aberta1 ? " aberta" : "")}>
+            <div key={l.id} className={"shop-lista-cartao com-filete" + (aberta1 ? " aberta" : "")} style={{ "--k": aba === "compra" ? "#3E8E8A" : "#B65C8B" } as React.CSSProperties}>
               <button type="button" className="shop-lista-card" aria-expanded={aberta1} onClick={() => onAbrir(aberta1 ? null : l.id)}>
                 <span className={"shop-lista-ico " + (aba === "compra" ? "ico-compra" : "ico-desejo")} aria-hidden="true">
                   {aba === "compra" ? <CartIcon /> : <HeartIcon filled />}

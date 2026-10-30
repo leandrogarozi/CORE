@@ -42,6 +42,13 @@ function projectProgress(
   };
 }
 
+// Cor do filete pelo andamento: concluído (verde), em andamento (âmbar), sem começar (cinza).
+function corDoProjeto(project: Project, progress: { done: number; doing: number; total: number }): string {
+  if (project.status === "done" || (progress.total > 0 && progress.done === progress.total)) return "#2F9E44";
+  if (progress.done > 0 || progress.doing > 0) return "#C28A1E";
+  return "#8A8A94";
+}
+
 function ProjectListRow({
   project,
   progress,
@@ -52,9 +59,14 @@ function ProjectListRow({
   onOpen: () => void;
 }) {
   return (
-    <button type="button" className={"project-row" + (project.status !== "active" ? " done" : "")} onClick={onOpen}>
+    <button
+      type="button"
+      className={"project-row com-filete" + (project.status !== "active" ? " done" : "")}
+      style={{ "--k": corDoProjeto(project, progress) } as React.CSSProperties}
+      onClick={onOpen}
+    >
       <span className="project-row-topo">
-        <span className="project-row-pasta" aria-hidden="true">
+        <span className="tile-tipo" aria-hidden="true">
           <FolderIcon />
         </span>
         <span className="project-row-nome-col">

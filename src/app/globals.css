@@ -2546,6 +2546,15 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .k-ideia{ --k:#C28A1E; }
 .k-estudo{ --k:#3B82C4; }
 .synapse-card::before{ content:""; position:absolute; left:0; top:8px; bottom:8px; width:3px; border-radius:0 3px 3px 0; background:var(--k, transparent); }
+.k-livro{ --k:#3E8E8A; }
+.k-filme{ --k:#B65C8B; }
+.k-serie{ --k:#D26A4A; }
+/* Filete de cor na esquerda de uma linha ou card (cor vem de --k). */
+.com-filete{ position:relative; }
+.com-filete::before{ content:""; position:absolute; left:0; top:8px; bottom:8px; width:3px; border-radius:0 3px 3px 0; background:var(--k, transparent); }
+.chip-tipo{ display:inline-flex; color:var(--k); }
+.chip-tipo svg{ width:13px; height:13px; }
+.book-kind-abas .note-chip{ display:inline-flex; align-items:center; gap:6px; }
 .tile-tipo{ flex:none; width:32px; height:32px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; background:color-mix(in srgb, var(--k) 14%, var(--surface)); color:var(--k); }
 .tile-tipo svg{ width:16px; height:16px; }
 .synapse-card .synapse-tag-badge{ background:color-mix(in srgb, var(--k) 14%, transparent); color:var(--k); }

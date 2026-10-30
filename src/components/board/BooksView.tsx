@@ -14,9 +14,11 @@ import {
   CommentIcon,
   DownloadIcon,
   DragGripIcon,
+  FilmIcon,
   FlagIcon,
   SearchIcon,
   TrashIcon,
+  TvIcon,
   WeekIcon,
 } from "./icons";
 import { RichTextEditor } from "./RichTextEditor";
@@ -28,6 +30,9 @@ import { listaReordenada } from "@/lib/board/reordenar";
 import { arquivoDoLivro } from "@/lib/learning-export";
 import { baixarTexto, soONome } from "@/lib/baixar";
 import { TutorialLink } from "./TutorialLink";
+import { LIMITE_DA_SINAPSE } from "./SynapsesView";
+import { escaparHtml } from "./PerguntasDaIA";
+import { todayISO } from "@/lib/date-utils";
 import {
   BOOK_KIND_INFO,
   BOOK_KIND_ORDER,
@@ -37,6 +42,13 @@ import {
   type BookKind,
   type BookStatus,
 } from "@/lib/types";
+
+// Ícone de cada tipo (a cor vem de .k-livro, .k-filme e .k-serie).
+const BOOK_KIND_ICON: Record<BookKind, () => React.JSX.Element> = {
+  livro: BookIcon,
+  filme: FilmIcon,
+  serie: TvIcon,
+};
 
 const BOOK_STATUS_ICON: Record<BookStatus, () => React.JSX.Element> = {
   para_ler: BookmarkIcon,
@@ -332,7 +344,7 @@ function BookEnviarAnotacoes({ book }: { book: Book }) {
       <span className="book-enviado" title="As anotações já foram levadas para lá">
         {enviados.map((x) => (
           <span key={x.id} className="book-enviado-tag">
-            ✓ Enviado para {x.kind === "ideia" ? "Estudos" : "Nova Sinapse"} · {fmtDayMonth(isoFromDate(new Date(x.createdAt)))}
+            ✓ Levada para {x.kind === "ideia" ? "Estudo" : "Sinapse"} · {fmtDayMonth(isoFromDate(new Date(x.createdAt)))}
           </span>
         ))}
       </span>
@@ -349,6 +361,9 @@ function BookEnviarAnotacoes({ book }: { book: Book }) {
     setPerguntas("");
   }
 
+  const notas = stripHtml(book.insights ?? "");
+  const cabeNaSinapse = notas.length <= LIMITE_DA_SINAPSE;
+
   async function enviar(para: "estudo" | "sinapse") {
     if (jaEnviado(para)) {
       fechar();
@@ -360,9 +375,16 @@ function BookEnviarAnotacoes({ book }: { book: Book }) {
     const id = await board.addSynapse(
       book.title,
       para === "estudo"
-        ? { kind: "ideia", tag: "estudo", learning: book.insights ?? "", source: fonte }
+        ? {
+            kind: "ideia",
+            tag: "estudo",
+            learning: `<p>Anotações ${info.um === "livro" ? "do livro" : info.um === "filme" ? "do filme" : "da série"} “${escaparHtml(book.title)}”. O texto está na parte <strong>Conteúdo original</strong>; divida em partes quando quiser.</p>`,
+            source: fonte,
+          }
         : { kind: "sinapse", learning: book.insights ?? "", questions: perguntas, source: fonte }
     );
+    // O estudo guarda o texto inteiro numa primeira parte, para nada ficar solto e a IA poder criar perguntas dali.
+    if (id && para === "estudo") board.addSynapsePart(id, { title: "Conteúdo original", kind: "outro", date: todayISO(), body: book.insights ?? "" });
     setEnviando(false);
     fechar();
     if (!id) {
@@ -376,31 +398,42 @@ function BookEnviarAnotacoes({ book }: { book: Book }) {
       <button
         type="button"
         className="btn btn-ghost book-enviar-btn"
-        title={`Levar as anotações deste ${info.um} para Estudos ou Nova Sinapse`}
+        title={`Levar as anotações ${info.um === "livro" ? "deste livro" : info.um === "filme" ? "deste filme" : "desta série"} para uma Sinapse ou um Estudo`}
         onClick={() => setEtapa("escolher")}
       >
-        Enviar anotações
+        Levar para…
       </button>
       {aviso && <span className="book-enviar-aviso">{aviso}</span>}
       {etapa !== "fechado" &&
         createPortal(
           <>
             <div className="modal-backdrop" onClick={fechar} />
-            <div className="modal-panel book-sheet" role="dialog" aria-label={`Enviar anotações de ${book.title}`}>
+            <div className="modal-panel book-sheet" role="dialog" aria-label={`Levar as anotações de ${book.title}`}>
               <div className="modal-head">
-                <span className="modal-title">Enviar anotações: {book.title}</span>
+                <span className="modal-title">Levar as anotações: {book.title}</span>
               </div>
               {etapa === "escolher" ? (
                 <>
-                  <div className="hint-text">Para onde você quer levar as anotações?</div>
+                  <div className="hint-text">
+                    Para onde você quer levar as anotações? ({notas.length.toLocaleString("pt-BR")} caracteres)
+                  </div>
                   <div className="book-enviar-opcoes">
-                    <button type="button" className="book-enviar-opcao" disabled={enviando} onClick={() => void enviar("estudo")}>
-                      <strong>Para Estudos</strong>
-                      <span>Entra em Ideias e Estudos, com a tag Estudo.</span>
+                    <button
+                      type="button"
+                      className="book-enviar-opcao"
+                      disabled={!cabeNaSinapse}
+                      onClick={() => setEtapa("perguntas")}
+                    >
+                      <strong>Sinapse</strong>
+                      <span>
+                        {cabeNaSinapse
+                          ? `Um aprendizado curto, com a pergunta que te reconecta. Cabe: ${notas.length.toLocaleString("pt-BR")} de ${LIMITE_DA_SINAPSE.toLocaleString("pt-BR")}.`
+                          : `Grande demais: ${notas.length.toLocaleString("pt-BR")} de ${LIMITE_DA_SINAPSE.toLocaleString("pt-BR")}. Sinapse é uma ideia curta.`}
+                      </span>
                     </button>
-                    <button type="button" className="book-enviar-opcao" onClick={() => setEtapa("perguntas")}>
-                      <strong>Para Nova Sinapse</strong>
-                      <span>Vira um aprendizado, com as perguntas que reconectam você a ele.</span>
+                    <button type="button" className="book-enviar-opcao" disabled={enviando} onClick={() => void enviar("estudo")}>
+                      <strong>Estudo{!cabeNaSinapse ? " (recomendado)" : ""}</strong>
+                      <span>Para um conteúdo com várias partes. A anotação vira a parte “Conteúdo original” e você divide depois. Nada se perde.</span>
                     </button>
                   </div>
                   <div className="edit-actions" style={{ marginTop: 10 }}>
@@ -421,7 +454,7 @@ function BookEnviarAnotacoes({ book }: { book: Book }) {
                       Voltar
                     </button>
                     <button type="button" className="btn btn-accent" disabled={enviando} onClick={() => void enviar("sinapse")}>
-                      Enviar para Nova Sinapse
+                      Levar para Sinapse
                     </button>
                   </div>
                 </>
@@ -476,7 +509,7 @@ function BookRow({
   return (
     <div
       data-id={book.id}
-      className={"book-row" + (dragging ? " dragging" : "") + (flash ? " flash" : "")}
+      className={"book-row com-filete k-" + book.kind + (dragging ? " dragging" : "") + (flash ? " flash" : "")}
       draggable={draggable}
       onDragStart={() => onDragStart?.(book.id)}
       onDragOver={(e) => {
@@ -496,6 +529,12 @@ function BookRow({
           <span className="book-row-order-num mono">{position}</span>
         </span>
       )}
+      <span className="tile-tipo" aria-hidden="true">
+        {(() => {
+          const Icone = BOOK_KIND_ICON[book.kind];
+          return <Icone />;
+        })()}
+      </span>
       {/* Mesmo lugar e tamanho da bolinha de status das tarefas: logo depois da
           ordem, antes do título. Mudar de tela não muda o jeito de agir. */}
       <BookStatusPicker book={book} />
@@ -510,7 +549,7 @@ function BookRow({
       {book.status === "lendo" && <BookStartDateButton book={book} />}
       <BookPriorityFlag book={book} />
       <BookInsightsButton book={book} />
-      {book.status === "finalizado" && <BookEnviarAnotacoes book={book} />}
+      <BookEnviarAnotacoes book={book} />
       <AttachmentsButton entityType="book" entityId={book.id} ariaLabel={`Anexos do ${BOOK_KIND_INFO[book.kind].um}`} />
       {(() => {
         const arquivo = arquivoDoLivro(book);
@@ -575,11 +614,22 @@ export function BooksView({ onBack }: { onBack: () => void }) {
         <button className="strip-nav" type="button" aria-label="Voltar" onClick={onBack}>
           ‹
         </button>
-        <span className="dash-range-label">Livros / Filmes e séries</span>
+        <span className="dash-range-label">Livros, filmes e séries</span>
         <TutorialLink secao="livros" />
       </div>
 
       <div className="narrow-list">
+        <div className="synapse-intro">
+          <div className="synapse-intro-title">
+            <BookIcon /> Sua estante
+          </div>
+          <p>
+            É uma <strong>lista</strong> do que você leu, está lendo ou quer ver: serve para achar rápido e não perder a fila.
+            O que a obra te <strong>ensinou</strong> (ou, numa série, o que ela conta) vai nas <strong>anotações</strong>, para
+            você rever no futuro. Se a anotação merece virar aprendizado, use <strong>Levar para…</strong>: ela vai para uma
+            Sinapse (ideia curta) ou para um Estudo (conteúdo maior).
+          </p>
+        </div>
         <div className="note-options-chips book-kind-abas" role="tablist" aria-label="Escolha a lista">
           {BOOK_KIND_ORDER.map((k) => (
             <button
@@ -594,6 +644,14 @@ export function BooksView({ onBack }: { onBack: () => void }) {
                 setNewTitle("");
               }}
             >
+              {(() => {
+                const Icone = BOOK_KIND_ICON[k];
+                return (
+                  <span className={"chip-tipo k-" + k}>
+                    <Icone />
+                  </span>
+                );
+              })()}
               {BOOK_KIND_INFO[k].aba}
               <span className="bday-filtro-n">{board.state.books.filter((b) => b.kind === k).length}</span>
             </button>
