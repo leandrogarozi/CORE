@@ -629,6 +629,7 @@ function BoardShell() {
         onHoje={goToday}
         onSelect={selectView}
         onMenu={() => setSidebarOpen(true)}
+        onFalarComFaro={() => window.dispatchEvent(new Event("faro:falar"))}
         onNovaTarefa={() => {
           goToday();
           // Leva o cursor para o campo de nova tarefa assim que a tela do dia aparecer.

@@ -97,6 +97,23 @@ export function FaroMascot() {
     fim.current?.scrollIntoView({ block: "end" });
   }, [falas, open]);
 
+  // O botão FARO do menu inferior do celular abre a janela e já começa a ouvir (se o aparelho tem ditado).
+  const ditadoRef = useRef(ditado);
+  useEffect(() => {
+    ditadoRef.current = ditado;
+  });
+  useEffect(() => {
+    function abrirDoMenu() {
+      setOpen(true);
+      setTimeout(() => {
+        const d = ditadoRef.current;
+        if (d.supported && !d.listening) d.toggle();
+      }, 250);
+    }
+    window.addEventListener("faro:falar", abrirDoMenu);
+    return () => window.removeEventListener("faro:falar", abrirDoMenu);
+  }, []);
+
   useEffect(() => {
     vistoRef.current = { state: board.state, conversando: falas.length > 0 || pensando };
   }, [board.state, falas.length, pensando]);

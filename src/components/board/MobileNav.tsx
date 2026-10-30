@@ -1,7 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { useState, type ReactNode } from "react";
-import { BoltIcon, BookOpenIcon, HomeIcon, MenuIcon, WeekIcon } from "./icons";
+import { BoltIcon, BookOpenIcon, HomeIcon, MenuIcon } from "./icons";
 import type { ViewMode } from "./Sidebar";
 
 /**
@@ -25,12 +26,14 @@ export function MobileNav({
   onSelect,
   onMenu,
   onNovaTarefa,
+  onFalarComFaro,
 }: {
   viewMode: ViewMode;
   onHoje: () => void;
   onSelect: (modo: ViewMode) => void;
   onMenu: () => void;
   onNovaTarefa: () => void;
+  onFalarComFaro: () => void;
 }) {
   const [folha, setFolha] = useState<"criar" | "aprender" | null>(null);
   const hojeAtivo = viewMode === "day" || viewMode === "dashboard";
@@ -81,8 +84,14 @@ export function MobileNav({
       )}
       <nav className="mnav" aria-label="Atalhos">
         {item("Hoje", <HomeIcon />, hojeAtivo && !folha, () => ir(onHoje))}
-        {item("Semana", <WeekIcon />, viewMode === "week" && !folha, () => ir(() => onSelect("week")))}
-        {item("Criar", <Mais />, folha === "criar", () => setFolha(folha === "criar" ? null : "criar"), " mnav-criar")}
+        {item("Criar", <Mais />, folha === "criar", () => setFolha(folha === "criar" ? null : "criar"))}
+        {/* O FARO no meio: o assistente, onde se fala ou escreve para pedir tarefa, lembrete ou tirar dúvida. */}
+        <button type="button" className="mnav-faro" aria-label="Falar com o FARO" onClick={() => ir(onFalarComFaro)}>
+          <span className="mnav-faro-bola">
+            <Image src="/faro-mascote.svg" alt="" width={44} height={40} className="mnav-faro-img" />
+          </span>
+          <span className="mnav-rotulo">FARO</span>
+        </button>
         {item("Aprender", aprenderAtivo ? <BoltIcon filled /> : <BookOpenIcon />, aprenderAtivo || folha === "aprender", () => setFolha(folha === "aprender" ? null : "aprender"))}
         {item("Menu", <MenuIcon />, false, () => ir(onMenu))}
       </nav>
