@@ -237,7 +237,7 @@ export function DietView({ onBack }: { onBack: () => void }) {
                   }}
                   onKeyDown={(e) => e.key === "Enter" && confirmPhone()}
                 />
-                <button type="button" className="btn btn-ghost" onClick={confirmPhone}>
+                <button type="button" className="btn btn-zap" onClick={confirmPhone}>
                   Confirmar
                 </button>
               </div>

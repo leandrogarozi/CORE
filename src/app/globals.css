@@ -4827,3 +4827,25 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 :root[data-estilo="flutuante"] :is(.hp-bar-fill,.dsh-bar span,.checklist-bar-fill,.wa-cap-fill,.welcome-progresso span.feito,.study-bar-fill){ background:var(--grad-roxo); }
 :root[data-estilo="suave"] :is(.dsh-dia-done,.dsh-legenda-quad.done), :root[data-estilo="flutuante"] :is(.dsh-dia-done,.dsh-legenda-quad.done){ background:linear-gradient(180deg,#7C4DF0,#4A47D5); }
 .atualizar-app span{ white-space:nowrap; }
+
+/* Ícones dentro de botões roxos ficam brancos (nada de ícone colorido em cima do degradê). */
+:root[data-estilo="suave"] .book-kind-abas .chip-tipo, :root[data-estilo="flutuante"] .book-kind-abas .chip-tipo{ color:currentColor; }
+:root[data-estilo="suave"] .view-toggle-btn :is(.ico-compra,.ico-desejo,.chip-tipo), :root[data-estilo="flutuante"] .view-toggle-btn :is(.ico-compra,.ico-desejo,.chip-tipo){ color:currentColor; }
+:root[data-estilo="suave"] :is(.view-toggle-btn,.idea-filter .note-chip,.book-kind-abas .note-chip,.aba-plano).active svg,
+:root[data-estilo="flutuante"] :is(.view-toggle-btn,.idea-filter .note-chip,.book-kind-abas .note-chip,.aba-plano).active svg{ color:#fff; }
+
+/* Avisos ligados nas linhas (sininho do app e WhatsApp): gradiente roxo e gradiente verde, ícone branco. Dieta, Lembretes e Reuniões iguais. */
+:root[data-estilo="suave"] :is(.diet-meal-app-toggle.active,.reminder-icones .icon-btn.active:not(.zap-btn),.reminder-novo-avisos .icon-btn.active:not(.zap-btn)),
+:root[data-estilo="flutuante"] :is(.diet-meal-app-toggle.active,.reminder-icones .icon-btn.active:not(.zap-btn),.reminder-novo-avisos .icon-btn.active:not(.zap-btn)){
+  background:var(--grad-roxo); color:#fff; box-shadow:0 8px 16px -8px rgba(94,77,235,.65);
+}
+:root[data-estilo="suave"] :is(.diet-meal-whatsapp.active,.reminder-icones .zap-btn.active,.reminder-novo-avisos .zap-btn.active),
+:root[data-estilo="flutuante"] :is(.diet-meal-whatsapp.active,.reminder-icones .zap-btn.active,.reminder-novo-avisos .zap-btn.active){
+  background:var(--grad-verde); color:#fff; box-shadow:0 8px 16px -8px rgba(30,142,85,.6);
+}
+:root[data-estilo="suave"] :is(.diet-meal-app-toggle,.diet-meal-whatsapp), :root[data-estilo="flutuante"] :is(.diet-meal-app-toggle,.diet-meal-whatsapp){
+  width:34px; height:34px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:var(--campo-fundo);
+}
+:root[data-estilo="suave"] :is(.diet-meal-app-toggle,.diet-meal-whatsapp) svg, :root[data-estilo="flutuante"] :is(.diet-meal-app-toggle,.diet-meal-whatsapp) svg{ width:16px; height:16px; }
+/* Confirmar número (Dieta) e outros botões de WhatsApp no verde padrão */
+.btn-zap svg{ width:14px; height:14px; }
