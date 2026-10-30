@@ -3,7 +3,14 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { MODELO_DA_IA, limitesDaIa, custoEmUsd, inicioDoMesISO } from "@/lib/ia/custo";
-import { INSTRUCAO_DAS_PERGUNTAS, LIMITE_DO_TEXTO, MAX_TOKENS_DAS_PERGUNTAS, lerPerguntas } from "@/lib/ia/perguntas";
+import {
+  INSTRUCAO_DAS_PERGUNTAS,
+  LIMITE_DO_TEXTO,
+  MAXIMO_DE_EXISTENTES,
+  MAX_TOKENS_DAS_PERGUNTAS,
+  lerPerguntas,
+  parecidaComAlguma,
+} from "@/lib/ia/perguntas";
 import { usoDaMensagem } from "@/lib/ia/servidor";
 
 export const dynamic = "force-dynamic";
@@ -21,9 +28,14 @@ export async function POST(req: Request) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ erro: "sem_login" }, { status: 401 });
 
-  const corpo = (await req.json().catch(() => null)) as { titulo?: unknown; texto?: unknown } | null;
+  const corpo = (await req.json().catch(() => null)) as { titulo?: unknown; texto?: unknown; existentes?: unknown } | null;
   const titulo = typeof corpo?.titulo === "string" ? corpo.titulo.trim().slice(0, 300) : "";
   const texto = typeof corpo?.texto === "string" ? corpo.texto.trim() : "";
+  // Perguntas que a pessoa já tem (na sinapse e na Metanoia): a IA não cria outra com o mesmo sentido.
+  const existentes = (Array.isArray(corpo?.existentes) ? corpo.existentes : [])
+    .filter((e): e is string => typeof e === "string" && e.trim().length > 0)
+    .map((e) => e.trim().slice(0, 300))
+    .slice(0, MAXIMO_DE_EXISTENTES);
   if (texto.length < 40) return NextResponse.json({ erro: "texto_curto" }, { status: 400 });
 
   const chave = (process.env.ANTHROPIC_API_KEY ?? "").trim().replace(/^["']+|["']+$/g, "").trim();
@@ -48,7 +60,11 @@ export async function POST(req: Request) {
       model: MODELO_DA_IA,
       max_tokens: MAX_TOKENS_DAS_PERGUNTAS,
       system: INSTRUCAO_DAS_PERGUNTAS,
-      messages: [{ role: "user", content: `${titulo ? `Título: ${titulo}\n\n` : ""}Texto:\n${texto.slice(0, LIMITE_DO_TEXTO)}` }],
+      messages: [{ role: "user", content: `${titulo ? `Título: ${titulo}\n\n` : ""}Perguntas que a pessoa já tem (não repita o sentido de nenhuma):\n${
+            existentes.length ? existentes.map((e) => `- ${e}`).join("\n") : "(nenhuma ainda)"
+          }\n\nTexto:\n${texto.slice(0, LIMITE_DO_TEXTO)}`,
+        },
+      ],
       output_config: { effort: "low" },
     });
     // O gasto é gravado ANTES de qualquer outra coisa: a API já cobrou.
@@ -70,12 +86,12 @@ export async function POST(req: Request) {
       resposta.content
         .map((b) => (b.type === "text" ? b.text : ""))
         .join("")
-    );
+    ).filter((p) => !parecidaComAlguma(p, existentes));
   } catch (e) {
     console.error("IA: erro ao criar perguntas", e instanceof Error ? e.message : e);
     const status = e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError ? "chave_invalida" : "indisponivel";
     return NextResponse.json({ erro: status }, { status: 502 });
   }
-  if (!perguntas.length) return NextResponse.json({ erro: "indisponivel" }, { status: 502 });
+  // Lista vazia não é erro: significa que o texto não abre nenhuma reflexão que ela já não tenha.
   return NextResponse.json({ perguntas });
 }

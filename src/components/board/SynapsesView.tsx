@@ -12,6 +12,7 @@ import { arquivoDaIdeia, arquivoDaSinapse } from "@/lib/learning-export";
 import { baixarTexto, soONome } from "@/lib/baixar";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { stripHtml } from "@/lib/rich-text";
+import { extrairPerguntas } from "@/lib/ia/perguntas";
 import type { Synapse } from "@/lib/types";
 import { TutorialLink } from "./TutorialLink";
 
@@ -38,11 +39,13 @@ type PerguntaGerada = { texto: string; naSinapse: boolean; naMetanoia: boolean }
 function PerguntasDaIA({
   titulo,
   texto,
+  existentes,
   podeNaSinapse,
   onEnviar,
 }: {
   titulo: string;
   texto: string;
+  existentes: string[];
   podeNaSinapse: boolean;
   onEnviar: (naSinapse: string[], naMetanoia: string[]) => { naSinapse: number; naMetanoia: number };
 }) {
@@ -59,11 +62,15 @@ function PerguntasDaIA({
       const r = await fetch("/api/ia/perguntas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ titulo, texto }),
+        body: JSON.stringify({ titulo, texto, existentes }),
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) setErro(ERROS_DAS_PERGUNTAS[d.erro] ?? "Não consegui criar agora. Tente de novo em instantes.");
-      else setLista((d.perguntas as string[]).map((t) => ({ texto: t, naSinapse: false, naMetanoia: false })));
+      else {
+        const novas = d.perguntas as string[];
+        setLista(novas.map((t) => ({ texto: t, naSinapse: false, naMetanoia: false })));
+        if (!novas.length) setAviso("Nada novo: este texto não abre nenhuma reflexão que você já não tenha nas suas perguntas.");
+      }
     } catch {
       setErro("Sem conexão. Tente de novo.");
     } finally {
@@ -97,7 +104,7 @@ function PerguntasDaIA({
         <button type="button" className="btn btn-ghost" disabled={gerando || texto.length < 40} onClick={gerar}>
           <BoltIcon /> {gerando ? "Criando perguntas…" : lista.length ? "Criar outras perguntas" : "Criar perguntas poderosas"}
         </button>
-        <span className="perg-ia-dica">A IA lê só este texto e sugere. Você marca para onde cada pergunta vai.</span>
+        <span className="perg-ia-dica">A IA lê só este texto e não repete o que você já tem. Você marca para onde cada pergunta vai.</span>
       </div>
       {erro && <p className="perg-ia-erro">{erro}</p>}
       {aviso && !lista.length && <p className="perg-ia-aviso">{aviso}</p>}
@@ -271,6 +278,13 @@ export function SynapseCard({ synapse, ideia = false }: { synapse: Synapse; idei
           <PerguntasDaIA
             titulo={cleanTitle}
             texto={stripHtml(learning)}
+            existentes={[
+              ...extrairPerguntas(stripHtml(questions)),
+              ...board.state.metanoiaFrases
+                .filter((f) => f.tipo === "pergunta")
+                .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+                .map((f) => f.texto),
+            ]}
             podeNaSinapse={!ideia}
             onEnviar={(naSinapse, naMetanoia) => {
               let nSinapse = 0;
