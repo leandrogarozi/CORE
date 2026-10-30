@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { EnviarBtn } from "./EnviarBtn";
 import { useBoardCtx } from "./board-context";
 import { NoteField } from "./NoteField";
 import { MicButton } from "./MicButton";
-import { BookIcon, CheckIcon, ChevronIcon, TrashIcon, WarningIcon } from "./icons";
+import { BookIcon, BookOpenIcon, CheckIcon, ChevronIcon, TrashIcon, WarningIcon } from "./icons";
+import { EmConstrucao } from "./EmConstrucao";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { constanciaDoEstudo, studyPlanMath, tempoPorModulo } from "@/lib/board/study-plan";
 import { fmtHM, fmtShortDate, fmtTempoCurto, todayISO } from "@/lib/date-utils";
@@ -22,12 +23,58 @@ const DIAS = [
   { v: 6, l: "S" },
 ];
 
+type Rascunho = { total: string; min: string; inicio: string; prazo: string; dias: number[] };
+
+/** Os campos do plano que só valem quando a pessoa toca em Salvar (antes, cada campo gravava ao sair dele). */
+function rascunhoDe(plan: StudyPlan): Rascunho {
+  return {
+    total: plan.totalMinutes ? String(plan.totalMinutes / 60).replace(".", ",") : "",
+    min: String(plan.sessionMinutes),
+    inicio: plan.startDate ?? "",
+    prazo: plan.deadline ?? "",
+    dias: [...plan.weekDays].sort(),
+  };
+}
+
+const COR_DO_PLANO = { ativo: "#4A47D5", pausado: "#C28A1E", concluido: "#3E8E5A" } as const;
+
+/** Lista colada ("Planejamento estratégico 3h", um por linha) vira módulos com as horas. */
+function modulosDeUmTexto(texto: string): { name: string; minutes: number | null }[] {
+  const saida: { name: string; minutes: number | null }[] = [];
+  for (const linha of texto.split("\n").map((l) => l.trim()).filter(Boolean)) {
+    const m = linha.match(/^(.*?)[\s\-–:,;]+(\d+(?:[.,]\d+)?)\s*(?:h|hs|hora|horas)\.?$/i);
+    if (m && m[1].trim()) {
+      const h = Number(m[2].replace(",", "."));
+      saida.push({ name: m[1].trim(), minutes: Number.isFinite(h) && h > 0 ? Math.round(h * 60) : null });
+    } else saida.push({ name: linha.replace(/^[-•*\d.)\s]+/, "").trim() || linha, minutes: null });
+  }
+  return saida.slice(0, 60);
+}
+
+function plano_status(plan: StudyPlan, restanteMin: number): keyof typeof COR_DO_PLANO {
+  if (plan.status === "concluido" || (plan.totalMinutes && restanteMin === 0)) return "concluido";
+  return plan.status === "pausado" ? "pausado" : "ativo";
+}
+
 function PlanCard({ plan }: { plan: StudyPlan }) {
   const { board, askConfirm, openTaskInDay } = useBoardCtx();
   const [open, setOpen] = useState(false);
   const [gerou, setGerou] = useState<string | null>(null);
   const [novoModulo, setNovoModulo] = useState("");
   const [novoModuloHoras, setNovoModuloHoras] = useState("");
+  const [colando, setColando] = useState(false);
+  const [listaColada, setListaColada] = useState("");
+  const [deixouAtrasar, setDeixouAtrasar] = useState(false);
+  // O rascunho acompanha o plano salvo: se ele muda por fora (o FARO ajustou, por exemplo), o rascunho refaz.
+  const assinatura = [plan.totalMinutes, plan.sessionMinutes, plan.startDate, plan.deadline, plan.weekDays.join(",")].join("|");
+  const [assinaturaVista, setAssinaturaVista] = useState(assinatura);
+  const [rasc, setRasc] = useState<Rascunho>(() => rascunhoDe(plan));
+  if (assinatura !== assinaturaVista) {
+    setAssinaturaVista(assinatura);
+    setRasc(rascunhoDe(plan));
+  }
+  const salvoRasc = rascunhoDe(plan);
+  const sujo = JSON.stringify(rasc) !== JSON.stringify(salvoRasc);
 
   const sessoes = board.state.tasks.filter((t) => t.studyPlanId === plan.id);
   const feitas = sessoes.filter((t) => t.done);
@@ -83,9 +130,28 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
   ];
 
   function toggleDia(d: number) {
-    const atual = plan.weekDays;
-    const novo = atual.includes(d) ? atual.filter((x) => x !== d) : [...atual, d].sort();
-    if (novo.length) board.updateStudyPlan(plan.id, { weekDays: novo });
+    const novo = rasc.dias.includes(d) ? rasc.dias.filter((x) => x !== d) : [...rasc.dias, d].sort();
+    if (novo.length) setRasc({ ...rasc, dias: novo });
+  }
+
+  function salvar() {
+    const h = Number(rasc.total.replace(",", "."));
+    const min = Number(rasc.min);
+    board.updateStudyPlan(plan.id, {
+      totalMinutes: Number.isFinite(h) && h > 0 ? Math.round(h * 60) : null,
+      sessionMinutes: Number.isFinite(min) && min >= 5 ? min : plan.sessionMinutes,
+      startDate: rasc.inicio || null,
+      deadline: rasc.prazo || null,
+      weekDays: rasc.dias,
+    });
+  }
+
+  function colarModulos() {
+    const novos = modulosDeUmTexto(listaColada).map((x) => ({ id: crypto.randomUUID(), name: x.name, minutes: x.minutes, sessionIds: [] as string[] }));
+    if (!novos.length) return;
+    salvarModulos([...plan.modules, ...novos]);
+    setListaColada("");
+    setColando(false);
   }
 
   // Sessões que já passaram do dia e não foram feitas: o que polui a agenda quando ele não está estudando.
@@ -128,23 +194,32 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
     window.setTimeout(() => setGerou(null), 5000);
   }
 
+  const moduloAtual = tempos.find((t) => !t.estimadoMin || t.feitoSeg / 60 < t.estimadoMin)?.name ?? null;
+
   return (
-    <div className={"study-card" + (open ? " open" : "")}>
+    <div className={"study-card com-filete" + (open ? " open" : "")} style={{ "--k": COR_DO_PLANO[plano_status(plan, m.restanteMin)] } as CSSProperties}>
       <div className="study-card-head">
         <button type="button" className="synapse-card-toggle" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
           <ChevronIcon />
         </button>
-        <span className="study-card-name">{plan.name}</span>
+        <span className="tile-tipo" aria-hidden="true">
+          <BookOpenIcon />
+        </span>
+        <div className="study-card-titulo">
+          <span className="study-card-name">{plan.name}</span>
+          <span className="study-card-sub">
+            {moduloAtual ? `Módulo atual: ${moduloAtual} · ` : ""}
+            {feitas.length} de {sessoes.length || "—"} sessões
+            {feitoSeg > 0 && <> · {fmtTempoCurto(feitoSeg)} estudados</>}
+          </span>
+        </div>
         {pausado && <span className="study-paused">pausado</span>}
         {m.naoCabeNoPrazo && (
           <span className="study-late" title="No ritmo atual não fecha no prazo">
             <WarningIcon /> fora do prazo
           </span>
         )}
-        <span className="study-progress mono">
-          {feitas.length}/{sessoes.length || "—"} sessões
-          {feitoSeg > 0 && <> · {fmtTempoCurto(feitoSeg)} estudados</>}
-        </span>
+        <span className="study-pct">{m.totalMin > 0 ? `${m.pctFeito}%` : "—"}</span>
         <button
           type="button"
           className="icon-btn danger-hover"
@@ -159,25 +234,32 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
           <TrashIcon />
         </button>
       </div>
+      {/* A barra de progresso do plano, de ponta a ponta, logo abaixo do título. */}
+      <div className="study-bar">
+        <div className="study-bar-fill" style={{ width: `${m.pctFeito}%` }} />
+      </div>
 
       {/* Estudo parado não pode poluir a agenda: sessão atrasada vira uma saída em um clique. */}
-      {atrasadas.length > 0 && !pausado && (
+      {atrasadas.length > 0 && !pausado && !deixouAtrasar && (
         <div className="study-atraso">
           <span>
-            <WarningIcon /> {atrasadas.length} {atrasadas.length === 1 ? "sessão atrasada" : "sessões atrasadas"} na sua agenda.
+            <WarningIcon /> Você pulou {atrasadas.length === 1 ? "1 dia" : `${atrasadas.length} dias`}: {atrasadas.length === 1 ? "1 sessão ficou" : `${atrasadas.length} sessões ficaram`} para trás. O que já foi feito não muda.
           </span>
           <span className="study-atraso-acoes">
             <button
               type="button"
-              className="btn btn-ghost"
+              className="btn btn-accent"
               onClick={() =>
                 askConfirm(
-                  `Descartar as ${atrasadas.length} sessões atrasadas e refazer o calendário a partir de hoje? As atrasadas vão pra Lixeira; as já feitas ficam.`,
+                  `Empurrar tudo para frente? As ${atrasadas.length} sessões atrasadas vão pra Lixeira e o calendário é refeito a partir de hoje, no seu ritmo. As já feitas ficam.`,
                   gerar
                 )
               }
             >
-              Refazer a partir de hoje
+              Empurrar tudo para frente
+            </button>
+            <button type="button" className="btn btn-ghost" onClick={() => setDeixouAtrasar(true)}>
+              Deixar como está
             </button>
             <button type="button" className="btn btn-ghost" onClick={pausar}>
               Pausar plano
@@ -215,9 +297,6 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
         )}
       </div>
 
-      <div className="study-bar">
-        <div className="study-bar-fill" style={{ width: `${m.pctFeito}%` }} />
-      </div>
       <div className="study-bar-legend">
         {fmtTempoCurto(feitoSeg)} feitos{m.totalMin > 0 ? ` de ${fmtHM(m.totalMin)} (${m.pctFeito}%)` : ""}
         {proxima && (
@@ -253,54 +332,25 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
             <label className="prop-row">
               <span className="prop-label">Total (horas)</span>
               <div className="prop-value">
-                <input
-                  type="number"
-                  min={0}
-                  step="0.5"
-                  placeholder="ex.: 20"
-                  defaultValue={plan.totalMinutes ? plan.totalMinutes / 60 : ""}
-                  onBlur={(e) => {
-                    const h = Number(e.target.value.replace(",", "."));
-                    board.updateStudyPlan(plan.id, {
-                      totalMinutes: Number.isFinite(h) && h > 0 ? Math.round(h * 60) : null,
-                    });
-                  }}
-                />
+                <input type="text" inputMode="decimal" placeholder="ex.: 20" value={rasc.total} onChange={(e) => setRasc({ ...rasc, total: e.target.value })} />
               </div>
             </label>
             <label className="prop-row">
               <span className="prop-label">Min por dia</span>
               <div className="prop-value">
-                <input
-                  type="number"
-                  min={5}
-                  step={5}
-                  defaultValue={plan.sessionMinutes}
-                  onBlur={(e) => {
-                    const min = Number(e.target.value);
-                    if (Number.isFinite(min) && min >= 5) board.updateStudyPlan(plan.id, { sessionMinutes: min });
-                  }}
-                />
+                <input type="number" min={5} step={5} value={rasc.min} onChange={(e) => setRasc({ ...rasc, min: e.target.value })} />
               </div>
             </label>
             <label className="prop-row">
               <span className="prop-label">Começa em</span>
               <div className="prop-value">
-                <input
-                  type="date"
-                  defaultValue={plan.startDate ?? ""}
-                  onBlur={(e) => board.updateStudyPlan(plan.id, { startDate: e.target.value || null })}
-                />
+                <input type="date" value={rasc.inicio} onChange={(e) => setRasc({ ...rasc, inicio: e.target.value })} />
               </div>
             </label>
             <label className="prop-row">
               <span className="prop-label">Prazo</span>
               <div className="prop-value">
-                <input
-                  type="date"
-                  defaultValue={plan.deadline ?? ""}
-                  onBlur={(e) => board.updateStudyPlan(plan.id, { deadline: e.target.value || null })}
-                />
+                <input type="date" value={rasc.prazo} onChange={(e) => setRasc({ ...rasc, prazo: e.target.value })} />
               </div>
             </label>
           </div>
@@ -312,7 +362,7 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
                 <button
                   key={i}
                   type="button"
-                  className={"study-day" + (plan.weekDays.includes(d.v) ? " on" : "")}
+                  className={"study-day" + (rasc.dias.includes(d.v) ? " on" : "")}
                   title={["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"][d.v]}
                   onClick={() => toggleDia(d.v)}
                 >
@@ -372,6 +422,26 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
                 Divida o estudo em partes (ex.: Módulo 1, Módulo 2…) para ver quanto tempo cada uma leva de verdade.
               </div>
             )}
+            <div className="study-colar">
+              <button type="button" className="link-acao" onClick={() => setColando((v) => !v)}>
+                {colando ? "Fechar a lista colada" : "Colar uma lista de módulos"}
+              </button>
+              {colando && (
+                <>
+                  <textarea
+                    className="settings-input study-colar-texto"
+                    rows={5}
+                    placeholder={"Um módulo por linha, com as horas no fim:\nPlanejamento estratégico 3h\nFinanças para gestores 5h"}
+                    value={listaColada}
+                    onChange={(e) => setListaColada(e.target.value)}
+                    aria-label="Lista de módulos"
+                  />
+                  <button type="button" className="btn btn-accent" onClick={colarModulos} disabled={!listaColada.trim()}>
+                    Adicionar módulos
+                  </button>
+                </>
+              )}
+            </div>
             <div className="study-modulo study-modulo-novo">
               <input
                 type="text"
@@ -445,10 +515,22 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
             <button type="button" className="btn btn-ghost" onClick={pausado ? retomar : pausar}>
               {pausado ? "Retomar" : "Pausar"}
             </button>
-            <button type="button" className="btn btn-accent" onClick={gerar}>
+            <span className="study-actions-espaco" />
+            {sujo && <span className="study-sujo">Alterações sem salvar</span>}
+            <button type="button" className={"btn " + (sujo ? "btn-accent" : "btn-ghost")} onClick={salvar} disabled={!sujo}>
+              {sujo ? "Salvar" : "Salvo"}
+            </button>
+            <button type="button" className="btn btn-accent" onClick={gerar} disabled={sujo} title={sujo ? "Salve antes de distribuir" : undefined}>
               Distribuir na agenda
             </button>
           </div>
+          <p className="study-prev">
+            {sujo
+              ? "Salve as alterações para liberar o Distribuir na agenda."
+              : m.sessoesRestantes > 0
+                ? `Vai distribuir ${m.sessoesRestantes} sessões de ${plan.sessionMinutes} min${m.terminaEm ? `, até ${fmtShortDate(m.terminaEm)}` : ""}. Só ao confirmar o FARO coloca na agenda.`
+                : "Diga o total de horas e os dias de estudo para ver a prévia."}
+          </p>
         </div>
       )}
     </div>
@@ -468,7 +550,12 @@ export function StudyPlansView({ onBack }: { onBack: () => void }) {
     if (!id) setNewName(name);
   }
 
-  const ativos = board.state.studyPlans.filter((p) => p.status !== "concluido");
+  // Abas como em Projetos: o que está em andamento, o que está pausado e o que já acabou.
+  const [aba, setAba] = useState<"ativo" | "pausado" | "concluido">("ativo");
+  const todos = board.state.studyPlans;
+  const doGrupo = (p: StudyPlan) => (p.status === "concluido" ? "concluido" : p.status === "pausado" ? "pausado" : "ativo");
+  const ativos = todos.filter((p) => doGrupo(p) === aba);
+  const total = (g: "ativo" | "pausado" | "concluido") => todos.filter((p) => doGrupo(p) === g).length;
 
   return (
     <div className="section">
@@ -480,6 +567,7 @@ export function StudyPlansView({ onBack }: { onBack: () => void }) {
         <TutorialLink secao="estudo" />
       </div>
 
+      <EmConstrucao tela="O Plano de Estudo" />
       <div className={"narrow-list" + (wide ? " list-xl" : "")}>
         <div className="synapse-intro">
           <div className="synapse-intro-title">
@@ -511,9 +599,26 @@ export function StudyPlansView({ onBack }: { onBack: () => void }) {
           </div>
         </div>
 
+        <div className="abas-plano">
+          <button type="button" className={"aba-plano" + (aba === "ativo" ? " on" : "")} onClick={() => setAba("ativo")}>
+            <BookOpenIcon /> Em andamento <b>{total("ativo")}</b>
+          </button>
+          <button type="button" className={"aba-plano pausado" + (aba === "pausado" ? " on" : "")} onClick={() => setAba("pausado")}>
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+              <path d="M8 5v14M16 5v14" />
+            </svg>{" "}
+            Pausados <b>{total("pausado")}</b>
+          </button>
+          <button type="button" className={"aba-plano concluido" + (aba === "concluido" ? " on" : "")} onClick={() => setAba("concluido")}>
+            <CheckIcon /> Concluídos <b>{total("concluido")}</b>
+          </button>
+        </div>
+
         {!ativos.length && (
           <div className="list-card">
-            <div className="hp-empty">Nenhum plano de estudo ainda.</div>
+            <div className="hp-empty">
+              {todos.length === 0 ? "Nenhum plano de estudo ainda." : aba === "ativo" ? "Nenhum plano em andamento." : aba === "pausado" ? "Nenhum plano pausado." : "Nenhum plano concluído ainda."}
+            </div>
           </div>
         )}
 
