@@ -35,8 +35,11 @@ function Linha({ item, aberto, onAbrir }: { item: PantryItem; aberto: boolean; o
   const ligado = itensManutencao.find((m) => m.id === item.maintenanceItemId);
   const salvar = (patch: Partial<Omit<PantryItem, "id">>) => board.updatePantryItem(item.id, patch);
 
+  // Itens medidos em % (nível do frasco) andam de 10 em 10 e vão até 100.
+  const emPorcento = item.unit === "%";
+  const passo = emPorcento ? 10 : 1;
   function mudarQuantidade(n: number) {
-    const q = Math.max(0, n);
+    const q = Math.min(emPorcento ? 100 : 9999, Math.max(0, n));
     if (q === item.quantity) return;
     // Zerou: acabou. Voltou a ter e estava "acabou": tem de novo.
     if (q === 0) salvar({ quantity: 0, status: "out" });
@@ -118,14 +121,14 @@ function Linha({ item, aberto, onAbrir }: { item: PantryItem; aberto: boolean; o
           </button>
         </span>
         <span className="disp-qtd">
-          <button type="button" aria-label="Diminuir" onClick={() => mudarQuantidade(item.quantity - 1)}>
+          <button type="button" aria-label="Diminuir" onClick={() => mudarQuantidade(item.quantity - passo)}>
             −
           </button>
           <b>
             {item.quantity}
             {item.unit ? <small> {item.unit}</small> : null}
           </b>
-          <button type="button" aria-label="Aumentar" onClick={() => mudarQuantidade(item.quantity + 1)}>
+          <button type="button" aria-label="Aumentar" onClick={() => mudarQuantidade(item.quantity + passo)}>
             +
           </button>
         </span>

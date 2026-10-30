@@ -244,17 +244,22 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
               <div className="dl-row-top">
                 <span className="dl-label">
                   <WaterDropIcon /> Água
-                  <CommentButton
-                    icon={<WarningIcon />}
-                    value={board.state.settings.waterStrategies}
-                    placeholder="Ex.: garrafa de 1L com marcador de borracha — a cada litro bebido, reposiciono o marcador."
-                    ariaLabel="Estratégias pra manter o consumo de água"
-                    onSave={(text) => board.updateSettings({ waterStrategies: text || null })}
-                  />
                 </span>
                 <span className="mono dl-value">
                   {waterMl} <span className="dl-of">/ {goalMl} ml</span>
                 </span>
+              </div>
+              {/* A estratégia da pessoa fica escrita aqui, na frente da água, como um lembrete que ela vê toda vez. */}
+              <div className="dl-estrategia">
+                <CommentButton
+                  variant="field"
+                  icon={<WarningIcon />}
+                  value={board.state.settings.waterStrategies}
+                  placeholder="Escreva sua estratégia: ex.: garrafa de 1L com borrachas, uma a cada litro bebido."
+                  ariaLabel="Estratégia para manter o consumo de água"
+                  title="Minha estratégia para beber água"
+                  onSave={(text) => board.updateSettings({ waterStrategies: text || null })}
+                />
               </div>
               <div className="hp-bar">
                 <div className="hp-bar-fill" style={{ width: `${pct}%` }} />

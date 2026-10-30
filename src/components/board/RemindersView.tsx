@@ -35,7 +35,6 @@ import {
 } from "@/lib/board/reminder-alerts";
 import type { Reminder, ReminderStatus, Repeat } from "@/lib/types";
 import { DateField } from "./DateField";
-import { LembreteDeTarefa } from "./LembreteDeTarefa";
 import { TutorialLink } from "./TutorialLink";
 
 const REPEATS: { v: Repeat; l: string }[] = [
@@ -1003,6 +1002,9 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
   const [filter, setFilter] = useState<ReminderFilter>("todos");
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("");
+  // Como avisar este lembrete novo: quanto antes e se também no WhatsApp (o padrão de sempre é ligado).
+  const [newAntes, setNewAntes] = useState(0);
+  const [newZap, setNewZap] = useState(true);
   const [faltando, setFaltando] = useState<string | null>(null);
   const openMeetingsCount = board.state.tasks.filter(
     (t) => entraEmReunioes(t) && countOpenChecklistItems(t.note) > 0
@@ -1030,7 +1032,7 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
 
     setFaltando(null);
     setNewTitle("");
-    const ok = await board.addReminder(title, newDate, newTime);
+    const ok = await board.addReminder(title, newDate, newTime, { alertMinutesBefore: newAntes, whatsapp: newZap });
     if (!ok) setNewTitle(title);
     else {
       setNewDate("");
@@ -1085,7 +1087,6 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
             </span>
           </button>
         )}
-        <LembreteDeTarefa />
         <div className="list-quickadd-card">
           <div className="quickadd-row">
             <span className="quickadd-plus" aria-hidden="true">
@@ -1136,6 +1137,19 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
               onClick={() => handleAdd()}
             >
               <SendIcon />
+            </button>
+          </div>
+          <div className="lembrete-de-tarefa-linha reminder-novo-avisos">
+            <select aria-label="Quando avisar" className="reminder-repeat-select" value={newAntes} onChange={(e) => setNewAntes(Number(e.target.value))}>
+              {REMINDER_ALERT_PRESETS.map((p) => (
+                <option key={p.l} value={p.v ?? 0}>
+                  {p.v === 0 ? "Avisar no horário" : `Avisar ${p.l}`}
+                </option>
+              ))}
+            </select>
+            <button type="button" className={"reminder-zap-opcao" + (newZap ? " ativo" : "")} aria-pressed={newZap} onClick={() => setNewZap((v) => !v)}>
+              <WhatsAppIcon filled={newZap} />
+              <span>Avisar no WhatsApp</span>
             </button>
           </div>
           {faltando && <div className="reminder-zap-erro">{faltando}</div>}
