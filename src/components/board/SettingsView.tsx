@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useBoardCtx } from "./board-context";
 import { createClient } from "@/lib/supabase/client";
 import { conhecimentoParaExportar } from "@/lib/conhecimento";
@@ -1863,6 +1863,60 @@ function WhatsAppCostBox() {
  * Tons escolhidos em vez de seletor livre: um seletor aberto deixa escolher um
  * verde-limão forte, e aí o fundo briga com o roxo dos botões e das barras.
  */
+// Estilo visual dos cartões: vale só neste aparelho (como o tema claro/escuro). "Clássico" é o de sempre.
+const ESTILOS_VISUAIS = [
+  { id: "classico", nome: "Clássico", desc: "O visual de sempre: cartões brancos de contorno suave." },
+  { id: "suave", nome: "Suave", desc: "Cartões de vidro: translúcidos, com desfoque, cantos bem redondos e sombra macia." },
+  { id: "flutuante", nome: "Cartão flutuante", desc: "Cartões brancos que flutuam, com sombra funda; a Metanoia vira um cartão roxo em destaque." },
+] as const;
+
+function inscreverEstilo(avisar: () => void) {
+  const o = new MutationObserver(avisar);
+  o.observe(document.documentElement, { attributes: true, attributeFilter: ["data-estilo"] });
+  return () => o.disconnect();
+}
+
+// Escreve só no atributo (o observador acima re-renderiza) e guarda neste aparelho.
+function gravarEstilo(id: string) {
+  document.documentElement.dataset.estilo = id;
+  try {
+    window.localStorage.setItem("faro-estilo", id);
+  } catch {
+    // Sem armazenamento: vale só até recarregar.
+  }
+}
+
+function EstiloVisualBox() {
+  const { board } = useBoardCtx();
+  const estilo = useSyncExternalStore(
+    inscreverEstilo,
+    () => document.documentElement.dataset.estilo ?? "classico",
+    () => "classico"
+  );
+  const escolher = gravarEstilo;
+  const cinza = (board.state.settings.bgTone ?? TOM_PADRAO) === SEM_COR;
+  return (
+    <CollapsibleBox title="Estilo dos cartões" icon={<PaletteIcon />} resumo="Clássico, Suave (vidro) ou Cartão flutuante. No escuro, os dois ficam em roxo profundo." abertoInicial>
+      <div className="note-options-chips" role="group" aria-label="Estilo dos cartões">
+        {ESTILOS_VISUAIS.map((e) => (
+          <button key={e.id} type="button" className={"note-chip" + (estilo === e.id ? " active" : "")} aria-pressed={estilo === e.id} onClick={() => escolher(e.id)}>
+            {e.nome}
+          </button>
+        ))}
+      </div>
+      <span className="hint-text">{ESTILOS_VISUAIS.find((e) => e.id === estilo)?.desc}</span>
+      {estilo !== "classico" && !cinza && (
+        <div className="edit-actions" style={{ justifyContent: "flex-start", alignItems: "center", gap: 10 }}>
+          <button type="button" className="btn btn-ghost" onClick={() => board.updateSettings({ bgTone: SEM_COR })}>
+            Usar fundo cinza liso
+          </button>
+          <span className="hint-text">Os estilos ficam mais bonitos sobre o cinza padrão. Você pode trocar o fundo em “Cor do fundo”.</span>
+        </div>
+      )}
+    </CollapsibleBox>
+  );
+}
+
 function CorDoFundoBox() {
   const { board } = useBoardCtx();
   const { bgTone, bgIntensity } = board.state.settings;
@@ -2496,6 +2550,7 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
           </GrupoDeConfiguracao>
 
           <GrupoDeConfiguracao id="aparencia">
+            <EstiloVisualBox />
             <CorDoFundoBox />
           </GrupoDeConfiguracao>
 

@@ -36,7 +36,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               "(function(){try{var s=localStorage.getItem('faro-tema');" +
               "var e=s==='escuro'||(s!=='claro'&&window.matchMedia('(prefers-color-scheme: dark)').matches);" +
               "document.documentElement.dataset.theme=e?'dark':'light';}" +
-              "catch(_){document.documentElement.dataset.theme='light';}})()",
+              "catch(_){document.documentElement.dataset.theme='light';}" +
+              "try{var z=localStorage.getItem('faro-estilo');" +
+              "document.documentElement.dataset.estilo=z==='suave'||z==='flutuante'?z:'classico';}" +
+              "catch(_){document.documentElement.dataset.estilo='classico';}})()",
           }}
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />

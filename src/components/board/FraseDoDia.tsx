@@ -100,7 +100,7 @@ export function FraseDoDia({ onAbrir, onEditar, telaCheia = false, onFecharTelaC
 
   if (fechada === f.id) return null;
   return (
-    <div className={"meta-cartao " + tema} style={fundo}>
+    <div className={"meta-cartao " + tema + (!cor && board.state.settings.metanoiaTema === "auto" ? " auto" : "")} style={fundo}>
       <div className="meta-cartao-nav">
         <button type="button" aria-label="Frase anterior" title="Anterior" onClick={() => { setFixaId(null); setPassos((p) => p - 1); }}>
           ‹

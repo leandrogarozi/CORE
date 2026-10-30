@@ -4104,3 +4104,58 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .week-card-feriado.facultativo{ color:var(--text-muted); background:var(--surface-2); }
 .cal-day-feriado{ display:block; max-width:100%; margin-top:2px; font-size:9.5px; line-height:1.15; font-weight:600; color:var(--danger); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .cal-day-feriado.facultativo{ color:var(--text-faint); font-weight:500; }
+
+/* ===== Estilos visuais opcionais (Configurações > Aparência > Estilo dos cartões) =====
+   "classico" é o visual de sempre e não mexe em nada. "suave" e "flutuante" trocam só tokens (raio, sombra),
+   o roxo do botão principal e a Metanoia; o fundo continua o que a pessoa escolheu em "Cor do fundo".
+   No tema escuro os dois viram o "roxo profundo" (vidro escuro com brilho roxo). */
+:root[data-estilo="suave"], :root[data-estilo="flutuante"]{
+  --grad-roxo:linear-gradient(135deg,#4A47D5 0%,#7C4DF0 100%);
+  --r-3:22px; --r-4:28px;
+}
+:root[data-estilo="suave"]{
+  --sh-1:0 14px 32px -16px rgba(74,71,213,.30), 0 2px 8px rgba(20,20,60,.05);
+  --sh-2:0 18px 40px -16px rgba(74,71,213,.34), 0 4px 12px rgba(20,20,60,.07);
+}
+:root[data-estilo="flutuante"]{
+  --sh-1:0 18px 36px -18px rgba(20,20,60,.32), 0 1px 2px rgba(20,20,60,.06);
+  --sh-2:0 22px 44px -18px rgba(20,20,60,.38), 0 2px 6px rgba(20,20,60,.08);
+}
+:root[data-theme="dark"][data-estilo="suave"], :root[data-theme="dark"][data-estilo="flutuante"]{
+  --sh-1:0 16px 34px -18px rgba(0,0,0,.85), 0 0 0 1px rgba(255,255,255,.06);
+  --sh-2:0 22px 44px -18px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.08);
+}
+/* Botão principal: degradê roxo com sombra colorida. */
+:root[data-estilo="suave"] .btn-accent, :root[data-estilo="flutuante"] .btn-accent{
+  background:var(--grad-roxo); color:#fff; border-color:transparent; box-shadow:0 10px 22px -8px rgba(94,77,235,.6);
+}
+/* Vidro: só nos cartões principais, translúcidos sobre o fundo escolhido. */
+:root[data-estilo="suave"] :is(.list-card,.list-quickadd-card,.synapse-card,.synapse-intro,.cfg-bloco,.maint-asset,.shop-lista-cartao,.know-item){
+  background:color-mix(in srgb, var(--surface) 62%, transparent);
+  backdrop-filter:blur(16px) saturate(1.15); -webkit-backdrop-filter:blur(16px) saturate(1.15);
+  border-color:rgba(255,255,255,.85);
+}
+:root[data-theme="dark"][data-estilo="suave"] :is(.list-card,.list-quickadd-card,.synapse-card,.synapse-intro,.cfg-bloco,.maint-asset,.shop-lista-cartao,.know-item),
+:root[data-theme="dark"][data-estilo="flutuante"] :is(.list-card,.list-quickadd-card,.synapse-card,.synapse-intro,.cfg-bloco,.maint-asset,.shop-lista-cartao,.know-item){
+  background:color-mix(in srgb, var(--surface) 72%, transparent);
+  backdrop-filter:blur(16px) saturate(1.1); -webkit-backdrop-filter:blur(16px) saturate(1.1);
+  border-color:rgba(255,255,255,.12);
+}
+/* Metanoia (quando segue o tema do app): suave = vidro; flutuante = cartão roxo em destaque. */
+:root[data-estilo="suave"] .meta-cartao.auto.claro{
+  background:rgba(255,255,255,.58); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,.85); box-shadow:0 18px 40px -14px rgba(74,71,213,.28);
+}
+:root[data-estilo="flutuante"] .meta-cartao.auto.claro{
+  background:var(--grad-roxo); color:#fff; border:0;
+  box-shadow:0 26px 44px -18px rgba(74,71,213,.7), inset 0 1px 0 rgba(255,255,255,.35);
+}
+:root[data-estilo="flutuante"] .meta-cartao.auto.claro .meta-cartao-texto{ font-size:20px; }
+:root[data-theme="dark"][data-estilo="suave"] .meta-cartao.auto.escuro,
+:root[data-theme="dark"][data-estilo="flutuante"] .meta-cartao.auto.escuro{
+  background:linear-gradient(160deg,rgba(124,77,240,.55),rgba(74,71,213,.25) 60%,rgba(255,255,255,.04));
+  border:1px solid rgba(255,255,255,.18); box-shadow:0 24px 50px -20px rgba(124,77,240,.8), inset 0 1px 0 rgba(255,255,255,.25);
+}
+@media (prefers-reduced-transparency: reduce){
+  :root[data-estilo] *{ backdrop-filter:none !important; -webkit-backdrop-filter:none !important; }
+}
