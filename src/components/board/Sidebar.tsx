@@ -2,7 +2,7 @@
 
 import { useEffect, type ReactNode } from "react";
 import { BellIcon, BoltIcon, CommentIcon, LinkIcon,
-  ArchiveIcon, EditIcon, BookOpenIcon, BookIcon, GiftIcon, CarIcon, CartIcon, ChartIcon, ChecklistIcon, FolderIcon, HomeIcon, MealIcon, PillIcon, RtQuoteIcon, SettingsIcon, TrashIcon, UserIcon, UsersGroupIcon, WeekIcon } from "./icons";
+  ArchiveIcon, EditIcon, BookOpenIcon, BookIcon, GiftIcon, CarIcon, CartIcon, ChartIcon, ChecklistIcon, FolderIcon, HomeIcon, MealIcon, PillIcon, RtQuoteIcon, SettingsIcon, TrashIcon, UserIcon, UsersGroupIcon } from "./icons";
 
 export type ViewMode =
   | "day"
@@ -52,7 +52,6 @@ export const GRUPOS_DO_MENU: { titulo: string; itens: ItemDoMenu[] }[] = [
     titulo: "Hoje",
     itens: [
       { modo: "day", rotulo: "Painel", icone: <HomeIcon /> },
-      { modo: "week", rotulo: "Semana", icone: <WeekIcon /> },
       { modo: "dashboard", rotulo: "Dashboard", icone: <ChartIcon /> },
       { modo: "reminders", rotulo: "Lembretes", icone: <BellIcon /> },
       { modo: "meetings", rotulo: "Reuniões", icone: <UsersGroupIcon /> },

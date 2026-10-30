@@ -4730,3 +4730,51 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
   background:var(--surface); box-shadow:0 8px 18px -12px rgba(0,0,0,.7);
 }
 .study-card-body .prop-value input:not([type="checkbox"]){ width:200px; max-width:100%; box-sizing:border-box; }
+
+/* ==========================================================================
+   Ajustes de 30/10 (noite)
+   ========================================================================== */
+/* Segmentos e abas: totalmente redondos, como o botão "+ Novo link" e o "Concluído" dos lembretes. */
+:root[data-estilo="suave"] :is(.view-toggle,.dsh-seg,.idea-filter,.book-kind-abas,.abas-plano,.disp-categorias-linha,.maint-abas),
+:root[data-estilo="flutuante"] :is(.view-toggle,.dsh-seg,.idea-filter,.book-kind-abas,.abas-plano,.disp-categorias-linha,.maint-abas){ border-radius:999px; }
+:root[data-estilo="suave"] :is(.view-toggle-btn,.dsh-seg-btn,.idea-filter .note-chip,.book-kind-abas .note-chip,.aba-plano,.disp-cat,.maint-abas .note-chip),
+:root[data-estilo="flutuante"] :is(.view-toggle-btn,.dsh-seg-btn,.idea-filter .note-chip,.book-kind-abas .note-chip,.aba-plano,.disp-cat,.maint-abas .note-chip){ border-radius:999px; }
+
+/* Livros, filmes e séries: sem o filete no canto de cada linha (o ícone já diz o tipo). */
+.book-row.com-filete::before{ display:none; }
+
+/* Botão de cancelar/apagar: mesma sombra dos outros; no hover ganha o fundo vermelho suave. */
+:root[data-estilo="suave"] .btn-ghost.danger-hover, :root[data-estilo="flutuante"] .btn-ghost.danger-hover{
+  background:var(--surface); color:var(--text-muted); box-shadow:0 4px 12px -6px rgba(20,20,60,.35), 0 0 0 1px color-mix(in srgb, var(--text) 5%, transparent);
+}
+:root[data-estilo="suave"] .btn-ghost.danger-hover:hover:not(:disabled), :root[data-estilo="flutuante"] .btn-ghost.danger-hover:hover:not(:disabled){
+  background:color-mix(in srgb, var(--danger) 10%, var(--surface)); color:var(--danger);
+}
+
+/* Dispensa: um botão de filtro com setinha e as opções abrindo embaixo. */
+.disp-filtro{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:0 0 10px; }
+.disp-filtro-botao{ display:inline-flex; align-items:center; gap:8px; }
+.disp-filtro-botao span{ color:var(--text-muted); font-weight:500; }
+.disp-filtro-botao b{ color:var(--text); font-weight:650; }
+.disp-filtro-botao svg{ width:13px; height:13px; transition:transform .15s ease; }
+.disp-filtro-botao[aria-expanded="true"] svg{ transform:rotate(180deg); }
+.disp-filtro-painel{ display:flex; flex-direction:column; gap:12px; margin:0 0 12px; padding:14px 16px; border-radius:var(--r-3); background:var(--surface); box-shadow:var(--sh-1); }
+.disp-filtro-grupo{ display:flex; flex-direction:column; gap:6px; }
+.disp-filtro-titulo{ font-size:12px; font-weight:650; color:var(--text-muted); }
+
+/* Calendário no celular: sete colunas iguais, sem passar da tela, feriado vira um pontinho. */
+.cal-weekday-row, .cal-days{ grid-template-columns:repeat(7, minmax(0, 1fr)); }
+.cal-day{ min-width:0; }
+.cal-day-feriado{ min-width:0; }
+@media (max-width:640px){
+  .cal-grid{ padding:8px 8px 0; border-radius:var(--r-3); }
+  .cal-days{ margin:0 -8px; width:calc(100% + 16px); }
+  .cal-day{ min-height:58px; padding:5px 3px 4px; gap:3px; align-items:center; }
+  .cal-day-num{ font-size:12px; }
+  .cal-day.today .cal-day-num{ width:22px; height:22px; font-size:12px; }
+  .cal-day-chips{ justify-content:center; gap:2px; }
+  .cal-day-chip{ font-size:9.5px; padding:1px 6px; min-width:16px; text-align:center; box-sizing:border-box; }
+  .cal-day-feriado{ display:none; }
+  .cal-day:has(.cal-day-feriado) .cal-day-num::after{ content:""; display:inline-block; width:5px; height:5px; border-radius:50%; background:var(--danger); margin-left:3px; vertical-align:middle; }
+  .cal-day:has(.cal-day-feriado.facultativo) .cal-day-num::after{ background:var(--text-faint); }
+}
