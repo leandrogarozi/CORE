@@ -48,6 +48,7 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
   // Qual serviço o formulário está editando. null = registrando um novo.
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [aberto, setAberto] = useState(false);
+  const [aba, setAba] = useState<"prazo" | "anotacoes" | "avisos">("prazo");
   // Rascunho do nome: grava ao sair do campo, pra não mandar uma escrita por
   // tecla digitada.
   const [nomeDraft, setNomeDraft] = useState<string | null>(null);
@@ -410,6 +411,62 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
 
       {aberto && (
         <div className="maint-item-body">
+          {historico.length > 0 && (
+            <div className="maint-history maint-secao">
+              <div className="maint-secao-titulo">Rodadas já feitas</div>
+              {[...rodadas].reverse().map((r) => {
+                const s = historico.find((h) => h.id === r.serviceId)!;
+                return (
+                  <div className="maint-history-row" key={r.serviceId}>
+                    <strong className="maint-rodada-n">Ciclo {r.n}</strong>
+                    {r.inicio && r.fimPrevisto && (
+                      <span className="mono maint-rodada-datas">
+                        {fmtShortDate(r.inicio)} a {fmtShortDate(r.fimPrevisto)}
+                      </span>
+                    )}
+                    <span className="mono maint-rodada-feito">feito em {fmtShortDate(s.doneOn)}</span>
+                    {s.odometer !== null && (
+                      <span className="mono maint-history-km">
+                        {fmtKm(s.odometer)} {asset.odometerUnit}
+                      </span>
+                    )}
+                    {s.costCents !== null && <span className="mono maint-history-cost">{fmtBRL(s.costCents)}</span>}
+                    {s.note && <span className="maint-history-note">{s.note}</span>}
+                    <span className="maint-history-actions">
+                      <button
+                        type="button"
+                        className="icon-btn"
+                        title="Corrigir este serviço"
+                        aria-label={`Corrigir o serviço de ${fmtShortDate(s.doneOn)}`}
+                        onClick={() =>
+                          askConfirm(
+                            `Tem certeza que quer mudar o Ciclo ${r.n}? Ele já passou. O seu ciclo atual é o Ciclo ${cicloAtual.n}.`,
+                            () => abrirForm(s)
+                          )
+                        }
+                      >
+                        <EditIcon />
+                      </button>
+                      <button
+                        type="button"
+                        className="icon-btn danger-hover"
+                        title="Apagar este serviço do histórico"
+                        aria-label={`Apagar o serviço de ${fmtShortDate(s.doneOn)}`}
+                        onClick={() =>
+                          askConfirm(`Apagar o serviço de ${fmtShortDate(s.doneOn)} do histórico?`, () =>
+                            board.deleteMaintenanceService(s.id)
+                          )
+                        }
+                      >
+                        <TrashIcon />
+                      </button>
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           <div className="maint-secao maint-ciclo-atual">
             <div className="maint-secao-titulo">Ciclo atual</div>
             <div className="maint-ciclo-linha">
@@ -424,7 +481,7 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
             </div>
             {!item.waiting && (
               <div className="maint-ciclo-novo">
-                <span className="maint-ciclo-novo-rotulo">Início do novo ciclo (Ciclo {cicloAtual.n + 1})</span>
+                <span className="maint-ciclo-novo-rotulo">Próximo ciclo (Ciclo {cicloAtual.n + 1}) começa em</span>
                 <input
                   type="date"
                   value={novoInicio}
@@ -453,6 +510,15 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
               </div>
             )}
           </div>
+          {/* Prazo, anotações e avisos viram abas: uma aberta por vez, para a tela não ficar comprida. */}
+          <div className="note-options-chips maint-abas" role="tablist" aria-label="Configurar o item">
+            {([["prazo", "Prazo"], ["anotacoes", "Anotações"], ["avisos", "Quando o FARO avisa"]] as const).map(([v, nome]) => (
+              <button key={v} type="button" role="tab" aria-selected={aba === v} className={"note-chip" + (aba === v ? " active" : "")} onClick={() => setAba(v)}>
+                {nome}
+              </button>
+            ))}
+          </div>
+          {aba === "prazo" && (
           <div className="maint-secao">
           <div className="maint-secao-titulo">Prazo</div>
           <div className="prop-list">
@@ -540,6 +606,8 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
           )}
           </div>
 
+          )}
+          {aba === "anotacoes" && (
           <div className="maint-secao">
           <div className="maint-secao-titulo">Anotações</div>
           <label className="prop-row prop-row-empilhada">
@@ -558,6 +626,8 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
 
           </div>
 
+          )}
+          {aba === "avisos" && (
           <div className="maint-secao maint-momentos">
             <div className="maint-secao-titulo">Quando o FARO avisa</div>
             <div className="maint-explain">
@@ -743,60 +813,6 @@ function ItemRow({ item, asset }: { item: MaintenanceItem; asset: MaintenanceAss
           </label>
           </div>
 
-          {historico.length > 0 && (
-            <div className="maint-history maint-secao">
-              <div className="maint-secao-titulo">Rodadas já feitas</div>
-              {[...rodadas].reverse().map((r) => {
-                const s = historico.find((h) => h.id === r.serviceId)!;
-                return (
-                  <div className="maint-history-row" key={r.serviceId}>
-                    <strong className="maint-rodada-n">Ciclo {r.n}</strong>
-                    {r.inicio && r.fimPrevisto && (
-                      <span className="mono maint-rodada-datas">
-                        {fmtShortDate(r.inicio)} a {fmtShortDate(r.fimPrevisto)}
-                      </span>
-                    )}
-                    <span className="mono maint-rodada-feito">feito em {fmtShortDate(s.doneOn)}</span>
-                    {s.odometer !== null && (
-                      <span className="mono maint-history-km">
-                        {fmtKm(s.odometer)} {asset.odometerUnit}
-                      </span>
-                    )}
-                    {s.costCents !== null && <span className="mono maint-history-cost">{fmtBRL(s.costCents)}</span>}
-                    {s.note && <span className="maint-history-note">{s.note}</span>}
-                    <span className="maint-history-actions">
-                      <button
-                        type="button"
-                        className="icon-btn"
-                        title="Corrigir este serviço"
-                        aria-label={`Corrigir o serviço de ${fmtShortDate(s.doneOn)}`}
-                        onClick={() =>
-                          askConfirm(
-                            `Tem certeza que quer mudar o Ciclo ${r.n}? Ele já passou. O seu ciclo atual é o Ciclo ${cicloAtual.n}.`,
-                            () => abrirForm(s)
-                          )
-                        }
-                      >
-                        <EditIcon />
-                      </button>
-                      <button
-                        type="button"
-                        className="icon-btn danger-hover"
-                        title="Apagar este serviço do histórico"
-                        aria-label={`Apagar o serviço de ${fmtShortDate(s.doneOn)}`}
-                        onClick={() =>
-                          askConfirm(`Apagar o serviço de ${fmtShortDate(s.doneOn)} do histórico?`, () =>
-                            board.deleteMaintenanceService(s.id)
-                          )
-                        }
-                      >
-                        <TrashIcon />
-                      </button>
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
           )}
 
           <div className="edit-actions">
