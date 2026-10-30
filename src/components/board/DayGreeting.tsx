@@ -60,7 +60,7 @@ export function DayGreeting({ onAtrasadas }: { onAtrasadas?: () => void }) {
     <div className="day-greeting">
       <h1 className="day-greeting-text">
         {saudacao}
-        {nome ? `, ${nome}` : ""}.{" "}
+        {nome ? `, ${nome}` : ""} —{" "}
         {partes.length === 0 ? (
           <span className="day-greeting-resto day-greeting-calma">Nada atrasado e nenhuma reunião hoje.</span>
         ) : (
@@ -86,6 +86,7 @@ export function DayGreeting({ onAtrasadas }: { onAtrasadas?: () => void }) {
         <div className="day-greeting-aniv day-greeting-feriado">
           <CalendarCheckIcon />
           <span>
+            <b className="day-greeting-feriado-rotulo">{feriados.length === 1 ? "Feriado" : "Feriados"}</b> ·{" "}
             {feriados.map((f, i) => (
               <span key={f.data}>
                 {i > 0 && " · "}

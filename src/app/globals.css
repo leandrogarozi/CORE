@@ -4094,6 +4094,7 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 
 /* Feriados */
 .day-greeting-feriado svg{ color:var(--accent); }
+.day-greeting-feriado-rotulo{ color:var(--accent); font-weight:650; }
 .week-card-feriado{ font-size:11px; font-weight:600; color:var(--danger); background:color-mix(in srgb, var(--danger) 10%, transparent); border-radius:999px; padding:1px 8px; }
 .week-card-feriado.facultativo{ color:var(--text-muted); background:var(--surface-2); }
 .cal-day-feriado{ display:block; max-width:100%; margin-top:2px; font-size:9.5px; line-height:1.15; font-weight:600; color:var(--danger); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
