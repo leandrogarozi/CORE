@@ -122,6 +122,7 @@ import type {
   TimerKind,
 } from "@/lib/types";
 import { DEFAULT_TAG_COLORS, isMeetingTask } from "@/lib/types";
+import { semAspasDasPontas } from "@/lib/metanoia";
 
 const EMPTY_STATE: BoardState = {
   tasks: [],
@@ -1219,7 +1220,7 @@ export function useBoard(userId: string | null) {
   // Arquivada some da tela mas continua no banco (a pessoa pode ter mudado de ideia e a frase já foi tirada uma vez).
   const addMetanoiaFrase = useCallback(
     (extra: { texto: string; autor?: string | null; fonte?: string | null; tipo?: MetanoiaFrase["tipo"]; origem?: MetanoiaFrase["origem"]; status?: MetanoiaFrase["status"] }): string | null => {
-      const texto = extra.texto.trim();
+      const texto = extra.tipo === "pergunta" ? extra.texto.trim() : semAspasDasPontas(extra.texto);
       if (!userId || !texto) return null;
       const igual = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
       if (stateRef.current.metanoiaFrases.some((f) => igual(f.texto, texto))) return null;

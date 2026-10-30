@@ -1,3 +1,4 @@
+import { semAspasDasPontas } from "@/lib/metanoia";
 import { lembreteDoAniversario, MESES } from "@/lib/board/aniversarios";
 import { dateFromISO, isoAddDays } from "@/lib/date-utils";
 import { TIPOS_DE_CONHECIMENTO, normalizarTipo } from "@/lib/conhecimento";
@@ -793,7 +794,7 @@ export async function proporFrases(args: Args, repo: Repositorio, ctx: Contexto)
   const novos: Parameters<Repositorio["inserirFrases"]>[0] = [];
   const problemas: string[] = [];
   for (const [i, bruto] of lista<Args>(args.frases).entries()) {
-    const t = texto(bruto.texto);
+    const t = semAspasDasPontas(texto(bruto.texto));
     const rotulo = t ? `"${t.slice(0, 40)}…"` : `item ${i + 1}`;
     if (!t) {
       problemas.push(`${rotulo}: sem texto.`);

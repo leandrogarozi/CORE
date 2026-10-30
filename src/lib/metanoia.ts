@@ -219,3 +219,14 @@ export function separarFrases(bruto: string): FraseSeparada[] {
   }
   return saida;
 }
+
+/**
+ * Tira as aspas que embrulham a frase inteira: o cartão já põe as aspas na hora de mostrar, então guardar com aspas
+ * as duplicaria. Aspas no meio do texto (uma palavra citada) ficam como estão.
+ */
+export function semAspasDasPontas(texto: string): string {
+  const t = texto.trim();
+  if (t.length < 3 || !/^["“«]/.test(t) || !/["”»]$/.test(t)) return t;
+  const meio = t.slice(1, -1);
+  return /["“”«»]/.test(meio) ? t : meio.trim();
+}
