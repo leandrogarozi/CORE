@@ -51,6 +51,7 @@ import { ScopeModal } from "./ScopeModal";
 import { ConfirmModal } from "./ConfirmModal";
 import { FaroMascot } from "./FaroMascot";
 import { AnotacoesView } from "./AnotacoesView";
+import { AtualizarApp } from "../AtualizarApp";
 import { DispensaView } from "./DispensaView";
 import { DockFaro } from "./DockFaro";
 import { MobileNav } from "./MobileNav";
@@ -655,6 +656,7 @@ function BoardShell() {
           onNovaTarefa={novaTarefaPelaBarra}
         />
       )}
+      <AtualizarApp />
       <FaroMascot comDock={dockLigado} />
       <WelcomeModal onAbrirConfiguracoes={() => setViewMode("settings")} />
     </div>

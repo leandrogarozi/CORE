@@ -4803,3 +4803,27 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 :root[data-estilo="suave"] .cfg-grupo .cfg-bloco, :root[data-estilo="flutuante"] .cfg-grupo .cfg-bloco{ border-radius:16px; }
 :root[data-estilo="suave"] .synapse-card-body, :root[data-estilo="flutuante"] .synapse-card-body{ margin:0 14px 14px 18px; }
 :root[data-estilo="suave"] .cfg-grupo .cfg-bloco, :root[data-estilo="flutuante"] .cfg-grupo .cfg-bloco{ border:0; }
+
+/* Aviso de versão nova: pílula no alto, no celular e no computador. */
+.atualizar-app{
+  position:fixed; top:calc(10px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%); z-index:80; max-width:calc(100vw - 24px);
+  display:flex; align-items:center; gap:12px; padding:8px 8px 8px 18px; border-radius:999px; background:var(--surface); font-size:12.5px; font-weight:600; color:var(--text);
+  box-shadow:0 18px 40px -14px rgba(30,30,90,.45), 0 0 0 1px color-mix(in srgb, var(--text) 6%, transparent);
+}
+.atualizar-app .btn{ white-space:nowrap; }
+@media (max-width:420px){ .atualizar-app span{ display:none; } .atualizar-app{ padding:6px; } }
+
+/* ==========================================================================
+   Degradê do FARO em tudo que é "principal": dia selecionado, Hoje, ações rápidas, botão de enviar e barras de progresso.
+   Um só token (--grad-roxo): trocando a cor do app, tudo acompanha.
+   ========================================================================== */
+:root[data-estilo="suave"] :is(.day-chip.selected,.today-btn,.quick-action-icon,.quickadd-enviar,.agenda-mes-dia.sel,.dsh-kpi.destaque,.tut-aqui),
+:root[data-estilo="flutuante"] :is(.day-chip.selected,.today-btn,.quick-action-icon,.quickadd-enviar,.agenda-mes-dia.sel,.dsh-kpi.destaque,.tut-aqui){
+  background:var(--grad-roxo); border-color:transparent; color:#fff;
+}
+:root[data-estilo="suave"] :is(.day-chip.selected,.today-btn,.quickadd-enviar), :root[data-estilo="flutuante"] :is(.day-chip.selected,.today-btn,.quickadd-enviar){ box-shadow:0 10px 20px -10px rgba(94,77,235,.7); }
+:root[data-estilo="suave"] .quick-action-icon, :root[data-estilo="flutuante"] .quick-action-icon{ box-shadow:0 8px 16px -8px rgba(94,77,235,.65); }
+:root[data-estilo="suave"] :is(.hp-bar-fill,.dsh-bar span,.checklist-bar-fill,.wa-cap-fill,.welcome-progresso span.feito,.study-bar-fill),
+:root[data-estilo="flutuante"] :is(.hp-bar-fill,.dsh-bar span,.checklist-bar-fill,.wa-cap-fill,.welcome-progresso span.feito,.study-bar-fill){ background:var(--grad-roxo); }
+:root[data-estilo="suave"] :is(.dsh-dia-done,.dsh-legenda-quad.done), :root[data-estilo="flutuante"] :is(.dsh-dia-done,.dsh-legenda-quad.done){ background:linear-gradient(180deg,#7C4DF0,#4A47D5); }
+.atualizar-app span{ white-space:nowrap; }
