@@ -85,12 +85,11 @@ export function MobileNav({
       <nav className="mnav" aria-label="Atalhos">
         {item("Hoje", <HomeIcon />, hojeAtivo && !folha, () => ir(onHoje))}
         {item("Criar", <Mais />, folha === "criar", () => setFolha(folha === "criar" ? null : "criar"))}
-        {/* O FARO no meio: o assistente, onde se fala ou escreve para pedir tarefa, lembrete ou tirar dúvida. */}
-        <button type="button" className="mnav-faro" aria-label="Falar com o FARO" onClick={() => ir(onFalarComFaro)}>
+        {/* O FARO no meio, só o símbolo: abre o assistente, onde se fala ou escreve para pedir tarefa, lembrete ou tirar dúvida. */}
+        <button type="button" className="mnav-item mnav-faro" aria-label="Falar com o FARO" onClick={() => ir(onFalarComFaro)}>
           <span className="mnav-faro-bola">
             <Image src="/faro-mascote.svg" alt="" width={44} height={40} className="mnav-faro-img" />
           </span>
-          <span className="mnav-rotulo">FARO</span>
         </button>
         {item("Aprender", aprenderAtivo ? <BoltIcon filled /> : <BookOpenIcon />, aprenderAtivo || folha === "aprender", () => setFolha(folha === "aprender" ? null : "aprender"))}
         {item("Menu", <MenuIcon />, false, () => ir(onMenu))}
