@@ -23,6 +23,7 @@ import {
   ChecklistIcon,
   CheckIcon,
   FolderIcon,
+  CheckCircleIcon,
   HashIcon,
   PaperclipIcon,
   PlayCircleIcon,
@@ -1138,6 +1139,20 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
           </span>
           <div className="prop-value">
             <TaskCodeField code={t.code} />
+          </div>
+        </div>
+        <div className="prop-row">
+          <span className="prop-label">
+            <CheckCircleIcon /> Status
+          </span>
+          <div className="prop-value" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {/* Muda na hora, sem fechar a edição: dá para conferir a tarefa e concluí-la com ela aberta. */}
+            <StatusPicker
+              statuses={board.state.taskStatuses}
+              currentId={t.statusId}
+              onSelect={(statusId) => board.setTaskStatus(t.id, statusId)}
+            />
+            <span className="hint-text">{(board.state.taskStatuses.find((x) => x.id === t.statusId) ?? board.state.taskStatuses[0])?.label}</span>
           </div>
         </div>
         <div className="prop-row">
