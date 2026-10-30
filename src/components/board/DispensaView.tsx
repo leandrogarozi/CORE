@@ -355,8 +355,7 @@ export function DispensaView({ onBack }: { onBack: () => void }) {
     todos.filter((i) => (f === "comprar" ? precisaComprar(i) : f === "vence" ? situacaoDaValidade(i, hoje) !== null : f === "vender" ? i.forSale : true)).length;
   const categorias = Array.from(new Set(todos.map((i) => i.category).filter(Boolean))).sort((a, b) => a.localeCompare(b, "pt-BR"));
   const q = busca.trim().toLowerCase();
-  const ROTULO_SITUACAO: Record<Filtro, string> = { tudo: "Tudo", comprar: "Comprar", vence: "Vence logo", vender: "Para vender" };
-  const rotuloDoFiltro = [filtro !== "tudo" ? ROTULO_SITUACAO[filtro] : null, categoria].filter(Boolean).join(" · ") || "Tudo";
+
 
   const visiveis = todos
     .filter((i) => {
@@ -418,45 +417,39 @@ export function DispensaView({ onBack }: { onBack: () => void }) {
           </div>
         </div>
 
-        {/* Um botão de filtro só (como o de cor da Metanoia): abre as opções de situação e de categoria. */}
+        {/* Situação sempre à vista; em seguida o filtro de categoria (botão com setinha que abre as categorias). */}
         <div className="disp-filtro">
-          <button type="button" className="btn btn-ghost disp-filtro-botao" aria-expanded={filtroAberto} onClick={() => setFiltroAberto((v) => !v)}>
-            <span>Filtrar</span>
-            <b>{rotuloDoFiltro}</b>
-            <ChevronIcon />
-          </button>
-          {(filtro !== "tudo" || categoria) && (
-            <button type="button" className="link-acao" onClick={() => { setFiltro("tudo"); setCategoria(null); }}>
-              Limpar filtro
+          <div className="view-toggle disp-filtros">
+            {pilula("tudo", "Tudo")}
+            {pilula("comprar", "Comprar")}
+            {pilula("vence", "Vence logo")}
+            {pilula("vender", "Para vender")}
+          </div>
+          {categorias.length > 0 && (
+            <button type="button" className="btn btn-ghost disp-filtro-botao" aria-expanded={filtroAberto} onClick={() => setFiltroAberto((v) => !v)}>
+              <span>Categoria</span>
+              <b>{categoria ?? "Todas"}</b>
+              <ChevronIcon />
+            </button>
+          )}
+          {categoria && (
+            <button type="button" className="link-acao" onClick={() => setCategoria(null)}>
+              Limpar
             </button>
           )}
         </div>
-        {filtroAberto && (
+        {filtroAberto && categorias.length > 0 && (
           <div className="disp-filtro-painel">
-            <div className="disp-filtro-grupo">
-              <span className="disp-filtro-titulo">Situação</span>
-              <div className="view-toggle disp-filtros">
-                {pilula("tudo", "Tudo")}
-                {pilula("comprar", "Comprar")}
-                {pilula("vence", "Vence logo")}
-                {pilula("vender", "Para vender")}
-              </div>
+            <div className="disp-categorias-linha">
+              <button type="button" className={"disp-cat" + (categoria === null ? " active" : "")} onClick={() => { setCategoria(null); setFiltroAberto(false); }}>
+                Todas
+              </button>
+              {categorias.map((c) => (
+                <button key={c} type="button" className={"disp-cat" + (categoria === c ? " active" : "")} onClick={() => { setCategoria(categoria === c ? null : c); setFiltroAberto(false); }}>
+                  {c}
+                </button>
+              ))}
             </div>
-            {categorias.length > 0 && (
-              <div className="disp-filtro-grupo">
-                <span className="disp-filtro-titulo">Categoria</span>
-                <div className="disp-categorias-linha">
-                  <button type="button" className={"disp-cat" + (categoria === null ? " active" : "")} onClick={() => setCategoria(null)}>
-                    Todas
-                  </button>
-                  {categorias.map((c) => (
-                    <button key={c} type="button" className={"disp-cat" + (categoria === c ? " active" : "")} onClick={() => setCategoria(categoria === c ? null : c)}>
-                      {c}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         )}
         {todos.length > 6 && (

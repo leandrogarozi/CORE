@@ -423,7 +423,7 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
               </div>
             )}
             <div className="study-colar">
-              <button type="button" className="btn btn-ghost" onClick={() => setColando((v) => !v)}>
+              <button type="button" className="btn btn-accent" onClick={() => setColando((v) => !v)}>
                 {colando ? "Fechar a lista colada" : "Colar uma lista de módulos"}
               </button>
               {colando && (
