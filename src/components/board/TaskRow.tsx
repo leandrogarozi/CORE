@@ -23,7 +23,6 @@ import {
   ChecklistIcon,
   CheckIcon,
   FolderIcon,
-  CheckCircleIcon,
   HashIcon,
   PaperclipIcon,
   PlayCircleIcon,
@@ -1111,6 +1110,12 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
       {/* Salvar e fechar no TOPO também: antes só existia lá embaixo, e quem
           abria uma tarefa longa tinha que rolar a tela inteira só pra fechar. */}
       <div className="edit-title-row">
+        {/* O mesmo status de sempre, lá em cima: muda na hora, sem fechar a edição. */}
+        <StatusPicker
+          statuses={board.state.taskStatuses}
+          currentId={t.statusId}
+          onSelect={(statusId) => board.setTaskStatus(t.id, statusId)}
+        />
         <input
           type="text"
           className="edit-title-input"
@@ -1139,20 +1144,6 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
           </span>
           <div className="prop-value">
             <TaskCodeField code={t.code} />
-          </div>
-        </div>
-        <div className="prop-row">
-          <span className="prop-label">
-            <CheckCircleIcon /> Status
-          </span>
-          <div className="prop-value" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            {/* Muda na hora, sem fechar a edição: dá para conferir a tarefa e concluí-la com ela aberta. */}
-            <StatusPicker
-              statuses={board.state.taskStatuses}
-              currentId={t.statusId}
-              onSelect={(statusId) => board.setTaskStatus(t.id, statusId)}
-            />
-            <span className="hint-text">{(board.state.taskStatuses.find((x) => x.id === t.statusId) ?? board.state.taskStatuses[0])?.label}</span>
           </div>
         </div>
         <div className="prop-row">

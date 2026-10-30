@@ -62,10 +62,10 @@ export function DayGreeting({ onAtrasadas }: { onAtrasadas?: () => void }) {
         {saudacao}
         {nome ? `, ${nome}` : ""} —{" "}
         {partes.length === 0 ? (
-          <span className="day-greeting-resto day-greeting-calma">Nada atrasado e nenhuma reunião hoje.</span>
+          <span className="day-greeting-resto day-greeting-calma">nada atrasado e nenhuma reunião hoje</span>
         ) : (
           <span className="day-greeting-resto">
-            Você tem{" "}
+            você tem{" "}
             {partes.map((p, i) => (
               <span key={p.texto}>
                 {i > 0 && " e "}
@@ -76,27 +76,28 @@ export function DayGreeting({ onAtrasadas }: { onAtrasadas?: () => void }) {
                 ) : (
                   <span className={p.cor === "danger" ? "day-greeting-atraso" : "day-greeting-reuniao"}>{p.texto}</span>
                 )}
-                {i === partes.length - 1 && "."}
+              </span>
+            ))}
+          </span>
+        )}
+        {/* O feriado entra na mesma linha, depois de uma barra, e acompanha o fim da frase: se não couber, desce junto. */}
+        {feriados.length > 0 && (
+          <span className="day-greeting-resto day-greeting-feriado-inline">
+            <span className="day-greeting-sep" aria-hidden="true">
+              |
+            </span>
+            <CalendarCheckIcon />
+            <b className="day-greeting-feriado-rotulo">{feriados.length === 1 ? "Feriado" : "Feriados"}</b>{" "}
+            {feriados.map((f, i) => (
+              <span key={f.data}>
+                {i > 0 && " · "}
+                {rotuloDoDia(f.data, hoje)}: {f.nome}
+                {f.tipo === "facultativo" ? " (ponto facultativo)" : ""}
               </span>
             ))}
           </span>
         )}
       </h1>
-      {feriados.length > 0 && (
-        <div className="day-greeting-aniv day-greeting-feriado">
-          <CalendarCheckIcon />
-          <span>
-            <b className="day-greeting-feriado-rotulo">{feriados.length === 1 ? "Feriado" : "Feriados"}</b> ·{" "}
-            {feriados.map((f, i) => (
-              <span key={f.data}>
-                {i > 0 && " · "}
-                <b>{rotuloDoDia(f.data, hoje)}:</b> {f.nome}
-                {f.tipo === "facultativo" ? " (ponto facultativo)" : ""}
-              </span>
-            ))}
-          </span>
-        </div>
-      )}
       {aniversarios.length > 0 && (
         <div className="day-greeting-aniv">
           <GiftIcon />
