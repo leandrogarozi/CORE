@@ -1863,11 +1863,11 @@ function WhatsAppCostBox() {
  * Tons escolhidos em vez de seletor livre: um seletor aberto deixa escolher um
  * verde-limão forte, e aí o fundo briga com o roxo dos botões e das barras.
  */
-// Estilo visual dos cartões: vale só neste aparelho (como o tema claro/escuro). "Clássico" é o de sempre.
+// Estilo visual dos cartões: vale só neste aparelho (como o tema claro/escuro). O padrão é o Cartão flutuante; "Clássico" é o visual antigo.
 const ESTILOS_VISUAIS = [
-  { id: "classico", nome: "Clássico", desc: "O visual de sempre: cartões brancos de contorno suave." },
+  { id: "classico", nome: "Clássico", desc: "O visual de antes: cartões brancos de contorno suave." },
   { id: "suave", nome: "Suave", desc: "Cartões de vidro: translúcidos, com desfoque, cantos bem redondos e sombra macia." },
-  { id: "flutuante", nome: "Cartão flutuante", desc: "Cartões brancos que flutuam, com sombra funda; a Metanoia vira um cartão roxo em destaque." },
+  { id: "flutuante", nome: "Cartão flutuante (padrão)", desc: "Cartões brancos que flutuam, com sombra funda; a Metanoia vira um cartão roxo em destaque." },
 ] as const;
 
 function inscreverEstilo(avisar: () => void) {
@@ -1890,13 +1890,13 @@ function EstiloVisualBox() {
   const { board } = useBoardCtx();
   const estilo = useSyncExternalStore(
     inscreverEstilo,
-    () => document.documentElement.dataset.estilo ?? "classico",
-    () => "classico"
+    () => document.documentElement.dataset.estilo ?? "flutuante",
+    () => "flutuante"
   );
   const escolher = gravarEstilo;
   const cinza = (board.state.settings.bgTone ?? TOM_PADRAO) === SEM_COR;
   return (
-    <CollapsibleBox title="Estilo dos cartões" icon={<PaletteIcon />} resumo="Clássico, Suave (vidro) ou Cartão flutuante. No escuro, os dois ficam em roxo profundo." abertoInicial>
+    <CollapsibleBox title="Estilo dos cartões" icon={<PaletteIcon />} resumo="Cartão flutuante (padrão), Suave (vidro) ou Clássico. No escuro, ficam em roxo profundo." abertoInicial>
       <div className="note-options-chips" role="group" aria-label="Estilo dos cartões">
         {ESTILOS_VISUAIS.map((e) => (
           <button key={e.id} type="button" className={"note-chip" + (estilo === e.id ? " active" : "")} aria-pressed={estilo === e.id} onClick={() => escolher(e.id)}>

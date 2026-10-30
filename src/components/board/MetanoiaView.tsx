@@ -185,6 +185,10 @@ function Cartao({ frase, aprovando, naoListada }: { frase: MetanoiaFrase; aprova
   );
 }
 
+// Cores e degradês prontos para escolher com um toque (dá para usar outra no seletor).
+const CORES_PRONTAS = ["#4A47D5", "#7C4DF0", "#1D4ED8", "#0F766E", "#B45309", "#BE185D", "#111111", "#64748B"];
+const DEGRADES_PRONTOS = ["#4A47D5>#7C4DF0", "#1D4ED8>#06B6D4", "#BE185D>#F59E0B", "#0F766E>#22C55E", "#111111>#4A47D5", "#7C4DF0>#EC4899"];
+
 export function MetanoiaView({ onBack, alvo }: { onBack: () => void; alvo?: { id: string; editar: boolean } | null }) {
   const { board, askConfirm } = useBoardCtx();
   const s = board.state.settings;
@@ -351,53 +355,84 @@ export function MetanoiaView({ onBack, alvo }: { onBack: () => void; alvo?: { id
           <span className="hint-text">A notificação precisa estar ligada em Configurações. Por WhatsApp ainda não, para não gastar crédito.</span>
           <div className="meta-aparencia">
             <span className="hint-text">Aparência do cartão na tela inicial e ao abrir pela notificação</span>
-            <div className="meta-vezes" role="group" aria-label="Aparência">
-              {(["auto", "claro", "escuro"] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  className={"meeting-modo-btn" + (!s.metanoiaCor && s.metanoiaTema === t ? " ativo" : "")}
-                  onClick={() => {
-                    setAbrirCores(null);
-                    board.updateSettings({ metanoiaTema: t, metanoiaCor: null });
-                  }}
-                >
-                  {t === "auto" ? "Igual ao app" : t === "claro" ? "Fundo branco" : "Fundo preto"}
-                </button>
-              ))}
-              <button
-                type="button"
-                className={"meeting-modo-btn" + (s.metanoiaCor && !s.metanoiaCor.includes(">") ? " ativo" : "")}
-                aria-expanded={abrirCores === "cor"}
-                onClick={() => {
-                  setAbrirCores(abrirCores === "cor" ? null : "cor");
-                  if (!s.metanoiaCor || s.metanoiaCor.includes(">")) board.updateSettings({ metanoiaCor: coresDoFundo(s.metanoiaCor ?? "#1d4ed8")[0] });
-                }}
-              >
-                Cor
-              </button>
-              <button
-                type="button"
-                className={"meeting-modo-btn" + (s.metanoiaCor?.includes(">") ? " ativo" : "")}
-                aria-expanded={abrirCores === "degrade"}
-                onClick={() => {
-                  setAbrirCores(abrirCores === "degrade" ? null : "degrade");
-                  if (!s.metanoiaCor?.includes(">")) board.updateSettings({ metanoiaCor: `${coresDoFundo(s.metanoiaCor ?? "#1d4ed8")[0]}>#7e22ce` });
-                }}
-              >
-                Degradê
-              </button>
+            <div className="meta-amostras" role="group" aria-label="Aparência do cartão">
+              {(
+                [
+                  { id: "auto", nome: "Igual ao app", fundo: "linear-gradient(135deg,#fff 50%,#111 50%)" },
+                  { id: "escuro", nome: "Preto", fundo: "#111" },
+                  { id: "claro", nome: "Branco", fundo: "#fff" },
+                ] as const
+              ).map((o) => {
+                const ativo = !s.metanoiaCor && s.metanoiaTema === o.id;
+                return (
+                  <button
+                    key={o.id}
+                    type="button"
+                    className={"meta-amostra" + (ativo ? " ativo" : "")}
+                    aria-pressed={ativo}
+                    onClick={() => {
+                      setAbrirCores(null);
+                      board.updateSettings({ metanoiaTema: o.id, metanoiaCor: null });
+                    }}
+                  >
+                    <span className="meta-amostra-bola" style={{ background: o.fundo }} />
+                    {o.nome}
+                  </button>
+                );
+              })}
+              {(() => {
+                const ehCor = !!s.metanoiaCor && !s.metanoiaCor.includes(">");
+                return (
+                  <button
+                    type="button"
+                    className={"meta-amostra" + (ehCor ? " ativo" : "")}
+                    aria-pressed={ehCor}
+                    aria-expanded={abrirCores === "cor"}
+                    onClick={() => {
+                      setAbrirCores(abrirCores === "cor" ? null : "cor");
+                      if (!s.metanoiaCor || s.metanoiaCor.includes(">")) board.updateSettings({ metanoiaCor: coresDoFundo(s.metanoiaCor ?? "#4A47D5")[0] });
+                    }}
+                  >
+                    <span className="meta-amostra-bola" style={{ background: ehCor ? s.metanoiaCor! : "conic-gradient(#ef4444,#f59e0b,#22c55e,#06b6d4,#6366f1,#d946ef,#ef4444)" }} />
+                    Escolher cor
+                  </button>
+                );
+              })()}
+              {(() => {
+                const ehDegrade = !!s.metanoiaCor?.includes(">");
+                return (
+                  <button
+                    type="button"
+                    className={"meta-amostra" + (ehDegrade ? " ativo" : "")}
+                    aria-pressed={ehDegrade}
+                    aria-expanded={abrirCores === "degrade"}
+                    onClick={() => {
+                      setAbrirCores(abrirCores === "degrade" ? null : "degrade");
+                      if (!s.metanoiaCor?.includes(">")) board.updateSettings({ metanoiaCor: "#4A47D5>#7C4DF0" });
+                    }}
+                  >
+                    <span className="meta-amostra-bola" style={{ background: ehDegrade ? fundoDaCor(s.metanoiaCor!) : "linear-gradient(135deg,#4A47D5,#7C4DF0)" }} />
+                    Escolher degradê
+                  </button>
+                );
+              })()}
             </div>
-            {abrirCores === "cor" && s.metanoiaCor && (
+            {abrirCores === "cor" && s.metanoiaCor && !s.metanoiaCor.includes(">") && (
               <div className="meta-cores">
+                {CORES_PRONTAS.map((c) => (
+                  <button key={c} type="button" className={"meta-cor-pronta" + (s.metanoiaCor?.toLowerCase() === c.toLowerCase() ? " ativo" : "")} style={{ background: c }} aria-label={`Cor ${c}`} onClick={() => board.updateSettings({ metanoiaCor: c })} />
+                ))}
                 <label className="meta-cor-livre">
-                  <input type="color" aria-label="Cor de fundo" value={coresDoFundo(s.metanoiaCor)[0]} onChange={(e) => board.updateSettings({ metanoiaCor: e.target.value })} />
-                  Toque para escolher a cor
+                  <input type="color" aria-label="Outra cor de fundo" value={coresDoFundo(s.metanoiaCor)[0]} onChange={(e) => board.updateSettings({ metanoiaCor: e.target.value })} />
+                  Outra cor
                 </label>
               </div>
             )}
             {abrirCores === "degrade" && s.metanoiaCor?.includes(">") && (
               <div className="meta-cores">
+                {DEGRADES_PRONTOS.map((d) => (
+                  <button key={d} type="button" className={"meta-cor-pronta" + (s.metanoiaCor === d ? " ativo" : "")} style={{ background: fundoDaCor(d) }} aria-label={`Degradê ${d}`} onClick={() => board.updateSettings({ metanoiaCor: d })} />
+                ))}
                 {[0, 1].map((i) => (
                   <label key={i} className="meta-cor-livre">
                     <input
@@ -410,7 +445,7 @@ export function MetanoiaView({ onBack, alvo }: { onBack: () => void; alvo?: { id
                         board.updateSettings({ metanoiaCor: duas.join(">") });
                       }}
                     />
-                    {i === 0 ? "Cor do começo" : "Cor do fim"}
+                    {i === 0 ? "Começo" : "Fim"}
                   </label>
                 ))}
               </div>

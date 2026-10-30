@@ -40,7 +40,7 @@ export const TONS_DO_FUNDO: TomDoFundo[] = [
   { id: "cinza", rotulo: "Cinza", base: [100, 105, 125], apoio: [90, 100, 130] },
 ];
 
-export const TOM_PADRAO = "roxo";
+export const TOM_PADRAO = SEM_COR;
 export const INTENSIDADE_PADRAO: IntensidadeDoFundo = 3;
 
 /**

@@ -38,8 +38,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               "document.documentElement.dataset.theme=e?'dark':'light';}" +
               "catch(_){document.documentElement.dataset.theme='light';}" +
               "try{var z=localStorage.getItem('faro-estilo');" +
-              "document.documentElement.dataset.estilo=z==='suave'||z==='flutuante'?z:'classico';}" +
-              "catch(_){document.documentElement.dataset.estilo='classico';}})()",
+              "document.documentElement.dataset.estilo=z==='suave'||z==='classico'?z:'flutuante';}" +
+              "catch(_){document.documentElement.dataset.estilo='flutuante';}})()",
           }}
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
