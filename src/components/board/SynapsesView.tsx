@@ -170,6 +170,8 @@ export function SynapseCard({ synapse, ideia = false }: { synapse: Synapse; idei
             )}
           </label>
 
+          {/* O botão de perguntas fica na sinapse e dentro de cada parte do estudo; a visão geral é só um resumo. */}
+          {!ideia && (
           <PerguntasDaIA
             titulo={cleanTitle}
             texto={stripHtml(learning)}
@@ -180,7 +182,7 @@ export function SynapseCard({ synapse, ideia = false }: { synapse: Synapse; idei
                 .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
                 .map((f) => f.texto),
             ]}
-            podeNaSinapse={!ideia}
+            podeNaSinapse
             jaTem={stripHtml(questions).length > 0}
             onEnviar={(naSinapse, naMetanoia) => {
               let nSinapse = 0;
@@ -196,11 +198,13 @@ export function SynapseCard({ synapse, ideia = false }: { synapse: Synapse; idei
               }
               // Marcar o check é a aprovação: a pergunta entra na Metanoia já aprovada.
               const nMetanoia = naMetanoia.filter(
-                (q) => board.addMetanoiaFrase({ texto: q, tipo: "pergunta", origem: "ia", fonte: `${ideia ? "Ideia" : "Sinapse"}: ${cleanTitle}`, status: "aprovada" }) !== null
+                (q) => board.addMetanoiaFrase({ texto: q, tipo: "pergunta", origem: "ia", fonte: `${"Sinapse"}: ${cleanTitle}`, status: "aprovada" }) !== null
               ).length;
               return { naSinapse: nSinapse, naMetanoia: nMetanoia };
             }}
           />
+
+          )}
 
           {ideia && synapse.tag === "estudo" && <StudyParts synapse={synapse} />}
 
