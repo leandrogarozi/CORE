@@ -2589,6 +2589,8 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .perg-ia-cab span{ width:64px; text-align:center; }
 .perg-ia-linha{ display:flex; align-items:center; gap:4px; padding:8px 0; border-top:1px solid var(--line); }
 .perg-ia-texto{ flex:1; min-width:0; font-size:13.5px; line-height:1.45; overflow-wrap:anywhere; }
+.perg-ia-edicao{ flex:1; min-width:0; font:inherit; font-size:13.5px; line-height:1.45; padding:4px 8px; border:1px solid var(--accent); border-radius:9px; background:var(--surface); color:var(--text); resize:vertical; }
+.perg-ia-editar{ flex:none; margin:0 8px; }
 .perg-ia-check{ width:64px; display:flex; justify-content:center; align-items:center; min-height:32px; cursor:pointer; }
 .perg-ia-check input{ width:18px; height:18px; accent-color:var(--accent); cursor:pointer; }
 .perg-ia-rodape{ display:flex; gap:8px; flex-wrap:wrap; border-top:1px solid var(--line); padding-top:12px; margin-top:4px; }
