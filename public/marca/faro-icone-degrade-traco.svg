@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4A47D5"/><stop offset="1" stop-color="#7C4DF0"/></linearGradient>
+    <clipPath id="fora"><path clip-rule="evenodd" d="M0 0H96V96H0Z M27 58C27 39.94 29.94 37 48 37S69 39.94 69 58 66.06 79 48 79 27 76.06 27 58Z"/></clipPath>
+  </defs>
+  <rect width="512" height="512" fill="url(#g)"/>
+  <g transform="translate(16 -24) scale(5)" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(0 -4)">
+      <g clip-path="url(#fora)">
+        <rect x="17" y="34.5" width="9" height="23" rx="4.5"/>
+        <g transform="translate(96 0) scale(-1 1)"><rect x="17" y="34.5" width="9" height="23" rx="4.5"/></g>
+      </g>
+      <path d="M27 58C27 39.94 29.94 37 48 37S69 39.94 69 58 66.06 79 48 79 27 76.06 27 58Z"/>
+      <path d="M40.5 53.5V62.5"/><path d="M55.5 53.5V62.5"/><path d="M38 87H58"/>
+    </g>
+  </g>
+</svg>
