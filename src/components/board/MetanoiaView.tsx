@@ -27,7 +27,6 @@ function QuantasVezes({ valor, max, rotulo, onChange }: { valor: number; max: nu
   const escolher = (n: number) => onChange(Math.min(max, Math.max(0, Math.round(Number.isFinite(n) ? n : 0))));
   return (
     <>
-      <span className="meta-sec-rotulo">Quantas {rotulo} por dia</span>
       <div className="meta-vezes" role="group" aria-label={`Quantas ${rotulo} por dia`}>
         {[0, 1, 2, 3].map((n) => (
           <button key={n} type="button" className={"meeting-modo-btn" + (valor === n ? " ativo" : "")} onClick={() => escolher(n)}>
@@ -36,7 +35,7 @@ function QuantasVezes({ valor, max, rotulo, onChange }: { valor: number; max: nu
         ))}
       </div>
       <label className="meta-quantas">
-        <span>Ou escolha outra quantidade (0 a {max}):</span>
+        <span>ou outra quantidade (0 a {max}):</span>
         <input type="number" inputMode="numeric" min={0} max={max} value={valor} aria-label={`Quantas ${rotulo} por dia, de 0 a ${max}`} onChange={(e) => escolher(Number(e.target.value))} />
         <span>por dia</span>
       </label>
@@ -52,7 +51,6 @@ const semAcento = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, 
 function Janela({ inicio, fim, horarios, onInicio, onFim }: { inicio: string; fim: string; horarios: string[]; onInicio: (v: string) => void; onFim: (v: string) => void }) {
   return (
     <>
-      <span className="meta-sec-rotulo">Em que horário</span>
       <div className="meta-janela">
         <span>A partir das</span>
         <TimePicker value={inicio} onChange={onInicio} />
@@ -324,40 +322,62 @@ export function MetanoiaView({ onBack, alvo }: { onBack: () => void; alvo?: { id
 
         <div className="diet-page-card">
           <span className="diet-card-titulo">{ehPergunta ? "Quando o FARO me pergunta" : "Quando o FARO me lembra"}</span>
-          {ehPergunta ? (
-            <>
-              <QuantasVezes valor={s.metanoiaPerguntasVezes} max={MAX_PERGUNTAS_POR_DIA} rotulo="perguntas" onChange={(n) => board.updateSettings({ metanoiaPerguntasVezes: n })} />
-              {horariosDasPerguntas.length > 0 && (
-                <Janela
-                  inicio={s.metanoiaPerguntasInicio}
-                  fim={s.metanoiaPerguntasFim}
-                  horarios={horariosDasPerguntas}
-                  onInicio={(v) => board.updateSettings({ metanoiaPerguntasInicio: v })}
-                  onFim={(v) => board.updateSettings({ metanoiaPerguntasFim: v })}
-                />
+          <div className="meta-linha">
+            <div className="meta-linha-rotulo">
+              <b>Quantas {ehPergunta ? "perguntas" : "frases"} por dia</b>
+              <span>Em zero, fica desligado.</span>
+            </div>
+            <div className="meta-linha-controle">
+              {ehPergunta ? (
+                <QuantasVezes valor={s.metanoiaPerguntasVezes} max={MAX_PERGUNTAS_POR_DIA} rotulo="perguntas" onChange={(n) => board.updateSettings({ metanoiaPerguntasVezes: n })} />
+              ) : (
+                <QuantasVezes valor={s.metanoiaVezes} max={MAX_FRASES_POR_DIA} rotulo="frases" onChange={(n) => board.updateSettings({ metanoiaVezes: n })} />
               )}
-            </>
-          ) : (
-            <>
-              <QuantasVezes valor={s.metanoiaVezes} max={MAX_FRASES_POR_DIA} rotulo="frases" onChange={(n) => board.updateSettings({ metanoiaVezes: n })} />
-              {horarios.length > 0 && (
-                <Janela
-                  inicio={s.metanoiaInicio}
-                  fim={s.metanoiaFim}
-                  horarios={horarios}
-                  onInicio={(v) => board.updateSettings({ metanoiaInicio: v })}
-                  onFim={(v) => board.updateSettings({ metanoiaFim: v })}
-                />
-              )}
-            </>
+            </div>
+          </div>
+          {(ehPergunta ? horariosDasPerguntas : horarios).length > 0 && (
+            <div className="meta-linha">
+              <div className="meta-linha-rotulo">
+                <b>Em que horário</b>
+                <span>Espalhadas por igual entre os dois horários.</span>
+              </div>
+              <div className="meta-linha-controle">
+                {ehPergunta ? (
+                  <Janela
+                    inicio={s.metanoiaPerguntasInicio}
+                    fim={s.metanoiaPerguntasFim}
+                    horarios={horariosDasPerguntas}
+                    onInicio={(v) => board.updateSettings({ metanoiaPerguntasInicio: v })}
+                    onFim={(v) => board.updateSettings({ metanoiaPerguntasFim: v })}
+                  />
+                ) : (
+                  <Janela
+                    inicio={s.metanoiaInicio}
+                    fim={s.metanoiaFim}
+                    horarios={horarios}
+                    onInicio={(v) => board.updateSettings({ metanoiaInicio: v })}
+                    onFim={(v) => board.updateSettings({ metanoiaFim: v })}
+                  />
+                )}
+              </div>
+            </div>
           )}
-          <label className="diet-channel-option" style={{ marginTop: 10 }}>
-            <ToggleSwitch checked={s.metanoiaPush} ariaLabel="Avisar por notificação" onChange={(v) => board.updateSettings({ metanoiaPush: v })} />
-            Por notificação no celular
-          </label>
-          <span className="hint-text">A notificação precisa estar ligada em Configurações. Por WhatsApp ainda não, para não gastar crédito.</span>
+          <div className="meta-linha">
+            <div className="meta-linha-rotulo">
+              <b>Por notificação no celular</b>
+              <span>Precisa estar ligada em Configurações. Por WhatsApp ainda não, para não gastar crédito.</span>
+            </div>
+            <div className="meta-linha-controle">
+              <ToggleSwitch checked={s.metanoiaPush} ariaLabel="Avisar por notificação" onChange={(v) => board.updateSettings({ metanoiaPush: v })} />
+            </div>
+          </div>
           <div className="meta-aparencia">
-            <span className="meta-sec-rotulo">Cartão da tela inicial</span>
+            <div className="meta-linha">
+            <div className="meta-linha-rotulo">
+              <b>Cartão da tela inicial</b>
+              <span>Cor, preto, branco ou degradê.</span>
+            </div>
+            <div className="meta-linha-controle">
             <button type="button" className="btn btn-ghost meta-cor-botao" aria-expanded={mostrarCor} onClick={() => setMostrarCor((v) => !v)}>
               <span
                 className="meta-amostra-mini"
@@ -366,8 +386,10 @@ export function MetanoiaView({ onBack, alvo }: { onBack: () => void; alvo?: { id
               Configuração de cor
               <ChevronIcon />
             </button>
+            </div>
+            </div>
             {mostrarCor && (
-            <>
+            <div className="meta-linha-extra">
             <div className="meta-amostras" role="group" aria-label="Aparência do cartão">
               {(
                 [
@@ -463,7 +485,7 @@ export function MetanoiaView({ onBack, alvo }: { onBack: () => void; alvo?: { id
                 ))}
               </div>
             )}
-            </>
+            </div>
             )}
           </div>
         </div>

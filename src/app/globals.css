@@ -3935,7 +3935,7 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .study-part-title{ flex:1 1 160px; min-width:0; font-weight:600; border:0; background:transparent; font:inherit; font-weight:600; font-size:13.5px; color:var(--text); }
 .study-part-kind{ flex:none; font-size:11px; font-weight:700; text-transform:capitalize; padding:3px 10px; border-radius:999px; background:var(--accent-soft); color:var(--accent); }
 .study-part-date{ flex:none; font-size:12px; border:0; background:transparent; color:var(--text-muted); width:116px; }
-.study-part-previa{ padding:0 14px 10px 40px; font-size:12.5px; color:var(--text-muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.study-part-previa{ margin:0 14px 12px 40px; padding:0; font-size:12.5px; color:var(--text-muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 .study-part-body{ padding:4px 12px 12px; display:flex; flex-direction:column; gap:8px; }
 .study-part-roteiro{ align-self:flex-start; font-size:12px; }
 
@@ -4206,3 +4206,21 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .meta-cor-botao svg{ width:12px; height:12px; }
 .meta-amostra-mini{ width:16px; height:16px; border-radius:50%; border:1px solid rgba(0,0,0,.18); flex:none; }
 .meta-aparencia{ margin-top:6px; }
+
+/* Metanoia > "Quando o FARO me lembra": cada ajuste é uma linha (rótulo à esquerda, controle à direita), separada por fio. */
+.meta-linha{ display:grid; grid-template-columns:minmax(180px,260px) 1fr; gap:8px 24px; align-items:center; padding:14px 0; border-top:1px solid var(--linha); }
+.diet-card-titulo + .meta-linha{ margin-top:10px; }
+.meta-linha-rotulo{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+.meta-linha-rotulo b{ font-size:13.5px; font-weight:600; }
+.meta-linha-rotulo span{ font-size:12px; color:var(--text-muted); line-height:1.4; }
+.meta-linha-controle{ display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; min-width:0; }
+.meta-linha-controle .meta-vezes{ margin:0; }
+.meta-linha-controle .meta-quantas{ margin:0; display:inline-flex; align-items:center; gap:8px; font-size:12.5px; color:var(--text-muted); }
+.meta-linha-controle .meta-quantas input{ width:64px; }
+.meta-linha-controle .meta-janela{ margin:0; }
+.meta-linha-controle .hint-text{ flex-basis:100%; }
+.meta-linha-extra{ border-top:1px solid var(--linha); padding:14px 0 6px; }
+@media (max-width:720px){ .meta-linha{ grid-template-columns:1fr; } }
+
+.note-field-box.collapsed{ margin-bottom:2px; }
+.study-part-body .note-field{ margin-bottom:6px; }

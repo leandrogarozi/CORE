@@ -63,6 +63,24 @@ export function NoteField({
     setOverflowing(inner.scrollHeight > COLLAPSED_HEIGHT + 2);
   }, [value, showAll, focused]);
 
+  // O editor só aparece depois da primeira renderização, então a medição acima, sozinha, roda com a caixa vazia e o
+  // texto longo ficava cortado sem "Exibir mais" nem esmaecido. Este observador mede de novo quando o conteúdo entra.
+  useEffect(() => {
+    const caixa = boxRef.current;
+    if (!caixa) return;
+    const medir = () => {
+      const inner = caixa.firstElementChild as HTMLElement | null;
+      if (inner) setOverflowing(inner.scrollHeight > COLLAPSED_HEIGHT + 2);
+    };
+    const o = new MutationObserver(medir);
+    o.observe(caixa, { childList: true, subtree: true, characterData: true });
+    const quadro = requestAnimationFrame(medir);
+    return () => {
+      o.disconnect();
+      cancelAnimationFrame(quadro);
+    };
+  }, []);
+
   function handleChange(html: string) {
     latest.current = html;
     onChange(html);
