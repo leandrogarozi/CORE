@@ -2322,21 +2322,22 @@ function PaineisDaTela() {
   );
 }
 
+// A cor de cada grupo é suave e só organiza (ponto no título, filete e ícone dos blocos). Mesma ideia do menu do app financeiro.
 const GRUPOS_DE_CONFIGURACAO = [
-  { id: "aparencia", titulo: "Aparência", sub: "Como o app aparece neste aparelho" },
-  { id: "tarefas", titulo: "Tarefas", sub: "Como as tarefas são organizadas" },
-  { id: "paineis", titulo: "Painéis da tela principal", sub: "Cada painel tem a sua configuração. Aqui você cadastra e liga ou desliga; na tela principal só se preenche." },
-  { id: "menu", titulo: "Painéis do menu", sub: "Escolha o que aparece no menu lateral. Desligado, some do menu; o que você escreveu continua guardado." },
-  { id: "avisos", titulo: "Avisos e custos", sub: "Quando o FARO avisa e quanto custa" },
-  { id: "dados", titulo: "Dados e backup", sub: "Cópias de segurança do que você escreveu" },
-  { id: "conexoes", titulo: "Conexões", sub: "O FARO falando com outras ferramentas" },
-  { id: "ajuda", titulo: "Canal de feedback", sub: "Conte um problema, uma ideia, uma dúvida ou um elogio para quem está construindo o FARO" },
+  { id: "avisos", titulo: "Assistente e avisos", sub: "Quando o FARO avisa e quanto custa", cor: "#3E8E8A" },
+  { id: "conexoes", titulo: "Conexões", sub: "O FARO falando com outras ferramentas", cor: "#4A47D5" },
+  { id: "paineis", titulo: "Painéis da tela principal", sub: "Cada painel tem a sua configuração. Aqui você cadastra e liga ou desliga; na tela principal só se preenche.", cor: "#C28A1E" },
+  { id: "menu", titulo: "Painéis do menu", sub: "Escolha o que aparece no menu lateral. Desligado, some do menu; o que você escreveu continua guardado.", cor: "#C28A1E" },
+  { id: "tarefas", titulo: "Tarefas", sub: "Como as tarefas são organizadas", cor: "#B65C8B" },
+  { id: "aparencia", titulo: "Aparência", sub: "Como o app aparece neste aparelho", cor: "#B65C8B" },
+  { id: "dados", titulo: "Dados e backup", sub: "Cópias de segurança do que você escreveu", cor: "#6E6E78" },
+  { id: "ajuda", titulo: "Canal de feedback", sub: "Conte um problema, uma ideia, uma dúvida ou um elogio para quem está construindo o FARO", cor: "#5B9BD0" },
 ] as const;
 
 function GrupoDeConfiguracao({ id, children }: { id: (typeof GRUPOS_DE_CONFIGURACAO)[number]["id"]; children: ReactNode }) {
   const g = GRUPOS_DE_CONFIGURACAO.find((x) => x.id === id)!;
   return (
-    <section className="cfg-grupo" id={"cfg-" + id}>
+    <section className="cfg-grupo" id={"cfg-" + id} style={{ "--k": g.cor } as React.CSSProperties}>
       <div className="cfg-grupo-cab">
         <h2>{g.titulo}</h2>
         <span>{g.sub}</span>
@@ -2399,8 +2400,24 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
           ))}
         </nav>
         <div className="cfg-conteudo">
-          <GrupoDeConfiguracao id="aparencia">
-            <CorDoFundoBox />
+          <GrupoDeConfiguracao id="avisos">
+            <PushNotificationsBox />
+            <WhatsAppCostBox />
+            {modoDono && <CreditosDoZapBox />}
+            <IaCostBox />
+          </GrupoDeConfiguracao>
+
+          <GrupoDeConfiguracao id="conexoes">
+            <GoogleAgendaBox />
+            <ConectorFaroBox />
+          </GrupoDeConfiguracao>
+
+          <GrupoDeConfiguracao id="paineis">
+            <PaineisDaTela />
+          </GrupoDeConfiguracao>
+
+          <GrupoDeConfiguracao id="menu">
+            <PaineisDoMenu />
           </GrupoDeConfiguracao>
 
           <GrupoDeConfiguracao id="tarefas">
@@ -2478,19 +2495,8 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
       </CollapsibleBox>
           </GrupoDeConfiguracao>
 
-          <GrupoDeConfiguracao id="paineis">
-            <PaineisDaTela />
-          </GrupoDeConfiguracao>
-
-          <GrupoDeConfiguracao id="menu">
-            <PaineisDoMenu />
-          </GrupoDeConfiguracao>
-
-          <GrupoDeConfiguracao id="avisos">
-            <PushNotificationsBox />
-            <WhatsAppCostBox />
-            {modoDono && <CreditosDoZapBox />}
-            <IaCostBox />
+          <GrupoDeConfiguracao id="aparencia">
+            <CorDoFundoBox />
           </GrupoDeConfiguracao>
 
           <GrupoDeConfiguracao id="dados">
@@ -2514,11 +2520,6 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
             <BackupDeAprendizadoBox />
 
             <BackupBox />
-          </GrupoDeConfiguracao>
-
-          <GrupoDeConfiguracao id="conexoes">
-            <GoogleAgendaBox />
-            <ConectorFaroBox />
           </GrupoDeConfiguracao>
 
           <GrupoDeConfiguracao id="ajuda">
