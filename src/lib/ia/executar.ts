@@ -1,4 +1,5 @@
-import type { Birthday, Checklist, ChecklistExpense, DailyLog, Priority, StudyPlan, Task, TaskStatus } from "@/lib/types";
+import type { Birthday, Checklist, ChecklistExpense, DailyLog, PantryItem, Priority, Reminder, StudyPlan, Task, TaskStatus } from "@/lib/types";
+import { acharUmItemPeloNome, aposComprar, ehRemedioOuSaude, lembreteDeCompraPendente } from "@/lib/board/dispensa";
 import { descreverAcao, validarAcao, type AcaoProposta } from "./ferramentas";
 
 /**
@@ -29,6 +30,10 @@ export interface QuadroParaAcoes {
   studyPlans: StudyPlan[];
   updateStudyPlan: (id: string, patch: Partial<StudyPlan>) => void;
   generateStudySessions: (planId: string) => Promise<number>;
+  pantryItems: PantryItem[];
+  updatePantryItem: (id: string, patch: Partial<Omit<PantryItem, "id">>) => void;
+  reminders: Reminder[];
+  completeReminder: (id: string) => void;
   /** O registro de hoje, para somar água em cima do que já tem. */
   logDeHoje: DailyLog | undefined;
 }
@@ -192,6 +197,16 @@ export async function executarAcao(acaoBruta: AcaoProposta, quadro: QuadroParaAc
       quadro.updateDailyLog(hoje, { dietPct: acao.percentual });
       return { ok: true, mensagem: "Dieta de hoje registrada." };
     }
+    case "repor_dispensa": {
+      // Remédio e saúde nunca passam pela IA: não repõe por aqui.
+      const candidatos = quadro.pantryItems.filter((i) => !ehRemedioOuSaude(i));
+      const item = acharUmItemPeloNome(candidatos, acao.item);
+      if (!item) return { ok: false, mensagem: `Não achei "${acao.item}" na dispensa (ou há mais de um parecido). Abra a Dispensa para ajustar.` };
+      quadro.updatePantryItem(item.id, aposComprar(item, acao.quantidade));
+      const lembrete = lembreteDeCompraPendente(quadro.reminders, item.name);
+      if (lembrete) quadro.completeReminder(lembrete.id);
+      return { ok: true, mensagem: `"${item.name}" voltou para a dispensa${lembrete ? " e o lembrete de compra foi concluído" : ""}.` };
+    }
     case "ajustar_plano_de_estudo": {
       const alvo = semAcento(acao.plano);
       const plano =
@@ -247,6 +262,8 @@ function converterParaEntrada(a: AcaoProposta): Record<string, unknown> {
       return { ml: a.ml };
     case "registrar_dieta":
       return { percentual: a.percentual };
+    case "repor_dispensa":
+      return { item: a.item, quantidade: a.quantidade ?? undefined };
     case "ajustar_plano_de_estudo":
       return {
         plano: a.plano,

@@ -3,17 +3,20 @@
 import { useState, type CSSProperties } from "react";
 import { EnviarBtn } from "./EnviarBtn";
 import { useBoardCtx } from "./board-context";
-import { ArchiveIcon, CartIcon, TrashIcon } from "./icons";
+import { ArchiveIcon, BellIcon, CartIcon, CheckIcon, TrashIcon } from "./icons";
 import { TutorialLink } from "./TutorialLink";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import {
   CATEGORIAS_DA_DISPENSA,
   ROTULO_DA_SITUACAO,
+  aposComprar,
   ehRemedioOuSaude,
+  lembreteDeCompraPendente,
   precisaComprar,
   situacaoDaValidade,
+  tituloDoLembreteDeCompra,
 } from "@/lib/board/dispensa";
-import { fmtShortDate, todayISO } from "@/lib/date-utils";
+import { fmtShortDate, isoAddDays, todayISO } from "@/lib/date-utils";
 import { fmtBRL, parseAmountToCents } from "@/lib/money";
 import type { PantryItem, PantryStatus } from "@/lib/types";
 
@@ -42,6 +45,19 @@ function Linha({ item, aberto, onAbrir }: { item: PantryItem; aberto: boolean; o
   }
 
   const [nasCompras, setNasCompras] = useState(false);
+  const lembrete = lembreteDeCompraPendente(board.state.reminders, item.name);
+  const [criandoLembrete, setCriandoLembrete] = useState(false);
+  const [lemData, setLemData] = useState(() => isoAddDays(todayISO(), 1));
+  const [lemHora, setLemHora] = useState("09:00");
+  async function criarLembrete() {
+    const ok = await board.addReminder(tituloDoLembreteDeCompra(item.name), lemData, lemHora);
+    if (ok) setCriandoLembrete(false);
+  }
+  // Comprou: volta a "tenho" e o lembrete de compra, se havia, é concluído.
+  function comprei() {
+    salvar(aposComprar(item));
+    if (lembrete) board.completeReminder(lembrete.id);
+  }
   function paraAsCompras() {
     void board.addShoppingItem("compra", item.name, null);
     setNasCompras(true);
@@ -119,10 +135,40 @@ function Linha({ item, aberto, onAbrir }: { item: PantryItem; aberto: boolean; o
         <div className="disp-corpo">
           {comprar && (
             <div className="disp-aviso">
-              <span>{item.status === "out" || item.quantity <= 0 ? "Acabou." : "Está acabando."} Quer comprar mais?</span>
-              <button type="button" className="btn btn-ghost" onClick={paraAsCompras} disabled={nasCompras}>
-                <CartIcon /> {nasCompras ? "Está nas Compras" : "Colocar nas Compras"}
-              </button>
+              <div className="disp-aviso-topo">
+                <span>{item.status === "out" || item.quantity <= 0 ? "Acabou." : "Está acabando."} Quer comprar mais?</span>
+                <span className="disp-aviso-acoes">
+                  {!lembrete && !criandoLembrete && (
+                    <button type="button" className="btn btn-ghost" onClick={() => setCriandoLembrete(true)}>
+                      <BellIcon /> Criar lembrete para comprar
+                    </button>
+                  )}
+                  <button type="button" className="btn btn-ghost" onClick={paraAsCompras} disabled={nasCompras}>
+                    <CartIcon /> {nasCompras ? "Está nas Compras" : "Colocar nas Compras"}
+                  </button>
+                  <button type="button" className="btn btn-accent" onClick={comprei}>
+                    <CheckIcon /> Comprei
+                  </button>
+                </span>
+              </div>
+              {lembrete && (
+                <div className="hint-text">
+                  Lembrete criado{lembrete.date ? ` para ${fmtShortDate(lembrete.date)}` : ""}
+                  {lembrete.time ? ` às ${lembrete.time}` : ""}. Quando você marcar “Comprei” (ou disser ao FARO que comprou), ele é concluído.
+                </div>
+              )}
+              {criandoLembrete && (
+                <div className="disp-aviso-lembrete">
+                  <input type="date" className="settings-input disp-data" value={lemData} onChange={(e) => setLemData(e.target.value)} aria-label="Dia do lembrete" />
+                  <input type="time" className="settings-input disp-hora" value={lemHora} onChange={(e) => setLemHora(e.target.value)} aria-label="Hora do lembrete" />
+                  <button type="button" className="btn btn-accent" onClick={criarLembrete} disabled={!lemData || !lemHora}>
+                    Criar lembrete
+                  </button>
+                  <button type="button" className="btn btn-ghost" onClick={() => setCriandoLembrete(false)}>
+                    Cancelar
+                  </button>
+                </div>
+              )}
             </div>
           )}
           {campo("Nome", null, texto(item.name, (v) => v && salvar({ name: v }), { label: "Nome" }))}

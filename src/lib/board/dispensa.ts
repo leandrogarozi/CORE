@@ -1,4 +1,4 @@
-import type { PantryItem, PantryStatus } from "@/lib/types";
+import type { PantryItem, PantryStatus, Reminder } from "@/lib/types";
 
 /** Categorias sugeridas na tela; a pessoa pode escrever outra. */
 export const CATEGORIAS_DA_DISPENSA = ["Casa", "Piscina", "Ferramentas", "Pessoal", "Viagem", "Remédios"] as const;
@@ -44,4 +44,29 @@ export function acharNaDispensa(itens: PantryItem[], texto: string): PantryItem[
     const n = semAcento(i.name);
     return n.includes(q) || (palavras.length > 0 && palavras.every((p) => n.includes(p)));
   });
+}
+
+/** O título do lembrete de reposição, o mesmo na tela e quando o FARO cria. */
+export const tituloDoLembreteDeCompra = (nome: string) => `Comprar: ${nome}`;
+
+/** O lembrete "Comprar: X" que ainda está de pé (não feito, não apagado), para dar baixa quando a pessoa comprar. */
+export function lembreteDeCompraPendente(lembretes: Reminder[], nome: string): Reminder | null {
+  const alvo = semAcento(tituloDoLembreteDeCompra(nome)).trim();
+  return lembretes.find((r) => !r.done && !r.deletedAt && semAcento(r.title).trim() === alvo) ?? null;
+}
+
+/** Comprou: volta a "tenho". Quantidade informada vale; sem ela, quem estava em zero passa a ter 1 e o resto fica como está. */
+export function aposComprar(item: Pick<PantryItem, "quantity">, quantidade?: number | null): { quantity: number; status: PantryStatus } {
+  const q = quantidade && quantidade > 0 ? Math.round(quantidade) : item.quantity > 0 ? item.quantity : 1;
+  return { quantity: q, status: "ok" };
+}
+
+/** Acha um item da dispensa pelo nome falado: igual, ou único que contém. Ambíguo ou ausente: null. */
+export function acharUmItemPeloNome(itens: PantryItem[], nome: string): PantryItem | null {
+  const q = semAcento(nome).trim();
+  if (!q) return null;
+  const exato = itens.filter((i) => semAcento(i.name).trim() === q);
+  if (exato.length === 1) return exato[0];
+  const contem = acharNaDispensa(itens, nome);
+  return contem.length === 1 ? contem[0] : null;
 }

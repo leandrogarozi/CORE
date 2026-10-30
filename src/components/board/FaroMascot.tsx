@@ -253,6 +253,10 @@ export function FaroMascot({ comDock = false }: { comDock?: boolean }) {
         studyPlans: board.state.studyPlans,
         updateStudyPlan: board.updateStudyPlan,
         generateStudySessions: board.generateStudySessions,
+        pantryItems: board.state.pantryItems,
+        updatePantryItem: board.updatePantryItem,
+        reminders: board.state.reminders,
+        completeReminder: board.completeReminder,
       },
       today
     );

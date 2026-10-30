@@ -40,6 +40,7 @@ export type AcaoProposta =
   | { tipo: "registrar_sono"; dormiu: string | null; acordou: string | null }
   | { tipo: "registrar_agua"; ml: number }
   | { tipo: "registrar_dieta"; percentual: number }
+  | { tipo: "repor_dispensa"; item: string; quantidade: number | null }
   | {
       tipo: "ajustar_plano_de_estudo";
       plano: string;
@@ -213,6 +214,19 @@ export const FERRAMENTAS_DO_FARO: Anthropic.Tool[] = [
       type: "object",
       properties: { percentual: { type: "integer", minimum: 0, maximum: 100 } },
       required: ["percentual"],
+    },
+  },
+  {
+    name: "repor_dispensa",
+    description:
+      "Marca um item da DISPENSA como comprado de novo (volta para 'tenho'). Use quando ele disser que comprou ou repôs algo que está na dispensa (ex.: 'comprei cloro'). Use o nome como aparece em DISPENSA. Não vale para remédios.",
+    input_schema: {
+      type: "object",
+      properties: {
+        item: { type: "string", description: "Nome do item, exatamente como aparece em DISPENSA." },
+        quantidade: { type: "integer", minimum: 1, description: "Quantas unidades tem agora, só se ele disse." },
+      },
+      required: ["item"],
     },
   },
   {
@@ -395,6 +409,12 @@ export function validarAcao(nome: string, entrada: unknown): ResultadoDaValidaca
         },
       };
     }
+    case "repor_dispensa": {
+      const item = texto(e.item, 120);
+      if (!item) return { ok: false, motivo: "faltou o nome do item da dispensa" };
+      const q = typeof e.quantidade === "number" && Number.isFinite(e.quantidade) && e.quantidade >= 1 && e.quantidade <= 9999 ? Math.round(e.quantidade) : null;
+      return { ok: true, acao: { tipo: "repor_dispensa", item, quantidade: q } };
+    }
     default:
       return { ok: false, motivo: `ferramenta desconhecida: ${nome}` };
   }
@@ -437,6 +457,8 @@ export function descreverAcao(a: AcaoProposta): string {
       return `Somar ${a.ml} ml de água ao total de hoje`;
     case "registrar_dieta":
       return `Registrar a dieta de hoje: ${a.percentual}%`;
+    case "repor_dispensa":
+      return `Dispensa: marcar "${a.item}" como comprado${a.quantidade ? ` (agora ${a.quantidade})` : ""}`;
     case "ajustar_plano_de_estudo": {
       const mudancas = [
         a.horasTotais !== null ? `total ${a.horasTotais} h` : null,

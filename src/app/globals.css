@@ -4432,7 +4432,7 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .disp-qtd b{ min-width:34px; text-align:center; font-size:14px; font-variant-numeric:tabular-nums; }
 .disp-qtd small{ font-weight:500; font-size:11px; color:var(--text-muted); }
 .disp-corpo{ padding:2px 16px 14px 18px; }
-.disp-aviso{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; padding:10px 12px; margin:4px 0 6px; border-radius:var(--r-2, 10px); background:color-mix(in srgb, var(--k) 10%, var(--surface)); font-size:13px; }
+.disp-aviso{ display:flex; flex-direction:column; gap:10px; padding:10px 12px; margin:4px 0 6px; border-radius:var(--r-2, 10px); background:color-mix(in srgb, var(--k) 10%, var(--surface)); font-size:13px; }
 .disp-input{ min-width:200px; flex:1 1 200px; }
 .disp-num{ width:96px; }
 .disp-data{ width:170px; }
@@ -4442,3 +4442,6 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .disp-rodape{ display:flex; justify-content:flex-end; padding-top:10px; border-top:1px solid var(--linha); }
 .disp-ja-tem{ margin:8px 12px 4px; padding:8px 12px; border-radius:10px; font-size:12.5px; line-height:1.45; background:color-mix(in srgb, #C28A1E 14%, var(--surface)); color:var(--text); }
 .disp-un{ width:120px; } .disp-un .disp-input{ min-width:0; width:100%; flex:none; }
+.disp-aviso-topo{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.disp-aviso-acoes, .disp-aviso-lembrete{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.disp-hora{ width:110px; }
