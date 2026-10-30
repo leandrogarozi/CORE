@@ -11,6 +11,7 @@ import { NoteField } from "./NoteField";
 import { BellIcon, CartIcon, ChevronIcon, HeartIcon, SendIcon, TrashIcon, WhatsAppIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { compraPendente, textoDaLista } from "@/lib/board/compras";
+import { acharNaDispensa, ehRemedioOuSaude } from "@/lib/board/dispensa";
 import { fmtShortDate, todayISO } from "@/lib/date-utils";
 import type { ShoppingItem } from "@/lib/types";
 import { TutorialLink } from "./TutorialLink";
@@ -407,6 +408,7 @@ function ListaAberta({ listaId, onVoltar, embutida = false }: { listaId: string;
   const { board, askConfirm } = useBoardCtx();
   const lista = board.state.shoppingLists.find((l) => l.id === listaId);
   const [novo, setNovo] = useState("");
+  const jaTem = acharNaDispensa(board.state.pantryItems.filter((i) => !ehRemedioOuSaude(i)), novo).slice(0, 3);
   const [nome, setNome] = useState(lista?.name ?? "");
   const [verComprados, setVerComprados] = useState(false);
   const hoje = todayISO();
@@ -542,6 +544,11 @@ function ListaAberta({ listaId, onVoltar, embutida = false }: { listaId: string;
           <MicButton onText={(t) => setNovo((v) => (v ? `${v} ${t}` : t))} ariaLabel="Ditar o produto" />
           <EnviarBtn onClick={() => adicionar()} label="Adicionar o produto" />
         </div>
+        {aba === "compra" && jaTem.length > 0 && (
+          <div className="disp-ja-tem">
+            Você já tem em casa: {jaTem.map((i) => `${i.name} (${i.quantity}${i.unit ? " " + i.unit : ""}${i.place ? ", " + i.place : ""}${i.status !== "ok" ? ", " + (i.status === "low" ? "acabando" : "acabou") : ""})`).join("; ")}. Comprar mesmo assim?
+          </div>
+        )}
       </div>
 
       {!pendentes.length && (

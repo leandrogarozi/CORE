@@ -37,6 +37,7 @@ export const TABELAS = [
   "attachments",
   "medications",
   "medication_groups",
+  "pantry_items",
   "diet_meals",
   "study_plans",
   "maintenance_assets",

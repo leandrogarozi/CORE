@@ -2,6 +2,7 @@ import { dateFromISO, isoAddDays } from "@/lib/date-utils";
 import { duracaoDoSonoMin, fmtHorasMin } from "@/lib/board/sono";
 import { studyPlanMath, tempoPorModulo } from "@/lib/board/study-plan";
 import { ciclosDoItem, maintenanceStatus } from "@/lib/board/maintenance";
+import { ehRemedioOuSaude, situacaoDaValidade } from "@/lib/board/dispensa";
 import type { BoardState } from "@/lib/types";
 
 /**
@@ -23,7 +24,7 @@ const LIMITE_LINHAS = 25;
 
 
 type Estado = Pick<BoardState, "tasks" | "reminders" | "habits" | "fixedBlocks" | "checklists" | "dailyLogs" | "taskTimeEntries" | "studyPlans"> &
-  Partial<Pick<BoardState, "maintenanceAssets" | "maintenanceItems" | "maintenanceServices" | "odometerReadings">>;
+  Partial<Pick<BoardState, "maintenanceAssets" | "maintenanceItems" | "maintenanceServices" | "odometerReadings" | "pantryItems">>;
 
 const dataBr = (iso: string) => iso.split("-").reverse().slice(0, 2).join("/");
 
@@ -154,6 +155,7 @@ export function resumoDoDia(estado: Estado, hoje: string): string {
   }
 
   linhas.push(manutencao(estado, hoje));
+  linhas.push(dispensa(estado, hoje));
   linhas.push(panoramaDosDias(estado, hoje, 14));
   return linhas.join("\n");
 }
@@ -182,6 +184,28 @@ export function panoramaDosDias(estado: Estado, hoje: string, dias: number): str
       `dieta ${log?.dietPct === null || log?.dietPct === undefined ? "—" : log.dietPct + "%"}`,
     ];
     linhas.push(`${dataBr(iso)} (${DIAS[dateFromISO(iso).getDay()].slice(0, 3)}): ${partes.join(", ")}`);
+  }
+  return linhas.join("\n");
+}
+
+/**
+ * Dispensa (estoque de casa): o que a pessoa tem, quanto, onde e se está acabando, para responder "tenho X na dispensa?".
+ * Remédio e saúde ficam de fora: dado de saúde não vai para a IA.
+ */
+function dispensa(estado: Estado, hoje: string): string {
+  const itens = (estado.pantryItems ?? []).filter((i) => !ehRemedioOuSaude(i));
+  if (!itens.length) return "";
+  const linhas = ["\nDISPENSA (o que a pessoa tem em casa; nomes exatos):"];
+  for (const i of itens.slice(0, 80)) {
+    const partes = [`${i.quantity}${i.unit ? " " + i.unit : ""}`];
+    if (i.status === "low") partes.push("ACABANDO, vale comprar mais");
+    else if (i.status === "out" || i.quantity <= 0) partes.push("ACABOU, precisa comprar");
+    else partes.push("tem");
+    if (i.place) partes.push(`guardado em: ${i.place}`);
+    const val = situacaoDaValidade(i, hoje);
+    if (i.expiresOn) partes.push(val?.tipo === "vencido" ? `VENCIDO há ${-val.dias} dia(s)` : val ? `vence em ${dataBr(i.expiresOn)} (faltam ${val.dias} dia(s))` : `validade ${dataBr(i.expiresOn)}`);
+    if (i.forSale) partes.push("para vender");
+    linhas.push(`- ${i.name}${i.category ? ` (${i.category})` : ""}: ${partes.join("; ")}`);
   }
   return linhas.join("\n");
 }

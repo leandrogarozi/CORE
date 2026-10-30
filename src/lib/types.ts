@@ -601,6 +601,24 @@ export interface Reminder {
   whatsapp: boolean;
 }
 
+export type PantryStatus = "ok" | "low" | "out";
+
+/** Algo que a pessoa guarda em casa (estoque): produto de piscina, refil de filtro, remédio, ferramenta. */
+export interface PantryItem {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: string; // "un", "kg", "L"... livre
+  status: PantryStatus; // ok = tem; low = acabando, comprar mais; out = acabou
+  place: string; // onde está guardado
+  category: string; // Casa, Piscina, Pessoal, Remédios...
+  expiresOn: string | null; // ISO date
+  maintenanceItemId: string | null; // peça da Manutenção que usa este item
+  forSale: boolean;
+  salePriceCents: number | null;
+  note: string;
+}
+
 export type MedicationTimeMode = "shared" | "individual";
 
 export interface MedicationGroup {
@@ -715,6 +733,7 @@ export interface BoardState {
   reminders: Reminder[];
   trashedReminders: Reminder[]; // lembretes excluídos (soft delete) — Lixeira
   medications: Medication[];
+  pantryItems: PantryItem[];
   medicationGroups: MedicationGroup[];
   checklists: Checklist[];
   settings: Settings;

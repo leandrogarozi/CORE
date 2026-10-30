@@ -251,6 +251,16 @@ export const TUTORIAL: SecaoDoTutorial[] = [
     ],
   },
   {
+    id: "dispensa",
+    titulo: "Dispensa",
+    linhas: [
+      "O que você tem guardado em casa: produto de piscina, refil de filtro, lâmpada, ferramenta, remédio. Digite o nome e Enter; depois toque no item para dizer quantidade, onde está, categoria e validade.",
+      "Use o botão de situação em cada linha: Tenho, Acabando ou Acabou. Acabando e Acabou sobem para o topo e têm o botão “Colocar nas Compras”.",
+      "Pergunte ao FARO: “eu tenho tal produto na dispensa?”. Ele responde se tem, quanto, onde está e se está acabando ou vencendo.",
+      "Remédios ficam só na sua tela: o FARO não lê a categoria Remédios. Em “Posso vender” você marca o que quer anunciar e o valor.",
+    ],
+  },
+  {
     id: "compras",
     titulo: "Compras",
     linhas: [

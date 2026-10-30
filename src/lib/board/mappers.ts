@@ -23,6 +23,8 @@ import type {
   MaintenanceItem,
   MaintenanceService,
   Medication,
+  PantryItem,
+  PantryStatus,
   OdometerReading,
   MedicationGroup,
   MedicationTimeMode,
@@ -72,6 +74,7 @@ type DailyLogRow = Tables<"daily_logs">;
 type BookRow = Tables<"books">;
 type ReminderRow = Tables<"reminders">;
 type MedicationRow = Tables<"medications">;
+type PantryItemRow = Tables<"pantry_items">;
 type MedicationGroupRow = Tables<"medication_groups">;
 type ChecklistRow = Tables<"checklists">;
 type DietMealRow = Tables<"diet_meals">;
@@ -899,6 +902,57 @@ export function medicationToUpdateRow(m: Partial<Medication>): TablesUpdate<"med
   if (m.intervalHours !== undefined) row.interval_hours = m.intervalHours;
   if (m.active !== undefined) row.active = m.active;
   if (m.whatsapp !== undefined) row.whatsapp = m.whatsapp;
+  return row;
+}
+
+export function rowToPantryItem(row: PantryItemRow): PantryItem {
+  return {
+    id: row.id,
+    name: row.name,
+    quantity: row.quantity,
+    unit: row.unit,
+    status: (["ok", "low", "out"].includes(row.status) ? row.status : "ok") as PantryStatus,
+    place: row.place,
+    category: row.category,
+    expiresOn: row.expires_on,
+    maintenanceItemId: row.maintenance_item_id,
+    forSale: row.for_sale,
+    salePriceCents: row.sale_price_cents,
+    note: row.note,
+  };
+}
+
+export function pantryItemToInsertRow(i: PantryItem, userId: string): TablesInsert<"pantry_items"> {
+  return {
+    id: i.id,
+    user_id: userId,
+    name: i.name,
+    quantity: i.quantity,
+    unit: i.unit,
+    status: i.status,
+    place: i.place,
+    category: i.category,
+    expires_on: i.expiresOn,
+    maintenance_item_id: i.maintenanceItemId,
+    for_sale: i.forSale,
+    sale_price_cents: i.salePriceCents,
+    note: i.note,
+  };
+}
+
+export function pantryItemToUpdateRow(i: Partial<PantryItem>): TablesUpdate<"pantry_items"> {
+  const row: TablesUpdate<"pantry_items"> = {};
+  if (i.name !== undefined) row.name = i.name;
+  if (i.quantity !== undefined) row.quantity = i.quantity;
+  if (i.unit !== undefined) row.unit = i.unit;
+  if (i.status !== undefined) row.status = i.status;
+  if (i.place !== undefined) row.place = i.place;
+  if (i.category !== undefined) row.category = i.category;
+  if (i.expiresOn !== undefined) row.expires_on = i.expiresOn;
+  if (i.maintenanceItemId !== undefined) row.maintenance_item_id = i.maintenanceItemId;
+  if (i.forSale !== undefined) row.for_sale = i.forSale;
+  if (i.salePriceCents !== undefined) row.sale_price_cents = i.salePriceCents;
+  if (i.note !== undefined) row.note = i.note;
   return row;
 }
 

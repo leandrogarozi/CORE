@@ -641,6 +641,57 @@ export type Database = {
         }
         Relationships: []
       }
+      pantry_items: {
+        Row: {
+          category: string
+          created_at: string
+          expires_on: string | null
+          for_sale: boolean
+          id: string
+          maintenance_item_id: string | null
+          name: string
+          note: string
+          place: string
+          quantity: number
+          sale_price_cents: number | null
+          status: string
+          unit: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          expires_on?: string | null
+          for_sale?: boolean
+          id?: string
+          maintenance_item_id?: string | null
+          name: string
+          note?: string
+          place?: string
+          quantity?: number
+          sale_price_cents?: number | null
+          status?: string
+          unit?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          expires_on?: string | null
+          for_sale?: boolean
+          id?: string
+          maintenance_item_id?: string | null
+          name?: string
+          note?: string
+          place?: string
+          quantity?: number
+          sale_price_cents?: number | null
+          status?: string
+          unit?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       medications: {
         Row: {
           active: boolean

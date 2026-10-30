@@ -2,7 +2,7 @@
 
 import { useEffect, type ReactNode } from "react";
 import { BellIcon, BoltIcon, CommentIcon, LinkIcon,
-  BookOpenIcon, BookIcon, GiftIcon, CarIcon, CartIcon, ChartIcon, ChecklistIcon, FolderIcon, HomeIcon, MealIcon, PillIcon, RtQuoteIcon, SettingsIcon, TrashIcon, UserIcon, UsersGroupIcon, WeekIcon } from "./icons";
+  ArchiveIcon, BookOpenIcon, BookIcon, GiftIcon, CarIcon, CartIcon, ChartIcon, ChecklistIcon, FolderIcon, HomeIcon, MealIcon, PillIcon, RtQuoteIcon, SettingsIcon, TrashIcon, UserIcon, UsersGroupIcon, WeekIcon } from "./icons";
 
 export type ViewMode =
   | "day"
@@ -22,6 +22,7 @@ export type ViewMode =
   | "conhecendo"
   | "estudo"
   | "manutencao"
+  | "dispensa"
   | "medications"
   | "checklists"
   | "diet"
@@ -82,6 +83,7 @@ export const GRUPOS_DO_MENU: { titulo: string; itens: ItemDoMenu[] }[] = [
       { modo: "diet", rotulo: "Dieta", icone: <MealIcon /> },
       { modo: "manutencao", rotulo: "Manutenção", icone: <CarIcon /> },
       { modo: "compras", rotulo: "Compras", icone: <CartIcon /> },
+      { modo: "dispensa", rotulo: "Dispensa", icone: <ArchiveIcon /> },
       { modo: "checklists", rotulo: "Checklists", icone: <ChecklistIcon /> },
     ],
   },

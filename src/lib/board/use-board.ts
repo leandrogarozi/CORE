@@ -16,6 +16,8 @@ import {
   medicationGroupToUpdateRow,
   medicationToInsertRow,
   medicationToUpdateRow,
+  pantryItemToInsertRow,
+  pantryItemToUpdateRow,
   projectToInsertRow,
   projectToUpdateRow,
   reminderToInsertRow,
@@ -51,6 +53,7 @@ import {
   rowToDietMeal,
   rowToMedication,
   rowToMedicationGroup,
+  rowToPantryItem,
   rowToAttachment,
   rowToProject,
   rowToReminder,
@@ -102,6 +105,7 @@ import type {
   DietMeal,
   Medication,
   MedicationGroup,
+  PantryItem,
   Priority,
   Project,
   Repeat,
@@ -151,6 +155,7 @@ const EMPTY_STATE: BoardState = {
   reminders: [],
   trashedReminders: [],
   medications: [],
+  pantryItems: [],
   medicationGroups: [],
   checklists: [],
   settings: {
@@ -319,6 +324,7 @@ export function useBoard(userId: string | null) {
       trashedRemindersRes,
       medicationsRes,
       medicationGroupsRes,
+      pantryRes,
       checklistsRes,
       dietMealsRes,
       settingsRes,
@@ -355,6 +361,7 @@ export function useBoard(userId: string | null) {
       supabase.from("reminders").select("*").not("deleted_at", "is", null),
       supabase.from("medications").select("*").order("created_at"),
       supabase.from("medication_groups").select("*").order("created_at"),
+      supabase.from("pantry_items").select("*").order("created_at"),
       // Pela ordem manual, não pela criação: é ele quem decide qual checklist
       // fica no topo. `nullsFirst: false` manda linha sem ordem (salva antes
       // desta coluna existir) pro fim, em vez de pro começo.
@@ -414,6 +421,7 @@ export function useBoard(userId: string | null) {
       trashedReminders: (trashedRemindersRes.data ?? []).map(rowToReminder),
       medications: (medicationsRes.data ?? []).map(rowToMedication),
       medicationGroups: (medicationGroupsRes.data ?? []).map(rowToMedicationGroup),
+      pantryItems: (pantryRes.data ?? []).map(rowToPantryItem),
       checklists: (checklistsRes.data ?? []).map(rowToChecklist),
       dietMeals: (dietMealsRes.data ?? []).map(rowToDietMeal),
       settings: rowToSettings(settingsRes.data ?? null),
@@ -1885,6 +1893,53 @@ export function useBoard(userId: string | null) {
       });
     },
     [apply, deleteReminder, supabase]
+  );
+
+  // ---------- dispensa (estoque de casa) ----------
+  const addPantryItem = useCallback(
+    (name: string, extra: Partial<Omit<PantryItem, "id" | "name">> = {}) => {
+      if (!userId || !name.trim()) return;
+      const item: PantryItem = {
+        id: uid(),
+        name: name.trim(),
+        quantity: 1,
+        unit: "",
+        status: "ok",
+        place: "",
+        category: "",
+        expiresOn: null,
+        maintenanceItemId: null,
+        forSale: false,
+        salePriceCents: null,
+        note: "",
+        ...extra,
+      };
+      apply((s) => ({ ...s, pantryItems: [...s.pantryItems, item] }));
+      supabase.from("pantry_items").insert(pantryItemToInsertRow(item, userId)).then(({ error }) => {
+        if (error) reportSaveError("addPantryItem", error);
+      });
+    },
+    [apply, supabase, userId]
+  );
+
+  const updatePantryItem = useCallback(
+    (id: string, patch: Partial<Omit<PantryItem, "id">>) => {
+      apply((s) => ({ ...s, pantryItems: s.pantryItems.map((i) => (i.id === id ? { ...i, ...patch } : i)) }));
+      supabase.from("pantry_items").update(pantryItemToUpdateRow(patch)).eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("updatePantryItem", error);
+      });
+    },
+    [apply, supabase]
+  );
+
+  const deletePantryItem = useCallback(
+    (id: string) => {
+      apply((s) => ({ ...s, pantryItems: s.pantryItems.filter((i) => i.id !== id) }));
+      supabase.from("pantry_items").delete().eq("id", id).then(({ error }) => {
+        if (error) reportSaveError("deletePantryItem", error);
+      });
+    },
+    [apply, supabase]
   );
 
   // ---------- medication groups (tratamentos temporários) ----------
@@ -4497,6 +4552,9 @@ export function useBoard(userId: string | null) {
     purgeReminder,
     setTaskReminder,
     completeReminder,
+    addPantryItem,
+    updatePantryItem,
+    deletePantryItem,
     addMedication,
     updateMedication,
     deleteMedication,

@@ -50,6 +50,7 @@ import { TrashView } from "./TrashView";
 import { ScopeModal } from "./ScopeModal";
 import { ConfirmModal } from "./ConfirmModal";
 import { FaroMascot } from "./FaroMascot";
+import { DispensaView } from "./DispensaView";
 import { DockFaro } from "./DockFaro";
 import { MobileNav } from "./MobileNav";
 import { WelcomeModal } from "./WelcomeModal";
@@ -439,6 +440,8 @@ function BoardShell() {
         <ClientesView onBack={() => setViewMode("day")} />
       ) : viewMode === "estudo" ? (
         <StudyPlansView onBack={() => setViewMode("day")} />
+      ) : viewMode === "dispensa" ? (
+        <DispensaView onBack={() => setViewMode("day")} />
       ) : viewMode === "manutencao" ? (
         <MaintenanceView onBack={() => setViewMode("day")} />
       ) : viewMode === "reminders" ? (
