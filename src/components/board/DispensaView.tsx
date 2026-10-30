@@ -30,19 +30,14 @@ const PROXIMA: Record<PantryStatus, PantryStatus> = { ok: "low", low: "out", out
  * Quantidade da linha (versão C do desenho): frasco medido em % mostra uma barrinha de nível (tocar nela escolhe
  * 0, 25, 50, 75 ou 100) e o número; item contado mostra só o número. Tocar no número abre para digitar.
  */
-function Quantidade({ valor, unidade, emPorcento, onChange }: { valor: number; unidade: string; emPorcento: boolean; onChange: (n: number) => void }) {
+function Quantidade({ valor, unidade, emPorcento, cor, onChange }: { valor: number; unidade: string; emPorcento: boolean; cor: string; onChange: (n: number) => void }) {
   const [editando, setEditando] = useState(false);
-  function escolherNivel(e: React.MouseEvent<HTMLButtonElement>) {
-    const r = e.currentTarget.getBoundingClientRect();
-    const frac = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
-    onChange([0, 25, 50, 75, 100].reduce((m, n) => (Math.abs(n - frac * 100) < Math.abs(m - frac * 100) ? n : m), 0));
-  }
   return (
     <span className="disp-qtd">
       {emPorcento && (
-        <button type="button" className="disp-nivel" aria-label="Nível do frasco: toque para escolher" title="Toque na barra para escolher o nível" onClick={escolherNivel}>
-          <i style={{ width: `${Math.min(100, valor)}%` }} />
-        </button>
+        <span className="disp-nivel" role="img" aria-label={`Nível: ${valor}%`}>
+          <i style={{ width: `${Math.min(100, valor)}%`, background: cor }} />
+        </span>
       )}
       {editando ? (
         <input
@@ -71,6 +66,13 @@ function Quantidade({ valor, unidade, emPorcento, onChange }: { valor: number; u
       )}
     </span>
   );
+}
+
+/** Cor do nível: verde = cheio, amarelo = atenção, vermelho = acabando ou acabou. */
+function corDoNivel(item: PantryItem): string {
+  if (item.status !== "ok" || item.quantity <= 0) return "#C0392B";
+  if (item.unit === "%") return item.quantity >= 60 ? "#3E8E5A" : item.quantity >= 30 ? "#C28A1E" : "#C0392B";
+  return "#3E8E5A";
 }
 
 function Linha({ item, aberto, onAbrir }: { item: PantryItem; aberto: boolean; onAbrir: () => void }) {
@@ -170,6 +172,7 @@ function Linha({ item, aberto, onAbrir }: { item: PantryItem; aberto: boolean; o
           valor={item.quantity}
           unidade={item.unit}
           emPorcento={emPorcento}
+          cor={corDoNivel(item)}
           onChange={mudarQuantidade}
         />
       </div>

@@ -219,7 +219,7 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
             <WarningIcon /> fora do prazo
           </span>
         )}
-        <span className="study-pct">{m.totalMin > 0 ? `${m.pctFeito}%` : "—"}</span>
+        {m.totalMin > 0 && <span className="study-pct">{m.pctFeito}%</span>}
         <button
           type="button"
           className="icon-btn danger-hover"
@@ -551,10 +551,10 @@ export function StudyPlansView({ onBack }: { onBack: () => void }) {
   }
 
   // Abas como em Projetos: o que está em andamento, o que está pausado e o que já acabou.
-  const [aba, setAba] = useState<"ativo" | "pausado" | "concluido">("ativo");
+  const [aba, setAba] = useState<"todos" | "ativo" | "pausado" | "concluido">("ativo");
   const todos = board.state.studyPlans;
   const doGrupo = (p: StudyPlan) => (p.status === "concluido" ? "concluido" : p.status === "pausado" ? "pausado" : "ativo");
-  const ativos = todos.filter((p) => doGrupo(p) === aba);
+  const ativos = todos.filter((p) => aba === "todos" || doGrupo(p) === aba);
   const total = (g: "ativo" | "pausado" | "concluido") => todos.filter((p) => doGrupo(p) === g).length;
 
   return (
@@ -600,6 +600,9 @@ export function StudyPlansView({ onBack }: { onBack: () => void }) {
         </div>
 
         <div className="abas-plano">
+          <button type="button" className={"aba-plano" + (aba === "todos" ? " on" : "")} onClick={() => setAba("todos")}>
+            <BookIcon /> Todos <b>{todos.length}</b>
+          </button>
           <button type="button" className={"aba-plano" + (aba === "ativo" ? " on" : "")} onClick={() => setAba("ativo")}>
             <BookOpenIcon /> Em andamento <b>{total("ativo")}</b>
           </button>
@@ -617,7 +620,7 @@ export function StudyPlansView({ onBack }: { onBack: () => void }) {
         {!ativos.length && (
           <div className="list-card">
             <div className="hp-empty">
-              {todos.length === 0 ? "Nenhum plano de estudo ainda." : aba === "ativo" ? "Nenhum plano em andamento." : aba === "pausado" ? "Nenhum plano pausado." : "Nenhum plano concluído ainda."}
+              {todos.length === 0 || aba === "todos" ? "Nenhum plano de estudo ainda." : aba === "ativo" ? "Nenhum plano em andamento." : aba === "pausado" ? "Nenhum plano pausado." : "Nenhum plano concluído ainda."}
             </div>
           </div>
         )}
