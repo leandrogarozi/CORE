@@ -26,6 +26,20 @@ export function BoltIcon({ filled }: { filled?: boolean } = {}) {
   );
 }
 
+export function LightbulbIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" fill="none">
+      <path
+        d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function CheckIcon() {
   return (
     <svg viewBox="0 0 24 24" width="11" height="11" fill="none">

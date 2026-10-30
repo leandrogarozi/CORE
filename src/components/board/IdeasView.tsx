@@ -5,7 +5,7 @@ import { EnviarBtn } from "./EnviarBtn";
 import { useBoardCtx } from "./board-context";
 import { SynapseCard } from "./SynapsesView";
 import { MicButton } from "./MicButton";
-import { BoltIcon, MicIcon } from "./icons";
+import { BoltIcon, BookOpenIcon, LightbulbIcon, MicIcon } from "./icons";
 import { useDictation } from "@/lib/board/use-dictation";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import type { SynapseTag } from "@/lib/types";
@@ -141,6 +141,8 @@ export function IdeasView({ onBack }: { onBack: () => void }) {
               aria-pressed={filtro === v}
               onClick={() => setFiltro(v)}
             >
+              {v === "ideia" && <LightbulbIcon />}
+              {v === "estudo" && <BookOpenIcon />}
               {nome}
             </button>
           ))}

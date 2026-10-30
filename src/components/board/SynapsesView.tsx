@@ -8,7 +8,7 @@ import { StudyParts } from "./StudyParts";
 import { PerguntasDaIA, escaparHtml } from "./PerguntasDaIA";
 import { MicButton } from "./MicButton";
 import { AttachmentsButton } from "./AttachmentsButton";
-import { BoltIcon, CheckIcon, ChevronIcon, DownloadIcon, TrashIcon } from "./icons";
+import { BoltIcon, BookOpenIcon, CheckIcon, ChevronIcon, DownloadIcon, LightbulbIcon, TrashIcon } from "./icons";
 import { arquivoDaIdeia, arquivoDaSinapse } from "@/lib/learning-export";
 import { baixarTexto, soONome } from "@/lib/baixar";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
@@ -33,6 +33,8 @@ export function SynapseCard({ synapse, ideia = false }: { synapse: Synapse; idei
   const { board, askConfirm } = useBoardCtx();
   const [open, setOpen] = useState(false);
   const rotulo = ideia ? "ideia" : "sinapse";
+  // Cada tipo tem o seu ícone e a sua cor suave (quadradinho + filete na esquerda do card).
+  const tipoVisual = !ideia ? "sinapse" : synapse.tag === "estudo" ? "estudo" : "ideia";
 
   // Rascunhos locais: o que está na tela. O botão Salvar compara com o que está
   // gravado (o próprio `synapse`) — então "Salvo" só aparece quando os dois são
@@ -67,7 +69,7 @@ export function SynapseCard({ synapse, ideia = false }: { synapse: Synapse; idei
   }
 
   return (
-    <div className={"synapse-card" + (open ? " open" : "")}>
+    <div className={"synapse-card k-" + tipoVisual + (open ? " open" : "")}>
       <div className="synapse-card-head">
         <button
           type="button"
@@ -77,7 +79,9 @@ export function SynapseCard({ synapse, ideia = false }: { synapse: Synapse; idei
         >
           <ChevronIcon />
         </button>
-        {!ideia && <span className="synapse-etiqueta">SINAPSE</span>}
+        <span className="tile-tipo" aria-hidden="true">
+          {tipoVisual === "estudo" ? <BookOpenIcon /> : tipoVisual === "ideia" ? <LightbulbIcon /> : <BoltIcon />}
+        </span>
         <div className="synapse-card-headings">
           <input
             type="text"

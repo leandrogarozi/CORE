@@ -2539,8 +2539,18 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 .synapse-list{ display:flex; flex-direction:column; gap:10px; margin-top:12px; }
 .synapse-card{
   background:var(--surface); border:1px solid var(--linha); border-radius:var(--r-3);
-  box-shadow:var(--sh-1); overflow:hidden;
+  box-shadow:var(--sh-1); overflow:hidden; position:relative;
 }
+/* Cor suave por tipo (sinapse, ideia, estudo): filete na esquerda + quadradinho com o ícone. */
+.k-sinapse{ --k:var(--accent); }
+.k-ideia{ --k:#C28A1E; }
+.k-estudo{ --k:#3B82C4; }
+.synapse-card::before{ content:""; position:absolute; left:0; top:8px; bottom:8px; width:3px; border-radius:0 3px 3px 0; background:var(--k, transparent); }
+.tile-tipo{ flex:none; width:32px; height:32px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; background:color-mix(in srgb, var(--k) 14%, var(--surface)); color:var(--k); }
+.tile-tipo svg{ width:16px; height:16px; }
+.synapse-card .synapse-tag-badge{ background:color-mix(in srgb, var(--k) 14%, transparent); color:var(--k); }
+.idea-filter .note-chip{ display:inline-flex; align-items:center; gap:6px; }
+.idea-filter .note-chip svg{ width:13px; height:13px; }
 .synapse-card.open{ border-color:var(--border-strong); }
 .synapse-card-head{ display:flex; align-items:center; gap:8px; padding:10px 12px; }
 .synapse-card-toggle{
