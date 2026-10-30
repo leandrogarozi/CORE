@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { TimePicker } from "./TimePicker";
-import { TrashIcon, CheckIcon, EditIcon, EyeOffIcon, HeartIcon } from "./icons";
+import { ChevronIcon, TrashIcon, CheckIcon, EditIcon, EyeOffIcon, HeartIcon } from "./icons";
 import { MicButton } from "./MicButton";
 import { ImportarFrases } from "./ImportarFrases";
 import { todayISO } from "@/lib/date-utils";
@@ -27,6 +27,7 @@ function QuantasVezes({ valor, max, rotulo, onChange }: { valor: number; max: nu
   const escolher = (n: number) => onChange(Math.min(max, Math.max(0, Math.round(Number.isFinite(n) ? n : 0))));
   return (
     <>
+      <span className="meta-sec-rotulo">Quantas {rotulo} por dia</span>
       <div className="meta-vezes" role="group" aria-label={`Quantas ${rotulo} por dia`}>
         {[0, 1, 2, 3].map((n) => (
           <button key={n} type="button" className={"meeting-modo-btn" + (valor === n ? " ativo" : "")} onClick={() => escolher(n)}>
@@ -51,6 +52,7 @@ const semAcento = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, 
 function Janela({ inicio, fim, horarios, onInicio, onFim }: { inicio: string; fim: string; horarios: string[]; onInicio: (v: string) => void; onFim: (v: string) => void }) {
   return (
     <>
+      <span className="meta-sec-rotulo">Em que horário</span>
       <div className="meta-janela">
         <span>A partir das</span>
         <TimePicker value={inicio} onChange={onInicio} />
@@ -201,6 +203,7 @@ export function MetanoiaView({ onBack, alvo }: { onBack: () => void; alvo?: { id
   const [editandoHoje, setEditandoHoje] = useState(!!frasePedida && !!alvo?.editar);
   const temaDoCartao = useTemaDoCartao(s.metanoiaTema, s.metanoiaCor);
   const [abrirCores, setAbrirCores] = useState<"cor" | "degrade" | null>(null);
+  const [mostrarCor, setMostrarCor] = useState(false);
   const [busca, setBusca] = useState("");
   const ehPergunta = tipo === "pergunta";
   const frases = todas.filter((f) => f.tipo === tipo);
@@ -354,7 +357,17 @@ export function MetanoiaView({ onBack, alvo }: { onBack: () => void; alvo?: { id
           </label>
           <span className="hint-text">A notificação precisa estar ligada em Configurações. Por WhatsApp ainda não, para não gastar crédito.</span>
           <div className="meta-aparencia">
-            <span className="hint-text">Aparência do cartão na tela inicial e ao abrir pela notificação</span>
+            <span className="meta-sec-rotulo">Cartão da tela inicial</span>
+            <button type="button" className="btn btn-ghost meta-cor-botao" aria-expanded={mostrarCor} onClick={() => setMostrarCor((v) => !v)}>
+              <span
+                className="meta-amostra-mini"
+                style={{ background: s.metanoiaCor ? fundoDaCor(s.metanoiaCor) : s.metanoiaTema === "escuro" ? "#111" : s.metanoiaTema === "claro" ? "#fff" : "linear-gradient(135deg,#fff 50%,#111 50%)" }}
+              />
+              Configuração de cor
+              <ChevronIcon />
+            </button>
+            {mostrarCor && (
+            <>
             <div className="meta-amostras" role="group" aria-label="Aparência do cartão">
               {(
                 [
@@ -449,6 +462,8 @@ export function MetanoiaView({ onBack, alvo }: { onBack: () => void; alvo?: { id
                   </label>
                 ))}
               </div>
+            )}
+            </>
             )}
           </div>
         </div>
