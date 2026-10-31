@@ -26,6 +26,11 @@ export function GuardaDoEstilo() {
       }
     }
     garantir();
+    // iPhone: o Safari amplia a página ao tocar num campo; limitar a escala máxima evita isso sem engordar a letra dos campos.
+    if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+      const meta = document.querySelector<HTMLMetaElement>('meta[name="viewport"]');
+      if (meta && !/maximum-scale/.test(meta.content)) meta.content = meta.content + ", maximum-scale=1";
+    }
     const o = new MutationObserver(garantir);
     o.observe(html, { attributes: true, attributeFilter: ["data-estilo", "data-theme"] });
     return () => o.disconnect();

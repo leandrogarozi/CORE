@@ -729,7 +729,7 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
         {/* Sino: avisa dentro do app (banner e Agenda). O push no celular continua chegando. */}
         <button
           type="button"
-          className={"icon-btn" + (avisaNoApp ? " active" : "")}
+          className={"icon-btn bell-btn" + (avisaNoApp ? " active" : "")}
           title={avisaNoApp ? "Avisa dentro do app. Clique pra desligar." : "Não avisa dentro do app (só no celular). Clique pra ligar."}
           onClick={() => board.updateReminder(reminder.id, { inApp: !avisaNoApp })}
         >
@@ -1168,7 +1168,7 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
             <span className="reminder-icones">
               <button
                 type="button"
-                className={"icon-btn" + (newSino ? " active" : "")}
+                className={"icon-btn bell-btn" + (newSino ? " active" : "")}
                 aria-pressed={newSino}
                 title={newSino ? "Avisa dentro do app. Clique pra desligar." : "Não avisa dentro do app. Clique pra ligar."}
                 onClick={() => setNewSino((v) => !v)}

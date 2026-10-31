@@ -4933,7 +4933,7 @@ textarea.synapse-card-title{ display:block; width:calc(100% + 8px); resize:none;
   /* Manutenção: cabeçalho do item em linhas (nome, situação, resumo, ações) com letra legível */
   .maint-item-head{ flex-wrap:wrap; row-gap:8px; }
   .maint-item-head > .synapse-card-toggle{ order:0; }
-  .maint-item-head > .maint-item-name{ order:1; flex:1 1 0; min-width:0; }
+  .maint-item-head > .maint-item-name{ order:1; flex:1 1 calc(100% - 100px); min-width:0; }
   .maint-item-head > .icon-btn:last-child{ order:2; }
   .maint-item-head > .maint-flag, .maint-item-head > .maint-ciclo, .maint-item-head > .maint-interval, .maint-item-head > .maint-done-btn{ order:3; }
   .maint-item-head > .maint-item-resumo{ order:4; flex:1 1 100%; white-space:normal; font-size:12.5px; line-height:1.4; color:var(--text-muted); padding-left:2px; }
@@ -5085,7 +5085,7 @@ textarea.reminder-title-area{ display:block; resize:none; overflow:hidden; font-
    No celular todo campo de texto fica com 16 px (só no iOS), então a tela nunca amplia sozinha. */
 @supports (-webkit-touch-callout: none){
   @media (max-width:900px){
-    :is(input,select,textarea):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+    :is(input,textarea):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="date"]):not([type="time"]),
     [contenteditable="true"], .ProseMirror{ font-size:16px !important; }
   }
 }
@@ -5115,4 +5115,73 @@ textarea.book-title-area{ display:block; resize:none; overflow:hidden; font-fami
   /* Estudos: nome e descrição inteiros */
   .study-card .study-card-titulo .study-card-name{ white-space:normal; overflow:visible; text-overflow:clip; line-height:1.3; }
   .study-card .study-card-sub{ white-space:normal; overflow:visible; text-overflow:clip; line-height:1.4; }
+}
+
+/* ==========================================================================
+   Celular, rodada 5 (01/11, 00h): padrão único para sino e WhatsApp, topo e feriado da home, Aniversários, Medicamentos, Manutenção.
+   ========================================================================== */
+
+/* Sino (avisa no app) e WhatsApp: botão redondo, igual ao da Dieta e ao de criar lembrete. Desligado cinza suave; ligado em degradê, ícone branco. */
+:root[data-estilo="suave"] :is(.zap-btn,.bell-btn,.diet-meal-app-toggle,.diet-meal-whatsapp),
+:root[data-estilo="flutuante"] :is(.zap-btn,.bell-btn,.diet-meal-app-toggle,.diet-meal-whatsapp){
+  display:inline-flex; align-items:center; justify-content:center; flex:none;
+  width:36px; height:36px; min-width:36px; min-height:36px; padding:0; border-radius:50%; background:var(--campo-fundo);
+}
+:root[data-estilo="suave"] :is(.zap-btn,.bell-btn,.diet-meal-app-toggle,.diet-meal-whatsapp) svg,
+:root[data-estilo="flutuante"] :is(.zap-btn,.bell-btn,.diet-meal-app-toggle,.diet-meal-whatsapp) svg{ width:17px; height:17px; }
+:root[data-estilo="suave"] :is(.bell-btn.active,.diet-meal-app-toggle.active), :root[data-estilo="flutuante"] :is(.bell-btn.active,.diet-meal-app-toggle.active){
+  background:var(--grad-roxo); color:#fff; box-shadow:0 8px 16px -8px rgba(94,77,235,.65);
+}
+:root[data-estilo="suave"] :is(.zap-btn.active,.diet-meal-whatsapp.active), :root[data-estilo="flutuante"] :is(.zap-btn.active,.diet-meal-whatsapp.active){
+  background:var(--grad-verde); color:#fff; box-shadow:0 8px 16px -8px rgba(30,142,85,.6);
+}
+
+textarea.titulo-cresce{ display:block; resize:none; overflow:hidden; font-family:inherit; line-height:1.35; height:auto; }
+
+@media (max-width:640px){
+  :root[data-estilo="suave"] :is(.zap-btn,.bell-btn,.diet-meal-app-toggle,.diet-meal-whatsapp),
+  :root[data-estilo="flutuante"] :is(.zap-btn,.bell-btn,.diet-meal-app-toggle,.diet-meal-whatsapp){ width:40px; height:40px; min-width:40px; min-height:40px; }
+  .reminder-card-row .reminder-icones{ gap:8px; align-items:center; }
+  .reminder-card-row .reminder-icones .bell-btn, .reminder-card-row .reminder-icones .zap-btn{ padding:0; }
+
+  /* Topo da home: só o primeiro ícone empurra o grupo para a direita (antes o dos aniversários também, e abria um vão) */
+  .topbar-right > .aviso-icon-btn.aniv-btn{ margin-left:0; }
+  .topbar-right > .aviso-icon-btn:not(.aniv-btn){ margin-left:auto; }
+
+  /* Saudação: o feriado vira um bloco próprio embaixo, sem a barra e sem quebrar no meio */
+  .day-greeting-text{ text-wrap:pretty; }
+  .day-greeting-feriado-inline{ display:block; margin-top:6px; font-size:12.5px; line-height:1.45; }
+  .day-greeting-sep{ display:none; }
+
+  /* Dashboard: o número de atrasadas não é mais cortado pela bandeja */
+  :root[data-estilo="suave"] .day-strip-wrap .view-toggle, :root[data-estilo="flutuante"] .day-strip-wrap .view-toggle, .day-strip-wrap .view-toggle{ overflow:visible; }
+
+  /* Lembretes: "Avisar" menor, no padrão dos outros campos */
+  .reminder-novo-avisos select, .reminder-novo-avisos .reminder-repeat-select{ font-size:13px; min-height:36px; }
+
+  /* Aniversários: nome em cima; categoria, avisos e ações numa linha embaixo */
+  .bday-grupo .bday-head, .bday-head{ flex-wrap:wrap; row-gap:8px; column-gap:8px; }
+  .bday-head > .bday-nome{ flex:1 1 100%; white-space:normal; }
+  .bday-head > .bell-btn{ margin-left:auto; }
+  .bday-head > .icon-btn:not(.bell-btn):not(.zap-btn){ min-width:38px; min-height:38px; }
+
+  /* Medicamentos: nome inteiro (quebra) numa parte; horário e botões na outra */
+  .reminder-row:has(.med-nome-col){ flex-wrap:wrap; row-gap:8px; column-gap:10px; padding:12px 14px; }
+  .reminder-row:has(.med-nome-col) .med-nome-col{ flex:1 1 calc(100% - 60px); }
+  .reminder-row:has(.med-nome-col) .med-nome-col .reminder-title-input{ font-size:15px; width:100%; }
+  .reminder-row:has(.med-nome-col) .med-resumo-horarios{ font-size:12.5px; }
+  .reminder-row:has(.med-nome-col) > .zap-btn{ margin-left:auto; }
+  .med-group-head{ flex-wrap:wrap; row-gap:8px; }
+  .med-group-head .reminder-title-input{ flex:1 1 calc(100% - 140px); min-width:0; font-size:15px; }
+
+  /* Manutenção: o nome do ativo ocupa a linha de cima; medida, tipo e lixeira descem */
+  .maint-asset-head{ flex-wrap:wrap; row-gap:8px; }
+  .maint-asset-head > .maint-asset-nomecol{ flex:1 1 calc(100% - 96px); min-width:0; }
+  .maint-asset-head .maint-asset-name{ font-size:16px; width:100%; }
+  .maint-asset-head > .maint-odometer{ flex:1 1 auto; font-size:12px; white-space:normal; }
+  .maint-asset-head > .maint-kind-select{ flex:1 1 auto; min-width:120px; }
+
+  /* Manutenção, item: o WhatsApp vai para a direita, como nos Lembretes; "último" fica à esquerda */
+  .maint-item-head > .maint-ultimo{ order:5; margin-left:0; margin-right:auto; }
+  .maint-item-head > .zap-btn{ order:6; margin-left:auto; }
 }

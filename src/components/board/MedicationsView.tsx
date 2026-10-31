@@ -1,5 +1,6 @@
 "use client";
 
+import { TituloQueCresce } from "./TituloQueCresce";
 import { useEffect, useRef, useState } from "react";
 import { EnviarBtn } from "./EnviarBtn";
 import { createPortal } from "react-dom";
@@ -283,13 +284,11 @@ function MedicationRow({ medication, showTime }: { medication: Medication; showT
         ariaLabel={medication.active ? "Desativar" : "Ativar"}
       />
       <div className="med-nome-col">
-        <input
-          type="text"
+        <TituloQueCresce
           className="reminder-title-input"
           value={nameDraft ?? medication.name}
-          onChange={(e) => setNameDraft(e.target.value)}
+          onChange={setNameDraft}
           onBlur={commitName}
-          onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
         />
         {resumoDeHorarios && <span className="med-resumo-horarios">{resumoDeHorarios}</span>}
       </div>
@@ -381,13 +380,11 @@ function MedicationGroupCard({ group, medications }: { group: MedicationGroup; m
           onChange={(v) => board.updateMedicationGroup(group.id, { active: v })}
           ariaLabel={group.active ? "Desativar tratamento" : "Ativar tratamento"}
         />
-        <input
-          type="text"
+        <TituloQueCresce
           className="reminder-title-input"
           value={nameDraft ?? group.name}
-          onChange={(e) => setNameDraft(e.target.value)}
+          onChange={setNameDraft}
           onBlur={commitName}
-          onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
         />
         <span className={"med-estado " + estado.classe}>{estado.rotulo}</span>
         <CommentButton
