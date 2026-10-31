@@ -5067,3 +5067,25 @@ textarea.synapse-card-title{ display:block; width:calc(100% + 8px); resize:none;
   :root[data-estilo="suave"] .synapse-field .idea-filter, :root[data-estilo="flutuante"] .synapse-field .idea-filter{ display:inline-flex; width:auto; align-self:flex-start; }
   .meetings-toolbar .meeting-modo .meeting-modo-btn{ display:inline-flex; align-items:center; justify-content:center; }
 }
+
+/* Lembrete: o título quebra em quantas linhas precisar, para aparecer inteiro. */
+textarea.reminder-title-area{ display:block; resize:none; overflow:hidden; font-family:inherit; line-height:1.35; padding:2px 0; height:auto; }
+.reminder-abrir-rotulo{ display:none; }
+
+@media (max-width:640px){
+  .reminder-card-row textarea.reminder-title-area{ font-size:15px; }
+  /* "Abrir": botão com nome, embaixo do texto, do lado oposto dos ícones de avisar */
+  .reminder-card-row .reminder-icones{ justify-content:flex-end; }
+  .reminder-card-row .reminder-icones .reminder-abrir-btn{ order:-1; margin-right:auto; width:auto; padding:0 14px; gap:6px; border-radius:999px; background:var(--campo-fundo, var(--surface-2)); color:var(--accent); font-size:13px; font-weight:600; }
+  .reminder-card-row .reminder-icones .reminder-abrir-btn svg{ width:16px; height:16px; }
+  .reminder-card-row .reminder-icones .reminder-abrir-rotulo{ display:inline; }
+}
+
+/* iPhone: campo com letra menor que 16 px faz o Safari dar zoom ao tocar nele, e a tela fica ampliada até a pessoa "pinçar" de volta.
+   No celular todo campo de texto fica com 16 px (só no iOS), então a tela nunca amplia sozinha. */
+@supports (-webkit-touch-callout: none){
+  @media (max-width:900px){
+    :is(input,select,textarea):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+    [contenteditable="true"], .ProseMirror{ font-size:16px !important; }
+  }
+}

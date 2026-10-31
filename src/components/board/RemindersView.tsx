@@ -619,6 +619,14 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
   const [statusAnchor, setStatusAnchor] = useState<DOMRect | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const statusBtnRef = useRef<HTMLButtonElement>(null);
+  // O título cresce com o texto (quebra em várias linhas) para o lembrete aparecer inteiro.
+  const tituloRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const el = tituloRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
+  }, [titleDraft, reminder.title]);
 
   useEffect(() => {
     if (focusRequest?.kind === "reminder" && focusRequest.id === reminder.id) {
@@ -689,13 +697,19 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
           onClose={() => setStatusAnchor(null)}
         />
       )}
-      <input
-        type="text"
-        className="reminder-title-input"
+      <textarea
+        ref={tituloRef}
+        rows={1}
+        className="reminder-title-input reminder-title-area"
         value={titleDraft ?? reminder.title}
-        onChange={(e) => setTitleDraft(e.target.value)}
+        onChange={(e) => setTitleDraft(e.target.value.replace(/\n/g, " "))}
         onBlur={commitTitle}
-        onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            e.currentTarget.blur();
+          }
+        }}
       />
       {origem && <span className="chip chip-oneoff reminder-origem">{origem}</span>}
       {isRecurring && (
@@ -760,11 +774,12 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
         />
         <button
           type="button"
-          className="icon-btn"
+          className="icon-btn reminder-abrir-btn"
           title="Abrir lembrete completo (texto e observação)"
           onClick={() => setDetailOpen(true)}
         >
           <ExpandIcon />
+          <span className="reminder-abrir-rotulo">Abrir</span>
         </button>
         <button className="icon-btn danger-hover" type="button" title="Excluir" onClick={() => board.deleteReminder(reminder.id)}>
           <TrashIcon />
