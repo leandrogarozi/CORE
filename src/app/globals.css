@@ -5029,3 +5029,41 @@ textarea.synapse-card-title{ display:block; width:calc(100% + 8px); resize:none;
   /* ID: o código inteiro, em uma linha */
   .task-code-input{ width:110px; padding:6px 8px; font-size:13px; }
 }
+
+/* Reuniões "Por data / Por cliente": segmento em bandeja, o escolhido em degradê roxo (igual aos filtros dos Lembretes). */
+:root[data-estilo="suave"] .meeting-modo, :root[data-estilo="flutuante"] .meeting-modo{
+  display:inline-flex; gap:4px; padding:4px; border:0; border-radius:999px; background:var(--bandeja-fundo); overflow:visible;
+}
+:root[data-estilo="suave"] .meeting-modo .meeting-modo-btn, :root[data-estilo="flutuante"] .meeting-modo .meeting-modo-btn{
+  height:32px; padding:0 14px; border:0; border-radius:999px; background:transparent; color:var(--text-muted); font-size:12.5px; font-weight:600; box-shadow:none; white-space:nowrap;
+}
+:root[data-estilo="suave"] .meeting-modo .meeting-modo-btn.ativo, :root[data-estilo="flutuante"] .meeting-modo .meeting-modo-btn.ativo{
+  background:var(--grad-roxo, linear-gradient(135deg,#4A47D5,#7C4DF0)); color:#fff; box-shadow:0 8px 16px -10px rgba(94,77,235,.7);
+}
+
+/* Celular, rodada 4 (23:40 do Leandro): busca de Reuniões, linhas de Lembretes e botões de Projetos dentro da caixa. */
+@media (max-width:640px){
+  .meetings-toolbar{ flex-wrap:wrap; row-gap:10px; }
+  .meetings-search-row{ flex:1 1 100%; min-width:0; }
+  .meetings-toolbar .meeting-modo{ flex:1 1 auto; max-width:100%; }
+  .meetings-toolbar .meeting-modo .meeting-modo-btn{ flex:1; }
+  .meetings-pending-toggle{ flex:1 1 100%; font-size:12.5px; color:var(--text-muted); white-space:normal; }
+
+  /* Lembrete: título inteiro em cima; embaixo o status e a data; e uma linha só para os ícones de avisar */
+  .reminder-card-row{ gap:8px 10px; padding:12px 14px; align-items:center; }
+  .reminder-card-row .reminder-title-input{ order:0; flex:1 1 100%; font-size:15px; }
+  .reminder-card-row .reminder-status-chip{ order:1; min-width:0; }
+  .reminder-card-row .reminder-origem{ order:1; }
+  .reminder-card-row .reminder-date-btn{ order:2; flex:1 1 0; min-width:0; justify-content:flex-start; font-size:13px; }
+  .reminder-card-row .reminder-icones{ order:3; flex:1 1 100%; justify-content:flex-end; gap:8px; margin-left:0; padding-top:2px; }
+  .reminder-card-row .reminder-icones .icon-btn{ min-width:38px; min-height:38px; padding:0; display:inline-flex; align-items:center; justify-content:center; }
+  .reminder-card-row .reminder-icones .icon-btn svg{ width:18px; height:18px; }
+
+  /* Projetos: os botões ficam em grade dentro da caixa */
+  .edit-actions.edit-actions-grade{ display:grid; grid-template-columns:1fr 1fr; gap:10px; justify-content:stretch; }
+  .edit-actions.edit-actions-grade > .btn{ width:100%; min-width:0; white-space:normal; line-height:1.2; padding:8px 10px; }
+}
+@media (max-width:640px){
+  :root[data-estilo="suave"] .synapse-field .idea-filter, :root[data-estilo="flutuante"] .synapse-field .idea-filter{ display:inline-flex; width:auto; align-self:flex-start; }
+  .meetings-toolbar .meeting-modo .meeting-modo-btn{ display:inline-flex; align-items:center; justify-content:center; }
+}

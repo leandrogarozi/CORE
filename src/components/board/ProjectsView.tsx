@@ -377,7 +377,7 @@ function ProjectDetailView({ project, onBack }: { project: Project; onBack: () =
               </span>
             </div>
           )}
-          <div className="edit-actions">
+          <div className="edit-actions edit-actions-grade">
             <button type="button" className="btn btn-ghost danger-hover" onClick={handleDelete}>
               Excluir projeto
             </button>

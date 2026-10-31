@@ -150,7 +150,7 @@ export function SynapseCard({ synapse, ideia = false }: { synapse: Synapse; idei
           {ideia && (
             <div className="synapse-field">
               <span className="synapse-field-label">Tag</span>
-              <div className="note-options-chips">
+              <div className="note-options-chips idea-filter">
                 {(["ideia", "estudo"] as const).map((t) => (
                   <button
                     key={t}
