@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { GuardaDoEstilo } from "@/components/GuardaDoEstilo";
 
 export const metadata: Metadata = {
   title: "Painel FARO",
@@ -51,7 +52,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <link rel="icon" href="/icons/icon-32.png?v=3" type="image/png" />
         <link rel="apple-touch-icon" href="/icons/icon-180.png?v=3" />
       </head>
-      <body>{children}</body>
+      <body>
+        <GuardaDoEstilo />
+        {children}
+      </body>
     </html>
   );
 }

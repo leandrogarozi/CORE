@@ -4994,3 +4994,38 @@ textarea.synapse-card-title{ display:block; width:calc(100% + 8px); resize:none;
   .study-parts-head .btn{ white-space:nowrap; }
   .study-part-date{ width:auto; white-space:nowrap; }
 }
+
+/* Estudo: formulário de "Adicionar conhecimento" no padrão (campos cinza, botões em pílula). */
+:root[data-estilo="suave"] .study-part-new :is(input,select), :root[data-estilo="flutuante"] .study-part-new :is(input,select){
+  background-color:var(--campo-fundo); border:0; border-radius:10px; min-height:38px; padding:0 12px; font-size:13px; color:var(--text); box-sizing:border-box;
+}
+.study-parts-head .btn, .study-part-new .btn{ min-height:38px; padding:0 18px; font-size:13px; font-weight:600; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; white-space:nowrap; }
+
+/* Celular: janela de edição da tarefa organizada. Cada propriedade é uma linha com divisória; os botões de liga/desliga
+   ficam na mesma linha do nome e a explicação desce em letra pequena; campos ocupam a largura toda com altura de toque. */
+@media (max-width:640px){
+  .study-part-new{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .study-part-new > :is(select,input){ grid-column:1 / -1; width:100%; min-width:0; }
+  .study-part-new > .btn{ width:100%; }
+
+  .edit-row{ padding:12px 14px 16px; }
+  .edit-title-row{ gap:8px; margin-bottom:6px; }
+  .prop-list{ display:flex; flex-direction:column; gap:0; margin:4px 0 10px; }
+  .prop-list > .prop-row{ padding:12px 0; border-top:1px solid var(--linha); min-height:0; gap:6px; }
+  .prop-list > .prop-row:first-child{ border-top:0; }
+  .prop-row:not(.prop-row-empilhada) .prop-label{ font-size:12.5px; font-weight:600; color:var(--text-muted); }
+  .prop-row .prop-value > :is(select,input:not([type="checkbox"])){ min-height:44px; }
+
+  /* Liga/desliga: nome à esquerda, botão à direita, explicação embaixo */
+  .prop-row:has(.challenging-toggle){ display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; column-gap:12px; row-gap:4px; }
+  .prop-row:has(.challenging-toggle) > .prop-label{ grid-column:1; grid-row:1; }
+  .prop-row:has(.challenging-toggle) > .prop-value{ display:contents; }
+  .prop-row:has(.challenging-toggle) .challenging-toggle{ display:contents; }
+  .prop-row:has(.challenging-toggle) .toggle-switch{ grid-column:2; grid-row:1; width:40px; height:22px; }
+  .prop-row:has(.challenging-toggle) .toggle-switch .toggle-knob{ width:18px; height:18px; }
+  .prop-row:has(.challenging-toggle) .toggle-switch.on .toggle-knob{ transform:translateX(18px); }
+  .prop-row:has(.challenging-toggle) .challenging-hint{ grid-column:1 / -1; grid-row:2; font-size:12px; color:var(--text-muted); }
+
+  /* ID: o código inteiro, em uma linha */
+  .task-code-input{ width:110px; padding:6px 8px; font-size:13px; }
+}
