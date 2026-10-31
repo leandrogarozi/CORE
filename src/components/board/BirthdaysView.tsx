@@ -87,7 +87,7 @@ function PessoaCard({ pessoa }: { pessoa: Birthday }) {
         {/* Sininho: lembrar de mandar a mensagem pessoal (lembrete anual às 9h). */}
         <button
           type="button"
-          className={"icon-btn zap-btn" + (pessoa.remind ? " active" : "")}
+          className={"icon-btn bell-btn" + (pessoa.remind ? " active" : "")}
           title={pessoa.remind ? "Vai lembrar de mandar a mensagem. Clique pra desligar." : "Lembrar de mandar a mensagem"}
           onClick={() =>
             board.updateBirthday(pessoa.id, pessoa.remind ? { remind: false, remindWhatsapp: false } : { remind: true })

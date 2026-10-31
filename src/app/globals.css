@@ -5089,3 +5089,30 @@ textarea.reminder-title-area{ display:block; resize:none; overflow:hidden; font-
     [contenteditable="true"], .ProseMirror{ font-size:16px !important; }
   }
 }
+
+/* Livros: o título quebra em linhas */
+textarea.book-title-area{ display:block; resize:none; overflow:hidden; font-family:inherit; line-height:1.35; height:auto; }
+
+/* PADRÃO DOS AVISOS: o sino (avisa no app) e o WhatsApp, em todas as telas, como nos Lembretes.
+   Desligado: ícone cinza num quadradinho suave. Ligado: sino em degradê roxo, WhatsApp em degradê verde, ícone branco. */
+:root[data-estilo="suave"] :is(.zap-btn,.bell-btn), :root[data-estilo="flutuante"] :is(.zap-btn,.bell-btn){
+  display:inline-flex; align-items:center; justify-content:center; min-width:32px; min-height:32px; padding:0; border-radius:10px; flex:none;
+}
+:root[data-estilo="suave"] :is(.zap-btn,.bell-btn) svg, :root[data-estilo="flutuante"] :is(.zap-btn,.bell-btn) svg{ width:16px; height:16px; }
+:root[data-estilo="suave"] .bell-btn.active, :root[data-estilo="flutuante"] .bell-btn.active{ background:var(--grad-roxo); color:#fff; box-shadow:0 8px 16px -8px rgba(94,77,235,.65); }
+:root[data-estilo="suave"] .zap-btn.active, :root[data-estilo="flutuante"] .zap-btn.active{ background:var(--grad-verde); color:#fff; box-shadow:0 8px 16px -8px rgba(30,142,85,.6); }
+
+@media (max-width:640px){
+  :root[data-estilo="suave"] :is(.zap-btn,.bell-btn), :root[data-estilo="flutuante"] :is(.zap-btn,.bell-btn){ min-width:38px; min-height:38px; }
+
+  /* Livros, filmes e séries: título inteiro (quebra) numa parte e, em outra, os botões */
+  .book-row{ flex-wrap:wrap; row-gap:8px; column-gap:10px; align-items:center; }
+  .book-row .book-title-input{ flex:1 1 calc(100% - 96px); min-width:0; font-size:15px; }
+  .book-row .icon-btn, .book-row .comment-btn{ min-width:36px; min-height:36px; padding:0; display:inline-flex; align-items:center; justify-content:center; }
+  .book-row .icon-btn svg, .book-row .comment-btn svg{ width:17px; height:17px; }
+  .book-row > .icon-btn:first-of-type, .book-row > .book-date-btn{ margin-left:auto; }
+
+  /* Estudos: nome e descrição inteiros */
+  .study-card .study-card-titulo .study-card-name{ white-space:normal; overflow:visible; text-overflow:clip; line-height:1.3; }
+  .study-card .study-card-sub{ white-space:normal; overflow:visible; text-overflow:clip; line-height:1.4; }
+}

@@ -497,6 +497,14 @@ function BookRow({
 }) {
   const { board, focusRequest, consumeFocusRequest } = useBoardCtx();
   const [titleDraft, setTitleDraft] = useState<string | null>(null);
+  // O título cresce com o texto e quebra em linhas (no celular não fica cortado).
+  const tituloRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const el = tituloRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
+  }, [titleDraft, book.title]);
   const [flash, setFlash] = useState(false);
 
   function commitTitle() {
@@ -549,13 +557,19 @@ function BookRow({
       {/* Mesmo lugar e tamanho da bolinha de status das tarefas: logo depois da
           ordem, antes do título. Mudar de tela não muda o jeito de agir. */}
       <BookStatusPicker book={book} />
-      <input
-        type="text"
-        className="book-title-input"
+      <textarea
+        ref={tituloRef}
+        rows={1}
+        className="book-title-input book-title-area"
         value={titleDraft ?? book.title}
-        onChange={(e) => setTitleDraft(e.target.value)}
+        onChange={(e) => setTitleDraft(e.target.value.replace(/\n/g, " "))}
         onBlur={commitTitle}
-        onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            e.currentTarget.blur();
+          }
+        }}
       />
       {book.status === "lendo" && <BookStartDateButton book={book} />}
       <BookPriorityFlag book={book} />
