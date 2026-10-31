@@ -1,6 +1,7 @@
 import type { Birthday, Checklist, MaintenanceAsset, MaintenanceItem, ChecklistExpense, DailyLog, PantryItem, Priority, Reminder, StudyPlan, Task, TaskStatus } from "@/lib/types";
 import { acharUmItemPeloNome, aposComprar, ehRemedioOuSaude, lembreteDeCompraPendente } from "@/lib/board/dispensa";
 import { descreverAcao, validarAcao, type AcaoProposta } from "./ferramentas";
+import { acharFeedback, type FeedbackDoDono } from "./feedbacks";
 
 /**
  * Grava no app o que a IA propôs e ele confirmou. Recebe só as funções de que
@@ -36,6 +37,9 @@ export interface QuadroParaAcoes {
   updatePantryItem: (id: string, patch: Partial<Omit<PantryItem, "id">>) => void;
   reminders: Reminder[];
   completeReminder: (id: string) => void;
+  /** Só o dono: os feedbacks recebidos (lista lida quando o assistente abriu a conversa) e como marcá-los. */
+  feedbacks: FeedbackDoDono[];
+  marcarFeedback: (id: string, resolvido: boolean) => Promise<boolean>;
   maintenanceAssets: MaintenanceAsset[];
   maintenanceItems: MaintenanceItem[];
   addMaintenanceAsset: (name: string, kind: MaintenanceAsset["kind"]) => Promise<string | null>;
@@ -239,6 +243,15 @@ export async function executarAcao(acaoBruta: AcaoProposta, quadro: QuadroParaAc
       const resto = jaTinha.length ? ` Já estavam lá: ${jaTinha.join(", ")}.` : "";
       return criados > 0 ? { ok: true, mensagem: `${criados} ${criados === 1 ? "item entrou" : "itens entraram"} na Dispensa.${resto}` } : { ok: false, mensagem: `Nada novo para a Dispensa.${resto}` };
     }
+    case "resolver_feedback": {
+      const r = acharFeedback(quadro.feedbacks, { numero: acao.numero, trecho: acao.trecho }, acao.reabrir);
+      if ("erro" in r) return { ok: false, mensagem: r.erro };
+      const ok = await quadro.marcarFeedback(r.feedback.id, !acao.reabrir);
+      const resumo = r.feedback.texto.replace(/\s+/g, " ").slice(0, 60);
+      return ok
+        ? { ok: true, mensagem: `Feedback "${resumo}${r.feedback.texto.length > 60 ? "…" : ""}" ${acao.reabrir ? "voltou para a resolver" : "marcado como resolvido"}.` }
+        : { ok: false, mensagem: "Não consegui atualizar o feedback agora (só a conta do dono pode)." };
+    }
     case "adicionar_manutencao": {
       // O bem: o que já existe com esse nome; se não existe, cria (só depois do OK dele no cartão).
       const alvoBem = semAcento(acao.bem);
@@ -335,6 +348,8 @@ function converterParaEntrada(a: AcaoProposta): Record<string, unknown> {
           validade: i.validade ?? undefined,
         })),
       };
+    case "resolver_feedback":
+      return { numero: a.numero ?? undefined, trecho: a.trecho ?? undefined, reabrir: a.reabrir };
     case "adicionar_manutencao":
       return {
         item: a.item,

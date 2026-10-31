@@ -54,6 +54,7 @@ export type AcaoProposta =
         validade: string | null;
       }[];
     }
+  | { tipo: "resolver_feedback"; numero: number | null; trecho: string | null; reabrir: boolean }
   | {
       tipo: "adicionar_manutencao";
       item: string;
@@ -294,6 +295,19 @@ export const FERRAMENTAS_DO_FARO: Anthropic.Tool[] = [
     },
   },
   {
+    name: "resolver_feedback",
+    description:
+      "Só para o DONO do FARO (a seção FEEDBACKS A RESOLVER existe no resumo só para ele). Marca como RESOLVIDO um feedback que as pessoas mandaram pelo Canal de feedback (ou, com reabrir=true, volta um resolvido para 'a resolver'). Use quando ele disser que um feedback foi resolvido, feito ou pode fechar. Identifique pelo número da lista FEEDBACKS A RESOLVER e/ou por um trecho curto do texto do feedback, copiado do resumo. Se ele não deixar claro qual, PERGUNTE. Não apaga nada.",
+    input_schema: {
+      type: "object",
+      properties: {
+        numero: { type: "integer", minimum: 1, description: "Posição do feedback na lista FEEDBACKS A RESOLVER." },
+        trecho: { type: "string", description: "Poucas palavras do texto do feedback, como aparecem no resumo." },
+        reabrir: { type: "boolean", description: "true para voltar um feedback resolvido a 'a resolver'. Padrão: false." },
+      },
+    },
+  },
+  {
     name: "adicionar_manutencao",
     description:
       "Cadastra um ITEM DE MANUTENÇÃO que se repete (ex.: limpeza do dente a cada 6 meses, troca de óleo a cada 10.000 km, filtro da piscina a cada 3 meses), dentro de um BEM (Carro, Casa, Saúde...). ANTES de chamar, tenha as respostas: (1) em qual bem fica (use o nome de um bem que já aparece em MANUTENÇÃO; se não houver, diga o nome do novo bem e o tipo), (2) de quanto em quanto tempo ou km se repete, (3) quando foi feito pela última vez (data completa; se ele disse só o mês, PERGUNTE o dia). Se faltar qualquer uma, PERGUNTE em uma frase, juntando as dúvidas numa mensagem só, e só então chame a ferramenta. Não use para tarefa ou lembrete que acontece uma vez só. Não repita um item que já está em MANUTENÇÃO.",
@@ -490,6 +504,12 @@ export function validarAcao(nome: string, entrada: unknown): ResultadoDaValidaca
         },
       };
     }
+    case "resolver_feedback": {
+      const numero = typeof e.numero === "number" && e.numero >= 1 && e.numero <= 500 ? Math.round(e.numero) : null;
+      const trecho = texto(e.trecho, 120);
+      if (numero === null && !trecho) return { ok: false, motivo: "faltou dizer qual feedback (o número da lista ou um trecho do texto)" };
+      return { ok: true, acao: { tipo: "resolver_feedback", numero, trecho, reabrir: e.reabrir === true } };
+    }
     case "adicionar_manutencao": {
       const item = texto(e.item, 120);
       const bem = texto(e.bem, 80);
@@ -590,6 +610,8 @@ export function descreverAcao(a: AcaoProposta): string {
       return `Dispensa: adicionar ${a.itens.length} ${a.itens.length === 1 ? "item" : "itens"}: ${a.itens
         .map((i) => `${i.nome} (${i.quantidade}${i.unidade ? " " + i.unidade : ""}${i.situacao === "low" ? ", acabando" : i.situacao === "out" ? ", acabou" : ""}${i.onde ? `, ${i.onde}` : ""})`)
         .join("; ")}`;
+    case "resolver_feedback":
+      return `Feedback${a.numero ? ` nº ${a.numero}` : ""}${a.trecho ? ` ("${a.trecho}")` : ""}: marcar como ${a.reabrir ? "a resolver de novo" : "resolvido"}`;
     case "adicionar_manutencao": {
       const regra = [a.intervaloMeses ? `a cada ${a.intervaloMeses} ${a.intervaloMeses === 1 ? "mês" : "meses"}` : null, a.intervaloKm ? `a cada ${a.intervaloKm.toLocaleString("pt-BR")} km` : null]
         .filter(Boolean)

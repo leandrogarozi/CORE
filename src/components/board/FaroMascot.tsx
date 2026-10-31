@@ -11,6 +11,7 @@ import { useDictation } from "@/lib/board/use-dictation";
 import { resumoDoDia } from "@/lib/ia/resumo-do-dia";
 import { descreverAcao, type AcaoProposta } from "@/lib/ia/ferramentas";
 import { executarAcao } from "@/lib/ia/executar";
+import { resumoDeFeedbacks, type FeedbackDoDono } from "@/lib/ia/feedbacks";
 import type { EventoDaConversa } from "@/lib/ia/servidor";
 
 function greetingMessage(mood: number | null | undefined, nome?: string | null): string {
@@ -169,6 +170,30 @@ export function FaroMascot({ comDock = false }: { comDock?: boolean }) {
     }
   }
 
+  // Feedbacks recebidos: só a conta do dono lê, e só entram no resumo da conversa dela.
+  const feedbacksRef = useRef<FeedbackDoDono[]>([]);
+  const ehDono = board.state.settings.featureFlags.modo_dono === true;
+  async function lerFeedbacks() {
+    if (!ehDono) return;
+    try {
+      const r = await fetch("/api/feedback");
+      const j = (await r.json()) as { ok?: boolean; feedbacks?: FeedbackDoDono[] };
+      if (r.ok && j.ok && Array.isArray(j.feedbacks)) feedbacksRef.current = j.feedbacks;
+    } catch {
+      // Sem a lista, o assistente só não fala de feedbacks.
+    }
+  }
+  async function marcarFeedback(id: string, resolvido: boolean): Promise<boolean> {
+    try {
+      const r = await fetch("/api/feedback", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, lido: resolvido }) });
+      if (!r.ok) return false;
+      feedbacksRef.current = feedbacksRef.current.map((f) => (f.id === id ? { ...f, lido_em: resolvido ? new Date().toISOString() : null } : f));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async function enviar(textoPronto?: string) {
     const pergunta = (textoPronto ?? texto).trim();
     if (!pergunta || pensando) return;
@@ -179,10 +204,11 @@ export function FaroMascot({ comDock = false }: { comDock?: boolean }) {
     const atualizarUltima = (mudar: (f: Fala) => Fala) =>
       setFalas((f) => [...f.slice(0, -1), mudar(f[f.length - 1])]);
     try {
+      await lerFeedbacks();
       const r = await fetch("/api/ia/conversa", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mensagens: historico, resumo: resumoDoDia(board.state, today) }),
+        body: JSON.stringify({ mensagens: historico, resumo: resumoDeFeedbacks(feedbacksRef.current).trimStart() + (feedbacksRef.current.some((f) => !f.lido_em) ? "\n\n" : "") + resumoDoDia(board.state, today) }),
       });
       if (!r.ok || !r.body) {
         const d = (await r.json().catch(() => ({}))) as { erro?: string; gasto?: number; teto?: number };
@@ -259,6 +285,8 @@ export function FaroMascot({ comDock = false }: { comDock?: boolean }) {
         updatePantryItem: board.updatePantryItem,
         reminders: board.state.reminders,
         completeReminder: board.completeReminder,
+        feedbacks: feedbacksRef.current,
+        marcarFeedback,
         maintenanceAssets: board.state.maintenanceAssets,
         maintenanceItems: board.state.maintenanceItems,
         addMaintenanceAsset: board.addMaintenanceAsset,
