@@ -190,6 +190,42 @@ Cantos suaves e consistentes: chips 6px, campos e botões 9px, cartões e faixas
 ### Escolha de aviso
 - Segmento de três opções (Push, WhatsApp, Os dois), pílula selecionada em roxo suave. Um alternador por app é o padrão.
 
+## Padrão do celular e dos controles (aprovado de 30/10 a 01/11/2026) — seguir em tudo que for criado ou ajustado
+
+Este é o acordo com o dono depois de uma noite inteira de ajustes com prints do iPhone. Antes de mexer em qualquer tela, ler esta seção; ao criar tela nova, aplicar tudo; ao ajustar, não desfazer.
+
+**Estilo e teste**
+- O estilo padrão é o **Cartão flutuante** (roxo). A escolha mora na chave `faro-estilo-v2` (+ cookie); `GuardaDoEstilo` recoloca `data-estilo` e `data-theme` se o `<html>` perder os atributos. Valores antigos são ignorados de propósito. O Clássico não muda e não é referência.
+- Testar sempre a **390 px** (largura do iPhone) e no tema claro e escuro. Método que funcionou: página HTML estática com o `globals.css` real e a marcação da tela, fotografada com o Playwright; depois o dono confere no iPhone e manda print. Desenho novo (layout inédito) é mostrado antes de aplicar.
+- Toda mudança de tela vira uma entrada no `BRIEFING.md` e vai para o ar (push na branch).
+
+**Letra**
+- A tela de **Projetos** é a referência: **nome do item 14 px** (peso 600 em títulos de cartão), **subtexto 12 px**, campo de texto 13 px. Não aumentar por conta própria; o editor de texto longo fica em 16 px.
+- Nada de reticências em nome de item no celular: o nome **quebra em linhas** (`TituloQueCresce` ou `textarea` que cresce; Enter confirma).
+
+**Linha de item no celular (lista de lembretes, remédios, livros, ideias, projetos, tarefas…)**
+1. Parte de cima: ícone/status + **título inteiro**.
+2. Meio: etiquetas, status, data ou aviso em texto.
+3. Embaixo: **uma linha de botões, todos encostados à direita, do mesmo tamanho** (36 a 40 px, ícone de 17 px). Se houver "abrir" ou ação principal, ela vai à esquerda dessa linha com nome ("Abrir").
+- Conteúdo raro ou redundante some no celular (ex.: "0 s feitos" do Plano de Estudo).
+- Campo de **adicionar fica sempre em cima** da lista, com o botão de enviar à vista; campo secundário (tipo, hora) desce para a linha de baixo.
+
+**Controles**
+- **Sino (avisa no app) e WhatsApp:** classes `.bell-btn` e `.zap-btn` (nunca usar `zap-btn` para sino), botão **redondo** (36 px, 40 no celular); desligado cinza suave, ligado em **degradê roxo (sino) ou verde (WhatsApp)**, ícone branco. Vale para Lembretes, Dieta, Aniversários, Compras, Manutenção e Medicamentos.
+- **Segmentos e abas:** bandeja redonda, **uma linha só** (rola de lado se não couber), o escolhido em **degradê roxo**. Escolha curta de 2 a 5 opções (Ideia/Estudo, Por data/Por cliente, filtros) usa segmento. Onde há contador (Dashboard), a bandeja deixa o número sobrar (`overflow:visible`).
+- **Liga/desliga** (`.toggle-switch.on`): roxo escuro `#4A47D5`. Em linha de propriedade: nome à esquerda, chave à direita, explicação embaixo em letra pequena.
+- **Botões:** principal em degradê roxo, ghost branco com sombra; ícone branco em botão roxo; **Salvar e Cancelar centralizados**; 3 ou 4 botões numa caixa vão em **grade de duas colunas** (`edit-actions-grade`); texto de botão não quebra no meio da palavra.
+- **Campos:** cinza suave sem borda, `box-sizing:border-box` e `max-width:100%` (nunca passam da caixa); data e hora em campo cinza do mesmo desenho.
+- **Contadores e bolinhas** (anexos, "tem anotação"): no **canto** do ícone, nunca no meio.
+- **Cores com significado:** Livros verde = concluído, amarelo = lendo, azul = para ler; Dispensa verde = cheio (60% ou mais), amarelo = atenção (30 a 59%), vermelho = acabando.
+
+**Cartões**
+- Cartões de **16 px** de canto, **filete** de 4 px na borda esquerda seguindo a curva (`.com-filete`, `.synapse-card`), camadas sobrepostas **sem linhas** (bandeja cinza suave + blocos brancos com sombra leve). Sem aninhar cartão em cartão com borda.
+
+**iPhone**
+- O Safari amplia a tela ao tocar num campo com letra pequena. Solução adotada: `maximum-scale=1` posto pelo `GuardaDoEstilo` só no iPhone. Se voltar a ampliar, o plano B é letra de 16 px só nos campos que causarem (`select` inclusive), não em todos.
+- Texto de saudação e títulos usam quebra de linha normal (`text-wrap:wrap`); o `balance` do Safari deixa a frase estreita.
+
 ## Do's and Don'ts
 
 ### Do:

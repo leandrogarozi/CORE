@@ -4,6 +4,37 @@ Documento vivo de decisões de produto e backlog do Leandro. Complementa o
 `README.md` (que é técnico/setup) — este aqui é sobre **o quê** e **por quê**.
 Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
 
+## ▶ Próximos passos e revisões (atualizado em 01/11/2026, madrugada)
+
+**Padrão a seguir daqui para frente:** `DESIGN.md`, seção "Padrão do celular e dos controles" (letra de 14 px como em Projetos, linha de item em três partes, sino e WhatsApp redondos, segmentos roxos, Salvar/Cancelar no meio, adicionar em cima da lista etc.). Tudo o que foi ajustado de 30/10 a 01/11 está registrado nas entradas abaixo e já está no ar (branch `claude/new-session-7uftof`, Vercel `core-app`).
+
+**Estado em 01/11:** teste fechado liberado para 3 pessoas (convite enviado); só existe a conta do Leandro no banco (a de teste vazia foi apagada); WhatsApp dos testadores ainda **desligado** até a verificação na Meta.
+
+| # | O que | Quem | Estado | Observação |
+|---|---|---|---|---|
+| 1 | **Conferir no iPhone** as telas ajustadas na madrugada de 01/11 e mandar print do que ainda estiver torto: Lembretes (botão "Abrir"), Medicamentos, Manutenção, Aniversários, Livros, partes do Estudo, Dispensa, Home (topo e saudação), Dashboard (número de atrasadas), Como usar (lista de assuntos) | Leandro | Revisar | Só foram testadas em página estática a 390 px, não em aparelho |
+| 2 | Confirmar que, depois de "Atualizar o aplicativo", o app **abre já no flutuante (roxo)** e que **não amplia a tela** ao abrir tarefa ou lembrete | Leandro | Revisar | Se não: dizer qual navegador/app; ver o console do celular. Plano B do zoom: 16 px só nos campos que ampliarem |
+| 3 | **Telas ainda não conferidas** com o padrão novo: Checklists, Compras, Reuniões (lista), Dieta no escuro, Configurações, Perfil, Conhecendo você no celular, Metanoia, Semana, Calendário, Anotações, Clientes e Cadastros (dono) | Leandro + Claude | A revisar | Mandar print das que estiverem feias; corrigir seguindo o `DESIGN.md` |
+| 4 | **Verificar os 3 números dos testadores na Meta** (Developers > FARO > WhatsApp > Step 1 > "Recipient" > gerenciar lista), um por vez, com o código que chega no WhatsApp de cada pessoa | Leandro | Aguardando | Os números ficam só com o Leandro (não entram no repositório) |
+| 5 | Confirmar **qual número de teste a Meta mostra** (+1 555-203-8776 na tela) e se é o mesmo que o app usa (+1 555-401-5473, ID `1251734794700019`) | Leandro | Dúvida | Se forem diferentes, os destinatários cadastrados não valem para o app |
+| 6 | Depois da verificação: cada testador coloca o número no Perfil, aceita em Configurações > Custo do WhatsApp e aperta **Testar WhatsApp**; se falhar, Claude consulta `whatsapp_sends` | Testadores + Claude | Depois do 4 | |
+| 7 | **Número de produção do WhatsApp** (Step 2 da Meta): chip dedicado, forma de pagamento, modelos de mensagem aprovados; pedir o nome de exibição "FARO" e a foto do ícone novo | Leandro + Claude | Futuro | Business verification já aprovada. Hoje o limite é o número de teste (destinatários cadastrados, uns 5) |
+| 8 | **E-mail de confirmação** só chega a quem não é do time do Supabase se o SMTP próprio (Resend, `mail.soufaro.app.br`) estiver ligado | Leandro | Conferir | Testar com uma conta nova `+alias` antes do próximo convite |
+| 9 | **Metanoia:** cada pessoa marca a frase como "particular" ou "tornar público"; só o público vai para o Leandro aprovar (aba Para revisar); escolher a fonte (todas, só as do FARO, só as minhas); texto de consentimento nos Termos | Claude | Depois do teste | Tarefa #28 |
+| 10 | **Anotações:** o FARO anotar direto em Manutenção, Checklist, Projeto e Livros; "Mover para…" e "Virar lembrete" na caixa de Anotações | Claude | Depois do teste | |
+| 11 | **Dispensa, extras:** baixa automática pela Manutenção, aviso de validade, cadastro por voz | Claude | Depois do teste | Perguntar ao Leandro a validade do "Preservativo natural Stain" (dez/2026 ou 2025?) |
+| 12 | **Plano de Estudo:** módulos em sequência gerando sessões por módulo e a mesma barra de % em Projetos | Claude | Depois do teste | Selo "em obras" continua para quem testa |
+| 13 | **FARO ler os medicamentos:** só com opção ligada pela própria pessoa (desligada por padrão) e texto de privacidade atualizado | Leandro decide | Aguardando sim/não | Hoje saúde e remédios nunca vão para a IA |
+| 14 | **Dieta e criação de reunião** usam círculos e pílula próprios: unificar com o padrão dos Lembretes? | Leandro decide | Dúvida | Hoje a Dieta tem círculos aprovados e a Reunião, a pílula "Avisar no WhatsApp" |
+| 15 | **Causa do possível erro de hidratação** (o `<html>` perdendo `data-estilo`) não foi achada; a trava `GuardaDoEstilo` cobre o efeito | Claude | Observar | Se o visual antigo voltar, ver o console do celular |
+| 16 | **Rascunhos pendentes:** "Retrato de abril" e "Base Estratégica de abril" | Claude | Pendente | |
+| 17 | **Permissão do microfone** pedida a cada vez no celular: melhorar por aparelho | Claude | Pendente | |
+| 18 | **Google Agenda** em produção (o app precisa estar publicado, ou o testador na lista de teste); mensagem "o Google não verificou este app" (Avançado > continuar) | Leandro | Conferir | Ver trilha B acima |
+| 19 | Pendências antigas do Leandro: instalador do backup no Mac Mini, proteção contra senha vazada no Supabase, liberar o acesso da Vercel | Leandro | Antigas | Ver "▶ RETOMAR AQUI" |
+| 20 | Ideia futura (só registrada): app barato de frases motivacionais (~R$ 5/mês) | Leandro | Sem decisão | |
+
+**Como retomar uma conversa nova:** ler este quadro, o `DESIGN.md` (padrão do celular) e as últimas entradas do `BRIEFING.md` (procurar "01/11"). Os pedidos do Leandro costumam chegar por **print do iPhone**; responder mostrando o resultado numa página de teste a 390 px e subir.
+
 ## Ajustes de 16/10 (noite): bolinho de aniversário e Plano de Estudo que não polui a agenda
 
 - **Aniversários saíram da linha da home** e viraram um **bolinho na barra de cima, ao lado de Avisos** (`AniversariosButton.tsx`). Apagado quando ninguém faz aniversário nos próximos **3 dias**; aceso (cor de destaque) quando há; com um **número** quando alguém faz aniversário **hoje**. Passar o mouse mostra "Em 3 dias: aniversário de Fulano" (uma linha por pessoa); clicar abre Aniversários. Na lista, a linha de quem faz de 1 a 3 dias muda de cor (`.bday-card.perto`); hoje mantém o contorno forte. **Ordem na barra de cima: Avisos primeiro, bolinho depois.** A barra de pesquisa voltou a ocupar todo o espaço até os ícones (ele não quis que encurtasse). O ícone do aniversário é o **presente do pacote de ícones** (`design/icon-pack/Interface/Gift.svg`, escolhido por ele entre 8 opções; o cupcake parecia balde de pipoca), contorno simples como o do sino/Avisos, e vale também no menu lateral e na tela de Aniversários (`GiftIcon`).
