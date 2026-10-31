@@ -5109,7 +5109,6 @@ textarea.book-title-area{ display:block; resize:none; overflow:hidden; font-fami
   .book-row .book-title-input{ flex:1 1 calc(100% - 96px); min-width:0; font-size:15px; }
   .book-row .icon-btn, .book-row .comment-btn{ min-width:36px; min-height:36px; padding:0; display:inline-flex; align-items:center; justify-content:center; }
   .book-row .icon-btn svg, .book-row .comment-btn svg{ width:17px; height:17px; }
-  .book-row > .icon-btn:first-of-type, .book-row > .book-date-btn{ margin-left:auto; }
 
   /* Estudos: nome e descrição inteiros */
   .study-card .study-card-titulo .study-card-name{ white-space:normal; overflow:visible; text-overflow:clip; line-height:1.3; }
@@ -5229,4 +5228,16 @@ textarea.titulo-cresce{ display:block; resize:none; overflow:hidden; font-family
   .topbar .topbar-right > :not(.active-timer-badges),
   .topbar .topbar-right > .aviso-icon-btn.aniv-btn,
   .topbar .topbar-right > .aviso-icon-btn:not(.aniv-btn){ margin-left:auto; }
+}
+
+/* Livros no celular: em Lendo, Para ler e Finalizado os botões ficam na mesma linha, todos alinhados à direita e do mesmo tamanho. */
+@media (max-width:640px){
+  .book-row > .book-title-input + *{ margin-left:auto; }
+  .book-row > :is(.icon-btn,.flag-btn,.comment-btn,.book-enviar,.attachment-btn):not(.book-title-input + *){ margin-left:0; }
+  .book-row > .book-title-input ~ :is(.icon-btn,.flag-btn,.comment-btn,.attachment-btn),
+  .book-row > .book-title-input ~ .book-enviar > button{
+    width:38px; height:38px; min-width:38px; min-height:38px; padding:0; display:inline-flex; align-items:center; justify-content:center; flex:none;
+  }
+  .book-row > .book-title-input ~ :is(.icon-btn,.flag-btn,.comment-btn,.attachment-btn) svg{ width:19px; height:19px; }
+  .book-row > .book-title-input ~ .book-date-btn{ min-height:38px; font-size:12.5px; }
 }
