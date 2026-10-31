@@ -15,6 +15,7 @@ import {
   ChartIcon,
   CheckCircleIcon,
   ChecklistIcon,
+  ChevronIcon,
   ClockIcon,
   CommentIcon,
   DownloadIcon,
@@ -155,18 +156,34 @@ function resumoDe(id: string, linhas: number): string {
 export function TutorialView({ onBack, secao }: { onBack: () => void; secao?: string | null }) {
   // O assunto em destaque: o que veio do "?" da tela ou o último que a pessoa tocou.
   const [ativo, setAtivo] = useState<string | null>(secao ?? null);
+  const [listaAberta, setListaAberta] = useState(false);
+
+  // Rola até o bloco do assunto. No celular a tela ainda está se montando quando o toque chega (e a troca de tela volta a página
+  // ao topo), então tenta de novo algumas vezes, sem animação, até o bloco ficar no alto.
+  function rolarAte(id: string) {
+    const tentar = () => {
+      const el = document.getElementById("tut-" + id);
+      if (!el) return;
+      const topo = el.getBoundingClientRect().top + window.scrollY - 12;
+      window.scrollTo({ top: Math.max(0, topo), behavior: "auto" });
+    };
+    tentar();
+    [120, 350, 800].forEach((ms) => setTimeout(tentar, ms));
+  }
   function ir(id: string) {
     setAtivo(id);
-    document.getElementById("tut-" + id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-    // No celular a faixa de atalhos rola de lado: mantém o escolhido à vista.
+    setListaAberta(false);
+    rolarAte(id);
+    // No computador a faixa de atalhos rola de lado: mantém o escolhido à vista.
     document.getElementById("tut-chip-" + id)?.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
   }
 
   useEffect(() => {
     if (!secao) return;
-    const t = setTimeout(() => document.getElementById("tut-" + secao)?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
-    return () => clearTimeout(t);
+    rolarAte(secao);
   }, [secao]);
+
+  const tituloAtivo = TUTORIAL.find((t) => t.id === ativo)?.titulo ?? null;
 
   return (
     <div className="section">
@@ -179,6 +196,26 @@ export function TutorialView({ onBack, secao }: { onBack: () => void; secao?: st
       </div>
       <div className="narrow-list tutorial">
         <p className="hint-text">Um bloco curto por assunto. Toque num assunto para pular até ele. Em cada tela do FARO, o botão “Como funciona”, no canto de cima, abre esta página no assunto dela.</p>
+        {/* Celular: um botão que abre a lista de assuntos (no lugar da faixa que rolava de lado). */}
+        <div className="tut-menu">
+          <button type="button" className="tut-menu-btn" aria-expanded={listaAberta} onClick={() => setListaAberta((v) => !v)}>
+            <span>{tituloAtivo ? `Assunto: ${tituloAtivo}` : "Escolher o assunto"}</span>
+            <ChevronIcon />
+          </button>
+          {listaAberta && (
+            <>
+              <div className="mnav-fundo tut-menu-fundo" onClick={() => setListaAberta(false)} />
+              <div className="mnav-folha tut-menu-folha" role="dialog" aria-label="Assuntos do Como usar">
+                <div className="mnav-folha-titulo">O que você quer aprender?</div>
+                {TUTORIAL.map((t) => (
+                  <button key={t.id} type="button" className={"mnav-folha-opcao" + (ativo === t.id ? " on" : "")} onClick={() => ir(t.id)}>
+                    {t.titulo}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
         <nav className="tutorial-indice" aria-label="Assuntos do Como usar">
           {TUTORIAL.map((s) => (
             <button key={s.id} id={"tut-chip-" + s.id} type="button" className={"tut-chip" + (ativo === s.id ? " on" : "")} aria-pressed={ativo === s.id} onClick={() => ir(s.id)}>

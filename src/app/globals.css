@@ -4964,3 +4964,33 @@ textarea.synapse-card-title{ display:block; width:calc(100% + 8px); resize:none;
   .study-parts-head{ padding-bottom:2px; }
   .study-part{ position:relative; }
 }
+
+/* Como usar: no celular os assuntos abrem numa lista (botão + folha), em vez da faixa que rolava de lado. */
+.tut-menu{ display:none; }
+@media (max-width:640px){
+  .tut-menu{ display:block; margin:10px 0 14px; }
+  .tutorial-indice{ display:none; }
+  .tut-menu-btn{ width:100%; min-height:44px; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:0 16px; border:0; border-radius:999px; background:var(--campo-fundo, var(--surface-2)); color:var(--text); font-size:13.5px; font-weight:600; text-align:left; cursor:pointer; }
+  .tut-menu-btn span{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tut-menu-btn svg{ flex:none; width:15px; height:15px; transform:rotate(0deg); }
+  .tut-menu-btn[aria-expanded="true"] svg{ transform:rotate(180deg); }
+  .tut-menu-folha{ bottom:calc(96px + env(safe-area-inset-bottom)); max-height:62vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .tut-menu-folha .mnav-folha-opcao.on{ color:var(--accent); font-weight:650; }
+  .tut-menu-folha .mnav-folha-titulo{ position:sticky; top:-10px; background:var(--surface); z-index:1; }
+}
+
+/* Celular, rodada 3: tarefa com etiquetas em partes (título, etiquetas, ações) e botões de Salvar/Cancelar no meio. */
+@media (max-width:640px){
+  .row-desc-cell{ flex-wrap:wrap; row-gap:6px; column-gap:8px; }
+  .row-desc-cell .row-title{ flex:1 1 100%; min-width:0; font-size:15px; }
+  .row-desc-cell .row-badges{ flex:1 1 100%; flex-wrap:wrap; gap:6px; }
+  .row-desc-cell .task-badge{ padding:2px 6px; }
+  .row-desc-cell .task-client-badge{ max-width:100%; }
+  .row-desc-cell .task-client-name{ max-width:62vw; }
+  .row-desc-cell .row-time{ font-size:12px; color:var(--text-muted); }
+  .edit-actions:not(.edit-actions-split):not(.study-actions){ justify-content:center; gap:10px; }
+  .edit-actions:not(.edit-actions-split):not(.study-actions) .btn{ min-width:120px; justify-content:center; min-height:40px; }
+  .study-parts-head{ flex-wrap:wrap; row-gap:8px; }
+  .study-parts-head .btn{ white-space:nowrap; }
+  .study-part-date{ width:auto; white-space:nowrap; }
+}
