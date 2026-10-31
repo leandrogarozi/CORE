@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { lerEstiloGuardado } from "@/lib/estilo";
 
 /**
  * O estilo (flutuante, suave, clássico) e o tema (claro, escuro) moram em atributos do <html>, escritos por um script
@@ -12,15 +13,13 @@ export function GuardaDoEstilo() {
   useEffect(() => {
     const html = document.documentElement;
     function garantir() {
-      let estilo: string | null = null;
       let tema: string | null = null;
       try {
-        estilo = window.localStorage.getItem("faro-estilo");
         tema = window.localStorage.getItem("faro-tema");
       } catch {
         // Sem armazenamento: vale o padrão.
       }
-      if (!html.dataset.estilo) html.dataset.estilo = estilo === "suave" || estilo === "classico" ? estilo : "flutuante";
+      if (!html.dataset.estilo) html.dataset.estilo = lerEstiloGuardado();
       if (!html.dataset.theme) {
         const escuro = tema === "escuro" || (tema !== "claro" && window.matchMedia("(prefers-color-scheme: dark)").matches);
         html.dataset.theme = escuro ? "dark" : "light";

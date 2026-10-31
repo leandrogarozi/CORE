@@ -38,7 +38,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               "var e=s==='escuro'||(s!=='claro'&&window.matchMedia('(prefers-color-scheme: dark)').matches);" +
               "document.documentElement.dataset.theme=e?'dark':'light';}" +
               "catch(_){document.documentElement.dataset.theme='light';}" +
-              "try{var z=localStorage.getItem('faro-estilo');" +
+              "try{var z=null;try{z=localStorage.getItem('faro-estilo-v2');}catch(_){}" +
+              "if(!z){var m=document.cookie.match(/(?:^|; )faro-estilo-v2=([^;]+)/);z=m?m[1]:null;}" +
               "document.documentElement.dataset.estilo=z==='suave'||z==='classico'?z:'flutuante';}" +
               "catch(_){document.documentElement.dataset.estilo='flutuante';}})()",
           }}

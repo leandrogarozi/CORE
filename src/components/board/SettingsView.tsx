@@ -1,5 +1,6 @@
 "use client";
 
+import { guardarEstilo } from "@/lib/estilo";
 import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useBoardCtx } from "./board-context";
 import { createClient } from "@/lib/supabase/client";
@@ -1881,11 +1882,7 @@ function inscreverEstilo(avisar: () => void) {
 // Escreve só no atributo (o observador acima re-renderiza) e guarda neste aparelho.
 function gravarEstilo(id: string) {
   document.documentElement.dataset.estilo = id;
-  try {
-    window.localStorage.setItem("faro-estilo", id);
-  } catch {
-    // Sem armazenamento: vale só até recarregar.
-  }
+  guardarEstilo(id);
 }
 
 function EstiloVisualBox() {
