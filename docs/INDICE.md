@@ -12,6 +12,7 @@ Atualizado em 01/11/2026. Se algo não estiver aqui, está no `BRIEFING.md` (pro
 | Arquivo | Assunto |
 |---|---|
 | `VIDEO-COMO-USAR.md` | Roteiros dos vídeos (boas-vindas e 12 capítulos), identidade e plano de telas reais |
+| `comunicacao/` | **Pacote do projeto de comunicação** (visão geral, vídeos, site, branding, funcionalidades, novidades) e o `.zip` pronto para levar |
 | `SITE-FARO.md` | Briefing do site de apresentação (estrutura, regras, texto para colar no projeto do site) |
 | `MAPA-IA-E-FARO.md` | O que o assistente e o conector externo fazem (tabela de ações) |
 | `LAYOUT-FARO.md` | Layout aprovado em 22/10 |

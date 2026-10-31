@@ -1,5 +1,7 @@
 # Site do FARO: briefing para construir em outro projeto
 
+> **Versão anterior.** A versão atual, com os endereços decididos em 01/11/2026 (`www.soufaro.app.br`), está em `docs/comunicacao/03-SITE-VISAO.md`.
+
 Ideia do Leandro (01/11/2026): um site que **mostra o FARO**. Começa com o **vídeo de boas-vindas** e vai descendo pelas partes do app (os mesmos assuntos dos capítulos do "Como usar"). Tem de ter a **cara do FARO**. Será construído **fora do Code**, no projeto onde ele já tem as skills de site; este arquivo é o que se leva para lá.
 
 ## 1. Decisões que o dono precisa tomar
