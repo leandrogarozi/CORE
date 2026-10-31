@@ -5230,14 +5230,24 @@ textarea.titulo-cresce{ display:block; resize:none; overflow:hidden; font-family
   .topbar .topbar-right > .aviso-icon-btn:not(.aniv-btn){ margin-left:auto; }
 }
 
-/* Livros no celular: em Lendo, Para ler e Finalizado os botões ficam na mesma linha, todos alinhados à direita e do mesmo tamanho. */
+/* Livros no celular: em Lendo, Para ler e Finalizado os botões ficam na mesma linha, todos alinhados à direita e do mesmo tamanho (36 px, ícone de 17 px). */
+.book-enviar-icone{ display:none; }
 @media (max-width:640px){
   .book-row > .book-title-input + *{ margin-left:auto; }
   .book-row > :is(.icon-btn,.flag-btn,.comment-btn,.book-enviar,.attachment-btn):not(.book-title-input + *){ margin-left:0; }
-  .book-row > .book-title-input ~ :is(.icon-btn,.flag-btn,.comment-btn,.attachment-btn),
+  .book-row > .book-title-input ~ :is(.icon-btn,.flag-btn,.comment-btn,.attachment-btn,.book-date-btn),
   .book-row > .book-title-input ~ .book-enviar > button{
-    width:38px; height:38px; min-width:38px; min-height:38px; padding:0; display:inline-flex; align-items:center; justify-content:center; flex:none;
+    position:relative; width:36px; height:36px; min-width:36px; min-height:36px; padding:0; display:inline-flex; align-items:center; justify-content:center; flex:none; gap:0;
   }
-  .book-row > .book-title-input ~ :is(.icon-btn,.flag-btn,.comment-btn,.attachment-btn) svg{ width:19px; height:19px; }
-  .book-row > .book-title-input ~ .book-date-btn{ min-height:38px; font-size:12.5px; }
+  .book-row > .book-title-input ~ :is(.icon-btn,.flag-btn,.comment-btn,.attachment-btn,.book-date-btn) svg,
+  .book-row > .book-title-input ~ .book-enviar svg{ width:17px; height:17px; }
+  /* Data de início: o mesmo botão quadrado dos outros, só com o ícone do calendário; o dia fica no texto do balão */
+  .book-row > .book-title-input ~ .book-date-btn{ width:auto; min-width:36px; padding:0 8px; gap:6px; font-size:12px; }
+  /* "Levar para…" vira só o ícone de enviar; o texto some */
+  .book-enviar-icone{ display:inline-flex; }
+  .book-enviar-rotulo{ display:none; }
+  :root .book-row .book-enviar-btn{ border-radius:10px; background:transparent !important; box-shadow:none !important; border:0 !important; color:var(--text-faint); }
+  /* Bolinha de "tem anotação" e contador de anexos no canto do ícone, e não no meio */
+  .book-row .comment-btn.has-comment::after{ top:7px; right:7px; }
+  .book-row .attachment-count{ top:1px; right:1px; }
 }

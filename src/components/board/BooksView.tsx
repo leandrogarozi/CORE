@@ -20,6 +20,7 @@ import {
   TrashIcon,
   TvIcon,
   WeekIcon,
+  SendIcon,
 } from "./icons";
 import { RichTextEditor } from "./RichTextEditor";
 import { priorityColor, priorityLabel, nextPriority } from "./TaskRow";
@@ -419,7 +420,10 @@ function BookEnviarAnotacoes({ book }: { book: Book }) {
         title={`Levar as anotações ${info.um === "livro" ? "deste livro" : info.um === "filme" ? "deste filme" : "desta série"} para uma Sinapse ou um Estudo`}
         onClick={() => setEtapa("escolher")}
       >
-        Levar para…
+        <span className="book-enviar-icone" aria-hidden="true">
+          <SendIcon />
+        </span>
+        <span className="book-enviar-rotulo">Levar para…</span>
       </button>
       {aviso && <span className="book-enviar-aviso">{aviso}</span>}
       {etapa !== "fechado" &&
