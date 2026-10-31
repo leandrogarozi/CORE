@@ -1,6 +1,7 @@
 "use client";
 
 import { guardarEstilo } from "@/lib/estilo";
+import { ConectarIACartao } from "./ConectarIA";
 import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useBoardCtx } from "./board-context";
 import { createClient } from "@/lib/supabase/client";
@@ -2464,6 +2465,7 @@ export function SettingsView({ onBack }: { onBack: () => void }) {
 
           <GrupoDeConfiguracao id="conexoes">
             <GoogleAgendaBox />
+            <ConectarIACartao />
             <ConectorFaroBox />
           </GrupoDeConfiguracao>
 

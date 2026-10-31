@@ -15,6 +15,7 @@ import { arquivoDoConhecimento } from "@/lib/learning-export";
 import { baixarTexto, soONome } from "@/lib/baixar";
 import type { KnowledgeItem } from "@/lib/types";
 import { TutorialLink } from "./TutorialLink";
+import { ConectarIAFaixa } from "./ConectarIA";
 
 type ResumoGuardado = { resumo: string | null; em: string | null };
 
@@ -387,6 +388,7 @@ export function ConhecendoView({ onBack }: { onBack: () => void }) {
       </div>
 
       <div className={"narrow-list" + (wide ? " list-xl" : "")}>
+        <ConectarIAFaixa />
         <ResumoDoFaro
           aprovados={conta("aprovado")}
           aprovadosDepoisDoResumo={(em) => itens.filter((k) => k.status === "aprovado" && k.updatedAt > em).length}

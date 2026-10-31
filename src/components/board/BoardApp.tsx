@@ -108,6 +108,15 @@ function BoardShell() {
     window.addEventListener("faro:tutorial", abrir);
     return () => window.removeEventListener("faro:tutorial", abrir);
   }, []);
+  // "Conectar" na faixa de Conhecendo você: abre Configurações e desce até o cartão da IA.
+  useEffect(() => {
+    function abrir() {
+      setViewMode("settings");
+      setTimeout(() => document.getElementById("cfg-conectar-ia")?.scrollIntoView({ behavior: "smooth", block: "start" }), 250);
+    }
+    window.addEventListener("faro:conectar-ia", abrir);
+    return () => window.removeEventListener("faro:conectar-ia", abrir);
+  }, []);
   // A volta do "Conectar com o Google" chega como ?google=ok (ou um erro): abre as Configurações e deixa o recado para a caixa do Google.
   useEffect(() => {
     const volta = new URLSearchParams(window.location.search).get("google");
