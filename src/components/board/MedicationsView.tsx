@@ -152,7 +152,7 @@ function ScheduleButton({
       {open &&
         createPortal(
           <div className="daylog-popover" ref={popRef} style={{ top: pos.top, left: pos.left }}>
-            {showTime && <TimePicker value={timeDraft} onChange={setTimeDraft} autoFocus />}
+            {showTime && <TimePicker value={timeDraft} onChange={setTimeDraft} onClear={() => setTimeDraft("")} autoFocus />}
             {showTime && showMulti && (
               <>
                 <div className="edit-field">
@@ -184,7 +184,7 @@ function ScheduleButton({
                           {t} ×
                         </button>
                       ))}
-                      <TimePicker value={novoExtra} placeholder="+ horário" onChange={setNovoExtra} />
+                      <TimePicker value={novoExtra} placeholder="+ horário" onChange={setNovoExtra} onClear={() => setNovoExtra("")} />
                       <button
                         type="button"
                         className="btn btn-ghost"

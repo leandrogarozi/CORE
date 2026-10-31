@@ -725,6 +725,7 @@ function TaskWhenButton({ date, time, endDate, endTime, durationMin, aviso, zap,
                   }}
                 >
                   <EraserIcon />
+                  <span className="reminder-clear-rotulo">Limpar</span>
                 </button>
               </div>
             </div>
@@ -750,6 +751,7 @@ function TaskWhenButton({ date, time, endDate, endTime, durationMin, aviso, zap,
                   }}
                 >
                   <EraserIcon />
+                  <span className="reminder-clear-rotulo">Limpar</span>
                 </button>
               </div>
             </div>

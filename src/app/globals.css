@@ -5251,3 +5251,22 @@ textarea.titulo-cresce{ display:block; resize:none; overflow:hidden; font-family
   .book-row .comment-btn.has-comment::after{ top:7px; right:7px; }
   .book-row .attachment-count{ top:1px; right:1px; }
 }
+
+/* Data e hora no celular (01/11): o quadro de data/hora ficava mais alto que a tela e os botões de baixo (Limpar, Cancelar, Salvar)
+   sumiam. Agora ele é uma folha acima do menu de baixo, que rola, com os botões sempre à vista no fim; cada "Limpar" ganha o nome. */
+.reminder-clear-rotulo{ display:none; }
+@media (max-width:640px){
+  .daylog-popover{
+    left:12px !important; right:12px !important; top:auto !important; bottom:calc(96px + env(safe-area-inset-bottom));
+    width:auto; max-height:calc(100dvh - 200px); overflow-y:auto; -webkit-overflow-scrolling:touch; z-index:55; padding:12px;
+  }
+  .daylog-popover .reminder-datetime-row{ flex-wrap:wrap; row-gap:8px; }
+  .daylog-popover .reminder-clear-btn{ width:auto; min-height:38px; padding:0 12px; gap:6px; display:inline-flex; align-items:center; font-size:13px; font-weight:600; color:var(--text-muted); }
+  .daylog-popover .reminder-clear-btn svg{ width:15px; height:15px; }
+  .daylog-popover .reminder-clear-rotulo{ display:inline; }
+  .daylog-popover .edit-actions{ position:sticky; bottom:-12px; background:var(--surface); padding:10px 0 2px; margin-top:4px; }
+  .daylog-popover .edit-actions-split{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+  .daylog-popover .edit-actions-split > .btn{ width:100%; min-width:0; min-height:40px; padding:0 6px; white-space:nowrap; justify-content:center; display:inline-flex; align-items:center; gap:4px; }
+  .time-picker-pop{ z-index:60; }
+  .time-picker-clear{ min-height:40px; font-size:13.5px; font-weight:600; }
+}

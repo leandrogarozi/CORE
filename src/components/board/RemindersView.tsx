@@ -253,6 +253,7 @@ export function ReminderDateButton({
                 }}
               >
                 <EraserIcon />
+                <span className="reminder-clear-rotulo">Limpar</span>
               </button>
             </div>
             <div className="edit-field">

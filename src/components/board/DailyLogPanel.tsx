@@ -152,6 +152,7 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
                   <TimePicker
                     value={wokeAt}
                     onChange={(v) => board.updateDailyLog(selectedDate, { wokeAt: v || null })}
+                    onClear={() => board.updateDailyLog(selectedDate, { wokeAt: null })}
                   />
                 </label>
                 <label className="dl-sleep-field">
@@ -159,6 +160,7 @@ export function DailyLogPanel({ selectedDate }: { selectedDate: string }) {
                   <TimePicker
                     value={sleptAt}
                     onChange={(v) => board.updateDailyLog(selectedDate, { sleptAt: v || null })}
+                    onClear={() => board.updateDailyLog(selectedDate, { sleptAt: null })}
                   />
                 </label>
               </div>

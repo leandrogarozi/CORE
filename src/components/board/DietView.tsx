@@ -269,7 +269,7 @@ export function DietView({ onBack }: { onBack: () => void }) {
               onChange={(e) => setNewMealName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && addMeal()}
             />
-            <TimePicker value={newMealTime} onChange={setNewMealTime} />
+            <TimePicker value={newMealTime} onChange={setNewMealTime} onClear={() => setNewMealTime("")} />
             <button type="button" className="btn btn-accent diet-meal-add-btn" onClick={addMeal}>
               Adicionar
             </button>
