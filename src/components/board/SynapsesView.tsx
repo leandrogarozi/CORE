@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { EnviarBtn } from "./EnviarBtn";
 import { useBoardCtx } from "./board-context";
 import { NoteField } from "./NoteField";
@@ -46,6 +46,15 @@ export function SynapseCard({ synapse, ideia = false }: { synapse: Synapse; idei
   const [passouDoLimite, setPassouDoLimite] = useState(false);
   const usados = stripHtml(learning).length;
 
+  // O título é um campo de uma linha que cresce com o texto: no celular um título longo quebra em vez de ser cortado.
+  const tituloRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const el = tituloRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = el.scrollHeight + "px";
+  }, [title, open]);
+
   const cleanTitle = title.trim() || synapse.title;
   const cleanSource = source.trim() || null;
   const dirty =
@@ -83,12 +92,18 @@ export function SynapseCard({ synapse, ideia = false }: { synapse: Synapse; idei
           {tipoVisual === "estudo" ? <BookOpenIcon /> : tipoVisual === "ideia" ? <LightbulbIcon /> : <BoltIcon />}
         </span>
         <div className="synapse-card-headings">
-          <input
-            type="text"
+          <textarea
+            ref={tituloRef}
+            rows={1}
             className="synapse-card-title"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && save()}
+            onChange={(e) => setTitle(e.target.value.replace(/\n/g, " "))}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                save();
+              }
+            }}
           />
           {!open && (questionsPreview || learningPreview) && (
             <span className="synapse-card-preview">{questionsPreview || learningPreview}</span>

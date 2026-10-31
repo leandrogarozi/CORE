@@ -4467,12 +4467,12 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 :root .synapse-card .synapse-card-head .tile-tipo{ width:44px; height:44px; border-radius:13px; }
 :root .synapse-card .synapse-card-head .tile-tipo svg{ width:21px; height:21px; }
 :root .synapse-card .synapse-card-headings{ gap:0; }
-:root .synapse-card input.synapse-card-title{
+:root .synapse-card :is(input,textarea).synapse-card-title{
   border:0; box-shadow:none; background:transparent; outline:none; border-radius:6px;
   padding:2px 4px; margin:0 -4px; font-size:15.5px; font-weight:650; cursor:text;
 }
-:root .synapse-card input.synapse-card-title:hover{ background:color-mix(in srgb, var(--text) 4%, transparent); border:0; }
-:root .synapse-card input.synapse-card-title:focus{ background:var(--surface-2); border:0; box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }
+:root .synapse-card :is(input,textarea).synapse-card-title:hover{ background:color-mix(in srgb, var(--text) 4%, transparent); border:0; }
+:root .synapse-card :is(input,textarea).synapse-card-title:focus{ background:var(--surface-2); border:0; box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }
 :root .synapse-card .synapse-card-preview{
   display:block; margin-top:8px; padding:8px 0 0; border-top:1px solid var(--linha);
   font-size:12.5px; color:var(--text-muted); line-height:1.45;
@@ -4849,3 +4849,33 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 :root[data-estilo="suave"] :is(.diet-meal-app-toggle,.diet-meal-whatsapp) svg, :root[data-estilo="flutuante"] :is(.diet-meal-app-toggle,.diet-meal-whatsapp) svg{ width:16px; height:16px; }
 /* Confirmar número (Dieta) e outros botões de WhatsApp no verde padrão */
 .btn-zap svg{ width:14px; height:14px; }
+
+/* Celular: linhas legíveis (Sinapses, Ideias e Estudos, Projetos) e topo da home em ordem.
+   O título ganha a linha de cima inteira; data, etiqueta e botões descem para uma linha própria. */
+.project-row-meta{ display:contents; }
+@media (max-width:640px){
+  .synapse-card .synapse-card-head{ flex-wrap:wrap; row-gap:6px; column-gap:10px; padding:14px 14px 10px 16px; }
+  .synapse-card .synapse-card-headings{ flex:1 1 calc(100% - 96px); }
+  .synapse-card .synapse-card-head > .synapse-tag-badge{ margin-left:34px; }
+  .synapse-card .synapse-card-head > .synapse-card-date{ margin-left:auto; }
+  .synapse-card .synapse-card-head > .icon-btn, .synapse-card .synapse-card-head > .attach-btn{ min-width:36px; min-height:36px; }
+  .synapse-card .synapse-card-preview{ white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; text-overflow:clip; }
+
+  .project-row-topo{ flex-wrap:wrap; row-gap:10px; }
+  .project-row-nome-col{ flex:1 1 calc(100% - 52px); }
+  .project-row-name{ white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .project-row-meta{ flex:1 1 100%; display:flex; align-items:center; gap:10px; padding-left:46px; }
+  .project-row-meta .project-row-barra{ flex:1; width:auto; min-width:40px; }
+
+  /* Topo da home: linha 1 = menu, FARO e os ícones; (cronômetro, se houver); busca por último. */
+  .topbar{ gap:0; row-gap:10px; }
+  .topbar .brand{ margin-left:6px; }
+  .topbar-right{ display:contents; }
+  .topbar-right > .aviso-icon-btn{ margin-left:auto; }
+  .topbar-right .icon-btn, .topbar-right .profile-avatar-nav-btn{ min-width:38px; min-height:38px; }
+  .topbar .active-timer-badges{ order:2; flex:1 1 100%; }
+  .topbar .active-timer-badge{ width:100%; justify-content:space-between; }
+  .topbar .active-timer-badge .badge-name{ max-width:none; flex:1; min-width:0; }
+}
+textarea.synapse-card-title{ display:block; width:calc(100% + 8px); resize:none; overflow:hidden; font-family:inherit; line-height:1.3; }
+.project-row-barra .hp-bar{ display:block; }

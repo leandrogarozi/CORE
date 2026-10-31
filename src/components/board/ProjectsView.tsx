@@ -73,6 +73,8 @@ function ProjectListRow({
           <span className="project-row-name">{project.name}</span>
           <span className="project-row-prazo">{project.deadline ? `prazo ${fmtShortDate(project.deadline)}` : "sem prazo"}</span>
         </span>
+        {/* No celular o nome ganha a linha de cima inteira e esta caixa desce para a de baixo; no computador ela some (contents). */}
+        <span className="project-row-meta">
         {progress.doing > 0 && <span className="project-row-doing">{progress.doing} em andamento</span>}
         <span className="project-row-progress mono">
           {progress.total > 0 ? `${progress.done} de ${progress.total} etapas` : "sem etapas"}
@@ -93,6 +95,7 @@ function ProjectListRow({
             </span>
           </span>
         )}
+        </span>
       </span>
     </button>
   );
