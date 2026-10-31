@@ -1,4 +1,4 @@
-import type { Birthday, Checklist, ChecklistExpense, DailyLog, PantryItem, Priority, Reminder, StudyPlan, Task, TaskStatus } from "@/lib/types";
+import type { Birthday, Checklist, MaintenanceAsset, MaintenanceItem, ChecklistExpense, DailyLog, PantryItem, Priority, Reminder, StudyPlan, Task, TaskStatus } from "@/lib/types";
 import { acharUmItemPeloNome, aposComprar, ehRemedioOuSaude, lembreteDeCompraPendente } from "@/lib/board/dispensa";
 import { descreverAcao, validarAcao, type AcaoProposta } from "./ferramentas";
 
@@ -36,6 +36,11 @@ export interface QuadroParaAcoes {
   updatePantryItem: (id: string, patch: Partial<Omit<PantryItem, "id">>) => void;
   reminders: Reminder[];
   completeReminder: (id: string) => void;
+  maintenanceAssets: MaintenanceAsset[];
+  maintenanceItems: MaintenanceItem[];
+  addMaintenanceAsset: (name: string, kind: MaintenanceAsset["kind"]) => Promise<string | null>;
+  addMaintenanceItem: (assetId: string, name: string, intervalMonths: number | null, intervalDistance: number | null) => Promise<string | null>;
+  registerMaintenanceService: (itemId: string, doneOn: string, odometer: number | null, costCents: number | null, note: string) => void;
   /** O registro de hoje, para somar água em cima do que já tem. */
   logDeHoje: DailyLog | undefined;
 }
@@ -234,6 +239,31 @@ export async function executarAcao(acaoBruta: AcaoProposta, quadro: QuadroParaAc
       const resto = jaTinha.length ? ` Já estavam lá: ${jaTinha.join(", ")}.` : "";
       return criados > 0 ? { ok: true, mensagem: `${criados} ${criados === 1 ? "item entrou" : "itens entraram"} na Dispensa.${resto}` } : { ok: false, mensagem: `Nada novo para a Dispensa.${resto}` };
     }
+    case "adicionar_manutencao": {
+      // O bem: o que já existe com esse nome; se não existe, cria (só depois do OK dele no cartão).
+      const alvoBem = semAcento(acao.bem);
+      const bem =
+        quadro.maintenanceAssets.find((a) => semAcento(a.name) === alvoBem) ??
+        quadro.maintenanceAssets.find((a) => semAcento(a.name).includes(alvoBem) || alvoBem.includes(semAcento(a.name)));
+      let bemId = bem?.id ?? null;
+      let criouBem = false;
+      if (!bemId) {
+        bemId = await quadro.addMaintenanceAsset(acao.bem, acao.tipoDoBem);
+        if (!bemId) return { ok: false, mensagem: `Não consegui criar o bem "${acao.bem}" na Manutenção.` };
+        criouBem = true;
+      }
+      const nomeDoBem = bem?.name ?? acao.bem;
+      const alvoItem = semAcento(acao.item);
+      const repetido = quadro.maintenanceItems.some((i) => i.assetId === bemId && semAcento(i.name) === alvoItem);
+      if (repetido) return { ok: false, mensagem: `"${acao.item}" já está na Manutenção de ${nomeDoBem}.` };
+      const itemId = await quadro.addMaintenanceItem(bemId, acao.item, acao.intervaloMeses, acao.intervaloKm);
+      if (!itemId) return { ok: false, mensagem: "Não consegui adicionar o item de manutenção." };
+      if (acao.ultimaVez) quadro.registerMaintenanceService(itemId, acao.ultimaVez, null, null, "");
+      return {
+        ok: true,
+        mensagem: `"${acao.item}" entrou na Manutenção de ${nomeDoBem}${criouBem ? " (bem novo)" : ""}${acao.ultimaVez ? ", com a última vez registrada" : ""}.`,
+      };
+    }
     case "ajustar_plano_de_estudo": {
       const alvo = semAcento(acao.plano);
       const plano =
@@ -304,6 +334,15 @@ function converterParaEntrada(a: AcaoProposta): Record<string, unknown> {
           situacao: i.situacao,
           validade: i.validade ?? undefined,
         })),
+      };
+    case "adicionar_manutencao":
+      return {
+        item: a.item,
+        bem: a.bem,
+        tipo_do_bem: a.tipoDoBem,
+        intervalo_meses: a.intervaloMeses ?? undefined,
+        intervalo_km: a.intervaloKm ?? undefined,
+        ultima_vez: a.ultimaVez ?? undefined,
       };
     case "ajustar_plano_de_estudo":
       return {

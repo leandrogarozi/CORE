@@ -55,6 +55,15 @@ export type AcaoProposta =
       }[];
     }
   | {
+      tipo: "adicionar_manutencao";
+      item: string;
+      bem: string;
+      tipoDoBem: "veiculo" | "casa" | "saude" | "outro";
+      intervaloMeses: number | null;
+      intervaloKm: number | null;
+      ultimaVez: string | null;
+    }
+  | {
       tipo: "ajustar_plano_de_estudo";
       plano: string;
       horasTotais: number | null;
@@ -285,6 +294,23 @@ export const FERRAMENTAS_DO_FARO: Anthropic.Tool[] = [
     },
   },
   {
+    name: "adicionar_manutencao",
+    description:
+      "Cadastra um ITEM DE MANUTENÇÃO que se repete (ex.: limpeza do dente a cada 6 meses, troca de óleo a cada 10.000 km, filtro da piscina a cada 3 meses), dentro de um BEM (Carro, Casa, Saúde...). ANTES de chamar, tenha as respostas: (1) em qual bem fica (use o nome de um bem que já aparece em MANUTENÇÃO; se não houver, diga o nome do novo bem e o tipo), (2) de quanto em quanto tempo ou km se repete, (3) quando foi feito pela última vez (data completa; se ele disse só o mês, PERGUNTE o dia). Se faltar qualquer uma, PERGUNTE em uma frase, juntando as dúvidas numa mensagem só, e só então chame a ferramenta. Não use para tarefa ou lembrete que acontece uma vez só. Não repita um item que já está em MANUTENÇÃO.",
+    input_schema: {
+      type: "object",
+      properties: {
+        item: { type: "string", description: "Nome do item, curto (ex.: Limpeza dos dentes)." },
+        bem: { type: "string", description: "Nome do bem onde fica (ex.: Saúde, Moto, Casa). Use o nome exato de um bem existente quando houver." },
+        tipo_do_bem: { type: "string", enum: ["veiculo", "casa", "saude", "outro"], description: "Só vale se o bem ainda não existe e vai ser criado." },
+        intervalo_meses: { type: "integer", minimum: 1, maximum: 240, description: "Repete a cada N meses (1 ano = 12)." },
+        intervalo_km: { type: "integer", minimum: 100, maximum: 1000000, description: "Repete a cada N km, só para veículo." },
+        ultima_vez: { type: "string", description: "AAAA-MM-DD da última vez que foi feito. Omita se nunca foi feito ou se ele não sabe." },
+      },
+      required: ["item", "bem"],
+    },
+  },
+  {
     name: "ajustar_plano_de_estudo",
     description:
       "Reajusta um plano de estudo (total de horas, minutos por sessão, prazo, dias da semana) e, se pedido, refaz as sessões FUTURAS na agenda. As sessões já feitas e o tempo registrado NUNCA são apagados. Use quando ele pedir para reorganizar o plano ou quando o plano não fecha no prazo; baseie-se no tempo real gasto (ESTUDOS e módulos). Passe só o que muda.",
@@ -464,6 +490,20 @@ export function validarAcao(nome: string, entrada: unknown): ResultadoDaValidaca
         },
       };
     }
+    case "adicionar_manutencao": {
+      const item = texto(e.item, 120);
+      const bem = texto(e.bem, 80);
+      if (!item) return { ok: false, motivo: "faltou o nome do item de manutenção" };
+      if (!bem) return { ok: false, motivo: "faltou dizer em qual bem fica (Carro, Casa, Saúde...)" };
+      const meses = typeof e.intervalo_meses === "number" && e.intervalo_meses >= 1 && e.intervalo_meses <= 240 ? Math.round(e.intervalo_meses) : null;
+      const km = typeof e.intervalo_km === "number" && e.intervalo_km >= 100 && e.intervalo_km <= 1_000_000 ? Math.round(e.intervalo_km) : null;
+      if (meses === null && km === null) return { ok: false, motivo: "faltou de quanto em quanto tempo (ou km) se repete" };
+      const tipo = e.tipo_do_bem === "veiculo" || e.tipo_do_bem === "casa" || e.tipo_do_bem === "saude" ? e.tipo_do_bem : "outro";
+      return {
+        ok: true,
+        acao: { tipo: "adicionar_manutencao", item, bem, tipoDoBem: tipo, intervaloMeses: meses, intervaloKm: km, ultimaVez: dataValida(e.ultima_vez) },
+      };
+    }
     case "repor_dispensa": {
       const item = texto(e.item, 120);
       if (!item) return { ok: false, motivo: "faltou o nome do item da dispensa" };
@@ -550,6 +590,12 @@ export function descreverAcao(a: AcaoProposta): string {
       return `Dispensa: adicionar ${a.itens.length} ${a.itens.length === 1 ? "item" : "itens"}: ${a.itens
         .map((i) => `${i.nome} (${i.quantidade}${i.unidade ? " " + i.unidade : ""}${i.situacao === "low" ? ", acabando" : i.situacao === "out" ? ", acabou" : ""}${i.onde ? `, ${i.onde}` : ""})`)
         .join("; ")}`;
+    case "adicionar_manutencao": {
+      const regra = [a.intervaloMeses ? `a cada ${a.intervaloMeses} ${a.intervaloMeses === 1 ? "mês" : "meses"}` : null, a.intervaloKm ? `a cada ${a.intervaloKm.toLocaleString("pt-BR")} km` : null]
+        .filter(Boolean)
+        .join(" ou ");
+      return `Manutenção: adicionar "${a.item}" em ${a.bem}, ${regra}${a.ultimaVez ? `; feito pela última vez em ${dataBr(a.ultimaVez)}, e o próximo ciclo já começa daí` : "; sem registro da última vez"}.`;
+    }
     case "ajustar_plano_de_estudo": {
       const mudancas = [
         a.horasTotais !== null ? `total ${a.horasTotais} h` : null,

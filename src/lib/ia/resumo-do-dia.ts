@@ -223,8 +223,11 @@ function dispensa(estado: Estado, hoje: string): string {
 /** Manutenção (casa, carro...): cada item com o ciclo atual e os dias que faltam, para responder "quanto falta para...". */
 function manutencao(estado: Estado, hoje: string): string {
   const itens = (estado.maintenanceItems ?? []).filter((i) => i.active);
-  if (!itens.length) return "";
-  const linhas = ["\nMANUTENÇÃO (cada item: ciclo atual e quanto falta; nomes exatos):"];
+  const bens = estado.maintenanceAssets ?? [];
+  if (!itens.length && !bens.length) return "";
+  const linhas = [`\nBENS DA MANUTENÇÃO (use um destes nomes ao cadastrar item novo): ${bens.map((b) => b.name).join("; ") || "nenhum ainda"}`];
+  if (!itens.length) return linhas.join("\n");
+  linhas.push("MANUTENÇÃO (cada item: ciclo atual e quanto falta; nomes exatos):");
   for (const item of itens.slice(0, 40)) {
     const bem = (estado.maintenanceAssets ?? []).find((a) => a.id === item.assetId);
     if (!bem) continue;
