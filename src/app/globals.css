@@ -5148,7 +5148,8 @@ textarea.titulo-cresce{ display:block; resize:none; overflow:hidden; font-family
   .topbar-right > .aviso-icon-btn:not(.aniv-btn){ margin-left:auto; }
 
   /* Saudação: o feriado vira um bloco próprio embaixo, sem a barra e sem quebrar no meio */
-  .day-greeting-text{ text-wrap:pretty; }
+  .day-greeting-text, .day-greeting-text *{ text-wrap:wrap; }
+  .day-greeting-text{ max-width:100%; }
   .day-greeting-feriado-inline{ display:block; margin-top:6px; font-size:12.5px; line-height:1.45; }
   .day-greeting-sep{ display:none; }
 
