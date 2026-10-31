@@ -228,6 +228,13 @@ function BookStatusPicker({ book }: { book: Book }) {
           <span className="status-pill-dot" />
         )}
         <span className="status-pill-label">{BOOK_KIND_INFO[book.kind].status[book.status]}</span>
+        {/* No celular o ícone do livro passa a ser o botão de status: verde = concluído, amarelo = lendo, azul = para ler. */}
+        <span className="book-status-icone" aria-hidden="true">
+          {(() => {
+            const Icone = BOOK_KIND_ICON[book.kind];
+            return <Icone />;
+          })()}
+        </span>
       </button>
       {anchorRect && (
         <BookStatusMenu

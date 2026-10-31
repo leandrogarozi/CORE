@@ -463,9 +463,7 @@ function MedicationGroupCard({ group, medications }: { group: MedicationGroup; m
       ) : null}
       {(group.active || expandidoInativo) && (
         <>
-          {medications.map((m) => (
-            <MedicationRow key={m.id} medication={m} showTime={showTime} />
-          ))}
+          {/* O campo de adicionar fica em cima da lista, como nas outras telas. */}
           <div className="quickadd-row">
             <span className="quickadd-plus" aria-hidden="true">
               +
@@ -480,6 +478,9 @@ function MedicationGroupCard({ group, medications }: { group: MedicationGroup; m
             />
             <EnviarBtn onClick={() => handleAddMedication()} label="Adicionar o remédio" />
           </div>
+          {medications.map((m) => (
+            <MedicationRow key={m.id} medication={m} showTime={showTime} />
+          ))}
         </>
       )}
     </div>

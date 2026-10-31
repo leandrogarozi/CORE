@@ -5085,7 +5085,6 @@ textarea.reminder-title-area{ display:block; resize:none; overflow:hidden; font-
    No celular todo campo de texto fica com 16 px (só no iOS), então a tela nunca amplia sozinha. */
 @supports (-webkit-touch-callout: none){
   @media (max-width:900px){
-    :is(input,textarea):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="date"]):not([type="time"]),
     [contenteditable="true"], .ProseMirror{ font-size:16px !important; }
   }
 }
@@ -5184,4 +5183,40 @@ textarea.titulo-cresce{ display:block; resize:none; overflow:hidden; font-family
   /* Manutenção, item: o WhatsApp vai para a direita, como nos Lembretes; "último" fica à esquerda */
   .maint-item-head > .maint-ultimo{ order:5; margin-left:0; margin-right:auto; }
   .maint-item-head > .zap-btn{ order:6; margin-left:auto; }
+}
+
+/* ==========================================================================
+   Celular, rodada 6 (01/11, 00h20): a tela de Projetos é a referência de tamanho de letra; os nomes dos itens nas outras telas
+   ficam do mesmo tamanho (14 px). Livros com o ícone colorido pelo status; remédios com o campo de adicionar em cima.
+   ========================================================================== */
+.book-status-icone{ display:none; }
+@media (max-width:640px){
+  /* Nomes dos itens: um tamanho só, o de Projetos */
+  .reminder-card-row textarea.reminder-title-area,
+  .reminder-row:has(.med-nome-col) .med-nome-col .reminder-title-input,
+  .med-group-head .reminder-title-input,
+  .book-row .book-title-input,
+  .synapse-card textarea.synapse-card-title,
+  .maint-item-head .maint-item-name,
+  .maint-asset-head .maint-asset-name,
+  .study-card .study-card-titulo .study-card-name,
+  .row-title{ font-size:14px !important; line-height:1.35; }
+  .study-card .study-card-sub, .maint-item-resumo, .med-resumo-horarios{ font-size:12px !important; }
+
+  /* Plano de Estudo: sem a linha "0 s feitos" embaixo do cartão */
+  .study-bar-feitos{ display:none; }
+
+  /* Livros: o ícone do livro é o botão de status, com a cor do status (verde concluído, amarelo lendo, azul para ler); sem bolinhas */
+  .book-row > .tile-tipo{ display:none; }
+  .book-row .book-status-pill{
+    display:inline-flex; align-items:center; justify-content:center; flex:none; width:38px; height:38px; min-width:38px; padding:0; border-radius:12px;
+    background:color-mix(in srgb, var(--status-color) 20%, var(--surface)); color:var(--status-color);
+  }
+  .book-row .book-status-pill:hover{ background:color-mix(in srgb, var(--status-color) 28%, var(--surface)); }
+  .book-row .book-status-pill .status-pill-dot, .book-row .book-status-pill .status-pill-check, .book-row .book-status-pill .status-pill-label{ display:none; }
+  .book-status-icone{ display:inline-flex; }
+  .book-status-icone svg{ width:19px; height:19px; }
+  /* A fila "Para ler" fica organizada como "Lendo": sem a alça de arrastar e o número; título ao lado do ícone e os botões embaixo */
+  .book-row-order{ display:none; }
+  .book-row .book-title-input{ flex:1 1 calc(100% - 60px); }
 }

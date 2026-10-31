@@ -298,7 +298,9 @@ function PlanCard({ plan }: { plan: StudyPlan }) {
       </div>
 
       <div className="study-bar-legend">
-        {fmtTempoCurto(feitoSeg)} feitos{m.totalMin > 0 ? ` de ${fmtHM(m.totalMin)} (${m.pctFeito}%)` : ""}
+        <span className="study-bar-feitos">
+          {fmtTempoCurto(feitoSeg)} feitos{m.totalMin > 0 ? ` de ${fmtHM(m.totalMin)} (${m.pctFeito}%)` : ""}
+        </span>
         {proxima && (
           <button type="button" className="study-next" onClick={() => openTaskInDay(proxima)}>
             próxima: {fmtShortDate(proxima.date!)}
