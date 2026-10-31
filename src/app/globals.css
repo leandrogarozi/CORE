@@ -5221,3 +5221,12 @@ textarea.titulo-cresce{ display:block; resize:none; overflow:hidden; font-family
   .book-row-order{ display:none; }
   .book-row .book-title-input{ flex:1 1 calc(100% - 60px); }
 }
+
+/* Celular: topo da home com os ícones distribuídos por igual (o vão que sobrava entre o FARO e os ícones é repartido entre eles) e o nome FARO afastado da quina. */
+@media (max-width:640px){
+  .topbar{ padding:4px 6px 0; }
+  .topbar .brand{ margin-left:10px; font-size:17px; }
+  .topbar .topbar-right > :not(.active-timer-badges),
+  .topbar .topbar-right > .aviso-icon-btn.aniv-btn,
+  .topbar .topbar-right > .aviso-icon-btn:not(.aniv-btn){ margin-left:auto; }
+}
