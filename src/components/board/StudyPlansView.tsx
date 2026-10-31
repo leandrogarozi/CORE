@@ -6,7 +6,6 @@ import { useBoardCtx } from "./board-context";
 import { NoteField } from "./NoteField";
 import { MicButton } from "./MicButton";
 import { BookIcon, BookOpenIcon, CheckIcon, ChevronIcon, TrashIcon, WarningIcon } from "./icons";
-import { EmConstrucao } from "./EmConstrucao";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { constanciaDoEstudo, studyPlanMath, tempoPorModulo } from "@/lib/board/study-plan";
 import { fmtHM, fmtShortDate, fmtTempoCurto, todayISO } from "@/lib/date-utils";
@@ -569,7 +568,6 @@ export function StudyPlansView({ onBack }: { onBack: () => void }) {
         <TutorialLink secao="estudo" />
       </div>
 
-      <EmConstrucao tela="O Plano de Estudo" />
       <div className={"narrow-list" + (wide ? " list-xl" : "")}>
         <div className="synapse-intro">
           <div className="synapse-intro-title">

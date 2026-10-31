@@ -67,7 +67,7 @@ export const GRUPOS_DO_MENU: { titulo: string; itens: ItemDoMenu[] }[] = [
       { modo: "synapses", rotulo: "Novas Sinapses", icone: <BoltIcon /> },
       { modo: "ideias", rotulo: "Ideias e Estudos", icone: <BoltIcon /> },
       { modo: "books", rotulo: "Livros / Filmes e séries", icone: <BookIcon /> },
-      { modo: "estudo", rotulo: "Plano de Estudo", icone: <BookOpenIcon />, emConstrucao: true },
+      { modo: "estudo", rotulo: "Plano de Estudo", icone: <BookOpenIcon /> },
     ],
   },
   {
@@ -86,7 +86,7 @@ export const GRUPOS_DO_MENU: { titulo: string; itens: ItemDoMenu[] }[] = [
       { modo: "diet", rotulo: "Dieta", icone: <MealIcon /> },
       { modo: "manutencao", rotulo: "Manutenção", icone: <CarIcon /> },
       { modo: "compras", rotulo: "Compras", icone: <CartIcon /> },
-      { modo: "dispensa", rotulo: "Dispensa", icone: <ArchiveIcon />, emConstrucao: true },
+      { modo: "dispensa", rotulo: "Dispensa", icone: <ArchiveIcon /> },
       { modo: "checklists", rotulo: "Checklists", icone: <ChecklistIcon /> },
     ],
   },

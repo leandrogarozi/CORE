@@ -5,7 +5,6 @@ import { EnviarBtn } from "./EnviarBtn";
 import { useBoardCtx } from "./board-context";
 import { BellIcon, CartIcon, CheckIcon, ChevronIcon, TrashIcon } from "./icons";
 import { TutorialLink } from "./TutorialLink";
-import { EmConstrucao } from "./EmConstrucao";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import {
   CATEGORIAS_DA_DISPENSA,
@@ -393,7 +392,6 @@ export function DispensaView({ onBack }: { onBack: () => void }) {
         <span className="dash-range-label">Dispensa</span>
         <TutorialLink secao="dispensa" />
       </div>
-      <EmConstrucao tela="A Dispensa" />
       <div className="hint-text" style={{ marginBottom: 12 }}>
         O que você tem guardado em casa: produto de piscina, refil de filtro, lâmpada, remédio, ferramenta. Marque quando estiver acabando e o FARO
         lembra de comprar. Pergunte a ele: “eu tenho tal produto na dispensa?”.
