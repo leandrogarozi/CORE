@@ -2,6 +2,7 @@
 
 import { guardarEstilo } from "@/lib/estilo";
 import { ConectarIACartao } from "./ConectarIA";
+import { WhatsAppTestButton } from "./ProfileFields";
 import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useBoardCtx } from "./board-context";
 import { createClient } from "@/lib/supabase/client";
@@ -1708,6 +1709,11 @@ function WhatsAppCostBox() {
   return (
     <CollapsibleBox title="Custo do WhatsApp" icon={<WhatsAppIcon />} resumo="Mensagens, custo e teto do mês">
       <WhatsAppCreditoBlock />
+      {/* O teste fica aqui, ao lado do aceite e do custo: foi pedido por quem testou (antes só existia no Perfil). */}
+      <div className="wa-teste">
+        <WhatsAppTestButton phone={board.state.settings.notifyPhone} semNumero="Para testar, coloque o seu número (com DDD) no Perfil." />
+        <span className="hint-text">Manda uma mensagem de teste para o número do seu Perfil. Conta como uma mensagem.</span>
+      </div>
       {resumo === null ? (
         <div className="hint-text">Carregando os envios...</div>
       ) : (

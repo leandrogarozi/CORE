@@ -5285,4 +5285,6 @@ textarea.titulo-cresce{ display:block; resize:none; overflow:hidden; font-family
 .ia-mini b{ display:block; font-size:14.5px; }
 .ia-mini .t{ font-size:12px; color:rgba(255,255,255,.88); }
 .ia-mini .btn{ background:#fff; color:#4A47D5; font-weight:700; border-radius:999px; padding:0 16px; min-height:38px; margin-left:auto; white-space:nowrap; display:inline-flex; align-items:center; }
-@media (min-width:900px){ .ia-hero{ max-width:560px; } }
+.ia-hero p{ max-width:520px; }
+.wa-teste{ display:flex; flex-direction:column; gap:4px; margin:10px 0 4px; padding-top:10px; border-top:1px solid var(--linha); }
+.wa-teste > div{ margin-top:0 !important; }

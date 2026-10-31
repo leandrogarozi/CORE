@@ -41,7 +41,7 @@ function useTimezoneOptions(): { brazil: string[]; others: string[] } {
   }, []);
 }
 
-function WhatsAppTestButton({ phone }: { phone: string | null }) {
+export function WhatsAppTestButton({ phone, semNumero }: { phone: string | null; semNumero?: string }) {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
@@ -60,7 +60,7 @@ function WhatsAppTestButton({ phone }: { phone: string | null }) {
     }
   }
 
-  if (!phone) return null;
+  if (!phone) return semNumero ? <div className="hint-text">{semNumero}</div> : null;
   return (
     <div style={{ marginTop: 6 }}>
       <button type="button" className="btn btn-zap" disabled={busy} onClick={sendTest}>
