@@ -4879,3 +4879,88 @@ button.dsh-row:hover{ background:var(--segmento-fundo); color:var(--text); }
 }
 textarea.synapse-card-title{ display:block; width:calc(100% + 8px); resize:none; overflow:hidden; font-family:inherit; line-height:1.3; }
 .project-row-barra .hp-bar{ display:block; }
+
+/* Liga e desliga: o roxo mais escuro do degradê, para aparecer bem nos temas claro e escuro. */
+.toggle-switch.on{ background:#4A47D5; }
+
+/* Celular, rodada 2 (prints do Leandro em modo escuro): segmentos que não quebram, campos dentro da caixa,
+   botão de enviar sempre à vista, Dispensa alinhada, Manutenção legível, Dieta, Feedbacks e Plano de Estudo. */
+@media (max-width:640px){
+  /* Campos nunca passam da caixa onde estão */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea{ box-sizing:border-box; max-width:100%; }
+  .prop-value{ flex-wrap:wrap; }
+
+  /* Segmentos em bandeja: uma linha só, rolam de lado se não couberem (nada de bandeja quebrada em duas linhas) */
+  :root[data-estilo="suave"] :is(.view-toggle,.dsh-seg,.idea-filter,.book-kind-abas,.abas-plano,.disp-categorias-linha,.maint-abas),
+  :root[data-estilo="flutuante"] :is(.view-toggle,.dsh-seg,.idea-filter,.book-kind-abas,.abas-plano,.disp-categorias-linha,.maint-abas){
+    display:flex; flex-wrap:nowrap; overflow-x:auto; max-width:100%; scrollbar-width:none; -webkit-overflow-scrolling:touch;
+  }
+  :is(.view-toggle,.dsh-seg,.idea-filter,.book-kind-abas,.abas-plano,.disp-categorias-linha,.maint-abas)::-webkit-scrollbar{ display:none; }
+  :root[data-estilo="suave"] :is(.view-toggle-btn,.dsh-seg-btn,.idea-filter .note-chip,.book-kind-abas .note-chip,.aba-plano,.disp-cat,.maint-abas .note-chip),
+  :root[data-estilo="flutuante"] :is(.view-toggle-btn,.dsh-seg-btn,.idea-filter .note-chip,.book-kind-abas .note-chip,.aba-plano,.disp-cat,.maint-abas .note-chip){
+    flex:none; white-space:nowrap; padding:0 10px; font-size:12.5px;
+  }
+  :is(.view-toggle,.dsh-seg,.idea-filter,.book-kind-abas,.abas-plano,.disp-categorias-linha,.maint-abas){ gap:2px !important; }
+  .reminder-filter-bar{ flex-direction:column; align-items:flex-start; gap:6px; }
+  .reminder-filter-bar .view-toggle{ width:100%; }
+  .view-toggle{ margin-bottom:6px; }
+
+  /* Botão de enviar e campos de adicionar */
+  .quickadd-row{ min-width:0; }
+  .quickadd-row .quickadd-input{ flex:1 1 0; min-width:0; }
+  .quickadd-row:has(.checklist-type-input){ flex-wrap:wrap; row-gap:8px; }
+  .quickadd-row:has(.checklist-type-input) .quickadd-input{ flex:1 1 calc(100% - 100px); }
+  .quickadd-row:has(.checklist-type-input) .checklist-type-input{ order:5; flex:1 1 100%; width:auto; }
+  .diet-meal-add{ flex-wrap:wrap; align-items:center; row-gap:8px; }
+  .diet-meal-add input[type="text"]{ flex:1 1 calc(100% - 34px); min-width:0; min-height:40px; background:var(--campo-fundo); border-radius:10px; padding:0 12px; box-sizing:border-box; }
+  .diet-meal-add .time-picker-btn{ flex:1 1 40%; white-space:nowrap; min-height:40px; background:var(--campo-fundo); border-radius:10px; text-align:center; }
+  .diet-meal-add .diet-meal-add-btn{ flex:1 1 40%; justify-content:center; min-height:40px; }
+
+  /* Feedbacks: a bandeja respira antes do aviso de vazio */
+  .view-toggle + .list-card, .view-toggle + .hint-text{ margin-top:12px; }
+  .fb-card{ padding:14px; }
+
+  /* Dispensa: nome e descrição à esquerda, quantidade sempre na mesma coluna à direita, situação embaixo do nome */
+  .disp-topo{ display:grid; grid-template-columns:minmax(0,1fr) 108px; align-items:center; column-gap:12px; row-gap:0; }
+  .disp-abrir{ grid-column:1; grid-row:1; flex:none; }
+  .disp-chips{ grid-column:1; grid-row:2; margin-top:6px; }
+  .disp-chips:empty{ display:none; }
+  .disp-qtd{ grid-column:2; grid-row:1 / span 2; flex-direction:column; align-items:flex-end; justify-content:center; gap:5px; width:100%; }
+  .disp-nivel{ width:100%; order:1; }
+  .disp-qtd-num{ order:2; min-width:0; font-size:14px; }
+  .disp-qtd-input{ order:2; }
+
+  /* Manutenção: cabeçalho do item em linhas (nome, situação, resumo, ações) com letra legível */
+  .maint-item-head{ flex-wrap:wrap; row-gap:8px; }
+  .maint-item-head > .synapse-card-toggle{ order:0; }
+  .maint-item-head > .maint-item-name{ order:1; flex:1 1 0; min-width:0; }
+  .maint-item-head > .icon-btn:last-child{ order:2; }
+  .maint-item-head > .maint-flag, .maint-item-head > .maint-ciclo, .maint-item-head > .maint-interval, .maint-item-head > .maint-done-btn{ order:3; }
+  .maint-item-head > .maint-item-resumo{ order:4; flex:1 1 100%; white-space:normal; font-size:12.5px; line-height:1.4; color:var(--text-muted); padding-left:2px; }
+  .maint-item-head > .zap-btn{ order:5; }
+  .maint-item-head > .maint-ultimo{ order:5; margin-left:auto; font-size:12px; }
+  .maint-explain, .maint-history-row, .maint-ciclo-info{ font-size:12.5px; }
+  .maint-secao{ min-width:0; }
+  .maint-register-row .maint-grow{ min-width:0; flex:1 1 100%; }
+  .maint-history-row{ gap:4px 10px; padding:8px 0; border-top:1px solid var(--linha); }
+  .maint-history-row:first-child{ border-top:0; }
+  .maint-history-row .maint-rodada-n{ order:0; flex:1; }
+  .maint-history-row .maint-history-actions{ order:1; }
+  .maint-history-row .maint-rodada-datas{ order:2; flex:1 1 100%; color:var(--text-muted); }
+  .maint-history-row .maint-rodada-feito, .maint-history-row .maint-history-km, .maint-history-row .maint-history-cost{ order:3; }
+  .maint-history-row .maint-history-note{ order:4; flex:1 1 100%; }
+
+  /* Plano de Estudo: botões em grade, texto sem quebrar; Distribuir ocupa a linha toda */
+  .study-actions{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; align-items:stretch; }
+  .study-actions > .btn{ padding-left:8px; padding-right:8px; }
+  .study-actions > .study-gerou, .study-actions > .study-sujo{ grid-column:1 / -1; }
+  .study-actions > .study-actions-espaco{ display:none; }
+  .study-actions > .btn{ width:100%; justify-content:center; white-space:nowrap; min-height:40px; }
+  .study-actions > .btn:last-of-type{ grid-column:1 / -1; }
+  .study-prev{ text-align:left; }
+
+  /* Partes de um estudo: ficam recuadas, com uma trilha à esquerda, para mostrar que estão dentro do estudo principal */
+  .study-parts{ margin-left:8px; padding-left:12px; border-left:3px solid color-mix(in srgb, var(--accent) 45%, transparent); }
+  .study-parts-head{ padding-bottom:2px; }
+  .study-part{ position:relative; }
+}
