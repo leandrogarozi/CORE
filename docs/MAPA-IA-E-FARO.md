@@ -89,6 +89,7 @@ A pessoa toca no mascote, fala ou escreve, e a IA propõe **cartões de ação**
 | Anotar gasto num checklist | sim | (em breve) | **sim** |
 | Registrar humor, sono, água, dieta | sim | não (de propósito) | **sim** |
 | Reajustar plano de estudo | sim | não | **sim** |
+| Cadastrar item de manutenção (bem, intervalo, última vez) | sim | não | **sim** |
 | Propor aprendizado novo sobre a pessoa | não se aplica | **sim** | **vai para "Para revisar"** |
 | Anexar arquivo | não | não | (futuro) |
 | Editar ou apagar o que já existe (além dos dois ajustes acima) | não | não | não permitido |
