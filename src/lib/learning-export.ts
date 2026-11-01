@@ -283,19 +283,22 @@ export function arquivosDaMetanoia(frases: MetanoiaFrase[], geradoEm: string): A
     const doTipo = frases.filter((f) => f.tipo === tipo);
     const aprovadas = doTipo.filter((f) => f.status === "aprovada").sort(ordenar);
     const pendentes = doTipo.filter((f) => f.status === "pendente").sort(ordenar);
-    if (!aprovadas.length && !pendentes.length) return null;
+    // "Não listadas": as que a pessoa mandou não aparecer mais. Ficam num campo à parte e saem deste arquivo quando são excluídas.
+    const naoListadas = doTipo.filter((f) => f.status === "arquivada").sort(ordenar);
+    if (!aprovadas.length && !pendentes.length && !naoListadas.length) return null;
     const md = [cabecalho({ tipo: `metanoia-${tipo}`, data: geradoEm.slice(0, 10), origem: "FARO" }), `# ${titulo}`, ""];
     const favoritas = aprovadas.filter((f) => f.favorita);
     if (favoritas.length) md.push(`## Favoritas (${favoritas.length})`, "", ...favoritas.map(linha), "");
     md.push(`## Aprovadas (${aprovadas.length})`, "");
     md.push(...(aprovadas.length ? aprovadas.map(linha) : ["_Nenhuma ainda._"]), "");
     if (pendentes.length) md.push(`## Para revisar (${pendentes.length})`, "", ...pendentes.map(linha), "");
+    if (naoListadas.length) md.push(`## Não listadas (${naoListadas.length})`, "", "_Não aparecem mais para você. Se excluir uma no app, ela some daqui na próxima cópia._", "", ...naoListadas.map(linha), "");
     return { nome: `${pasta}/${titulo}.md`, conteudo: md.join("\n") };
   };
   const celula = celulaCsv;
   const csv = [["Tipo", "Situação", "Favorita", "Texto", "Autor", "Fonte", "Origem"].map(celula).join(",")];
   for (const f of [...frases].sort((a, b) => a.tipo.localeCompare(b.tipo) || a.status.localeCompare(b.status) || ordenar(a, b))) {
-    csv.push([f.tipo, f.status, f.favorita ? "sim" : "não", f.texto.trim(), f.autor?.trim() ?? "", f.fonte?.trim() ?? "", f.origem].map(celula).join(","));
+    csv.push([f.tipo, f.status === "arquivada" ? "não listada" : f.status, f.favorita ? "sim" : "não", f.texto.trim(), f.autor?.trim() ?? "", f.fonte?.trim() ?? "", f.origem].map(celula).join(","));
   }
   return [
     arquivoDoTipo("frase", "Frases"),

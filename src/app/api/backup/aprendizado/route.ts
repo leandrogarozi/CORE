@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import JSZip from "jszip";
+import type { Tables } from "@/lib/database.types";
 import { createServiceClient } from "@/lib/supabase/service";
 import { donoDaChave } from "@/lib/backup/dono-da-chave";
 import { rowToBirthday, rowToBook, rowToKnowledgeItem, rowToMetanoiaFrase, rowToSynapse, rowToSynapsePart } from "@/lib/board/mappers";
@@ -9,6 +10,18 @@ import { arquivoDoResumo } from "@/lib/ia/resumo";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
+
+/** O banco entrega no máximo 1.000 linhas por consulta, calado: a Metanoia já passa de 950, então lê em páginas até vir uma incompleta. */
+async function lerFrasesDaMetanoia(supabase: ReturnType<typeof createServiceClient>, usuario: string) {
+  const todas: Tables<"metanoia_frases">[] = [];
+  for (let de = 0; ; de += 1000) {
+    const { data, error } = await supabase.from("metanoia_frases").select("*").eq("user_id", usuario).order("id").range(de, de + 999);
+    if (error) return { data: null, error };
+    todas.push(...(data ?? []));
+    if ((data ?? []).length < 1000) break;
+  }
+  return { data: todas, error: null };
+}
 
 /**
  * Textos de aprendizado (sinapses e resumos de livro) para o script do
@@ -38,7 +51,7 @@ export async function GET(req: NextRequest) {
     supabase.from("birthdays").select("*").eq("user_id", usuario).is("deleted_at", null),
     supabase.from("clientes_cadastro").select("*").eq("user_id", usuario).order("criado_em"),
     supabase.from("cadastro_links").select("*").eq("user_id", usuario).order("criado_em"),
-    supabase.from("metanoia_frases").select("*").eq("user_id", usuario),
+    lerFrasesDaMetanoia(supabase, usuario),
   ]);
   const erro = livros.error ?? sinapses.error ?? partesRes.error ?? conhecimento.error ?? aniversarios.error ?? clientesCrm.error ?? linksCrm.error ?? metanoia.error;
   if (erro) return NextResponse.json({ error: erro.message }, { status: 500 });
