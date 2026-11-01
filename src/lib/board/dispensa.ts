@@ -35,6 +35,25 @@ export function precisaComprar(item: Pick<PantryItem, "status" | "quantity">): b
   return item.status !== "ok" || item.quantity <= 0;
 }
 
+/**
+ * Ajuste falado: "agora está em 40%" (quantidade) ou "gastei 10%" (consumido). Itens medidos em % vão de 0 a 100.
+ * Zerou: acabou. Voltou a ter e estava acabado: tem de novo. A situação só muda de outro jeito se a pessoa disser.
+ */
+export function aposAjuste(
+  item: Pick<PantryItem, "quantity" | "status" | "unit">,
+  ajuste: { quantidade?: number | null; consumido?: number | null; situacao?: PantryStatus | null }
+): { quantity: number; status: PantryStatus } {
+  const teto = item.unit === "%" ? 100 : 9999;
+  const base = typeof ajuste.quantidade === "number" ? ajuste.quantidade : item.quantity - (ajuste.consumido ?? 0);
+  const quantity = Math.min(teto, Math.max(0, Math.round(base)));
+  let status = ajuste.situacao ?? item.status;
+  if (!ajuste.situacao) {
+    if (quantity <= 0) status = "out";
+    else if (item.status === "out") status = "ok";
+  }
+  return { quantity, status };
+}
+
 /** Procura na dispensa por nome (sem acento, qualquer parte), para avisar "você já tem isso" antes de comprar de novo. */
 export function acharNaDispensa(itens: PantryItem[], texto: string): PantryItem[] {
   const q = semAcento(texto).trim();

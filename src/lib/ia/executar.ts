@@ -1,5 +1,5 @@
 import type { Birthday, Checklist, MaintenanceAsset, MaintenanceItem, ChecklistExpense, DailyLog, PantryItem, Priority, Reminder, StudyPlan, Task, TaskStatus } from "@/lib/types";
-import { acharUmItemPeloNome, aposComprar, ehRemedioOuSaude, lembreteDeCompraPendente } from "@/lib/board/dispensa";
+import { acharUmItemPeloNome, aposAjuste, aposComprar, ehRemedioOuSaude, lembreteDeCompraPendente } from "@/lib/board/dispensa";
 import { descreverAcao, validarAcao, type AcaoProposta } from "./ferramentas";
 import { acharFeedback, type FeedbackDoDono } from "./feedbacks";
 
@@ -218,6 +218,16 @@ export async function executarAcao(acaoBruta: AcaoProposta, quadro: QuadroParaAc
       if (lembrete) quadro.completeReminder(lembrete.id);
       return { ok: true, mensagem: `"${item.name}" voltou para a dispensa${lembrete ? " e o lembrete de compra foi concluído" : ""}.` };
     }
+    case "atualizar_dispensa": {
+      const candidatos = quadro.pantryItems.filter((i) => !ehRemedioOuSaude(i));
+      const item = acharUmItemPeloNome(candidatos, acao.item);
+      if (!item) return { ok: false, mensagem: `Não achei "${acao.item}" na dispensa (ou há mais de um parecido). Abra a Dispensa para ajustar.` };
+      const novo = aposAjuste(item, { quantidade: acao.quantidade, consumido: acao.consumido, situacao: acao.situacao });
+      quadro.updatePantryItem(item.id, novo);
+      const un = item.unit === "%" ? "%" : item.unit ? ` ${item.unit}` : "";
+      const estado = novo.status === "out" ? " (acabou)" : novo.status === "low" ? " (acabando)" : "";
+      return { ok: true, mensagem: `"${item.name}": agora ${novo.quantity}${un}${estado}.` };
+    }
     case "anotar": {
       const id = quadro.addQuickNote(acao.texto, { tag: acao.etiqueta ?? undefined });
       return id ? { ok: true, mensagem: "Guardei em Anotações, para você revisar depois." } : { ok: false, mensagem: "Não consegui guardar a anotação." };
@@ -334,6 +344,8 @@ function converterParaEntrada(a: AcaoProposta): Record<string, unknown> {
       return { percentual: a.percentual };
     case "repor_dispensa":
       return { item: a.item, quantidade: a.quantidade ?? undefined };
+    case "atualizar_dispensa":
+      return { item: a.item, quantidade: a.quantidade ?? undefined, consumido: a.consumido ?? undefined, situacao: a.situacao ?? undefined };
     case "anotar":
       return { texto: a.texto, etiqueta: a.etiqueta ?? undefined };
     case "adicionar_na_dispensa":

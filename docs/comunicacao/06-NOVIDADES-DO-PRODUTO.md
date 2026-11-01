@@ -3,6 +3,7 @@
 Atualizar a cada mudança que apareça para o usuário. Mais novo em cima. Fonte: `BRIEFING.md`.
 
 ## 01/11/2026
+- **FARO muda a quantidade da Dispensa por voz:** "gastei 10% do clarificante" ou "o cloro está acabando" → cartão → atualizado.
 - **Assistente resolve feedbacks por voz** (só a conta do dono): "o feedback sobre limpar nas datas foi resolvido" → cartão → marcado como resolvido.
 - **Testar WhatsApp** também em Configurações › Custo do WhatsApp; **"Conecta com a sua IA"** em Configurações › Conexões e faixa em Conhecendo você.
 - **Celular reorganizado** (mais de 50 ajustes por feedback dos testadores): nomes inteiros (quebram em linhas), botões alinhados à direita e do mesmo tamanho, topo da home com ícones distribuídos, quadro de data e hora com "Limpar" à vista.

@@ -42,6 +42,7 @@ export type AcaoProposta =
   | { tipo: "registrar_dieta"; percentual: number }
   | { tipo: "repor_dispensa"; item: string; quantidade: number | null }
   | { tipo: "anotar"; texto: string; etiqueta: string | null }
+  | { tipo: "atualizar_dispensa"; item: string; quantidade: number | null; consumido: number | null; situacao: "ok" | "low" | "out" | null }
   | {
       tipo: "adicionar_na_dispensa";
       itens: {
@@ -248,6 +249,21 @@ export const FERRAMENTAS_DO_FARO: Anthropic.Tool[] = [
       properties: {
         item: { type: "string", description: "Nome do item, exatamente como aparece em DISPENSA." },
         quantidade: { type: "integer", minimum: 1, description: "Quantas unidades tem agora, só se ele disse." },
+      },
+      required: ["item"],
+    },
+  },
+  {
+    name: "atualizar_dispensa",
+    description:
+      "Muda a QUANTIDADE ou a situação de um item que JÁ está na DISPENSA. Use quando ele disser que gastou ou usou mais de um produto ('gastei 10% do cloro', 'o clarificante está em 40%', 'sobrou só 1 refil', 'está acabando'). Para itens medidos em % (nível do frasco), a quantidade é a porcentagem de 0 a 100. Use 'consumido' quando ele disser quanto GASTOU (o app desconta do que há) e 'quantidade' quando ele disser quanto TEM AGORA. Se ele só disser que está acabando ou acabou, use situacao. Use o nome do item como aparece em DISPENSA. Para quando ele COMPROU de novo, use repor_dispensa. Não vale para remédios.",
+    input_schema: {
+      type: "object",
+      properties: {
+        item: { type: "string", description: "Nome do item, exatamente como aparece em DISPENSA." },
+        quantidade: { type: "integer", minimum: 0, maximum: 9999, description: "Quanto tem AGORA (em % se o item é medido em %)." },
+        consumido: { type: "integer", minimum: 1, maximum: 9999, description: "Quanto ele GASTOU (em % se o item é medido em %); o app subtrai do atual." },
+        situacao: { type: "string", enum: ["ok", "low", "out"], description: "ok = tem; low = acabando; out = acabou. Só se ele disse." },
       },
       required: ["item"],
     },
@@ -535,6 +551,15 @@ export function validarAcao(nome: string, entrada: unknown): ResultadoDaValidaca
       if (!t) return { ok: false, motivo: "faltou o texto da anotação" };
       return { ok: true, acao: { tipo: "anotar", texto: t, etiqueta: texto(e.etiqueta, 30) } };
     }
+    case "atualizar_dispensa": {
+      const item = texto(e.item, 120);
+      if (!item) return { ok: false, motivo: "faltou o nome do item da dispensa" };
+      const qtd = typeof e.quantidade === "number" && Number.isFinite(e.quantidade) && e.quantidade >= 0 && e.quantidade <= 9999 ? Math.round(e.quantidade) : null;
+      const gasto = typeof e.consumido === "number" && Number.isFinite(e.consumido) && e.consumido >= 1 && e.consumido <= 9999 ? Math.round(e.consumido) : null;
+      const sit = e.situacao === "ok" || e.situacao === "low" || e.situacao === "out" ? e.situacao : null;
+      if (qtd === null && gasto === null && sit === null) return { ok: false, motivo: "faltou dizer a nova quantidade, quanto gastou ou a situação" };
+      return { ok: true, acao: { tipo: "atualizar_dispensa", item, quantidade: qtd, consumido: gasto, situacao: sit } };
+    }
     case "adicionar_na_dispensa": {
       const bruto = Array.isArray(e.itens) ? e.itens.slice(0, 40) : [];
       const itens: Extract<AcaoProposta, { tipo: "adicionar_na_dispensa" }>["itens"] = [];
@@ -604,6 +629,14 @@ export function descreverAcao(a: AcaoProposta): string {
       return `Registrar a dieta de hoje: ${a.percentual}%`;
     case "repor_dispensa":
       return `Dispensa: marcar "${a.item}" como comprado${a.quantidade ? ` (agora ${a.quantidade})` : ""}`;
+    case "atualizar_dispensa": {
+      const partes = [
+        a.quantidade !== null ? `agora ${a.quantidade}` : null,
+        a.consumido !== null ? `gastou ${a.consumido}` : null,
+        a.situacao ? `situação: ${a.situacao === "ok" ? "tem" : a.situacao === "low" ? "acabando" : "acabou"}` : null,
+      ].filter(Boolean);
+      return `Dispensa: "${a.item}": ${partes.join(", ")}`;
+    }
     case "anotar":
       return `Guardar em Anotações: ${a.texto.length > 120 ? a.texto.slice(0, 117) + "…" : a.texto}`;
     case "adicionar_na_dispensa":
