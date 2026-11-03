@@ -4,7 +4,7 @@ Documento vivo de decisões de produto e backlog do Leandro. Complementa o
 `README.md` (que é técnico/setup) — este aqui é sobre **o quê** e **por quê**.
 Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
 
-## ▶ Próximos passos e revisões (atualizado em 01/11/2026, madrugada)
+## ▶ Próximos passos e revisões (atualizado em 03/11/2026)
 
 **Padrão a seguir daqui para frente:** `DESIGN.md`, seção "Padrão do celular e dos controles" (letra de 14 px como em Projetos, linha de item em três partes, sino e WhatsApp redondos, segmentos roxos, Salvar/Cancelar no meio, adicionar em cima da lista etc.). Tudo o que foi ajustado de 30/10 a 01/11 está registrado nas entradas abaixo e já está no ar (branch `claude/new-session-7uftof`, Vercel `core-app`).
 
@@ -34,6 +34,17 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
 | 20 | Ideia futura (só registrada): app barato de frases motivacionais (~R$ 5/mês) | Leandro | Sem decisão | |
 
 **Como retomar uma conversa nova:** ler este quadro, o `DESIGN.md` (padrão do celular) e as últimas entradas do `BRIEFING.md` (procurar "01/11"). Os pedidos do Leandro costumam chegar por **print do iPhone**; responder mostrando o resultado numa página de teste a 390 px e subir.
+
+## 03/11/2026 — Pacote das conversas paradas (média de uso, Metanoia por voz, novo lembrete, estudos, Como usar)
+
+- **Dispensa, média de uso:** tabela `pantry_usage` (histórico de cada mudança de quantidade: uso, compra ou ajuste) alimentada em `updatePantryItem`; cálculo em `src/lib/board/dispensa-uso.ts` (precisa de 2+ usos em 7+ dias; o primeiro uso não entra no numerador). Tela `MediaDeUso` em `DispensaView.tsx` (quatro números, gráfico, "foi correção"/"contar de novo") e previsão na linha da lista. Entra no backup JSON e no resumo que o FARO lê (nunca remédios).
+- **FARO adiciona frase na Metanoia:** ação `adicionar_frase_metanoia` (texto, autor, fonte), aprovada na hora, nunca em Anotações.
+- **Novo lembrete:** data estreita (128 px), descrição larga e caixinha de anotações abaixo do "Avisar" (grava em `note`).
+- **Estudos:** coluna `synapse_parts.source` ("De onde veio") por conhecimento, na linha fechada, no formulário de novo conhecimento, no backup e no conector. Coluna `synapse_parts.dicas` para as dicas práticas.
+- **Perguntas poderosas sem repetir:** a rota `/api/ia/perguntas` ganhou `foco` (texto livre) e `angulo` (gira em `ANGULOS_DAS_PERGUNTAS`) e o modo `dicas` (`INSTRUCAO_DAS_DICAS`, `lerDicas`). Tela `PerguntasDaIA.tsx` com campo de foco e dois blocos no conhecimento: Perguntas e Dicas práticas. O estudo "Estudos sobre IA" (entrevista com o professor de Harvard) serviu de base: pede "dicas práticas e comandos", que não são perguntas.
+- **Como usar:** blocos Lembretes, Metanoia, Ideias e Estudos, Dispensa, Manutenção e Configurações atualizados; nova seção **"Comandos que o FARO entende"**.
+- **Regra permanente** (CLAUDE.md e DESIGN.md): mudou algo, atualiza o Como usar e os comandos no mesmo trabalho.
+- **Aguardando o Leandro:** "pode aplicar" para a sincronização das frases Metanoia "não listadas" com o modelo/convidados; respostas sobre o app do iPhone pedir senha de novo (quando acontece, ícone ou Safari, ajuste de Authentication > Sessions no Supabase); quinto número de teste na Meta.
 
 ## Ajustes de 16/10 (noite): bolinho de aniversário e Plano de Estudo que não polui a agenda
 

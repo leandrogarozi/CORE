@@ -226,6 +226,9 @@ Este é o acordo com o dono depois de uma noite inteira de ajustes com prints do
 - O Safari amplia a tela ao tocar num campo com letra pequena. Solução adotada: `maximum-scale=1` posto pelo `GuardaDoEstilo` só no iPhone. Se voltar a ampliar, o plano B é letra de 16 px só nos campos que causarem (`select` inclusive), não em todos.
 - Texto de saudação e títulos usam quebra de linha normal (`text-wrap:wrap`); o `balance` do Safari deixa a frase estreita.
 
+## Regra permanente: Como usar sempre em dia
+Quando uma tela ou um comando do FARO muda, o bloco da tela em `src/lib/tutorial.ts` ("Como usar") é atualizado no mesmo trabalho, deixando claro o funcionamento, e a seção "Comandos que o FARO entende" ganha o exemplo do comando novo.
+
 ## Do's and Don'ts
 
 ### Do:

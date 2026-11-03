@@ -2,6 +2,14 @@
 
 Atualizar a cada mudança que apareça para o usuário. Mais novo em cima. Fonte: `BRIEFING.md`.
 
+## 03/11/2026
+- **Dispensa com média de uso:** o FARO guarda cada vez que a quantidade baixa e mostra quanto você gasta por dia/semana/mês, quanto falta para acabar e um gráfico; na lista aparece a previsão (vermelha quando faltam 7 dias ou menos). Dá para marcar uma mudança como "foi correção".
+- **FARO adiciona frase na Metanoia por voz:** "adiciona na Metanoia a frase ... do fulano" → frase e autor guardados, sem passar por Anotações.
+- **Novo lembrete:** campo de data menor, descrição maior e uma caixinha de anotações logo abaixo do "Avisar".
+- **Estudos:** cada conhecimento (capítulo) ganhou "De onde veio" (livro, vídeo, curso, link...).
+- **Perguntas poderosas sem repetir:** agora a IA olha por um ângulo diferente a cada pedido e aceita um "foco" que você escreve. Nova seção **Dicas práticas**, separada das perguntas, com passos, comandos e exemplos prontos para usar.
+- **Como usar** atualizado, com a nova seção **"Comandos que o FARO entende"** (exemplos de cada coisa que dá para pedir por voz ou texto).
+
 ## 01/11/2026
 - **FARO muda a quantidade da Dispensa por voz:** "gastei 10% do clarificante" ou "o cloro está acabando" → cartão → atualizado.
 - **Assistente resolve feedbacks por voz** (só a conta do dono): "o feedback sobre limpar nas datas foi resolvido" → cartão → marcado como resolvido.
