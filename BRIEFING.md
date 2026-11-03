@@ -44,7 +44,8 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
 - **Perguntas poderosas sem repetir:** a rota `/api/ia/perguntas` ganhou `foco` (texto livre) e `angulo` (gira em `ANGULOS_DAS_PERGUNTAS`) e o modo `dicas` (`INSTRUCAO_DAS_DICAS`, `lerDicas`). Tela `PerguntasDaIA.tsx` com campo de foco e dois blocos no conhecimento: Perguntas e Dicas práticas. O estudo "Estudos sobre IA" (entrevista com o professor de Harvard) serviu de base: pede "dicas práticas e comandos", que não são perguntas.
 - **Como usar:** blocos Lembretes, Metanoia, Ideias e Estudos, Dispensa, Manutenção e Configurações atualizados; nova seção **"Comandos que o FARO entende"**.
 - **Regra permanente** (CLAUDE.md e DESIGN.md): mudou algo, atualiza o Como usar e os comandos no mesmo trabalho.
-- **Aguardando o Leandro:** "pode aplicar" para a sincronização das frases Metanoia "não listadas" com o modelo/convidados; respostas sobre o app do iPhone pedir senha de novo (quando acontece, ícone ou Safari, ajuste de Authentication > Sessions no Supabase); quinto número de teste na Meta.
+- **Metanoia "não listadas" sincronizada (aplicada em 03/11 com o "pode aplicar" do Leandro):** migração `metanoia_sincroniza_nao_listadas_do_dono`. Gatilho `faro_metanoia_sincroniza_nao_listada`: quando a conta do dono (`modo_dono`) marca uma frase/pergunta como não listada, ela sai de `metanoia_modelo` (contas novas) e é arquivada nas contas dos convidados que a receberam do FARO (origem `faro`, aprovada, não favoritada por eles). Na aplicação saíram 2 frases do modelo (153 restam) e 7 foram arquivadas nos convidados.
+- **Aguardando o Leandro:** respostas sobre o app do iPhone pedir senha de novo (quando acontece, ícone ou Safari, ajuste de Authentication > Sessions no Supabase); quinto número de teste na Meta.
 
 ## Ajustes de 16/10 (noite): bolinho de aniversário e Plano de Estudo que não polui a agenda
 
