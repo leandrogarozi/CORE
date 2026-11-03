@@ -1303,7 +1303,7 @@ export function useBoard(userId: string | null) {
 
   // ---------- partes de um estudo ----------
   const addSynapsePart = useCallback(
-    (synapseId: string, extra: { title: string; kind?: string; date?: string | null; body?: string }): string | null => {
+    (synapseId: string, extra: { title: string; kind?: string; date?: string | null; body?: string; source?: string }): string | null => {
       if (!userId || !extra.title.trim()) return null;
       const doEstudo = stateRef.current.synapseParts.filter((p) => p.synapseId === synapseId);
       const part: SynapsePart = {
@@ -1314,6 +1314,8 @@ export function useBoard(userId: string | null) {
         date: extra.date === undefined ? todayISO() : extra.date,
         body: extra.body ?? "",
         perguntas: "",
+        source: extra.source?.trim() ?? "",
+        dicas: "",
         order: doEstudo.length ? Math.max(...doEstudo.map((p) => p.order)) + 1 : 0,
         createdAt: new Date().toISOString(),
       };
@@ -1330,7 +1332,7 @@ export function useBoard(userId: string | null) {
   );
 
   const updateSynapsePart = useCallback(
-    (id: string, patch: Partial<Pick<SynapsePart, "title" | "kind" | "date" | "body" | "perguntas">>) => {
+    (id: string, patch: Partial<Pick<SynapsePart, "title" | "kind" | "date" | "body" | "perguntas" | "source" | "dicas">>) => {
       apply((s) => ({ ...s, synapseParts: s.synapseParts.map((x) => (x.id === id ? { ...x, ...patch } : x)) }));
       supabase
         .from("synapse_parts")
@@ -1340,6 +1342,8 @@ export function useBoard(userId: string | null) {
           ...(patch.date !== undefined ? { part_date: patch.date } : {}),
           ...(patch.body !== undefined ? { body: patch.body } : {}),
           ...(patch.perguntas !== undefined ? { perguntas: patch.perguntas } : {}),
+          ...(patch.source !== undefined ? { source: patch.source } : {}),
+          ...(patch.dicas !== undefined ? { dicas: patch.dicas } : {}),
           updated_at: new Date().toISOString(),
         })
         .eq("id", id)

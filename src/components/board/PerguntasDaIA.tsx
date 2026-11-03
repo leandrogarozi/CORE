@@ -25,6 +25,7 @@ export function PerguntasDaIA({
   podeNaSinapse,
   rotuloAqui = "Na sinapse",
   jaTem = false,
+  modo = "perguntas",
   onEnviar,
 }: {
   titulo: string;
@@ -35,6 +36,8 @@ export function PerguntasDaIA({
   rotuloAqui?: string;
   /** Já existem perguntas no campo: o botão passa a oferecer "mais", sempre sem repetir. */
   jaTem?: boolean;
+  /** "perguntas" (padrão) ou "dicas": dicas práticas, comandos e exemplos para pôr em prática. */
+  modo?: "perguntas" | "dicas";
   onEnviar: (naSinapse: string[], naMetanoia: string[]) => { naSinapse: number; naMetanoia: number };
 }) {
   const [gerando, setGerando] = useState(false);
@@ -43,6 +46,10 @@ export function PerguntasDaIA({
   const [aviso, setAviso] = useState("");
   // Pergunta aberta para edição (antes de aprovar): o texto editado é o que vai para os lugares marcados.
   const [editando, setEditando] = useState<number | null>(null);
+  const dicas = modo === "dicas";
+  // "Foco" é o segundo comando: a pessoa diz o que quer explorar e a IA cria só por ali. Sem foco, o ângulo gira sozinho a cada pedido.
+  const [foco, setFoco] = useState("");
+  const [tentativa, setTentativa] = useState(0);
 
   async function gerar() {
     setGerando(true);
@@ -52,7 +59,7 @@ export function PerguntasDaIA({
       const r = await fetch("/api/ia/perguntas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ titulo, texto, existentes }),
+        body: JSON.stringify({ titulo, texto, existentes, modo, foco: foco.trim(), angulo: existentes.length + tentativa }),
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) setErro(ERROS_DAS_PERGUNTAS[d.erro] ?? "Não consegui criar agora. Tente de novo em instantes.");
@@ -60,7 +67,13 @@ export function PerguntasDaIA({
         const novas = d.perguntas as string[];
         setLista(novas.map((t, i) => ({ id: i, texto: t, naSinapse: false, naMetanoia: false })));
         setEditando(null);
-        if (!novas.length) setAviso("Nada novo: este texto não abre nenhuma reflexão que você já não tenha nas suas perguntas.");
+        setTentativa((n) => n + 1);
+        if (!novas.length)
+          setAviso(
+            dicas
+              ? "Nada novo: este texto não traz nenhuma dica prática que você já não tenha."
+              : "Nada novo por esse caminho. Escreva um foco (um tema que você quer explorar) ou tente de novo para olhar por outro ângulo."
+          );
       }
     } catch {
       setErro("Sem conexão. Tente de novo.");
@@ -69,7 +82,7 @@ export function PerguntasDaIA({
     }
   }
 
-  const marcadas = lista.filter((p) => p.naSinapse || p.naMetanoia).length;
+  const marcadas = lista.filter((p) => p.naSinapse || (!dicas && p.naMetanoia)).length;
 
   function marcar(id: number, campo: "naSinapse" | "naMetanoia", valor: boolean) {
     setLista((l) => l.map((p) => (p.id === id ? { ...p, [campo]: valor } : p)));
@@ -91,7 +104,7 @@ export function PerguntasDaIA({
       lista.filter((p) => p.naMetanoia && p.texto.trim()).map((p) => p.texto.trim())
     );
     const partes = [
-      feito.naSinapse ? `${feito.naSinapse} ${rotuloAqui.toLowerCase().replace(/^na /, "na ")}` : "",
+      feito.naSinapse ? `${feito.naSinapse} ${rotuloAqui.toLowerCase()}` : "",
       feito.naMetanoia ? `${feito.naMetanoia} na Metanoia` : "",
     ].filter(Boolean);
     setAviso(partes.length ? `Enviado: ${partes.join(" e ")}.` : "Nada novo para enviar (já estavam lá).");
@@ -102,10 +115,27 @@ export function PerguntasDaIA({
   return (
     <div className="perg-ia">
       <div className="perg-ia-topo">
+        <input
+          type="text"
+          className="perg-ia-foco"
+          value={foco}
+          maxLength={200}
+          placeholder={dicas ? "Foco (opcional): ex. comandos, exemplos prontos" : "Foco (opcional): ex. trabalho, hábitos, medo"}
+          aria-label={dicas ? "Foco das dicas" : "Foco das perguntas"}
+          onChange={(e) => setFoco(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && !gerando && texto.length >= 40 && gerar()}
+        />
         <button type="button" className="btn btn-ghost" disabled={gerando || texto.length < 40} onClick={gerar}>
-          <BoltIcon /> {gerando ? "Criando perguntas…" : lista.length ? "Criar outras perguntas" : jaTem ? "Criar mais perguntas" : "Criar perguntas poderosas"}
+          <BoltIcon />{" "}
+          {dicas
+            ? gerando ? "Criando dicas…" : lista.length || jaTem ? "Criar mais dicas" : "Criar dicas práticas"
+            : gerando ? "Criando perguntas…" : lista.length ? "Criar outras perguntas" : jaTem ? "Criar mais perguntas" : "Criar perguntas poderosas"}
         </button>
-        <span className="perg-ia-dica">A IA lê só este texto e não repete o que você já tem. Você marca para onde cada pergunta vai.</span>
+        <span className="perg-ia-dica">
+          {dicas
+            ? "A IA lê só este texto, tira passos e comandos que você pode usar hoje e não repete as dicas que você já tem."
+            : "A IA lê só este texto e não repete o que você já tem; cada pedido olha por um ângulo novo, ou pelo foco que você escrever. Você marca para onde cada pergunta vai."}
+        </span>
       </div>
       {erro && <p className="perg-ia-erro">{erro}</p>}
       {aviso && !lista.length && <p className="perg-ia-aviso">{aviso}</p>}
@@ -114,7 +144,7 @@ export function PerguntasDaIA({
           {aviso && <p className="perg-ia-aviso">{aviso}</p>}
           <div className="perg-ia-cab" aria-hidden="true">
             {podeNaSinapse && <span>{rotuloAqui}</span>}
-            <span>Na Metanoia</span>
+            {!dicas && <span>Na Metanoia</span>}
           </div>
           {lista.map((p) => (
             <div key={p.id} className="perg-ia-linha">
@@ -151,10 +181,12 @@ export function PerguntasDaIA({
                   <span className="sr-only">{rotuloAqui}</span>
                 </label>
               )}
-              <label className="perg-ia-check" title="Mandar para a Metanoia">
-                <input type="checkbox" checked={p.naMetanoia} onChange={(e) => marcar(p.id, "naMetanoia", e.target.checked)} />
-                <span className="sr-only">Na Metanoia</span>
-              </label>
+              {!dicas && (
+                <label className="perg-ia-check" title="Mandar para a Metanoia">
+                  <input type="checkbox" checked={p.naMetanoia} onChange={(e) => marcar(p.id, "naMetanoia", e.target.checked)} />
+                  <span className="sr-only">Na Metanoia</span>
+                </label>
+              )}
             </div>
           ))}
           <div className="perg-ia-rodape">

@@ -6,7 +6,7 @@ import { NoteField } from "./NoteField";
 import { PerguntasDaIA } from "./PerguntasDaIA";
 import { ChevronIcon, TrashIcon } from "./icons";
 import { stripHtml } from "@/lib/rich-text";
-import { extrairPerguntas } from "@/lib/ia/perguntas";
+import { extrairDicas, extrairPerguntas } from "@/lib/ia/perguntas";
 import { escaparHtml } from "./PerguntasDaIA";
 import { todayISO } from "@/lib/date-utils";
 import { ROTEIRO_DA_PARTE, proximoNomeDeParte, TIPOS_DE_PARTE } from "@/lib/board/estudos";
@@ -21,6 +21,8 @@ function PartCard({ part, numero, estudo, aberta, onToggle }: { part: SynapsePar
   const [title, setTitle] = useState(part.title);
   const [body, setBody] = useState(part.body);
   const [perguntas, setPerguntas] = useState(part.perguntas);
+  const [dicas, setDicas] = useState(part.dicas);
+  const [source, setSource] = useState(part.source);
   // Trocar o texto de fora (roteiro) pede um campo novo: o editor não relê o valor sozinho.
   const [versao, setVersao] = useState(0);
 
@@ -71,9 +73,26 @@ function PartCard({ part, numero, estudo, aberta, onToggle }: { part: SynapsePar
           <TrashIcon />
         </button>
       </div>
+      {!aberta && part.source && <div className="study-part-fonte">De onde veio: {part.source}</div>}
       {!aberta && previa && <div className="study-part-previa">{previa}</div>}
       {aberta && (
         <div className="study-part-body">
+          <label className="study-part-fonte-campo">
+            <span className="synapse-field-label">De onde veio</span>
+            <input
+              type="text"
+              value={source}
+              placeholder="Livro, vídeo, curso, aula, link, pessoa..."
+              aria-label={`De onde veio ${part.title}`}
+              onChange={(e) => setSource(e.target.value)}
+              onBlur={() => {
+                const t = source.trim();
+                if (t !== part.source) board.updateSynapsePart(part.id, { source: t });
+                setSource(t);
+              }}
+              onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+            />
+          </label>
           <NoteField
             key={versao}
             value={body}
@@ -124,6 +143,35 @@ function PartCard({ part, numero, estudo, aberta, onToggle }: { part: SynapsePar
               return { naSinapse: nParte, naMetanoia: nMetanoia };
             }}
           />
+          <div className="synapse-field synapse-field-question">
+            <span className="synapse-field-label">Dicas práticas deste conteúdo</span>
+            <NoteField
+              value={dicas}
+              placeholder="Passos, comandos e exemplos para pôr em prática. Escreva os seus ou crie com a IA aqui embaixo..."
+              ariaLabel={`Dicas práticas de ${part.title}`}
+              onChange={setDicas}
+              onPersist={(html) => html !== part.dicas && board.updateSynapsePart(part.id, { dicas: html })}
+            />
+          </div>
+          <PerguntasDaIA
+            modo="dicas"
+            titulo={`${estudo} — ${part.title}`}
+            texto={stripHtml(body)}
+            existentes={extrairDicas(dicas)}
+            podeNaSinapse
+            rotuloAqui="No conhecimento"
+            jaTem={stripHtml(dicas).length > 0}
+            onEnviar={(naParte) => {
+              const jaTemTexto = stripHtml(dicas).toLowerCase();
+              const novas = naParte.filter((q) => !jaTemTexto.includes(q.toLowerCase()));
+              if (novas.length) {
+                const html = dicas + novas.map((q) => `<p>${escaparHtml(q)}</p>`).join("");
+                setDicas(html);
+                board.updateSynapsePart(part.id, { dicas: html });
+              }
+              return { naSinapse: novas.length, naMetanoia: 0 };
+            }}
+          />
           {!stripHtml(body) && (
             <button type="button" className="btn btn-ghost study-part-roteiro" onClick={usarRoteiro}>
               Usar roteiro (O que vi · Atividade · O que vou aplicar)
@@ -148,11 +196,13 @@ export function StudyParts({ synapse }: { synapse: Synapse }) {
   const [tipo, setTipo] = useState<string>(TIPOS_DE_PARTE[0]);
   const [nome, setNome] = useState("");
   const [data, setData] = useState(() => todayISO());
+  const [origem, setOrigem] = useState("");
 
   function abrirForm() {
     setTipo(TIPOS_DE_PARTE[0]);
     setNome(proximoNomeDeParte(TIPOS_DE_PARTE[0], partes));
     setData(todayISO());
+    setOrigem("");
     setCriando(true);
   }
 
@@ -162,7 +212,7 @@ export function StudyParts({ synapse }: { synapse: Synapse }) {
   }
 
   function criar() {
-    const id = board.addSynapsePart(synapse.id, { title: nome, kind: tipo.toLowerCase(), date: data || null });
+    const id = board.addSynapsePart(synapse.id, { title: nome, kind: tipo.toLowerCase(), date: data || null, source: origem });
     if (!id) return;
     setAbertaId(id);
     setCriando(false);
@@ -199,6 +249,15 @@ export function StudyParts({ synapse }: { synapse: Synapse }) {
             onKeyDown={(e) => e.key === "Enter" && criar()}
           />
           <input type="date" value={data} aria-label="Data do conhecimento" onChange={(e) => setData(e.target.value)} />
+          <input
+            type="text"
+            className="study-part-new-fonte"
+            value={origem}
+            placeholder="De onde veio (opcional)"
+            aria-label="De onde veio o conhecimento"
+            onChange={(e) => setOrigem(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && criar()}
+          />
           <button type="button" className="btn btn-accent" disabled={!nome.trim()} onClick={criar}>
             Criar
           </button>

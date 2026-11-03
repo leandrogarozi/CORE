@@ -503,6 +503,8 @@ export interface SynapsePart {
   date: string | null; // ISO date
   body: string; // HTML
   perguntas: string; // HTML: perguntas poderosas desta parte (escritas à mão ou criadas pela IA)
+  source: string; // de onde veio este conhecimento (texto livre: livro, vídeo, curso, link...)
+  dicas: string; // HTML: dicas práticas e comandos deste conteúdo (escritos à mão ou criados pela IA)
   order: number;
   createdAt: string;
 }

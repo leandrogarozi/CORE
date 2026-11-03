@@ -17,7 +17,68 @@ Regras:
 - Use SÓ o que está no texto. Não invente fatos, autores nem dados. Se o texto é de outro autor, a pergunta ainda é para a pessoa se perguntar.
 - Sem numeração, sem aspas, sem explicação, sem repetir a mesma pergunta com outras palavras.
 - Você recebe também a lista "Perguntas que a pessoa já tem". NÃO crie nenhuma pergunta com o mesmo sentido, a mesma reflexão ou o mesmo foco de uma delas, mesmo com palavras diferentes. A ideia não é acumular perguntas: só crie uma pergunta se ela abrir uma reflexão que as que já existem não abrem. Pode devolver menos de 5, até uma só.
+- Você pode receber também um "Foco" (o que a pessoa quer explorar agora) ou um "Ângulo" (por onde olhar o texto desta vez). Faça TODAS as perguntas por esse foco/ângulo, mesmo que o texto tenha outros temas: é assim que as perguntas deixam de se repetir.
 - Se nada do texto abre uma reflexão nova, responda apenas: NENHUMA`;
+
+/**
+ * Quando a pessoa já tem perguntas, cada pedido olha o texto por um ângulo diferente (o app gira por
+ * esta lista). Foi o que faltava: sem ângulo, a IA voltava sempre à mesma reflexão. O "foco" digitado
+ * pela pessoa, quando existe, vale mais que o ângulo.
+ */
+export const ANGULOS_DAS_PERGUNTAS = [
+  "decisões e hábitos do dia a dia: o que muda amanhã de manhã",
+  "crenças, medos e resistências: o que a pessoa evita enxergar",
+  "trabalho, carreira e relações com outras pessoas",
+  "exemplos e situações concretas do texto: onde isso já aconteceu com ela",
+  "dúvidas, contradições e pontos em que ela discorda do texto",
+  "o que ela deixaria de fazer, ou faria por conta própria, depois de aprender isso",
+] as const;
+
+export const MAX_TOKENS_DAS_DICAS = 1500;
+export const MAXIMO_DE_DICAS = 7;
+
+export const INSTRUCAO_DAS_DICAS = `Você extrai DICAS PRÁTICAS, em português do Brasil, de um texto que a própria pessoa guardou para estudar. Dica prática é algo que ela pode FAZER hoje: um passo, um comando, um exemplo pronto de usar.
+
+Regras:
+- Entre 4 e 7 dicas, cada uma numa linha começando com "- ". Nada além da lista.
+- Cada dica começa com um verbo no imperativo ("Peça...", "Divida...", "Revise...") e cabe em até 280 caracteres. Se o texto traz um comando, uma frase de pedido (prompt) ou um exemplo, escreva-o entre aspas dentro da dica, do jeito que a pessoa pode copiar.
+- Use SÓ o que está no texto ou o que decorre dele de forma direta. Não invente fatos, autores, números nem ferramentas que o texto não cita.
+- Sem numeração, sem explicação antes ou depois, sem repetir a mesma dica com outras palavras.
+- Você recebe a lista "Dicas que a pessoa já tem". NÃO repita nenhuma delas nem o mesmo sentido. Pode devolver menos de 4, até uma só.
+- Se o texto não traz nenhuma dica prática nova, responda apenas: NENHUMA`;
+
+/** Lê a lista de dicas: uma por linha, com "-", "•", "*" ou número na frente (não exige "?"). */
+export function lerDicas(resposta: string): string[] {
+  const vistas = new Set<string>();
+  const dicas: string[] = [];
+  for (const linha of resposta.split(/\r?\n/)) {
+    const texto = linha.replace(/^\s*(?:[-•*]|\d+[.)])\s*/, "").trim();
+    if (texto.length < 12 || texto.length > 400 || /^nenhuma\.?$/i.test(texto)) continue;
+    if (!/^\s*(?:[-•*]|\d+[.)])/.test(linha)) continue;
+    const chave = texto.toLowerCase();
+    if (vistas.has(chave)) continue;
+    vistas.add(chave);
+    dicas.push(texto);
+    if (dicas.length >= MAXIMO_DE_DICAS) break;
+  }
+  return dicas;
+}
+
+/** Tira do campo de dicas (HTML do editor ou texto) cada parágrafo/item como uma dica já existente. */
+export function extrairDicas(html: string): string[] {
+  const texto = html
+    .replace(/<\/(?:p|li|div|h[1-6])>|<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, "&");
+  return texto
+    .split(/\n+/)
+    .map((t) => t.replace(/\s+/g, " ").trim())
+    .filter((t) => t.length >= 12);
+}
 
 /** Perguntas já existentes que seguem para a IA (as mais recentes): limita o tamanho do pedido. */
 export const MAXIMO_DE_EXISTENTES = 150;

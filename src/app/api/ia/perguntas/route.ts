@@ -4,10 +4,14 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { MODELO_DA_IA, limitesDaIa, custoEmUsd, inicioDoMesISO } from "@/lib/ia/custo";
 import {
+  ANGULOS_DAS_PERGUNTAS,
+  INSTRUCAO_DAS_DICAS,
   INSTRUCAO_DAS_PERGUNTAS,
   LIMITE_DO_TEXTO,
   MAXIMO_DE_EXISTENTES,
+  MAX_TOKENS_DAS_DICAS,
   MAX_TOKENS_DAS_PERGUNTAS,
+  lerDicas,
   lerPerguntas,
   parecidaComAlguma,
 } from "@/lib/ia/perguntas";
@@ -28,13 +32,24 @@ export async function POST(req: Request) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ erro: "sem_login" }, { status: 401 });
 
-  const corpo = (await req.json().catch(() => null)) as { titulo?: unknown; texto?: unknown; existentes?: unknown } | null;
+  const corpo = (await req.json().catch(() => null)) as {
+    titulo?: unknown;
+    texto?: unknown;
+    existentes?: unknown;
+    modo?: unknown;
+    foco?: unknown;
+    angulo?: unknown;
+  } | null;
+  // "perguntas" (padrão) ou "dicas" (passos práticos, comandos e exemplos). O ângulo gira a cada pedido.
+  const modo = corpo?.modo === "dicas" ? "dicas" : "perguntas";
+  const foco = typeof corpo?.foco === "string" ? corpo.foco.trim().slice(0, 200) : "";
+  const anguloIdx = typeof corpo?.angulo === "number" && Number.isFinite(corpo.angulo) ? Math.abs(Math.trunc(corpo.angulo)) % ANGULOS_DAS_PERGUNTAS.length : -1;
   const titulo = typeof corpo?.titulo === "string" ? corpo.titulo.trim().slice(0, 300) : "";
   const texto = typeof corpo?.texto === "string" ? corpo.texto.trim() : "";
   // Perguntas que a pessoa já tem (na sinapse e na Metanoia): a IA não cria outra com o mesmo sentido.
   const existentes = (Array.isArray(corpo?.existentes) ? corpo.existentes : [])
     .filter((e): e is string => typeof e === "string" && e.trim().length > 0)
-    .map((e) => e.trim().slice(0, 300))
+    .map((e) => e.trim().slice(0, modo === "dicas" ? 400 : 300))
     .slice(0, MAXIMO_DE_EXISTENTES);
   if (texto.length < 40) return NextResponse.json({ erro: "texto_curto" }, { status: 400 });
 
@@ -58,11 +73,21 @@ export async function POST(req: Request) {
   try {
     const resposta = await new Anthropic({ apiKey: chave }).messages.create({
       model: MODELO_DA_IA,
-      max_tokens: MAX_TOKENS_DAS_PERGUNTAS,
-      system: INSTRUCAO_DAS_PERGUNTAS,
-      messages: [{ role: "user", content: `${titulo ? `Título: ${titulo}\n\n` : ""}Perguntas que a pessoa já tem (não repita o sentido de nenhuma):\n${
-            existentes.length ? existentes.map((e) => `- ${e}`).join("\n") : "(nenhuma ainda)"
-          }\n\nTexto:\n${texto.slice(0, LIMITE_DO_TEXTO)}`,
+      max_tokens: modo === "dicas" ? MAX_TOKENS_DAS_DICAS : MAX_TOKENS_DAS_PERGUNTAS,
+      system: modo === "dicas" ? INSTRUCAO_DAS_DICAS : INSTRUCAO_DAS_PERGUNTAS,
+      messages: [
+        {
+          role: "user",
+          content: [
+            titulo ? `Título: ${titulo}\n` : "",
+            `${modo === "dicas" ? "Dicas que a pessoa já tem (não repita nenhuma)" : "Perguntas que a pessoa já tem (não repita o sentido de nenhuma)"}:\n${
+              existentes.length ? existentes.map((e) => `- ${e}`).join("\n") : "(nenhuma ainda)"
+            }\n`,
+            foco ? `Foco desta vez: ${foco}\n` : modo === "perguntas" && anguloIdx >= 0 ? `Ângulo desta vez: ${ANGULOS_DAS_PERGUNTAS[anguloIdx]}\n` : "",
+            `Texto:\n${texto.slice(0, LIMITE_DO_TEXTO)}`,
+          ]
+            .filter(Boolean)
+            .join("\n"),
         },
       ],
       output_config: { effort: "low" },
@@ -72,7 +97,7 @@ export async function POST(req: Request) {
     const custoUsd = custoEmUsd(MODELO_DA_IA, uso);
     const { error } = await servico.from("ia_uso").insert({
       user_id: user.id,
-      funcao: "perguntas",
+      funcao: modo === "dicas" ? "dicas" : "perguntas",
       modelo: MODELO_DA_IA,
       tokens_entrada: uso.entrada,
       tokens_saida: uso.saida,
@@ -82,11 +107,8 @@ export async function POST(req: Request) {
       custo_brl: custoUsd * dolar,
     });
     if (error) console.error("ia_uso: não consegui gravar o gasto das perguntas", error.message);
-    perguntas = lerPerguntas(
-      resposta.content
-        .map((b) => (b.type === "text" ? b.text : ""))
-        .join("")
-    ).filter((p) => !parecidaComAlguma(p, existentes));
+    const saida = resposta.content.map((b) => (b.type === "text" ? b.text : "")).join("");
+    perguntas = (modo === "dicas" ? lerDicas(saida) : lerPerguntas(saida)).filter((p) => !parecidaComAlguma(p, existentes));
   } catch (e) {
     console.error("IA: erro ao criar perguntas", e instanceof Error ? e.message : e);
     const status = e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError ? "chave_invalida" : "indisponivel";

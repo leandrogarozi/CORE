@@ -1901,10 +1901,12 @@ export type Database = {
           body: string
           created_at: string
           id: string
+          dicas: string
           part_date: string | null
           part_kind: string
           perguntas: string
           sort_order: number
+          source: string
           synapse_id: string
           title: string
           updated_at: string
@@ -1914,9 +1916,11 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
+          dicas?: string
           part_date?: string | null
           part_kind?: string
           perguntas?: string
+          source?: string
           sort_order?: number
           synapse_id: string
           title: string
@@ -1927,9 +1931,11 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
+          dicas?: string
           part_date?: string | null
           part_kind?: string
           perguntas?: string
+          source?: string
           sort_order?: number
           synapse_id?: string
           title?: string

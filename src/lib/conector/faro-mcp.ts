@@ -219,7 +219,7 @@ function itensDoAcervo(a: AcervoDoFaro): Item[] {
       const partes = s.tag === "estudo" ? (a.partes ?? []).filter((p) => p.synapseId === s.id) : [];
       if (partes.length) {
         const exp = { id: s.id, title: s.title, learning: s.learning, questions: s.questions, source: s.source, createdAt: s.createdAt, tag: s.tag };
-        const paraExportar = (p: SynapsePart) => ({ id: p.id, synapseId: p.synapseId, title: p.title, kind: p.kind, date: p.date, body: p.body, perguntas: p.perguntas, order: p.order });
+        const paraExportar = (p: SynapsePart) => ({ id: p.id, synapseId: p.synapseId, title: p.title, kind: p.kind, date: p.date, body: p.body, perguntas: p.perguntas, source: p.source, dicas: p.dicas, order: p.order });
         itens.push({
           id: s.id,
           tipo: "ideia",
