@@ -24,6 +24,7 @@ import type {
   MaintenanceService,
   Medication,
   PantryItem,
+  PantryUsage,
   PantryStatus,
   QuickNote,
   OdometerReading,
@@ -945,6 +946,17 @@ export function rowToPantryItem(row: PantryItemRow): PantryItem {
     forSale: row.for_sale,
     salePriceCents: row.sale_price_cents,
     note: row.note,
+  };
+}
+
+export function rowToPantryUsage(row: Tables<"pantry_usage">): PantryUsage {
+  return {
+    id: row.id,
+    itemId: row.item_id,
+    at: row.at,
+    before: Number(row.qty_before),
+    after: Number(row.qty_after),
+    kind: row.kind === "compra" || row.kind === "ajuste" ? row.kind : "uso",
   };
 }
 

@@ -671,6 +671,36 @@ export type Database = {
         }
         Relationships: []
       }
+      pantry_usage: {
+        Row: {
+          at: string
+          id: string
+          item_id: string
+          kind: string
+          qty_after: number
+          qty_before: number
+          user_id: string
+        }
+        Insert: {
+          at?: string
+          id?: string
+          item_id: string
+          kind?: string
+          qty_after: number
+          qty_before: number
+          user_id: string
+        }
+        Update: {
+          at?: string
+          id?: string
+          item_id?: string
+          kind?: string
+          qty_after?: number
+          qty_before?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       pantry_items: {
         Row: {
           category: string

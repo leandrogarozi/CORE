@@ -18,7 +18,8 @@ import {
 } from "@/lib/board/dispensa";
 import { fmtShortDate, isoAddDays, todayISO } from "@/lib/date-utils";
 import { fmtBRL, parseAmountToCents } from "@/lib/money";
-import type { PantryItem, PantryStatus } from "@/lib/types";
+import type { PantryItem, PantryStatus, PantryUsage } from "@/lib/types";
+import { fmtRitmo, fmtTempo, linhaDeUso, mediaDeUso, MIN_DIAS, MIN_USOS } from "@/lib/board/dispensa-uso";
 
 type Filtro = "tudo" | "comprar" | "vence" | "vender";
 
@@ -74,6 +75,81 @@ function corDoNivel(item: PantryItem): string {
   return "#3E8E5A";
 }
 
+/** "Média de uso" do item aberto: quanto dura, quanto gasta, quando acaba e as últimas mudanças (dá para marcar uma como correção). */
+function MediaDeUso({ item, registros }: { item: PantryItem; registros: PantryUsage[] }) {
+  const { board } = useBoardCtx();
+  const m = mediaDeUso(item, registros, todayISO());
+  const recentes = [...registros].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 6);
+  const [verTodos, setVerTodos] = useState(false);
+  if (!registros.length) {
+    return (
+      <div className="disp-uso">
+        <h4>Média de uso</h4>
+        <div className="disp-uso-nota">Ainda sem histórico. A partir de agora o FARO anota cada vez que a quantidade deste item muda (por você ou por ele) e calcula quanto tempo ele dura.</div>
+      </div>
+    );
+  }
+  const un = item.unit === "%" ? "%" : item.unit ? ` ${item.unit}` : "";
+  const dataBr = (iso: string) => iso.slice(8, 10) + "/" + iso.slice(5, 7);
+  const barras = [...registros].sort((a, b) => a.at.localeCompare(b.at)).slice(-14);
+  const maior = Math.max(1, ...barras.map((r) => Math.abs(r.before - r.after)));
+  return (
+    <div className="disp-uso">
+      <h4>Média de uso</h4>
+      {m && m.pronta ? (
+        <div className="disp-uso-grade">
+          <div className="disp-uso-n">
+            <b>{fmtTempo(m.duracaoDoCheioDias)}</b>
+            <span>{item.unit === "%" ? "1 frasco dura, em média" : "do cheio ao fim, em média"}</span>
+          </div>
+          <div className="disp-uso-n">
+            <b>{fmtRitmo(m, item.unit)}</b>
+            <span>você gasta</span>
+          </div>
+          <div className={"disp-uso-n" + (m.diasRestantes !== null && m.diasRestantes <= 7 ? " dest" : "")}>
+            <b>{m.diasRestantes !== null ? fmtTempo(m.diasRestantes) : "—"}</b>
+            <span>{m.acabaEm ? `no ritmo atual, acaba por volta de ${dataBr(m.acabaEm)}` : "item sem quantidade"}</span>
+          </div>
+          <div className="disp-uso-n">
+            <b>{m.compras} {m.compras === 1 ? "compra" : "compras"}</b>
+            <span>{m.usos} {m.usos === 1 ? "uso" : "usos"} em {m.diasObservados} dias</span>
+          </div>
+        </div>
+      ) : (
+        <div className="disp-uso-nota">
+          Ainda juntando dados: {m ? m.usos : 0} {m && m.usos === 1 ? "uso anotado" : "usos anotados"}. A média aparece com pelo menos {MIN_USOS} usos em {MIN_DIAS} dias ou mais.
+        </div>
+      )}
+      <div className="disp-uso-hist" aria-hidden="true">
+        {barras.map((r) => (
+          <i key={r.id} className={r.kind === "compra" ? "compra" : r.kind === "ajuste" ? "ajuste" : ""} style={{ height: `${Math.max(8, (Math.abs(r.before - r.after) / maior) * 100)}%` }} />
+        ))}
+      </div>
+      <div className="disp-uso-nota">Roxo = gasto, verde = recompra, cinza = correção (não entra na média).</div>
+      <button type="button" className="disp-uso-mais" onClick={() => setVerTodos((v) => !v)} aria-expanded={verTodos}>
+        {verTodos ? "Esconder as últimas mudanças" : "Ver as últimas mudanças"}
+      </button>
+      {verTodos && (
+        <div className="disp-uso-lista">
+          {recentes.map((r) => (
+            <div key={r.id} className={"disp-uso-linha" + (r.kind === "ajuste" ? " ajuste" : "")}>
+              <span className="disp-uso-quando">{dataBr(r.at.slice(0, 10))}</span>
+              <span>
+                {r.before}
+                {un} → {r.after}
+                {un} · {r.kind === "ajuste" ? "correção" : r.after < r.before ? "uso" : "compra"}
+              </span>
+              <button type="button" className="disp-uso-corr" onClick={() => board.marcarUsoComoAjuste(r.id, r.kind !== "ajuste")}>
+                {r.kind === "ajuste" ? "contar de novo" : "foi correção"}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Linha({ item, aberto, onAbrir }: { item: PantryItem; aberto: boolean; onAbrir: () => void }) {
   const { board, askConfirm } = useBoardCtx();
   const hoje = todayISO();
@@ -114,6 +190,8 @@ function Linha({ item, aberto, onAbrir }: { item: PantryItem; aberto: boolean; o
     setNasCompras(true);
   }
 
+  const registrosDoItem = board.state.pantryUsage.filter((u) => u.itemId === item.id);
+  const usoNaLista = linhaDeUso(mediaDeUso(item, registrosDoItem, hoje), item.unit);
   const sub = [item.category, item.place].filter(Boolean).join(" · ");
   const campo = (rotulo: string, dica: string | null, controle: React.ReactNode) => (
     <div className="meta-linha">
@@ -147,6 +225,7 @@ function Linha({ item, aberto, onAbrir }: { item: PantryItem; aberto: boolean; o
           <span className="disp-textos">
             <span className="disp-nome">{item.name}</span>
             {sub && <span className="disp-sub">{sub}</span>}
+            {usoNaLista && <span className={"disp-prev" + (usoNaLista.urgente ? " ruim" : "")}>{usoNaLista.texto}</span>}
           </span>
         </button>
         <span className="disp-chips">
@@ -216,6 +295,7 @@ function Linha({ item, aberto, onAbrir }: { item: PantryItem; aberto: boolean; o
               )}
             </div>
           )}
+          <MediaDeUso item={item} registros={registrosDoItem} />
           {campo("Nome", null, texto(item.name, (v) => v && salvar({ name: v }), { label: "Nome" }))}
           {campo(
             "Quantidade",

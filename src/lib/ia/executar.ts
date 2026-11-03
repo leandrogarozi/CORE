@@ -40,6 +40,7 @@ export interface QuadroParaAcoes {
   /** Só o dono: os feedbacks recebidos (lista lida quando o assistente abriu a conversa) e como marcá-los. */
   feedbacks: FeedbackDoDono[];
   marcarFeedback: (id: string, resolvido: boolean) => Promise<boolean>;
+  addMetanoiaFrase: (extra: { texto: string; autor?: string | null; fonte?: string | null; tipo?: "frase" | "pergunta"; origem?: "minha" | "faro" | "ia" }) => string | null;
   maintenanceAssets: MaintenanceAsset[];
   maintenanceItems: MaintenanceItem[];
   addMaintenanceAsset: (name: string, kind: MaintenanceAsset["kind"]) => Promise<string | null>;
@@ -253,6 +254,12 @@ export async function executarAcao(acaoBruta: AcaoProposta, quadro: QuadroParaAc
       const resto = jaTinha.length ? ` Já estavam lá: ${jaTinha.join(", ")}.` : "";
       return criados > 0 ? { ok: true, mensagem: `${criados} ${criados === 1 ? "item entrou" : "itens entraram"} na Dispensa.${resto}` } : { ok: false, mensagem: `Nada novo para a Dispensa.${resto}` };
     }
+    case "adicionar_frase_metanoia": {
+      const id = quadro.addMetanoiaFrase({ texto: acao.texto, autor: acao.autor, fonte: acao.fonte, tipo: acao.ehPergunta ? "pergunta" : "frase", origem: "minha" });
+      return id
+        ? { ok: true, mensagem: `${acao.ehPergunta ? "Pergunta" : "Frase"} lançada na Metanoia${acao.autor ? ` (${acao.autor})` : ""}.` }
+        : { ok: false, mensagem: "Essa já está na Metanoia (ou não consegui gravar)." };
+    }
     case "resolver_feedback": {
       const r = acharFeedback(quadro.feedbacks, { numero: acao.numero, trecho: acao.trecho }, acao.reabrir);
       if ("erro" in r) return { ok: false, mensagem: r.erro };
@@ -360,6 +367,8 @@ function converterParaEntrada(a: AcaoProposta): Record<string, unknown> {
           validade: i.validade ?? undefined,
         })),
       };
+    case "adicionar_frase_metanoia":
+      return { texto: a.texto, autor: a.autor ?? undefined, fonte: a.fonte ?? undefined, pergunta: a.ehPergunta };
     case "resolver_feedback":
       return { numero: a.numero ?? undefined, trecho: a.trecho ?? undefined, reabrir: a.reabrir };
     case "adicionar_manutencao":

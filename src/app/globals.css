@@ -5288,3 +5288,36 @@ textarea.titulo-cresce{ display:block; resize:none; overflow:hidden; font-family
 .ia-hero p{ max-width:520px; }
 .wa-teste{ display:flex; flex-direction:column; gap:4px; margin:10px 0 4px; padding-top:10px; border-top:1px solid var(--linha); }
 .wa-teste > div{ margin-top:0 !important; }
+
+/* Novo lembrete (02/11): data do tamanho de dd/mm/aaaa, descrição ocupando o resto da linha e as anotações abaixo do Avisar. */
+.quickadd-row > .datefield:has(.reminder-new-date){ flex:none; width:128px; min-width:0; }
+.quickadd-row:has(.reminder-new-date) .quickadd-input{ flex:1 1 280px; min-width:0; font-size:14px; }
+.reminder-novo-nota{ padding:0 18px 14px; }
+.reminder-novo-nota textarea{ width:100%; box-sizing:border-box; resize:vertical; min-height:64px; font-family:inherit; font-size:13px; line-height:1.45; color:var(--text); background:var(--campo-fundo, var(--surface-2)); border:0; border-radius:12px; padding:10px 12px; }
+.reminder-novo-nota textarea:focus{ outline:none; background:var(--campo-fundo-foco, var(--surface-2)); }
+@media (max-width:640px){
+  .quickadd-row:has(.reminder-new-date) .quickadd-input{ flex:1 1 100%; }
+  .quickadd-row > .datefield:has(.reminder-new-date){ order:5; flex:1 1 128px; width:auto; }
+}
+
+/* Dispensa: média de uso (aprovado em 01/11): bloco no item aberto e uma linha pequena na lista. */
+.disp-prev{ display:block; font-size:11.5px; color:var(--text-muted); margin-top:1px; }
+.disp-prev.ruim{ color:#A02A1D; font-weight:600; }
+.disp-uso{ margin:6px 0 10px; padding:14px; border-radius:16px; background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 7%,var(--surface)),color-mix(in srgb,var(--accent) 2%,var(--surface))); display:flex; flex-direction:column; gap:12px; }
+.disp-uso h4{ margin:0; font-size:12.5px; font-weight:700; color:var(--accent); }
+.disp-uso-grade{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.disp-uso-n{ background:var(--surface); border-radius:12px; padding:10px 12px; box-shadow:0 8px 16px -12px rgba(20,20,60,.35); min-width:0; }
+.disp-uso-n b{ display:block; font-size:17px; font-weight:700; font-variant-numeric:tabular-nums; color:var(--text); }
+.disp-uso-n span{ font-size:11.5px; color:var(--text-muted); line-height:1.35; display:block; }
+.disp-uso-n.dest b{ color:#C0392B; }
+.disp-uso-hist{ display:flex; align-items:flex-end; gap:5px; height:44px; }
+.disp-uso-hist i{ flex:1; border-radius:5px 5px 2px 2px; background:linear-gradient(180deg,#7C4DF0,#4A47D5); min-height:4px; opacity:.9; }
+.disp-uso-hist i.compra{ background:#3E8E5A; }
+.disp-uso-hist i.ajuste{ background:#B9B9C4; }
+.disp-uso-nota{ font-size:11.5px; color:var(--text-muted); line-height:1.45; }
+.disp-uso-mais{ align-self:flex-start; background:none; border:0; padding:0; font-size:12px; font-weight:600; color:var(--accent); cursor:pointer; }
+.disp-uso-lista{ display:flex; flex-direction:column; gap:6px; }
+.disp-uso-linha{ display:flex; align-items:center; gap:10px; font-size:12px; color:var(--text); flex-wrap:wrap; }
+.disp-uso-linha.ajuste{ color:var(--text-faint); }
+.disp-uso-quando{ font-variant-numeric:tabular-nums; color:var(--text-muted); min-width:38px; }
+.disp-uso-corr{ margin-left:auto; background:var(--campo-fundo, var(--surface-2)); border:0; border-radius:999px; padding:5px 12px; font-size:11.5px; font-weight:600; color:var(--text-muted); cursor:pointer; }

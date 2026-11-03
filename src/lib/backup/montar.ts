@@ -38,6 +38,7 @@ export const TABELAS = [
   "medications",
   "medication_groups",
   "pantry_items",
+  "pantry_usage",
   "quick_notes",
   "diet_meals",
   "study_plans",

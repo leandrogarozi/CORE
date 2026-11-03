@@ -55,6 +55,7 @@ export type AcaoProposta =
         validade: string | null;
       }[];
     }
+  | { tipo: "adicionar_frase_metanoia"; texto: string; autor: string | null; fonte: string | null; ehPergunta: boolean }
   | { tipo: "resolver_feedback"; numero: number | null; trecho: string | null; reabrir: boolean }
   | {
       tipo: "adicionar_manutencao";
@@ -271,7 +272,7 @@ export const FERRAMENTAS_DO_FARO: Anthropic.Tool[] = [
   {
     name: "anotar",
     description:
-      "Guarda uma anotação solta na caixa ANOTAÇÕES (para ele revisar depois). Use quando ele pedir 'anota isso' e o assunto NÃO for de um lugar específico (tarefa/reunião existente: use anotar_em_tarefa; itens que ele tem em casa: use adicionar_na_dispensa). Se estiver em dúvida sobre onde guardar, PERGUNTE antes (Dispensa, Manutenção, Checklist ou só Anotações). Não use para saúde ou remédios.",
+      "Guarda uma anotação solta na caixa ANOTAÇÕES (para ele revisar depois). Use quando ele pedir 'anota isso' e o assunto NÃO for de um lugar específico (frase para a Metanoia: use adicionar_frase_metanoia) (tarefa/reunião existente: use anotar_em_tarefa; itens que ele tem em casa: use adicionar_na_dispensa). Se estiver em dúvida sobre onde guardar, PERGUNTE antes (Dispensa, Manutenção, Checklist ou só Anotações). Não use para saúde ou remédios.",
     input_schema: {
       type: "object",
       properties: {
@@ -308,6 +309,21 @@ export const FERRAMENTAS_DO_FARO: Anthropic.Tool[] = [
         },
       },
       required: ["itens"],
+    },
+  },
+  {
+    name: "adicionar_frase_metanoia",
+    description:
+      "Lança uma FRASE (ou pergunta poderosa) na METANOIA dele, a fila de frases que o FARO traz durante o dia. Use quando ele disser 'adiciona/coloca/lança essa frase na Metanoia', ou ditar uma frase com o autor ('vi essa frase, é do Fulano: ...'). Se ele ditar uma frase para guardar e não disser onde, e for claramente uma frase de efeito ou de um autor, PERGUNTE em uma linha se é para a Metanoia. Escreva o texto exatamente como ele disse, sem aspas e sem o nome do autor dentro do texto; o autor vai em autor. NÃO use anotar para isso.",
+    input_schema: {
+      type: "object",
+      properties: {
+        texto: { type: "string", description: "A frase, nas palavras dele, sem aspas e sem o autor." },
+        autor: { type: "string", description: "Quem disse, só se ele falou. Sem inventar." },
+        fonte: { type: "string", description: "De onde veio (livro, vídeo, curso...), só se ele falou." },
+        pergunta: { type: "boolean", description: "true se for uma pergunta poderosa em vez de frase." },
+      },
+      required: ["texto"],
     },
   },
   {
@@ -520,6 +536,11 @@ export function validarAcao(nome: string, entrada: unknown): ResultadoDaValidaca
         },
       };
     }
+    case "adicionar_frase_metanoia": {
+      const t = texto(e.texto, 600);
+      if (!t) return { ok: false, motivo: "faltou o texto da frase" };
+      return { ok: true, acao: { tipo: "adicionar_frase_metanoia", texto: t, autor: texto(e.autor, 120), fonte: texto(e.fonte, 160), ehPergunta: e.pergunta === true } };
+    }
     case "resolver_feedback": {
       const numero = typeof e.numero === "number" && e.numero >= 1 && e.numero <= 500 ? Math.round(e.numero) : null;
       const trecho = texto(e.trecho, 120);
@@ -643,6 +664,8 @@ export function descreverAcao(a: AcaoProposta): string {
       return `Dispensa: adicionar ${a.itens.length} ${a.itens.length === 1 ? "item" : "itens"}: ${a.itens
         .map((i) => `${i.nome} (${i.quantidade}${i.unidade ? " " + i.unidade : ""}${i.situacao === "low" ? ", acabando" : i.situacao === "out" ? ", acabou" : ""}${i.onde ? `, ${i.onde}` : ""})`)
         .join("; ")}`;
+    case "adicionar_frase_metanoia":
+      return `Metanoia: adicionar ${a.ehPergunta ? "a pergunta" : "a frase"} “${a.texto.length > 120 ? a.texto.slice(0, 117) + "…" : a.texto}”${a.autor ? ` — ${a.autor}` : ""}${a.fonte ? ` (${a.fonte})` : ""}`;
     case "resolver_feedback":
       return `Feedback${a.numero ? ` nº ${a.numero}` : ""}${a.trecho ? ` ("${a.trecho}")` : ""}: marcar como ${a.reabrir ? "a resolver de novo" : "resolvido"}`;
     case "adicionar_manutencao": {

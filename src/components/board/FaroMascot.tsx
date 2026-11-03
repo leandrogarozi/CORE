@@ -285,6 +285,7 @@ export function FaroMascot({ comDock = false }: { comDock?: boolean }) {
         updatePantryItem: board.updatePantryItem,
         reminders: board.state.reminders,
         completeReminder: board.completeReminder,
+        addMetanoiaFrase: board.addMetanoiaFrase,
         feedbacks: feedbacksRef.current,
         marcarFeedback,
         maintenanceAssets: board.state.maintenanceAssets,

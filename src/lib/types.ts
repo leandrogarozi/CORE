@@ -614,6 +614,16 @@ export interface QuickNote {
 export type PantryStatus = "ok" | "low" | "out";
 
 /** Algo que a pessoa guarda em casa (estoque): produto de piscina, refil de filtro, remédio, ferramenta. */
+/** Uma mudança de quantidade de um item da Dispensa. O histórico alimenta a "média de uso". */
+export interface PantryUsage {
+  id: string;
+  itemId: string;
+  at: string; // ISO com hora
+  before: number;
+  after: number;
+  kind: "uso" | "compra" | "ajuste"; // ajuste = correção de número, não entra na média
+}
+
 export interface PantryItem {
   id: string;
   name: string;
@@ -744,6 +754,7 @@ export interface BoardState {
   trashedReminders: Reminder[]; // lembretes excluídos (soft delete) — Lixeira
   medications: Medication[];
   pantryItems: PantryItem[];
+  pantryUsage: PantryUsage[];
   quickNotes: QuickNote[];
   medicationGroups: MedicationGroup[];
   checklists: Checklist[];

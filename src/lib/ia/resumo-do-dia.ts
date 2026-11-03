@@ -3,6 +3,7 @@ import { duracaoDoSonoMin, fmtHorasMin } from "@/lib/board/sono";
 import { studyPlanMath, tempoPorModulo } from "@/lib/board/study-plan";
 import { ciclosDoItem, maintenanceStatus } from "@/lib/board/maintenance";
 import { ehRemedioOuSaude, situacaoDaValidade } from "@/lib/board/dispensa";
+import { fmtRitmo, fmtTempo, mediaDeUso } from "@/lib/board/dispensa-uso";
 import type { BoardState } from "@/lib/types";
 
 /**
@@ -24,7 +25,7 @@ const LIMITE_LINHAS = 25;
 
 
 type Estado = Pick<BoardState, "tasks" | "reminders" | "habits" | "fixedBlocks" | "checklists" | "dailyLogs" | "taskTimeEntries" | "studyPlans"> &
-  Partial<Pick<BoardState, "maintenanceAssets" | "maintenanceItems" | "maintenanceServices" | "odometerReadings" | "pantryItems" | "quickNotes">>;
+  Partial<Pick<BoardState, "maintenanceAssets" | "maintenanceItems" | "maintenanceServices" | "odometerReadings" | "pantryItems" | "pantryUsage" | "quickNotes">>;
 
 const dataBr = (iso: string) => iso.split("-").reverse().slice(0, 2).join("/");
 
@@ -214,6 +215,9 @@ function dispensa(estado: Estado, hoje: string): string {
     if (i.place) partes.push(`guardado em: ${i.place}`);
     const val = situacaoDaValidade(i, hoje);
     if (i.expiresOn) partes.push(val?.tipo === "vencido" ? `VENCIDO há ${-val.dias} dia(s)` : val ? `vence em ${dataBr(i.expiresOn)} (faltam ${val.dias} dia(s))` : `validade ${dataBr(i.expiresOn)}`);
+    // Média de uso (do histórico de mudanças): só quando já há dados para calcular.
+    const uso = mediaDeUso(i, (estado.pantryUsage ?? []).filter((u) => u.itemId === i.id), hoje);
+    if (uso?.pronta) partes.push(`média de uso: gasta ${fmtRitmo(uso, i.unit)}; ${i.unit === "%" ? "um frasco" : "do cheio ao fim"} dura ${fmtTempo(uso.duracaoDoCheioDias)}${uso.acabaEm ? `; no ritmo atual acaba por volta de ${dataBr(uso.acabaEm)}` : ""}`);
     if (i.forSale) partes.push("para vender");
     linhas.push(`- ${i.name}${i.category ? ` (${i.category})` : ""}: ${partes.join("; ")}`);
   }

@@ -17,6 +17,7 @@ import {
   medicationToInsertRow,
   medicationToUpdateRow,
   pantryItemToInsertRow,
+  rowToPantryUsage,
   pantryItemToUpdateRow,
   quickNoteToInsertRow,
   quickNoteToUpdateRow,
@@ -109,6 +110,7 @@ import type {
   Medication,
   MedicationGroup,
   PantryItem,
+  PantryUsage,
   QuickNote,
   Priority,
   Project,
@@ -160,6 +162,7 @@ const EMPTY_STATE: BoardState = {
   trashedReminders: [],
   medications: [],
   pantryItems: [],
+  pantryUsage: [],
   quickNotes: [],
   medicationGroups: [],
   checklists: [],
@@ -330,6 +333,7 @@ export function useBoard(userId: string | null) {
       medicationsRes,
       medicationGroupsRes,
       pantryRes,
+      pantryUsageRes,
       quickNotesRes,
       checklistsRes,
       dietMealsRes,
@@ -368,6 +372,7 @@ export function useBoard(userId: string | null) {
       supabase.from("medications").select("*").order("created_at"),
       supabase.from("medication_groups").select("*").order("created_at"),
       supabase.from("pantry_items").select("*").order("created_at"),
+      supabase.from("pantry_usage").select("*").order("at", { ascending: false }).range(0, 4999),
       supabase.from("quick_notes").select("*").order("created_at"),
       // Pela ordem manual, não pela criação: é ele quem decide qual checklist
       // fica no topo. `nullsFirst: false` manda linha sem ordem (salva antes
@@ -429,6 +434,7 @@ export function useBoard(userId: string | null) {
       medications: (medicationsRes.data ?? []).map(rowToMedication),
       medicationGroups: (medicationGroupsRes.data ?? []).map(rowToMedicationGroup),
       pantryItems: (pantryRes.data ?? []).map(rowToPantryItem),
+      pantryUsage: (pantryUsageRes.data ?? []).map(rowToPantryUsage).reverse(),
       quickNotes: (quickNotesRes.data ?? []).map(rowToQuickNote),
       checklists: (checklistsRes.data ?? []).map(rowToChecklist),
       dietMeals: (dietMealsRes.data ?? []).map(rowToDietMeal),
@@ -1552,7 +1558,7 @@ export function useBoard(userId: string | null) {
       date: string | null = null,
       time: string | null = null,
       // Quem cria com avisos já decididos (ex.: o carrinho do checklist) manda o id, o aviso, o sininho e o WhatsApp.
-      opts?: { id?: string; alertMinutesBefore?: number | null; whatsapp?: boolean; inApp?: boolean; push?: boolean }
+      opts?: { id?: string; alertMinutesBefore?: number | null; whatsapp?: boolean; inApp?: boolean; push?: boolean; note?: string | null }
     ): Promise<boolean> => {
       if (!userId || !title.trim()) return false;
       // A trava de verdade mora aqui, não só na tela: é por esta função que
@@ -1567,7 +1573,7 @@ export function useBoard(userId: string | null) {
         repeat: "none",
         weekDays: null,
         alertMinutesBefore: opts?.alertMinutesBefore ?? null,
-        note: null,
+        note: opts?.note?.trim() || null,
         done: false,
         status: "pending",
         deletedAt: null,
@@ -1966,9 +1972,42 @@ export function useBoard(userId: string | null) {
 
   const updatePantryItem = useCallback(
     (id: string, patch: Partial<Omit<PantryItem, "id">>) => {
+      // Mudou a quantidade: anota no histórico (uso se diminuiu, compra se aumentou). É daqui que sai a "média de uso".
+      const atual = stateRef.current.pantryItems.find((i) => i.id === id);
+      if (userId && atual && typeof patch.quantity === "number" && patch.quantity !== atual.quantity) {
+        const registro: PantryUsage = {
+          id: uid(),
+          itemId: id,
+          at: new Date().toISOString(),
+          before: atual.quantity,
+          after: patch.quantity,
+          kind: patch.quantity < atual.quantity ? "uso" : "compra",
+        };
+        apply((s) => ({ ...s, pantryUsage: [...s.pantryUsage, registro] }));
+        supabase
+          .from("pantry_usage")
+          .insert({ id: registro.id, user_id: userId, item_id: id, at: registro.at, qty_before: registro.before, qty_after: registro.after, kind: registro.kind })
+          .then(({ error }) => {
+            if (error) reportSaveError("registrar uso da dispensa", error);
+          });
+      }
       apply((s) => ({ ...s, pantryItems: s.pantryItems.map((i) => (i.id === id ? { ...i, ...patch } : i)) }));
       supabase.from("pantry_items").update(pantryItemToUpdateRow(patch)).eq("id", id).then(({ error }) => {
         if (error) reportSaveError("updatePantryItem", error);
+      });
+    },
+    [apply, supabase, userId]
+  );
+
+  // "Foi só uma correção": o registro deixa de contar na média (e pode voltar).
+  const marcarUsoComoAjuste = useCallback(
+    (usageId: string, ajuste: boolean) => {
+      const r = stateRef.current.pantryUsage.find((u) => u.id === usageId);
+      if (!r) return;
+      const kind: PantryUsage["kind"] = ajuste ? "ajuste" : r.after < r.before ? "uso" : "compra";
+      apply((s) => ({ ...s, pantryUsage: s.pantryUsage.map((u) => (u.id === usageId ? { ...u, kind } : u)) }));
+      supabase.from("pantry_usage").update({ kind }).eq("id", usageId).then(({ error }) => {
+        if (error) reportSaveError("marcar correção", error);
       });
     },
     [apply, supabase]
@@ -4599,6 +4638,7 @@ export function useBoard(userId: string | null) {
     deleteQuickNote,
     addPantryItem,
     updatePantryItem,
+    marcarUsoComoAjuste,
     deletePantryItem,
     addMedication,
     updateMedication,

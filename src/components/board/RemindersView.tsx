@@ -1022,6 +1022,7 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
   const [newAntes, setNewAntes] = useState(0);
   const [newZap, setNewZap] = useState(false);
   const [newSino, setNewSino] = useState(true);
+  const [newNota, setNewNota] = useState("");
   const [faltando, setFaltando] = useState<string | null>(null);
   const openMeetingsCount = board.state.tasks.filter(
     (t) => entraEmReunioes(t) && countOpenChecklistItems(t.note) > 0
@@ -1049,11 +1050,12 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
 
     setFaltando(null);
     setNewTitle("");
-    const ok = await board.addReminder(title, newDate, newTime, { alertMinutesBefore: newAntes, whatsapp: newZap, inApp: newSino });
+    const ok = await board.addReminder(title, newDate, newTime, { alertMinutesBefore: newAntes, whatsapp: newZap, inApp: newSino, note: newNota });
     if (!ok) setNewTitle(title);
     else {
       setNewDate("");
       setNewTime("");
+      setNewNota("");
     }
   }
 
@@ -1187,6 +1189,16 @@ export function RemindersView({ onBack, onOpenMeetings }: { onBack: () => void; 
               </button>
             </span>
             <span className="reminder-novo-estado">{newSino && newZap ? "no app e no WhatsApp" : newZap ? "no WhatsApp" : newSino ? "no app" : "só o push do celular"}</span>
+          </div>
+          {/* As anotações do lembrete já na criação: ficam logo abaixo do "Avisar" e vão para a observação do lembrete. */}
+          <div className="reminder-novo-nota">
+            <textarea
+              aria-label="Anotações do lembrete"
+              placeholder="Anotações (opcional): detalhes, link, o que lembrar…"
+              value={newNota}
+              rows={2}
+              onChange={(e) => setNewNota(e.target.value)}
+            />
           </div>
           {faltando && <div className="reminder-zap-erro">{faltando}</div>}
         </div>
