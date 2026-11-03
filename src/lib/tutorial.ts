@@ -190,6 +190,7 @@ export const TUTORIAL: SecaoDoTutorial[] = [
       "Em “Quando o FARO me lembra” você escolhe quantas frases e perguntas por dia (de 0 a 10) e o intervalo de horas. O FARO as espalha por igual entre o começo e o fim.",
       "O coração marca uma favorita, que aparece mais vezes. O olho riscado manda a frase para “Não listadas”: não aparece mais, mas dá para voltar. Excluir de vez só no editor.",
       "Na tela inicial um cartão mostra a frase do momento, com setinhas para ver a anterior e a próxima. Em Aparência você escolhe fundo branco, fundo preto, “Cor” (qualquer cor que quiser) ou “Degradê” (de uma cor para outra); o texto ajusta sozinho para ler bem.",
+      "De quem é: tanto a frase quanto a pergunta têm o campo de autor (ao escrever e ao editar). Escreveu uma pergunta de outra pessoa? Ponha o nome dela ali e ele aparece embaixo da pergunta. Em branco, a pergunta fica sem nome e a frase aparece como autor desconhecido.",
       "Viu uma frase por aí? Diga ao cachorrinho “adiciona na Metanoia a frase ... do fulano”: ele guarda a frase com o autor, já aprovada, sem passar por Anotações.",
       "Não quer usar? Desligue a Metanoia em Configurações > Painéis do menu.",
     ],

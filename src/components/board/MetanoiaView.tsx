@@ -83,7 +83,13 @@ function EditorDaFrase({ frase, onFechar }: { frase: MetanoiaFrase; onFechar: ()
   return (
     <div className="meta-frase editando">
       <textarea value={texto} rows={3} aria-label={frase.tipo === "pergunta" ? "Texto da pergunta" : "Texto da frase"} onChange={(e) => setTexto(e.target.value)} />
-      {frase.tipo === "frase" && <input type="text" value={autor} placeholder="Autor (em branco = desconhecido)" aria-label="Autor" onChange={(e) => setAutor(e.target.value)} />}
+      <input
+        type="text"
+        value={autor}
+        placeholder={frase.tipo === "pergunta" ? "De quem é a pergunta (opcional)" : "Autor (em branco = desconhecido)"}
+        aria-label={frase.tipo === "pergunta" ? "De quem é a pergunta" : "Autor"}
+        onChange={(e) => setAutor(e.target.value)}
+      />
       <input type="text" value={fonte} placeholder="De onde saiu (só para você)" aria-label="De onde saiu" onChange={(e) => setFonte(e.target.value)} />
       <div className="edit-actions">
         <button
@@ -229,7 +235,7 @@ export function MetanoiaView({ onBack, alvo }: { onBack: () => void; alvo?: { id
 
   function adicionar() {
     if (!novo.trim()) return;
-    const id = board.addMetanoiaFrase({ texto: novo, autor: ehPergunta ? null : novoAutor, origem: "minha", tipo });
+    const id = board.addMetanoiaFrase({ texto: novo, autor: novoAutor, origem: "minha", tipo });
     if (id) {
       setNovo("");
       setNovoAutor("");
@@ -500,7 +506,13 @@ export function MetanoiaView({ onBack, alvo }: { onBack: () => void; alvo?: { id
               onChange={(e) => setNovo(e.target.value)}
             />
             <div className="meta-novo-linha">
-              {!ehPergunta && <input type="text" value={novoAutor} placeholder="Autor (opcional)" aria-label="Autor da frase" onChange={(e) => setNovoAutor(e.target.value)} />}
+              <input
+                type="text"
+                value={novoAutor}
+                placeholder={ehPergunta ? "De quem é a pergunta (opcional)" : "Autor (opcional)"}
+                aria-label={ehPergunta ? "De quem é a pergunta" : "Autor da frase"}
+                onChange={(e) => setNovoAutor(e.target.value)}
+              />
               <MicButton onText={(t) => setNovo((v) => (v ? `${v} ${t}` : t))} ariaLabel={ehPergunta ? "Ditar a pergunta" : "Ditar a frase"} />
               <button type="button" className="btn btn-accent" disabled={!novo.trim()} onClick={adicionar}>
                 Adicionar

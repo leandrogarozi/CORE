@@ -50,7 +50,7 @@ export function ImportarFrases({ tipo }: { tipo: MetanoiaTipo }) {
     for (const f of itens) {
       const id = board.addMetanoiaFrase({
         texto: f.texto,
-        autor: tipo === "pergunta" ? null : f.autor,
+        autor: f.autor,
         fonte: doPrint ? "Print enviado no app" : "Lista colada",
         origem: doPrint ? "print" : "minha",
         status: "pendente",

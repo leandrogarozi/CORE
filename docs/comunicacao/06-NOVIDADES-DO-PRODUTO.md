@@ -3,6 +3,7 @@
 Atualizar a cada mudança que apareça para o usuário. Mais novo em cima. Fonte: `BRIEFING.md`.
 
 ## 03/11/2026
+- **Metanoia, perguntas:** agora dá para escolher de quem é a pergunta (campo de autor, ao escrever e ao editar), como já era nas frases.
 - **Dispensa com média de uso:** o FARO guarda cada vez que a quantidade baixa e mostra quanto você gasta por dia/semana/mês, quanto falta para acabar e um gráfico; na lista aparece a previsão (vermelha quando faltam 7 dias ou menos). Dá para marcar uma mudança como "foi correção".
 - **FARO adiciona frase na Metanoia por voz:** "adiciona na Metanoia a frase ... do fulano" → frase e autor guardados, sem passar por Anotações.
 - **Novo lembrete:** campo de data menor, descrição maior e uma caixinha de anotações logo abaixo do "Avisar".
