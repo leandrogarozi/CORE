@@ -2,6 +2,9 @@
 
 Atualizar a cada mudança que apareça para o usuário. Mais novo em cima. Fonte: `BRIEFING.md`.
 
+## 04/11/2026
+- **Backup no computador com alerta:** em Configurações, a caixa do backup automático fica vermelha, mesmo fechada, quando o computador passa mais de um dia sem guardar a cópia.
+
 ## 03/11/2026
 - **Metanoia, perguntas:** agora dá para escolher de quem é a pergunta (campo de autor, ao escrever e ao editar), como já era nas frases.
 - **Dispensa com média de uso:** o FARO guarda cada vez que a quantidade baixa e mostra quanto você gasta por dia/semana/mês, quanto falta para acabar e um gráfico; na lista aparece a previsão (vermelha quando faltam 7 dias ou menos). Dá para marcar uma mudança como "foi correção".

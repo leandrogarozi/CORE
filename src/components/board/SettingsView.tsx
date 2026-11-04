@@ -85,9 +85,12 @@ function CollapsibleBox({
   onLigar,
   abertoInicial = false,
   textoLiga,
+  alerta = false,
 }: {
   title: string;
   icon?: ReactNode;
+  /** Pinta o bloco de vermelho (algo precisa de atenção) mesmo com ele fechado. */
+  alerta?: boolean;
   children: ReactNode;
   resumo?: string;
   ligado?: boolean;
@@ -118,7 +121,7 @@ function CollapsibleBox({
   }
   const desligado = onLigar !== undefined && !ligado;
   return (
-    <div className={"cfg-bloco" + (open ? " aberto" : "") + (desligado ? " desligado" : "")}>
+    <div className={"cfg-bloco" + (open ? " aberto" : "") + (desligado ? " desligado" : "") + (alerta ? " alerta" : "")}>
       <div className="cfg-bloco-cab">
         <button type="button" className="cfg-bloco-abrir" aria-expanded={open} onClick={alternar}>
           {icon && <span className="cfg-bloco-icone">{icon}</span>}
@@ -927,7 +930,16 @@ function BackupAutomaticoBox() {
   const mb = estado?.ultimoBytes ? (estado.ultimoBytes / 1048576).toFixed(2).replace(".", ",") : null;
 
   return (
-    <CollapsibleBox title="Backup automático no meu computador" icon={<ArchiveIcon />} resumo="Cópia diária feita no seu computador">
+    <CollapsibleBox
+      title="Backup automático no meu computador"
+      icon={<ArchiveIcon />}
+      alerta={!!estado?.configurado && atrasado}
+      resumo={
+        estado?.configurado && atrasado && horasDesde !== null
+          ? `Atenção: o último backup no computador foi há ${Math.max(1, Math.floor(horasDesde / 24))} ${Math.floor(horasDesde / 24) <= 1 ? "dia" : "dias"}`
+          : "Cópia diária feita no seu computador"
+      }
+    >
       <div className="hint-text" style={{ marginTop: 0, marginBottom: 8 }}>
         Todo dia o seu computador busca o backup completo (guarda os 7 últimos) e os textos de aprendizado, e
         grava tudo na pasta do Drive. Se o computador estiver desligado e o dia passar sem backup, o FARO avisa no

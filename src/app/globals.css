@@ -5329,3 +5329,7 @@ textarea.titulo-cresce{ display:block; resize:none; overflow:hidden; font-family
 .study-part-new .study-part-new-fonte{ flex:1 1 100%; }
 .perg-ia-foco{ flex:1 1 220px; min-width:0; max-width:340px; }
 @media (max-width:640px){ .perg-ia-foco{ flex:1 1 100%; max-width:none; } }
+
+/* 04/11 — bloco de configuração com alerta (ex.: backup do computador atrasado), visível mesmo fechado. */
+.cfg-bloco.alerta{ border-color:var(--danger); }
+.cfg-bloco.alerta .cfg-bloco-resumo{ color:var(--danger); font-weight:600; }
