@@ -35,6 +35,14 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
 
 **Como retomar uma conversa nova:** ler este quadro, o `DESIGN.md` (padrão do celular) e as últimas entradas do `BRIEFING.md` (procurar "01/11"). Os pedidos do Leandro costumam chegar por **print do iPhone**; responder mostrando o resultado numa página de teste a 390 px e subir.
 
+## 04/11/2026 — Backup do Mac parado de 31/10 a 04/11 (corrigido) e código agora também no Mac
+
+- **O que houve:** a cópia automática no Mac (`br.app.faro.backup`, a cada 15 min, script em `~/Library/Application Support/FARO-Backup/`) não guardou nada de 31/10 a 04/11. O servidor (`/api/backup/auto`) devolvia `x-faro-completo: nao` porque o papel `service_role` não tinha `SELECT` em `pantry_items`, `pantry_usage` e `quick_notes` (tabelas novas). O script não grava backup incompleto e só avisa por notificação do Mac. O backup interno (`faro_backups_internos`, 06:30) rodou todos os dias.
+- **Correção aplicada em 04/11:** migração `backup_permissao_service_role_dispensa_anotacoes` (`grant select, insert, update ... to service_role`). Backup forçado no Mac: `faro-backup-2026-11-04-0903.json`, 3.279 linhas.
+- **Causa raiz:** a regra padrão de tabelas novas do schema `public` (criadas por `postgres`) dá ao `service_role` só `Dxtm` (sem leitura). **Regra daqui para frente:** toda migração que cria tabela já termina com `grant select, insert, update on public.<tabela> to service_role;`, e a tabela entra em `TABELAS` de `src/lib/backup/montar.ts`. Opcional no banco: `alter default privileges for role postgres in schema public grant select, insert, update on tables to service_role;` (aguarda o OK do Leandro; ainda não aplicado).
+- **Pendente:** alerta vermelho em Configurações quando passar de 2 dias sem backup (usar `backup_status.ultimo_backup_em`).
+- **Onde está o código:** repositório GitHub `leandrogarozi/CORE` (público), branch `claude/new-session-7uftof`, publicado pela Vercel (`core-app`). Cópia de trabalho no Mac: `/Volumes/TRABALHO/CLAUDE_COWORK/Apps Claude/FARO` (disco exFAT: cria arquivos `._*`, já ignorados em `.git/info/exclude`; não rodar `npm install` ali, copiar para o disco interno se for ver o app rodando).
+
 ## 03/11/2026 — Pacote das conversas paradas (média de uso, Metanoia por voz, novo lembrete, estudos, Como usar)
 
 - **Dispensa, média de uso:** tabela `pantry_usage` (histórico de cada mudança de quantidade: uso, compra ou ajuste) alimentada em `updatePantryItem`; cálculo em `src/lib/board/dispensa-uso.ts` (precisa de 2+ usos em 7+ dias; o primeiro uso não entra no numerador). Tela `MediaDeUso` em `DispensaView.tsx` (quatro números, gráfico, "foi correção"/"contar de novo") e previsão na linha da lista. Entra no backup JSON e no resumo que o FARO lê (nunca remédios).
