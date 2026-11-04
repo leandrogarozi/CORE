@@ -176,12 +176,12 @@ function repositorioDe(usuario: string): Repositorio {
     async conhecimentoExistente() {
       const { data, error } = await supabase
         .from("knowledge_items")
-        .select("id, tipo, titulo, status, substitui_id")
+        .select("id, tipo, titulo, conteudo, status, substitui_id")
         .eq("user_id", usuario)
         .is("deleted_at", null)
         .neq("status", "descartado");
       falhou("ler conhecimento", error);
-      return (data ?? []).map((k) => ({ id: k.id, tipo: k.tipo, titulo: k.titulo, status: k.status, substituiId: k.substitui_id }));
+      return (data ?? []).map((k) => ({ id: k.id, tipo: k.tipo, titulo: k.titulo, conteudo: k.conteudo ?? "", status: k.status, substituiId: k.substitui_id }));
     },
     async frasesExistentes() {
       const { data, error } = await supabase.from("metanoia_frases").select("texto").eq("user_id", usuario);

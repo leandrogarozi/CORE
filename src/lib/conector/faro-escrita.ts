@@ -36,7 +36,7 @@ export interface Repositorio {
   concluirTarefas(ids: string[], statusId: string | null): Promise<void>;
   anexarNota(id: string, notaNova: string): Promise<void>;
   /** Itens de Conhecendo você que não foram descartados nem apagados (inclui os superados, para o título não voltar). */
-  conhecimentoExistente(): Promise<{ id: string; tipo: string; titulo: string; status: string; substituiId: string | null }[]>;
+  conhecimentoExistente(): Promise<{ id: string; tipo: string; titulo: string; conteudo: string; status: string; substituiId: string | null }[]>;
   /** Textos de todas as frases da Metanoia, inclusive as recusadas (para a IA não propor de novo). */
   frasesExistentes(): Promise<string[]>;
   inserirFrases(itens: { id: string; texto: string; autor: string | null; fonte: string | null; origemRef: string | null; tipo: "frase" | "pergunta" }[]): Promise<void>;
@@ -262,7 +262,7 @@ export const FERRAMENTAS_DE_ESCRITA = [
     name: "faro_propor_aprendizado",
     title: "Propor aprendizado ao FARO",
     description:
-      "Envia ao FARO o que você aprendeu sobre o usuário nas conversas (perfil, valor, objetivo, preferência, decisão, projeto, aprendizado...). Vai como PROPOSTA: cai na aba 'Para revisar' de 'Conhecendo você' e o FARO avisa o usuário; só vale depois que ele aprovar. Use quando ele revelar algo novo e durável sobre si, ou quando decidir algo importante. Não repita o que já existe (use faro_buscar antes), não invente, use as palavras dele, e nunca envie saúde, medicamentos, senhas ou dados bancários. QUANDO ALGO QUE JÁ EXISTE NO FARO MUDAR (uma versão nova de um texto, um objetivo que evoluiu, uma decisão revista), NÃO crie um item solto ao lado do antigo: proponha o item novo com substitui_id = o id do item antigo (o id vem de faro_buscar, faro_listar ou faro_ler). A proposta aparece em 'Para revisar' mostrando ANTES e DEPOIS; se ele aprovar, o novo passa a valer e o antigo vira 'superado' (fica só no histórico, nunca é apagado) e deixa de aparecer nas buscas. Escreva o item novo completo, não só o que mudou. Só dá para substituir um item aprovado. Depois de enviar, diga a ele em uma linha o que você propôs.",
+      "Envia ao FARO o que você aprendeu sobre o usuário nas conversas (perfil, valor, objetivo, preferência, decisão, projeto, aprendizado...). Vai como PROPOSTA: cai na aba 'Para revisar' de 'Conhecendo você' e o FARO avisa o usuário; só vale depois que ele aprovar. Use quando ele revelar algo novo e durável sobre si, ou quando decidir algo importante. Não repita o que já existe (use faro_buscar antes), não invente, use as palavras dele, e nunca envie saúde, medicamentos, senhas ou dados bancários. QUANDO ALGO QUE JÁ EXISTE NO FARO MUDAR (uma versão nova de um texto, um objetivo que evoluiu, uma decisão revista), NÃO crie um item solto ao lado do antigo: proponha o item novo com substitui_id = o id do item antigo (o id vem de faro_buscar, faro_listar ou faro_ler). A proposta aparece em 'Para revisar' mostrando ANTES e DEPOIS; se ele aprovar, o novo passa a valer e o antigo vira 'superado' (fica só no histórico, nunca é apagado) e deixa de aparecer nas buscas. Escreva o item novo completo, não só o que mudou. Só dá para substituir um item aprovado. O FARO confere se já existe item do mesmo assunto, mesmo com título diferente, e recusa o envio até você usar substitui_id (ou confirmar assunto_novo). Se algo se CONCLUIR ou mudar de situação (um desafio cumprido, um contrato fechado, uma decisão revista), é atualização do item que já existe: substitui_id, texto completo com o desfecho. Depois de enviar, diga a ele em uma linha o que você propôs.",
     inputSchema: {
       type: "object",
       properties: {
@@ -283,6 +283,10 @@ export const FERRAMENTAS_DE_ESCRITA = [
                 type: "string",
                 description:
                   "Opcional. Id do item APROVADO que este item novo substitui (a versão atual dele). Use sempre que o que existe no FARO mudou. O título pode ser igual ao do antigo.",
+              },
+              assunto_novo: {
+                type: "boolean",
+                description: "Mande true só quando o FARO avisou que já há um item parecido e você tem certeza de que este é outro assunto.",
               },
             },
             required: ["tipo", "titulo", "conteudo"],
@@ -701,6 +705,44 @@ export async function anotarEmTarefa(args: Args, repo: Repositorio): Promise<Res
 
 const PALAVRAS_DE_SAUDE = /(medicament|rem[eé]dio|rosuvastatina|dosagem|diagn[oó]stic|receita m[eé]dica|\bsenha\b|cart[aã]o de cr[eé]dito|\bcpf\b)/i;
 
+const SEM_VALOR = new Set(["para", "como", "mais", "muito", "isso", "esse", "essa", "esta", "este", "desse", "dessa", "pela", "pelo", "com", "que", "uma", "uns", "umas", "dos", "das", "nos", "nas", "por", "sobre", "entre", "quando", "ainda", "depois", "antes", "tambem", "sempre", "fazer", "ter", "ser", "esta", "esta", "foi", "sao", "seu", "sua", "meu", "minha"]);
+function palavrasDoAssunto(t: string): Set<string> {
+  return new Set(
+    t
+      .normalize("NFD")
+      .replace(/\p{M}/gu, "")
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter((w) => w.length >= 4 && !SEM_VALOR.has(w)),
+  );
+}
+
+/**
+ * Itens que parecem tratar do MESMO assunto da proposta, mesmo com título diferente: divide-se o
+ * número de palavras em comum pelo tamanho do menor dos dois textos. Só olha aprovados e propostas
+ * pendentes (descartados e superados ficam de fora). Devolve os 3 mais parecidos.
+ */
+export function itensDoMesmoAssunto(
+  titulo: string,
+  conteudo: string,
+  existentes: { id: string; titulo: string; conteudo: string; status: string }[],
+): { id: string; titulo: string; status: string }[] {
+  const nova = palavrasDoAssunto(`${titulo} ${titulo} ${conteudo}`);
+  return existentes
+    .filter((k) => k.status === "aprovado" || k.status === "pendente")
+    .map((k) => {
+      const velha = palavrasDoAssunto(`${k.titulo} ${k.titulo} ${k.conteudo}`);
+      let comuns = 0;
+      for (const w of nova) if (velha.has(w)) comuns++;
+      const menor = Math.min(nova.size, velha.size);
+      return { k, comuns, nota: menor ? comuns / menor : 0 };
+    })
+    .filter((x) => x.comuns >= 4 && x.nota >= 0.35)
+    .sort((a, b) => b.nota - a.nota)
+    .slice(0, 3)
+    .map((x) => ({ id: x.k.id, titulo: x.k.titulo, status: x.k.status }));
+}
+
 export async function proporAprendizado(args: Args, repo: Repositorio, ctx: Contexto): Promise<Resposta> {
   const semAcentoMin = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/\s+/g, " ").trim();
   const chave = (tipo: string, titulo: string) => `${tipo}|${semAcentoMin(titulo)}`;
@@ -736,6 +778,16 @@ export async function proporAprendizado(args: Args, repo: Repositorio, ctx: Cont
       }
       if (existentes.some((k) => k.status === "pendente" && k.substituiId === substituiId) || novos.some((n) => n.substituiId === substituiId)) {
         problemas.push(`${titulo}: já existe uma proposta esperando aprovação para substituir "${antigo.titulo}".`);
+        continue;
+      }
+    }
+    // Mesmo assunto com outro título: não cria um item solto. A IA decide entre atualizar o que existe ou confirmar que é novo.
+    if (!antigo && bruto.assunto_novo !== true) {
+      const parecidos = itensDoMesmoAssunto(titulo, conteudo, existentes);
+      if (parecidos.length) {
+        problemas.push(
+          `${titulo}: parece tratar do mesmo assunto de ${parecidos.map((p) => `"${p.titulo}" (id ${p.id}${p.status === "pendente" ? ", ainda em Para revisar" : ""})`).join(", ")}. Se for o mesmo assunto, reenvie com substitui_id = o id do item (aprovado) e o texto completo atualizado; se o item ainda está em Para revisar, avise o usuário para aprovar ou descartar antes. Se for realmente um assunto novo, reenvie com assunto_novo: true.`,
+        );
         continue;
       }
     }

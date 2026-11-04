@@ -201,6 +201,7 @@ export const TUTORIAL: SecaoDoTutorial[] = [
     linhas: [
       "A ideia do FARO é ser o seu cérebro: tudo o que você cria e anota aqui faz o FARO te conhecer melhor. Esta tela guarda o que ele sabe sobre você: valores, objetivos, preferências, decisões, projetos.",
       "Depois, o backup de tudo isso serve para a sua IA te conhecer também. Para isso você precisa conectar o FARO à sua IA.",
+      "Sem duplicar: quando a sua IA (Claude etc.) manda algo para “Para revisar”, o FARO confere se já existe um item do mesmo assunto, mesmo com título diferente. Se existir, a IA é obrigada a mandar como atualização do item antigo (você vê ANTES e DEPOIS e, ao aprovar, o antigo vira “superado”). Também vale para desfechos: contrato fechado, desafio cumprido atualiza o item que já está lá.",
       "Como trazer o que a sua IA já sabe: em “Trazer o que minha IA já sabe”, 1) copie o pedido e cole numa conversa nova da sua IA (Claude, ChatGPT...); 2) traga de volta o arquivo .md que ela criou, ou cole a resposta. Você revisa item por item em “Para revisar”; nada vale até você aprovar.",
       "Como deixar a IA lendo o FARO o tempo todo: em Configurações > Conexões você gera o seu link do Conector e cola na sua IA. Daí ela lê o que você aprovou, e pode propor aprendizados e criar tarefas e lembretes (sempre com a sua confirmação).",
       "O resumo “O que o FARO sabe sobre você” junta tudo o que você aprovou.",
