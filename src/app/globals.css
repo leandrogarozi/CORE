@@ -5333,3 +5333,23 @@ textarea.titulo-cresce{ display:block; resize:none; overflow:hidden; font-family
 /* 04/11 — bloco de configuração com alerta (ex.: backup do computador atrasado), visível mesmo fechado. */
 .cfg-bloco.alerta{ border-color:var(--danger); }
 .cfg-bloco.alerta .cfg-bloco-resumo{ color:var(--danger); font-weight:600; }
+
+/* 04/11/2026 — Anotações em cartões pequenos, com categoria colorida (cores das categorias do FARO). */
+.anot-filtros{ flex-wrap:wrap; }
+.anot-grade{ display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:10px; padding-top:4px; }
+.anot-cartao{ display:flex; flex-direction:column; justify-content:space-between; gap:10px; min-width:0; min-height:96px; padding:11px 12px 9px; border-radius:var(--r-3); position:relative;
+  border:1px solid color-mix(in srgb, var(--cor) 30%, var(--border));
+  background:color-mix(in srgb, var(--cor) 14%, var(--surface)); box-shadow:var(--sh-1); }
+.anot-cartao.arquivada{ opacity:.7; }
+.anot-cartao.aberto{ grid-column:1 / -1; }
+.anot-cartao-texto{ text-align:left; background:none; border:0; padding:0; color:var(--text); font-size:var(--fs-3); line-height:1.4; overflow-wrap:anywhere; cursor:pointer;
+  display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; white-space:pre-line; }
+.anot-cartao-rodape{ display:flex; justify-content:space-between; align-items:center; gap:6px; font-size:var(--fs-1); }
+.anot-etq{ color:var(--cor); font-weight:600; background:color-mix(in srgb, var(--cor) 16%, transparent); border-radius:999px; padding:2px 8px; }
+.anot-data{ color:var(--text-faint); }
+.anot-cadeado{ position:absolute; top:7px; right:9px; font-size:10px; opacity:.6; }
+.anot-abrir{ display:flex; flex-direction:column; gap:10px; }
+.anot-trocar{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+.anot-trocar .disp-chip{ cursor:pointer; }
+.anot-trocar .disp-chip.ativo{ background:var(--accent); color:var(--accent-contrast); }
+.anot-nova-cat{ width:110px; padding:3px 10px; font-size:12px; }

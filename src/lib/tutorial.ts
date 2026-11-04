@@ -282,10 +282,11 @@ export const TUTORIAL: SecaoDoTutorial[] = [
     id: "anotacoes",
     titulo: "Anotações",
     linhas: [
-      "Um lugar para anotar rápido, escrevendo ou falando, sem escolher onde guardar. Pode ser uma lista (um item por linha).",
-      "Depois você revisa: “Virar itens da Dispensa” lê a lista, mostra o que entendeu (nome, quantidade, onde está, validade, acabando) e só cria o que você marcar. Também dá para arquivar (revisada) ou apagar.",
+      "Um lugar para anotar rápido, escrevendo ou falando, sem escolher onde guardar. Cada anotação vira um cartãozinho colorido.",
+      "O FARO dá uma categoria a cada anotação sozinho (Piscina, Jogos, Família...), e a cor segue a categoria. Toque no cartão para editar o texto, trocar a categoria, arquivar ou apagar. Anotação de saúde fica com a categoria Saúde e nunca vai para a IA.",
+      "Para achar algo: use a busca ou toque numa categoria no alto. “Arquivadas” guarda as que você já revisou.",
       "No Dashboard aparece “anotações para revisar”, para você não deixar nada esquecido.",
-      "Diga ao FARO “anota: …”: ele guarda aqui, ou no lugar certo quando o assunto tem um (uma tarefa, a Dispensa). “Só minha” impede o FARO de ler aquela anotação.",
+      "Diga ao FARO “anota: …”: ele guarda aqui, ou no lugar certo quando o assunto tem um (uma tarefa, a Dispensa; itens de casa vão direto para a Dispensa). O cadeado (“Só minha”) impede o FARO de ler aquela anotação.",
     ],
   },
   {

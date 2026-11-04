@@ -277,7 +277,7 @@ export const FERRAMENTAS_DO_FARO: Anthropic.Tool[] = [
       type: "object",
       properties: {
         texto: { type: "string", description: "A anotação, nas palavras dele, sem inventar." },
-        etiqueta: { type: "string", description: "Uma palavra de assunto, opcional (ex.: Casa, Piscina)." },
+        etiqueta: { type: "string", description: "A categoria da anotação, uma palavra (ex.: Casa, Piscina, Jogos, Família). Sempre preencha; reaproveite uma categoria que já existe quando servir." },
       },
       required: ["texto"],
     },

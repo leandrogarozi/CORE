@@ -32,3 +32,7 @@ Atualizar a cada mudança que apareça para o usuário. Mais novo em cima. Fonte
 
 ## Estado do teste
 - 3 testadores convidados; contas deles ainda sem WhatsApp (liberação aos poucos). Só existe a conta do dono mais as dos testadores.
+
+
+## 04/11/2026
+**Anotações em cartõezinhos.** Cada anotação agora é um cartão colorido com a categoria (Piscina, Jogos, Família...), que o FARO escolhe sozinho. Dá para buscar e filtrar por categoria. Itens de casa vão direto para a Dispensa quando você fala com o FARO.
