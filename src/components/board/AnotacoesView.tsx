@@ -43,6 +43,7 @@ function Cartao({ nota, categorias }: { nota: QuickNote; categorias: string[] })
 
   return (
     <div className={"anot-cartao" + (aberto ? " aberto" : "") + (arquivada ? " arquivada" : "")} style={{ "--cor": `var(${cor})` } as CSSProperties}>
+      {!nota.reviewedAt && <span className="anot-novo-ponto" title="Ainda não revisada" aria-label="Ainda não revisada" />}
       {nota.isPrivate && (
         <span className="anot-cadeado" title="O FARO não lê esta anotação" aria-label="O FARO não lê esta anotação">
           🔒
@@ -61,7 +62,16 @@ function Cartao({ nota, categorias }: { nota: QuickNote; categorias: string[] })
           }}
         />
       ) : (
-        <button type="button" className="anot-cartao-texto" onClick={() => setAberto(true)} title="Tocar para abrir">
+        <button
+          type="button"
+          className="anot-cartao-texto"
+          onClick={() => {
+            setAberto(true);
+            // Abrir o cartão é revisar: o aviso do Dashboard deixa de contar esta anotação.
+            if (!nota.reviewedAt) board.updateQuickNote(nota.id, { reviewedAt: new Date().toISOString() });
+          }}
+          title="Tocar para abrir"
+        >
           {nota.body}
         </button>
       )}
@@ -96,7 +106,7 @@ function Cartao({ nota, categorias }: { nota: QuickNote; categorias: string[] })
             <button type="button" className="btn btn-ghost" onClick={() => board.updateQuickNote(nota.id, { isPrivate: !nota.isPrivate })}>
               {nota.isPrivate ? "Deixar o FARO ler" : "🔒 Só minha"}
             </button>
-            <button type="button" className="btn btn-ghost" onClick={() => board.updateQuickNote(nota.id, { status: arquivada ? "new" : "archived" })}>
+            <button type="button" className="btn btn-ghost" onClick={() => board.updateQuickNote(nota.id, arquivada ? { status: "new", reviewedAt: null } : { status: "archived", reviewedAt: nota.reviewedAt ?? new Date().toISOString() })}>
               <CheckIcon /> {arquivada ? "Voltar para revisar" : "Revisada, arquivar"}
             </button>
             <button type="button" className="btn btn-ghost" onClick={() => askConfirm("Apagar esta anotação?", () => board.deleteQuickNote(nota.id))}>

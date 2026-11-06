@@ -647,6 +647,7 @@ export type Database = {
           created_at: string
           id: string
           is_private: boolean
+          revisada_em: string | null
           status: string
           tag: string
           user_id: string
@@ -656,6 +657,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_private?: boolean
+          revisada_em?: string | null
           status?: string
           tag?: string
           user_id: string
@@ -665,6 +667,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_private?: boolean
+          revisada_em?: string | null
           status?: string
           tag?: string
           user_id?: string

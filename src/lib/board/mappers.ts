@@ -920,11 +920,12 @@ export function rowToQuickNote(row: QuickNoteRow): QuickNote {
     status: row.status === "archived" ? "archived" : "new",
     isPrivate: row.is_private,
     createdAt: row.created_at,
+    reviewedAt: row.revisada_em,
   };
 }
 
 export function quickNoteToInsertRow(n: QuickNote, userId: string): TablesInsert<"quick_notes"> {
-  return { id: n.id, user_id: userId, body: n.body, tag: n.tag, status: n.status, is_private: n.isPrivate, created_at: n.createdAt };
+  return { id: n.id, user_id: userId, body: n.body, tag: n.tag, status: n.status, is_private: n.isPrivate, created_at: n.createdAt, revisada_em: n.reviewedAt };
 }
 
 export function quickNoteToUpdateRow(n: Partial<QuickNote>): TablesUpdate<"quick_notes"> {
@@ -933,6 +934,7 @@ export function quickNoteToUpdateRow(n: Partial<QuickNote>): TablesUpdate<"quick
   if (n.tag !== undefined) row.tag = n.tag;
   if (n.status !== undefined) row.status = n.status;
   if (n.isPrivate !== undefined) row.is_private = n.isPrivate;
+  if (n.reviewedAt !== undefined) row.revisada_em = n.reviewedAt;
   return row;
 }
 

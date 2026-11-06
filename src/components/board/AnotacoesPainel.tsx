@@ -6,7 +6,7 @@ import { EditIcon } from "./icons";
 /** No Dashboard: as anotações novas esperando revisão. Some quando não há nenhuma. */
 export function AnotacoesPainel({ onAbrir }: { onAbrir: () => void }) {
   const { board } = useBoardCtx();
-  const novas = board.state.quickNotes.filter((n) => n.status === "new").sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const novas = board.state.quickNotes.filter((n) => n.status === "new" && !n.reviewedAt).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   if (novas.length === 0) return null;
   return (
     <div className="anot-painel">

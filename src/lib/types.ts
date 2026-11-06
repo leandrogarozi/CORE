@@ -611,6 +611,7 @@ export interface QuickNote {
   status: "new" | "archived";
   isPrivate: boolean; // o FARO não lê
   createdAt: string; // ISO datetime
+  reviewedAt: string | null; // quando o dono abriu e revisou; null = ainda conta no aviso do Dashboard
 }
 
 export type PantryStatus = "ok" | "low" | "out";

@@ -5358,3 +5358,4 @@ textarea.titulo-cresce{ display:block; resize:none; overflow:hidden; font-family
 .anot-cartao .anot-acoes .btn{ padding:4px 10px; min-height:0; height:auto; font-size:12px; gap:5px; }
 .anot-cartao .anot-acoes .btn svg{ width:13px; height:13px; }
 .anot-cartao .anot-trocar .disp-chip{ font-size:11px; padding:2px 9px; }
+.anot-novo-ponto{ position:absolute; top:6px; left:8px; width:6px; height:6px; border-radius:50%; background:var(--accent); }

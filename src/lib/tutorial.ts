@@ -286,7 +286,7 @@ export const TUTORIAL: SecaoDoTutorial[] = [
       "Um lugar para anotar rápido, escrevendo ou falando, sem escolher onde guardar. Cada anotação vira um cartãozinho colorido.",
       "O FARO dá uma categoria a cada anotação sozinho (Piscina, Jogos, Família...), e a cor segue a categoria. Toque no cartão para editar o texto, trocar a categoria, arquivar ou apagar. Anotação de saúde fica com a categoria Saúde e nunca vai para a IA.",
       "Para achar algo: use a busca ou toque numa categoria no alto. “Arquivadas” guarda as que você já revisou.",
-      "No Dashboard aparece “anotações para revisar”, para você não deixar nada esquecido.",
+      "No Dashboard aparece “anotações para revisar”. Uma anotação conta como revisada assim que você toca nela para abrir (o pontinho azul do cartão some e ela deixa de entrar no aviso). “Arquivar” é outra coisa: só tira o cartão da tela principal.",
       "Diga ao FARO “anota: …”: ele guarda aqui, ou no lugar certo quando o assunto tem um (uma tarefa, a Dispensa; itens de casa vão direto para a Dispensa). O cadeado (“Só minha”) impede o FARO de ler aquela anotação.",
     ],
   },

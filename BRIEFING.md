@@ -6622,3 +6622,6 @@ Escolha **neste aparelho** (como o tema), em Configurações > Aparência > **Es
 
 ## 04/11/2026 — Propostas da IA não duplicam assunto
 `proporAprendizado` (`src/lib/conector/faro-escrita.ts`) agora usa `itensDoMesmoAssunto`: se a proposta não traz `substitui_id` e há item aprovado/pendente com palavras em comum (>=4 e >=35% do menor texto), o envio é recusado com o id do parecido; a IA reenvia com `substitui_id` (atualização com ANTES/DEPOIS) ou `assunto_novo: true`. Repositório do conector passou a trazer `conteudo`. Descrição da ferramenta diz que desfecho (desafio cumprido, contrato fechado) é atualização. Limite: depende de palavras em comum (não entende sinônimos); o que a IA do próprio FARO propõe em outras telas não passa por aqui.
+
+## 06/11/2026 — Aviso "anotações para revisar" que não sumia
+Causa: o aviso do Dashboard (`AnotacoesPainel.tsx`) contava `status = new`, e na tela nova de cartões o único jeito de mudar isso era "Revisada, arquivar" dentro do cartão aberto. Correção: coluna nova `quick_notes.revisada_em` (migração `quick_notes_revisada_em`; as existentes foram marcadas como revisadas). Abrir o cartão grava `reviewedAt`; o aviso conta `new` E sem `reviewedAt`; cartão não revisado mostra pontinho azul. "Voltar para revisar" zera `reviewedAt`.

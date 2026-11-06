@@ -1917,7 +1917,7 @@ export function useBoard(userId: string | null) {
   const addQuickNote = useCallback(
     (body: string, extra: Partial<Pick<QuickNote, "tag" | "isPrivate">> = {}): string | null => {
       if (!userId || !body.trim()) return null;
-      const n: QuickNote = { id: uid(), body: body.trim(), tag: extra.tag?.trim() ?? "", status: "new", isPrivate: extra.isPrivate ?? false, createdAt: new Date().toISOString() };
+      const n: QuickNote = { id: uid(), body: body.trim(), tag: extra.tag?.trim() ?? "", status: "new", isPrivate: extra.isPrivate ?? false, createdAt: new Date().toISOString(), reviewedAt: null };
       apply((s) => ({ ...s, quickNotes: [...s.quickNotes, n] }));
       supabase.from("quick_notes").insert(quickNoteToInsertRow(n, userId)).then(({ error }) => {
         if (error) reportSaveError("addQuickNote", error);
