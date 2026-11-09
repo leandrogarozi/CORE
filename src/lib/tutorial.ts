@@ -58,7 +58,7 @@ export const TUTORIAL: SecaoDoTutorial[] = [
     id: "tarefas",
     titulo: "Tarefas por dentro",
     linhas: [
-      "Toque numa tarefa para abri-la. Dentro: título, categorias (até 2), o bloco “Quando e lembrete” (início, duração, fim e lembrete, tudo junto), observação, anexos, projeto, cliente e ID.",
+      "Toque numa tarefa para abri-la. Dentro: título, categorias (até 2), o bloco “Quando e lembrete” (início, duração, fim e lembrete, tudo junto), com atalhos de aviso (no horário, 10 min, 30 min, 1h…) ou “Personalizado…” (ex.: 2 horas antes) e “+ Adicionar outro lembrete” para avisar mais de uma vez (ex.: 3h e 1h antes), observação, anexos, projeto, cliente e ID.",
       "Status: toque no status para trocar (A iniciar, Executando, Agendado, Aguardando, Concluída). Você cria os seus em Configurações > Tarefas.",
       "Bandeira de prioridade: toque para mudar entre alta (vermelha), média (azul) e baixa (verde). As vermelhas ficam no topo e as verdes embaixo; as médias seguem a sua ordem.",
       "Raios (⚡ de 1 a 3): quanto mais raios, mais rápida de fazer. Toque no mesmo raio para tirar. O botão “Rápidas primeiro” ordena por eles.",

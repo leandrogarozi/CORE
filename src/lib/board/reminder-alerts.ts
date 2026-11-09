@@ -11,6 +11,22 @@ export const REMINDER_ALERT_PRESETS: { v: number | null; l: string }[] = [
   { v: 10080, l: "1 semana antes" },
 ];
 
+/** Texto do aviso em minutos: usa o nome do atalho ("1h antes") ou monta um ("3h antes", "45 min antes"). */
+export function rotuloDoAviso(min: number): string {
+  const atalho = REMINDER_ALERT_PRESETS.find((p) => p.v === min);
+  if (atalho) return atalho.l;
+  if (min % 1440 === 0) return `${min / 1440} ${min / 1440 === 1 ? "dia" : "dias"} antes`;
+  if (min % 60 === 0) return `${min / 60}h antes`;
+  return `${min} min antes`;
+}
+
+/** Valor + unidade digitados no "personalizado" viram minutos (0 se não valer). Teto de 60 dias. */
+export function minutosDoPersonalizado(valor: number, unidade: "min" | "h" | "dia"): number {
+  if (!Number.isFinite(valor) || valor <= 0) return 0;
+  const min = Math.round(valor * (unidade === "dia" ? 1440 : unidade === "h" ? 60 : 1));
+  return Math.min(min, 60 * 1440);
+}
+
 /** "No horário marcado" (0): o aviso vale por alguns minutos depois da hora, para o agendador de cada minuto pegar. */
 export const AVISO_NO_HORARIO_FOLGA_MIN = 5;
 

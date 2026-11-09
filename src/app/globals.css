@@ -5359,3 +5359,11 @@ textarea.titulo-cresce{ display:block; resize:none; overflow:hidden; font-family
 .anot-cartao .anot-acoes .btn svg{ width:13px; height:13px; }
 .anot-cartao .anot-trocar .disp-chip{ font-size:11px; padding:2px 9px; }
 .anot-novo-ponto{ position:absolute; top:6px; left:8px; width:6px; height:6px; border-radius:50%; background:var(--accent); }
+
+/* 09/11/2026 — Lembrete da tarefa: aviso personalizado e mais de um aviso. */
+.aviso-seletor { display: flex; flex-direction: column; gap: 6px; }
+.aviso-personalizado { display: flex; gap: 6px; }
+.aviso-personalizado .aviso-num { width: 76px; flex: none; }
+.aviso-extra { display: flex; align-items: flex-start; gap: 6px; margin-top: 6px; }
+.aviso-extra .aviso-seletor { flex: 1; }
+.aviso-mais { margin-top: 6px; align-self: flex-start; padding: 4px 10px; font-size: 12px; }

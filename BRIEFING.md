@@ -6625,3 +6625,7 @@ Escolha **neste aparelho** (como o tema), em Configurações > Aparência > **Es
 
 ## 06/11/2026 — Aviso "anotações para revisar" que não sumia
 Causa: o aviso do Dashboard (`AnotacoesPainel.tsx`) contava `status = new`, e na tela nova de cartões o único jeito de mudar isso era "Revisada, arquivar" dentro do cartão aberto. Correção: coluna nova `quick_notes.revisada_em` (migração `quick_notes_revisada_em`; as existentes foram marcadas como revisadas). Abrir o cartão grava `reviewedAt`; o aviso conta `new` E sem `reviewedAt`; cartão não revisado mostra pontinho azul. "Voltar para revisar" zera `reviewedAt`.
+
+## 09/11/2026 — Lembrete da tarefa: aviso personalizado e vários avisos
+
+No bloco "Quando e lembrete" da tarefa: opção "Personalizado…" (número + minutos/horas/dias antes, até 60 dias) e "+ Adicionar outro lembrete" (até 5 avisos). Cada aviso extra é um lembrete irmão (mesmo taskId), então WhatsApp, push e sininho funcionam sem mudança no motor. Sem mudança de banco. Código: `AvisoSeletor` em TaskRow.tsx, `extraAvisos` em `setTaskReminder`, `rotuloDoAviso`/`minutosDoPersonalizado` em reminder-alerts.ts.

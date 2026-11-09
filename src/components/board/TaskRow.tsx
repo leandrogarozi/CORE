@@ -40,7 +40,7 @@ import {
   WhatsAppIcon,
 } from "./icons";
 import { DAY_NAMES, fmtDayMonth, fmtShortDate, fmtTempoCurto, todayISO } from "@/lib/date-utils";
-import { REMINDER_ALERT_PRESETS } from "@/lib/board/reminder-alerts";
+import { REMINDER_ALERT_PRESETS, minutosDoPersonalizado, rotuloDoAviso } from "@/lib/board/reminder-alerts";
 import { taskEntriesOf } from "@/lib/board/task-time";
 import { PostponeModal } from "./PostponeModal";
 import { ToggleSwitch } from "./ToggleSwitch";
@@ -568,6 +568,8 @@ interface TaskWhenBlock extends TaskWhenFields {
   durationMin: number | null;
   /** Minutos antes de avisar; 0 = no horário; null = sem lembrete. */
   aviso: number | null;
+  /** Avisos a mais (minutos antes), além do principal. */
+  extras: number[];
   zap: boolean;
   /** Sininho: avisa dentro do app. O push no celular chega de qualquer jeito. */
   sino: boolean;
@@ -584,7 +586,79 @@ const REPETICOES: { v: Repeat; l: string }[] = [
 ];
 const REPETE_CURTO: Record<Repeat, string> = { none: "", daily: "todo dia", weekly: "toda semana", monthly: "todo mês", yearly: "todo ano" };
 
-function TaskWhenButton({ date, time, endDate, endTime, durationMin, aviso, zap, sino, repeat, weekDays, onSave }: TaskWhenBlock & { onSave: (f: TaskWhenBlock) => void }) {
+const PERSONALIZADO = "personalizado";
+
+/** Escolha de quando avisar: atalhos prontos ou "Personalizado…" (número + minutos/horas/dias). */
+function AvisoSeletor({ valor, onChange, comSemLembrete, rotulo }: { valor: number | null; onChange: (v: number | null) => void; comSemLembrete: boolean; rotulo: string }) {
+  const ehAtalho = valor === null || REMINDER_ALERT_PRESETS.some((p) => p.v === valor);
+  const [personalizando, setPersonalizando] = useState(!ehAtalho);
+  const [num, setNum] = useState(() => (valor && !ehAtalho ? String(valor % 1440 === 0 ? valor / 1440 : valor % 60 === 0 ? valor / 60 : valor) : ""));
+  const [unidade, setUnidade] = useState<"min" | "h" | "dia">(() => (valor && !ehAtalho ? (valor % 1440 === 0 ? "dia" : valor % 60 === 0 ? "h" : "min") : "h"));
+  function aplicar(n: string, u: "min" | "h" | "dia") {
+    const min = minutosDoPersonalizado(Number(n.replace(",", ".")), u);
+    if (min > 0) onChange(min);
+  }
+  return (
+    <div className="aviso-seletor">
+      <select
+        className="reminder-repeat-select"
+        aria-label={rotulo}
+        value={personalizando ? PERSONALIZADO : valor === null ? "" : String(valor)}
+        onChange={(e) => {
+          const v = e.target.value;
+          if (v === PERSONALIZADO) {
+            setPersonalizando(true);
+            if (num) aplicar(num, unidade);
+            return;
+          }
+          setPersonalizando(false);
+          onChange(v === "" ? null : Number(v));
+        }}
+      >
+        {comSemLembrete && <option value="">Sem lembrete</option>}
+        {REMINDER_ALERT_PRESETS.map((p) => (
+          <option key={p.l} value={String(p.v ?? 0)}>
+            {p.v === 0 ? "No horário" : p.l}
+          </option>
+        ))}
+        <option value={PERSONALIZADO}>Personalizado…</option>
+      </select>
+      {personalizando && (
+        <div className="aviso-personalizado">
+          <input
+            type="number"
+            min={1}
+            inputMode="decimal"
+            className="reminder-repeat-select aviso-num"
+            aria-label="Quanto tempo antes"
+            placeholder="2"
+            value={num}
+            onChange={(e) => {
+              setNum(e.target.value);
+              aplicar(e.target.value, unidade);
+            }}
+          />
+          <select
+            className="reminder-repeat-select"
+            aria-label="Unidade"
+            value={unidade}
+            onChange={(e) => {
+              const u = e.target.value as "min" | "h" | "dia";
+              setUnidade(u);
+              if (num) aplicar(num, u);
+            }}
+          >
+            <option value="min">minutos antes</option>
+            <option value="h">horas antes</option>
+            <option value="dia">dias antes</option>
+          </select>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TaskWhenButton({ date, time, endDate, endTime, durationMin, aviso, extras, zap, sino, repeat, weekDays, onSave }: TaskWhenBlock & { onSave: (f: TaskWhenBlock) => void }) {
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
   const open = anchorRect !== null;
   const [dateDraft, setDateDraft] = useState(date ?? "");
@@ -593,6 +667,7 @@ function TaskWhenButton({ date, time, endDate, endTime, durationMin, aviso, zap,
   const [endTimeDraft, setEndTimeDraft] = useState(endTime ?? "");
   const [durDraft, setDurDraft] = useState<number | null>(durationMin);
   const [avisoDraft, setAvisoDraft] = useState<number | null>(aviso);
+  const [extrasDraft, setExtrasDraft] = useState<number[]>(extras);
   const [zapDraft, setZapDraft] = useState(zap);
   const [sinoDraft, setSinoDraft] = useState(sino);
   const [repeatDraft, setRepeatDraft] = useState<Repeat>(repeat);
@@ -625,6 +700,7 @@ function TaskWhenButton({ date, time, endDate, endTime, durationMin, aviso, zap,
     setEndTimeDraft(endTime ?? "");
     setDurDraft(durationMin);
     setAvisoDraft(aviso);
+    setExtrasDraft(extras);
     setZapDraft(zap);
     setSinoDraft(sino);
     setRepeatDraft(repeat);
@@ -646,6 +722,7 @@ function TaskWhenButton({ date, time, endDate, endTime, durationMin, aviso, zap,
       endTime: endTimeDraft || null,
       durationMin: durDraft,
       aviso: avisoDraft,
+      extras: avisoDraft !== null ? extrasDraft : [],
       zap: avisoDraft !== null && zapDraft,
       sino: sinoDraft,
       repeat: avisoDraft !== null && weekDraft.length === 0 ? repeatDraft : "none",
@@ -661,6 +738,7 @@ function TaskWhenButton({ date, time, endDate, endTime, durationMin, aviso, zap,
     setEndTimeDraft("");
     setDurDraft(null);
     setAvisoDraft(null);
+    setExtrasDraft([]);
     setZapDraft(false);
     setSinoDraft(true);
     setRepeatDraft("none");
@@ -672,7 +750,9 @@ function TaskWhenButton({ date, time, endDate, endTime, durationMin, aviso, zap,
     ? `${endDate && endDate !== date ? fmtDayMonth(endDate) : ""}${endTime ? ` ${endTime}` : ""}`.trim()
     : null;
   const avisoLabel =
-    aviso === null ? null : aviso === 0 ? "lembra no horário" : `lembra ${REMINDER_ALERT_PRESETS.find((p) => p.v === aviso)?.l ?? ""}`;
+    aviso === null
+      ? null
+      : [aviso, ...extras].map((m) => (m === 0 ? "no horário" : rotuloDoAviso(m))).join(" e ").replace(/^/, "lembra ");
   const label =
     [
       startLabel,
@@ -757,22 +837,45 @@ function TaskWhenButton({ date, time, endDate, endTime, durationMin, aviso, zap,
             </div>
             <div className="edit-field">
               <span className="edit-field-label">Lembrete (avisa da data e hora do início)</span>
-              <select
-                className="reminder-repeat-select"
-                aria-label="Quando lembrar"
-                value={avisoDraft === null ? "" : String(avisoDraft)}
-                onChange={(e) => {
-                  setAvisoDraft(e.target.value === "" ? null : Number(e.target.value));
+              <AvisoSeletor
+                key={String(avisoDraft === null) + String(open)}
+                valor={avisoDraft}
+                comSemLembrete
+                rotulo="Quando lembrar"
+                onChange={(v) => {
+                  setAvisoDraft(v);
                   setErro(null);
                 }}
-              >
-                <option value="">Sem lembrete</option>
-                {REMINDER_ALERT_PRESETS.map((p) => (
-                  <option key={p.l} value={String(p.v ?? 0)}>
-                    {p.v === 0 ? "No horário" : p.l}
-                  </option>
+              />
+              {avisoDraft !== null &&
+                extrasDraft.map((m, i) => (
+                  <div className="aviso-extra" key={i}>
+                    <AvisoSeletor
+                      valor={m}
+                      comSemLembrete={false}
+                      rotulo={`Outro lembrete ${i + 1}`}
+                      onChange={(v) => setExtrasDraft((cur) => cur.map((x, j) => (j === i ? (v ?? x) : x)))}
+                    />
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      title="Tirar este lembrete"
+                      aria-label="Tirar este lembrete"
+                      onClick={() => setExtrasDraft((cur) => cur.filter((_, j) => j !== i))}
+                    >
+                      ×
+                    </button>
+                  </div>
                 ))}
-              </select>
+              {avisoDraft !== null && extrasDraft.length < 4 && (
+                <button
+                  type="button"
+                  className="btn btn-ghost aviso-mais"
+                  onClick={() => setExtrasDraft((cur) => [...cur, cur.length === 0 ? 60 : 180])}
+                >
+                  + Adicionar outro lembrete
+                </button>
+              )}
               {avisoDraft !== null && (
                 <div className="lembrete-config">
                   <div className="lembrete-canais">
@@ -1031,7 +1134,10 @@ function escapeHtml(t: string): string {
 export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
   const { board, askScope, askConfirm } = useBoardCtx();
   const currentSeries = t.seriesId ? board.state.taskSeries.find((s) => s.id === t.seriesId) : null;
-  const linkedReminder = board.state.reminders.find((r) => r.taskId === t.id) ?? null;
+  const lembretesDaTarefa = board.state.reminders.filter((r) => r.taskId === t.id);
+  const lembretesAbertos = lembretesDaTarefa.filter((r) => !r.done);
+  const irmaos = lembretesAbertos.length > 0 ? lembretesAbertos : lembretesDaTarefa.slice(0, 1);
+  const linkedReminder = irmaos[0] ?? null;
   const clientListId = useId();
   const clientOptions = Array.from(
     new Set(board.state.tasks.filter((x) => x.client).map((x) => x.client as string))
@@ -1040,8 +1146,9 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
   const [tirandoDesafio, setTirandoDesafio] = useState(false);
   const adiamentos = board.state.taskPostponements.filter((p) => p.taskId === t.id).length;
   // O lembrete da tarefa vive no mesmo bloco do "Quando": avisa sempre da data e hora do início.
-  const [lembrete, setLembrete] = useState<{ aviso: number | null; zap: boolean; sino: boolean; repeat: Repeat; weekDays: number[] }>({
+  const [lembrete, setLembrete] = useState<{ aviso: number | null; extras: number[]; zap: boolean; sino: boolean; repeat: Repeat; weekDays: number[] }>({
     aviso: linkedReminder ? (linkedReminder.alertMinutesBefore ?? 0) : null,
+    extras: irmaos.slice(1).map((r) => r.alertMinutesBefore ?? 0),
     zap: linkedReminder?.whatsapp ?? false,
     sino: linkedReminder ? linkedReminder.inApp !== false : true,
     repeat: linkedReminder?.repeat ?? "none",
@@ -1083,6 +1190,7 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
           repeat: lembrete.repeat,
           weekDays: lembrete.weekDays.length > 0 ? lembrete.weekDays : null,
           alertMinutesBefore: lembrete.aviso,
+          extraAvisos: lembrete.extras,
           whatsapp: lembrete.zap,
           inApp: lembrete.sino,
         });
@@ -1160,14 +1268,15 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
               endTime={vals.endTime}
               durationMin={vals.durationMin}
               aviso={lembrete.aviso}
+              extras={lembrete.extras}
               zap={lembrete.zap}
               sino={lembrete.sino}
               repeat={lembrete.repeat}
               weekDays={lembrete.weekDays}
               onSave={(f) => {
-                const { aviso, zap, sino, repeat, weekDays, ...quando } = f;
+                const { aviso, extras, zap, sino, repeat, weekDays, ...quando } = f;
                 setVals((v) => ({ ...v, ...quando }));
-                setLembrete({ aviso, zap, sino, repeat, weekDays });
+                setLembrete({ aviso, extras, zap, sino, repeat, weekDays });
               }}
             />
           </div>

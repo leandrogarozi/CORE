@@ -1688,6 +1688,8 @@ export function useBoard(userId: string | null) {
         repeat: Repeat;
         weekDays: number[] | null;
         alertMinutesBefore: number | null;
+        // Avisos a mais (minutos antes), além do principal: cada um é um lembrete irmão da mesma tarefa.
+        extraAvisos?: number[];
         // O sininho: avisa dentro do app (o push no celular chega de qualquer jeito). Sem valor, fica ligado.
         inApp?: boolean;
         // Vem do próprio popover de data. Antes o lembrete da tarefa nascia
@@ -1699,41 +1701,50 @@ export function useBoard(userId: string | null) {
       if (!userId) return;
       const task = stateRef.current.tasks.find((t) => t.id === taskId);
       if (!task) return;
-      const existing = stateRef.current.reminders.find((r) => r.taskId === taskId);
+      const doTask = stateRef.current.reminders.filter((r) => r.taskId === taskId);
+      const abertos = doTask.filter((r) => !r.done);
+      const irmaos = abertos.length > 0 ? abertos : doTask.slice(0, 1);
       if (!fields.date) {
-        if (existing) deleteReminder(existing.id);
+        for (const r of irmaos) deleteReminder(r.id);
         return;
       }
-      if (existing) {
-        updateReminder(existing.id, fields);
-        return;
-      }
-      const r: Reminder = {
-        id: uid(),
-        title: isMeetingTask(task)
-          ? `Reunião: ${task.title}`
-          : `Lembrete para executar a tarefa: ${task.title}`,
-        date: fields.date,
-        time: fields.time,
-        repeat: fields.repeat,
-        weekDays: fields.weekDays,
-        alertMinutesBefore: fields.alertMinutesBefore,
-        note: null,
-        done: false,
-        status: "pending",
-        deletedAt: null,
-        taskId,
-        sourceKind: null,
-        sourceId: null,
-        // Quem decide é a opção que ele marcou no mesmo popover. Sem marcação,
-        // nasce apagado — a regra do app é que ele acende o que quer.
-        whatsapp: fields.whatsapp ?? false,
-        inApp: fields.inApp ?? true,
-      };
-      apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
-      supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
-        if (error) reportSaveError("setTaskReminder", error);
+      const { extraAvisos, ...campos } = fields;
+      const avisos = [campos.alertMinutesBefore, ...Array.from(new Set(extraAvisos ?? [])).filter((m) => m !== campos.alertMinutesBefore)];
+      avisos.forEach((aviso, i) => {
+        const existing = irmaos[i];
+        if (existing) {
+          updateReminder(existing.id, { ...campos, alertMinutesBefore: aviso });
+          return;
+        }
+        const r: Reminder = {
+          id: uid(),
+          title: isMeetingTask(task)
+            ? `Reunião: ${task.title}`
+            : `Lembrete para executar a tarefa: ${task.title}`,
+          date: campos.date,
+          time: campos.time,
+          repeat: campos.repeat,
+          weekDays: campos.weekDays,
+          alertMinutesBefore: aviso,
+          note: null,
+          done: false,
+          status: "pending",
+          deletedAt: null,
+          taskId,
+          sourceKind: null,
+          sourceId: null,
+          // Quem decide é a opção que ele marcou no mesmo popover. Sem marcação,
+          // nasce apagado — a regra do app é que ele acende o que quer.
+          whatsapp: campos.whatsapp ?? false,
+          inApp: campos.inApp ?? true,
+        };
+        apply((s) => ({ ...s, reminders: [...s.reminders, r] }));
+        supabase.from("reminders").insert(reminderToInsertRow(r, userId)).then(({ error }) => {
+          if (error) reportSaveError("setTaskReminder", error);
+        });
       });
+      // Tinha mais lembretes do que agora: os que sobram saem.
+      for (const sobra of irmaos.slice(avisos.length)) deleteReminder(sobra.id);
     },
     [apply, deleteReminder, supabase, updateReminder, userId]
   );
