@@ -270,6 +270,7 @@ export function FaroMascot({ comDock = false }: { comDock?: boolean }) {
         taskStatuses: board.state.taskStatuses,
         setTaskStatus: board.setTaskStatus,
         addMeeting: board.addMeeting,
+        setTaskReminder: board.setTaskReminder,
         updateTaskNote: board.updateTaskNote,
         birthdays: board.state.birthdays,
         addBirthday: board.addBirthday,

@@ -12,7 +12,7 @@ import { acharFeedback, type FeedbackDoDono } from "./feedbacks";
  */
 export interface QuadroParaAcoes {
   checklists: Checklist[];
-  addReminder: (titulo: string, data: string | null, hora: string | null) => Promise<boolean>;
+  addReminder: (titulo: string, data: string | null, hora: string | null, opts?: { alertMinutesBefore?: number | null; whatsapp?: boolean }) => Promise<boolean>;
   addTask: (
     data: string,
     titulo: string,
@@ -23,6 +23,7 @@ export interface QuadroParaAcoes {
   taskStatuses: TaskStatus[];
   setTaskStatus: (id: string, statusId: string) => void;
   addMeeting: (campos: { title: string; client: string | null; date: string; time: string | null }) => string | null;
+  setTaskReminder: (taskId: string, fields: { date: string | null; time: string | null; repeat: "none"; weekDays: null; alertMinutesBefore: number | null; whatsapp?: boolean }) => void;
   updateTaskNote: (id: string, note: string) => void;
   birthdays: Birthday[];
   addBirthday: (campos: Pick<Birthday, "name" | "month" | "day" | "year" | "category">) => Promise<string | null>;
@@ -107,7 +108,7 @@ export async function executarAcao(acaoBruta: AcaoProposta, quadro: QuadroParaAc
 
   switch (acao.tipo) {
     case "criar_lembrete": {
-      const ok = await quadro.addReminder(acao.titulo, acao.data, acao.hora);
+      const ok = await quadro.addReminder(acao.titulo, acao.data, acao.hora, acao.whatsapp ? { alertMinutesBefore: 0, whatsapp: true } : { whatsapp: false });
       return ok ? { ok: true, mensagem: "Lembrete criado." } : { ok: false, mensagem: "Não consegui criar o lembrete." };
     }
     case "criar_tarefa": {
@@ -179,7 +180,13 @@ export async function executarAcao(acaoBruta: AcaoProposta, quadro: QuadroParaAc
     }
     case "criar_reuniao": {
       const id = quadro.addMeeting({ title: acao.titulo, client: acao.cliente, date: acao.data, time: acao.hora });
-      return id ? { ok: true, mensagem: "Reunião criada." } : { ok: false, mensagem: "Não consegui criar a reunião." };
+      if (!id) return { ok: false, mensagem: "Não consegui criar a reunião." };
+      // "Me lembra no WhatsApp": liga o botão do WhatsApp (precisa da hora, que é quando o aviso sai).
+      if (acao.whatsapp && acao.hora) {
+        quadro.setTaskReminder(id, { date: acao.data, time: acao.hora, repeat: "none", weekDays: null, alertMinutesBefore: 0, whatsapp: true });
+        return { ok: true, mensagem: "Reunião criada, com aviso no WhatsApp na hora marcada." };
+      }
+      return { ok: true, mensagem: acao.whatsapp ? "Reunião criada. Sem hora, não dá para avisar no WhatsApp." : "Reunião criada." };
     }
     case "anotar_em_tarefa": {
       const r = acharTarefa(quadro.tasks, acao.titulo, acao.data, false);
@@ -318,7 +325,7 @@ export async function executarAcao(acaoBruta: AcaoProposta, quadro: QuadroParaAc
 function converterParaEntrada(a: AcaoProposta): Record<string, unknown> {
   switch (a.tipo) {
     case "criar_lembrete":
-      return { titulo: a.titulo, data: a.data, hora: a.hora, observacao: a.observacao ?? undefined };
+      return { titulo: a.titulo, data: a.data, hora: a.hora, observacao: a.observacao ?? undefined, no_whatsapp: a.whatsapp };
     case "criar_tarefa":
       return { titulo: a.titulo, data: a.data ?? undefined, hora: a.hora ?? undefined, prioridade: a.prioridade ?? undefined, observacao: a.observacao ?? undefined };
     case "anotar_gasto":
@@ -338,7 +345,7 @@ function converterParaEntrada(a: AcaoProposta): Record<string, unknown> {
     case "marcar_tarefa_feita":
       return { titulo: a.titulo, data: a.data ?? undefined };
     case "criar_reuniao":
-      return { titulo: a.titulo, cliente: a.cliente ?? undefined, data: a.data, hora: a.hora ?? undefined };
+      return { titulo: a.titulo, cliente: a.cliente ?? undefined, data: a.data, hora: a.hora ?? undefined, no_whatsapp: a.whatsapp };
     case "anotar_em_tarefa":
       return { titulo: a.titulo, data: a.data ?? undefined, texto: a.texto };
     case "registrar_humor":

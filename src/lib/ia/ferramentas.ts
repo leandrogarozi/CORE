@@ -12,7 +12,7 @@ import { MOOD_EMOTIONS } from "@/lib/mood";
  */
 
 export type AcaoProposta =
-  | { tipo: "criar_lembrete"; titulo: string; data: string; hora: string; observacao: string | null }
+  | { tipo: "criar_lembrete"; titulo: string; data: string; hora: string; observacao: string | null; whatsapp: boolean }
   | {
       tipo: "criar_tarefa";
       titulo: string;
@@ -34,7 +34,7 @@ export type AcaoProposta =
     }
   | { tipo: "lembrete_de_aniversario"; nome: string; lembrar: boolean | null; whatsapp: boolean | null }
   | { tipo: "marcar_tarefa_feita"; titulo: string; data: string | null }
-  | { tipo: "criar_reuniao"; titulo: string; cliente: string | null; data: string; hora: string | null }
+  | { tipo: "criar_reuniao"; titulo: string; cliente: string | null; data: string; hora: string | null; whatsapp: boolean }
   | { tipo: "anotar_em_tarefa"; titulo: string; data: string | null; texto: string }
   | { tipo: "registrar_humor"; nivel: 1 | 2 | 3 | 4 | 5; emocao: string | null }
   | { tipo: "registrar_sono"; dormiu: string | null; acordou: string | null }
@@ -88,6 +88,11 @@ export const FERRAMENTAS_DO_FARO: Anthropic.Tool[] = [
         data: { type: "string", description: "Data no formato AAAA-MM-DD, já resolvida a partir da data de hoje." },
         hora: { type: "string", description: "Hora no formato HH:MM (24h)." },
         observacao: { type: "string", description: "Detalhe opcional." },
+        no_whatsapp: {
+          type: "boolean",
+          description:
+            "true se ele pediu para ser avisado no WhatsApp ('me lembra no WhatsApp', 'manda no zap', 'me avisa pelo WhatsApp'). Isso liga o botão do WhatsApp do lembrete. Omita se ele não falou de WhatsApp.",
+        },
       },
       required: ["titulo", "data", "hora"],
     },
@@ -182,6 +187,11 @@ export const FERRAMENTAS_DO_FARO: Anthropic.Tool[] = [
         cliente: { type: "string", description: "Cliente, se ele disse." },
         data: { type: "string", description: "AAAA-MM-DD, já resolvida a partir da data de hoje." },
         hora: { type: "string", description: "HH:MM (24h), só se ele disse." },
+        no_whatsapp: {
+          type: "boolean",
+          description:
+            "true se ele pediu para ser avisado no WhatsApp ('me lembra no WhatsApp', 'manda no zap', 'me avisa pelo WhatsApp'). Isso liga o botão do WhatsApp do lembrete da reunião (precisa da hora). Omita se ele não falou de WhatsApp.",
+        },
       },
       required: ["titulo", "data"],
     },
@@ -413,7 +423,7 @@ export function validarAcao(nome: string, entrada: unknown): ResultadoDaValidaca
       const hora = horaValida(e.hora);
       if (!titulo) return { ok: false, motivo: "faltou o título do lembrete" };
       if (!data || !hora) return { ok: false, motivo: "lembrete precisa de data e hora válidas" };
-      return { ok: true, acao: { tipo: "criar_lembrete", titulo, data, hora, observacao: texto(e.observacao, 500) } };
+      return { ok: true, acao: { tipo: "criar_lembrete", titulo, data, hora, observacao: texto(e.observacao, 500), whatsapp: e.no_whatsapp === true } };
     }
     case "criar_tarefa": {
       const titulo = texto(e.titulo, 200);
@@ -482,7 +492,7 @@ export function validarAcao(nome: string, entrada: unknown): ResultadoDaValidaca
       const data = dataValida(e.data);
       if (!titulo) return { ok: false, motivo: "faltou o nome da reunião" };
       if (!data) return { ok: false, motivo: "a reunião precisa de uma data válida" };
-      return { ok: true, acao: { tipo: "criar_reuniao", titulo, cliente: texto(e.cliente, 120), data, hora: horaValida(e.hora) } };
+      return { ok: true, acao: { tipo: "criar_reuniao", titulo, cliente: texto(e.cliente, 120), data, hora: horaValida(e.hora), whatsapp: e.no_whatsapp === true } };
     }
     case "anotar_em_tarefa": {
       const titulo = texto(e.titulo, 200);
@@ -620,7 +630,7 @@ const NOMES_DIAS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 export function descreverAcao(a: AcaoProposta): string {
   switch (a.tipo) {
     case "criar_lembrete":
-      return `Criar lembrete: ${a.titulo}, em ${dataBr(a.data)} às ${a.hora}`;
+      return `Criar lembrete: ${a.titulo}, em ${dataBr(a.data)} às ${a.hora}${a.whatsapp ? ", avisando também no WhatsApp" : ""}`;
     case "criar_tarefa":
       return `Criar tarefa: ${a.titulo}${a.data ? `, para ${dataBr(a.data)}` : " (sem data)"}${a.hora ? ` às ${a.hora}` : ""}`;
     case "anotar_gasto":
@@ -637,7 +647,7 @@ export function descreverAcao(a: AcaoProposta): string {
     case "marcar_tarefa_feita":
       return `Marcar como feita: ${a.titulo}${a.data ? ` (${dataBr(a.data)})` : ""}`;
     case "criar_reuniao":
-      return `Criar reunião: ${a.titulo}${a.cliente ? ` (${a.cliente})` : ""}, em ${dataBr(a.data)}${a.hora ? ` às ${a.hora}` : ""}`;
+      return `Criar reunião: ${a.titulo}${a.cliente ? ` (${a.cliente})` : ""}, em ${dataBr(a.data)}${a.hora ? ` às ${a.hora}` : ""}${a.whatsapp && a.hora ? ", avisando também no WhatsApp" : ""}`;
     case "anotar_em_tarefa":
       return `Acrescentar à anotação de "${a.titulo}": ${a.texto.length > 120 ? a.texto.slice(0, 117) + "…" : a.texto}`;
     case "registrar_humor":

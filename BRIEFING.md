@@ -6629,3 +6629,7 @@ Causa: o aviso do Dashboard (`AnotacoesPainel.tsx`) contava `status = new`, e na
 ## 09/11/2026 — Lembrete da tarefa: aviso personalizado e vários avisos
 
 No bloco "Quando e lembrete" da tarefa: opção "Personalizado…" (número + minutos/horas/dias antes, até 60 dias) e "+ Adicionar outro lembrete" (até 5 avisos). Cada aviso extra é um lembrete irmão (mesmo taskId), então WhatsApp, push e sininho funcionam sem mudança no motor. Sem mudança de banco. Código: `AvisoSeletor` em TaskRow.tsx, `extraAvisos` em `setTaskReminder`, `rotuloDoAviso`/`minutosDoPersonalizado` em reminder-alerts.ts.
+
+## 10/11/2026 — "Me lembra no WhatsApp" liga o botão do WhatsApp
+
+No cachorrinho, criar lembrete e criar reunião ganharam `no_whatsapp`. O lembrete nasce com aviso na hora marcada e WhatsApp ligado (antes não ligava o aviso, então o botão não acendia). Sem pedir WhatsApp, o lembrete nasce com WhatsApp desligado. Reunião só liga o zap se tiver hora. Tarefa comum (sem ser reunião) não tem essa opção ainda.
