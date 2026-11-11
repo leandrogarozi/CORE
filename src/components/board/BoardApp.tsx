@@ -64,14 +64,14 @@ import { AvisosButton } from "./AvisosButton";
 import { AniversariosButton } from "./AniversariosButton";
 import { SaveErrorToaster } from "./SaveErrorToaster";
 import { StaleScreenNotice } from "./StaleScreenNotice";
-import { BoltIcon, ChevronIcon, ExpandHorizontalIcon, MenuIcon, SettingsIcon, UserIcon, UsersGroupIcon, WarningIcon, WeekIcon } from "./icons";
+import { BoltIcon, ChevronIcon, FlagIcon, ExpandHorizontalIcon, MenuIcon, SettingsIcon, UserIcon, UsersGroupIcon, WarningIcon, WeekIcon } from "./icons";
 import { useWideLayout } from "@/lib/board/use-wide-layout";
 import { dateFromISO, longLabel, mondayOf, todayISO } from "@/lib/date-utils";
 import { countOpenChecklistItems } from "@/lib/rich-text";
 import { entraEmReunioes, isFeatureEnabled, type Task } from "@/lib/types";
 
 function BoardShell() {
-  const { board, sortByQuick, setSortByQuick, setOpenProjectHandler, setOpenTaskInDayHandler, requestFocus } =
+  const { board, sortByQuick, setSortByQuick, sortByPriority, setSortByPriority, setOpenProjectHandler, setOpenTaskInDayHandler, requestFocus } =
     useBoardCtx();
   const [viewMode, setViewMode] = useState<ViewMode>("day");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -590,6 +590,14 @@ function BoardShell() {
                     onClick={() => setSortByQuick(!sortByQuick)}
                   >
                     <BoltIcon /> Rápidas primeiro
+                  </button>
+                  <button
+                    type="button"
+                    className={"quicksort-btn" + (sortByPriority ? " active" : "")}
+                    title="Reordena as listas colocando as tarefas de prioridade mais alta (bandeira vermelha) primeiro"
+                    onClick={() => setSortByPriority(!sortByPriority)}
+                  >
+                    <FlagIcon color="currentColor" /> Por prioridades
                   </button>
                 </div>
                 {viewMode === "week" ? (

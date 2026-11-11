@@ -272,7 +272,7 @@ export function TaskRow({
   gridTemplate,
   position,
 }: TaskRowProps) {
-  const { board, askScope, askConfirm, openProject, focusRequest, consumeFocusRequest } = useBoardCtx();
+  const { board, askScope, askConfirm, openProject, setSortByPriority, focusRequest, consumeFocusRequest } = useBoardCtx();
   const [editing, setEditing] = useState(false);
   // O lembrete da tarefa interessa duas vezes: pra mostrar o sininho e pra
   // dizer se o zap vai sair. Ele pediu os dois selos juntos *"assim como mostra
@@ -365,7 +365,7 @@ export function TaskRow({
             title={
               draggable
                 ? "Arraste pra reordenar"
-                : "Com \u26a1 Rápidas primeiro ligado, a posição das tarefas com raio vem dos raios — as sem raio continuam livres pra arrastar"
+                : "Com \u26a1 Rápidas primeiro ou \u2691 Por prioridades ligado, a posição de algumas tarefas vem da regra — as outras continuam livres pra arrastar"
             }
           >
             {Array.from({ length: 6 }).map((_, i) => (
@@ -530,7 +530,10 @@ export function TaskRow({
         title={`${priorityLabel(t.priority)} — clique pra mudar`}
         onClick={(e) => {
           e.stopPropagation();
-          board.setPriority(t.id, nextPriority(t.priority));
+          const proxima = nextPriority(t.priority);
+          board.setPriority(t.id, proxima);
+          // Marcou uma prioridade diferente da padrão: o filtro "Por prioridades" liga e mostra elas primeiro.
+          if (proxima !== "media") setSortByPriority(true);
         }}
       >
         <FlagIcon color={priorityColor(t.priority)} />
@@ -1132,7 +1135,7 @@ function escapeHtml(t: string): string {
 }
 
 export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => void }) {
-  const { board, askScope, askConfirm } = useBoardCtx();
+  const { board, askScope, askConfirm, setSortByPriority } = useBoardCtx();
   const currentSeries = t.seriesId ? board.state.taskSeries.find((s) => s.id === t.seriesId) : null;
   const lembretesDaTarefa = board.state.reminders.filter((r) => r.taskId === t.id);
   const lembretesAbertos = lembretesDaTarefa.filter((r) => !r.done);
@@ -1181,6 +1184,7 @@ export function TaskEditRow({ task: t, onDone }: { task: Task; onDone: () => voi
     onDone();
     function doApply(scope: "esta" | "proximas" | "todas" | null) {
       board.saveTaskEdit(t.id, finalVals, scope);
+      if (finalVals.priority !== t.priority && finalVals.priority !== "media") setSortByPriority(true);
       board.logPostponement(t.id, t.date, finalVals.date, reason);
       // O lembrete segue a tarefa: mesma data e hora do início, o aviso e o WhatsApp do bloco.
       if (lembrete.aviso !== null && finalVals.date) {

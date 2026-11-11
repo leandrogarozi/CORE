@@ -6641,3 +6641,7 @@ Regra em `src/lib/board/timer-pergunta.ts` (usada pela tela e pelo servidor): 1�
 ## 11/11/2026 — Emojis no editor de texto e seletor Texto/Título
 
 Botão 🙂 na barra do RichTextEditor abre um seletor com 6 grupos (mais usados com 💡, rostos, gestos, trabalho, símbolos, natureza); fica aberto para pôr vários. Corrigido o seletor "Texto/Título 1-3", que não abria porque a barra dava preventDefault no mousedown de tudo (agora ignora o select).
+
+## 11/11/2026 — Botão "Por prioridades"
+
+Segundo botão ao lado de "Rápidas primeiro" (bandeirinha). Independentes: rápidas ordena por raios; prioridades por bandeira (alta, média, baixa); ligados juntos, raios primeiro e bandeira desempata. Liga sozinho ao marcar uma bandeira diferente de média (clique na bandeira ou na edição). Preferência salva em `faro-sort-by-priority`. Antes, "Rápidas primeiro" já usava a bandeira como desempate; agora isso só vale com "Por prioridades" ligado.

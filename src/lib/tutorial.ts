@@ -38,7 +38,7 @@ export const TUTORIAL: SecaoDoTutorial[] = [
       "Atrasadas: toque no aviso da saudação para ver todas no Dashboard.",
       "Agenda: alterna entre Dia (o que tem hora, em ordem do relógio) e Lembretes (os do dia, até os sem hora).",
       "Registro do dia: humor (e por quê), sono, água (com a sua estratégia) e dieta (marque as refeições que cumpriu e anote o que fugiu).",
-      "“Rápidas primeiro”, em cima da lista, coloca as tarefas de + raios no topo (veja Tarefas por dentro).",
+      "“Rápidas primeiro”, em cima da lista, coloca as tarefas de + raios no topo (veja Tarefas por dentro). Ao lado dele, “Por prioridades” coloca as de bandeira vermelha primeiro (depois amarela e verde); liga sozinho quando você marca uma bandeira diferente da padrão. Os dois podem ficar ligados juntos.",
       "Em Configurações > Painéis da tela principal você liga e desliga cada painel; o que está desligado some, e o que você escreveu fica guardado.",
     ],
   },

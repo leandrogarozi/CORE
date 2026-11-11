@@ -35,6 +35,9 @@ interface BoardCtxValue {
   board: UseBoard;
   sortByQuick: boolean;
   setSortByQuick: (v: boolean) => void;
+  /** "Por prioridades": bandeira vermelha em cima, verde embaixo. */
+  sortByPriority: boolean;
+  setSortByPriority: (v: boolean) => void;
   askScope: (question: string, onChoose: (choice: ScopeChoice) => void) => void;
   scopeModal: ScopeModalState;
   closeScopeModal: () => void;
@@ -58,6 +61,7 @@ const BoardCtx = createContext<BoardCtxValue | null>(null);
 export function BoardProvider({ userId, children }: { userId: string; children: ReactNode }) {
   const board = useBoard(userId);
   const [sortByQuick, setSortByQuick] = useState(false);
+  const [sortByPriority, setSortByPriority] = useState(false);
   const [scopeModal, setScopeModal] = useState<ScopeModalState>({ open: false, question: "", onChoose: null });
   const [confirmModal, setConfirmModal] = useState<ConfirmModalState>({
     open: false,
@@ -71,7 +75,12 @@ export function BoardProvider({ userId, children }: { userId: string; children: 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- lê a preferência salva do navegador uma vez, no mount
     if (localStorage.getItem("faro-sort-by-quick") === "1") setSortByQuick(true);
+    if (localStorage.getItem("faro-sort-by-priority") === "1") setSortByPriority(true);
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("faro-sort-by-priority", sortByPriority ? "1" : "0");
+  }, [sortByPriority]);
 
   useEffect(() => {
     localStorage.setItem("faro-sort-by-quick", sortByQuick ? "1" : "0");
@@ -120,6 +129,8 @@ export function BoardProvider({ userId, children }: { userId: string; children: 
         board,
         sortByQuick,
         setSortByQuick,
+        sortByPriority,
+        setSortByPriority,
         askScope,
         scopeModal,
         closeScopeModal,

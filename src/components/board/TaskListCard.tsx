@@ -54,22 +54,26 @@ function ColResizeHandle({ colKey }: { colKey: ColumnKey }) {
 const PRIORITY_RANK: Record<Priority, number> = { alta: 0, media: 1, baixa: 2 };
 
 /** Tarefa cuja posição vem de uma regra (raio ou bandeira), não do arrasto. */
-function isPositionedByRule(t: Task): boolean {
-  return (t.quick || 0) > 0 || t.priority !== "media";
+function isPositionedByRule(t: Task, byQuick: boolean, byPriority: boolean): boolean {
+  return (byQuick && (t.quick || 0) > 0) || (byPriority && t.priority !== "media");
 }
 
-function sortForDisplay(list: Task[], sortByQuick: boolean): Task[] {
+function sortForDisplay(list: Task[], byQuick: boolean, byPriority: boolean): Task[] {
   const copy = [...list];
-  if (sortByQuick) {
+  if (byQuick || byPriority) {
     copy.sort((a, b) => {
-      // 1º os raios, do mais rápido pro menos.
-      const qa = a.quick || 0;
-      const qb = b.quick || 0;
-      if (qb !== qa) return qb - qa;
-      // 2º a bandeira: alta, média, baixa.
-      const pa = PRIORITY_RANK[a.priority];
-      const pb = PRIORITY_RANK[b.priority];
-      if (pa !== pb) return pa - pb;
+      // 1º os raios, do mais rápido pro menos (se "Rápidas primeiro" está ligado).
+      if (byQuick) {
+        const qa = a.quick || 0;
+        const qb = b.quick || 0;
+        if (qb !== qa) return qb - qa;
+      }
+      // 2º a bandeira: alta, média, baixa (se "Por prioridades" está ligado).
+      if (byPriority) {
+        const pa = PRIORITY_RANK[a.priority];
+        const pb = PRIORITY_RANK[b.priority];
+        if (pa !== pb) return pa - pb;
+      }
       // 3º a ordem manual, pra quem empatou.
       return (a.order || 0) - (b.order || 0);
     });
@@ -92,16 +96,17 @@ export function TaskListCard({
   quickAddId: string;
   showHeader?: boolean;
 }) {
-  const { board, sortByQuick, columns } = useBoardCtx();
+  const { board, sortByQuick, sortByPriority, columns } = useBoardCtx();
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const [inputVal, setInputVal] = useState("");
-  const items = sortForDisplay(tasks, sortByQuick);
+  const items = sortForDisplay(tasks, sortByQuick, sortByPriority);
+  const ordenando = sortByQuick || sortByPriority;
 
   // Com "Rápidas primeiro" ligado, a posição das tarefas ⚡ é calculada pelo
   // número de raios — arrastar elas não teria efeito. As sem raio continuam
   // livres pra reordenar; a ordem delas é respeitada quando o botão é desligado.
-  const canDrag = (t: Task) => !sortByQuick || !isPositionedByRule(t);
+  const canDrag = (t: Task) => !ordenando || !isPositionedByRule(t, sortByQuick, sortByPriority);
 
   function resetDrag() {
     setDraggingId(null);
@@ -113,7 +118,7 @@ export function TaskListCard({
     const dragged = tasks.find((t) => t.id === draggingId);
     if (!dragged || !canDrag(dragged)) return resetDrag();
 
-    if (!sortByQuick) {
+    if (!ordenando) {
       const ids = items.map((t) => t.id);
       const fromIdx = ids.indexOf(draggingId);
       let toIdx = overId ? ids.indexOf(overId) : ids.length - 1;
