@@ -52,6 +52,83 @@ const Pensamento = TiptapNode.create({
   },
 });
 
+// Emojis do seletor, em grupos. "Mais usados" abre primeiro: ideia, check, alerta, foco...
+const EMOJI_GRUPOS: { nome: string; icone: string; lista: string[] }[] = [
+  {
+    nome: "Mais usados",
+    icone: "💡",
+    lista: ["💡", "✅", "⚠️", "❗", "❓", "⭐", "🔥", "🎯", "📌", "📍", "📝", "📅", "⏰", "🚀", "💪", "👏", "🙏", "❤️", "🎉", "✨", "👍", "👀", "💭", "🧠", "📈", "💰", "🔑", "📞", "📧", "🔔"],
+  },
+  {
+    nome: "Rostos",
+    icone: "😀",
+    lista: ["😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "🙂", "😉", "😊", "😍", "🥰", "😘", "😎", "🤩", "🤔", "🤨", "😐", "😑", "😴", "😮", "😢", "😭", "😡", "😤", "😱", "🥳", "🤗", "🙄", "😬", "😇"],
+  },
+  {
+    nome: "Gestos",
+    icone: "👍",
+    lista: ["👍", "👎", "👏", "🙌", "🤝", "🙏", "💪", "✌️", "🤞", "👌", "🤌", "👈", "👉", "👆", "👇", "☝️", "✋", "👋", "🤙", "✍️", "🫶", "🧠", "👀", "👂"],
+  },
+  {
+    nome: "Trabalho",
+    icone: "💼",
+    lista: ["💼", "📁", "📂", "📄", "📋", "📊", "📈", "📉", "🗓️", "📆", "🕐", "⏳", "⌛", "💻", "📱", "☎️", "📧", "📎", "🔗", "🔍", "🧾", "💳", "💰", "🏆", "🥇", "🎓", "📚", "📖", "🔧", "⚙️", "🛠️", "🔒"],
+  },
+  {
+    nome: "Símbolos",
+    icone: "✅",
+    lista: ["✅", "❌", "⭕", "✔️", "✖️", "➕", "➖", "➡️", "⬅️", "⬆️", "⬇️", "🔄", "🔴", "🟠", "🟡", "🟢", "🔵", "🟣", "⚫", "⚪", "❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "💯", "‼️", "⁉️", "🆗", "🔝"],
+  },
+  {
+    nome: "Natureza e comida",
+    icone: "🍎",
+    lista: ["☀️", "🌙", "⭐", "🌈", "☁️", "🌧️", "⚡", "🔥", "💧", "🌱", "🌳", "🌸", "🌻", "🐶", "🐱", "🦋", "🍎", "🍌", "🍇", "🍕", "🍔", "🥗", "☕", "🍺", "🍷", "🎂", "🏖️", "🏊", "⚽", "🎮", "🎵", "✈️", "🚗", "🏠"],
+  },
+];
+
+function EmojiMenu({ anchorRect, onPick, onClose }: { anchorRect: DOMRect; onPick: (emoji: string) => void; onClose: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const pos = useClampedPopoverPos(anchorRect, ref);
+  const [grupo, setGrupo] = useState(0);
+
+  useEffect(() => {
+    function onDocPointerDown(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node) && !(e.target as HTMLElement).closest?.(".rte-btn-emoji")) onClose();
+    }
+    window.addEventListener("mousedown", onDocPointerDown);
+    return () => window.removeEventListener("mousedown", onDocPointerDown);
+  }, [onClose]);
+
+  return createPortal(
+    <div className="rte-emoji-menu" ref={ref} style={{ top: pos.top, left: pos.left }} onMouseDown={(e) => e.preventDefault()}>
+      <div className="rte-emoji-abas" role="tablist">
+        {EMOJI_GRUPOS.map((g, i) => (
+          <button
+            key={g.nome}
+            type="button"
+            role="tab"
+            aria-selected={i === grupo}
+            className={"rte-emoji-aba" + (i === grupo ? " ativa" : "")}
+            title={g.nome}
+            onClick={() => setGrupo(i)}
+          >
+            {g.icone}
+          </button>
+        ))}
+      </div>
+      <div className="rte-emoji-nome">{EMOJI_GRUPOS[grupo].nome}</div>
+      <div className="rte-emoji-grade">
+        {EMOJI_GRUPOS[grupo].lista.map((e) => (
+          <button key={e} type="button" className="rte-emoji-item" onClick={() => onPick(e)}>
+            {e}
+          </button>
+        ))}
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 // Paleta de destaque (mesma ideia do ClickUp): cor de fundo aplicada ao texto selecionado.
 const HIGHLIGHT_COLORS = [
   { v: "#fbcfe8", l: "Rosa" },
@@ -258,6 +335,8 @@ export function RichTextEditor({
   hideToolbar?: boolean;
 }) {
   const [highlightAnchor, setHighlightAnchor] = useState<DOMRect | null>(null);
+  const [emojiAnchor, setEmojiAnchor] = useState<DOMRect | null>(null);
+  const emojiBtnRef = useRef<HTMLButtonElement>(null);
   // Último HTML que ESTE editor produziu — serve pra distinguir "o texto mudou
   // porque eu digitei" de "o texto mudou porque abriram outro item".
   const ultimoEmitido = useRef(value);
@@ -375,7 +454,10 @@ export function RichTextEditor({
             : undefined
         }
         hidden={hideToolbar}
-        onMouseDown={(e) => e.preventDefault()}
+        // O seletor "Texto/Título" precisa do clique normal para abrir a lista; os botões não.
+        onMouseDown={(e) => {
+          if ((e.target as HTMLElement).tagName !== "SELECT") e.preventDefault();
+        }}
       >
         <button
           type="button"
@@ -520,12 +602,30 @@ export function RichTextEditor({
         >
           <LinkIcon />
         </button>
+        <button
+          ref={emojiBtnRef}
+          type="button"
+          className="rte-btn rte-btn-emoji"
+          title="Emoji"
+          aria-label="Inserir emoji"
+          onClick={() => setEmojiAnchor((a) => (a ? null : (emojiBtnRef.current?.getBoundingClientRect() ?? null)))}
+        >
+          <span aria-hidden="true">🙂</span>
+        </button>
         <span className="rte-sep" />
         {/* Ditar escreve onde o cursor está, como se estivesse digitando —
             então dá pra falar um trecho, corrigir na mão e voltar a falar. */}
         <MicButton className="rte-btn" onText={ditar} ariaLabel="Ditar o texto" />
       </div>
       <EditorContent editor={editor} className="rte-editor" />
+      {emojiAnchor && (
+        <EmojiMenu
+          anchorRect={emojiAnchor}
+          // O menu fica aberto: dá para pôr vários emojis seguidos.
+          onPick={(e) => editor.chain().focus().insertContent(e).run()}
+          onClose={() => setEmojiAnchor(null)}
+        />
+      )}
       {highlightAnchor &&
         (() => {
           const anchor = highlightAnchor;

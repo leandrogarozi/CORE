@@ -6637,3 +6637,7 @@ No cachorrinho, criar lembrete e criar reunião ganharam `no_whatsapp`. O lembre
 ## 11/11/2026 — "Você ainda está aí?" no cronômetro
 
 Regra em `src/lib/board/timer-pergunta.ts` (usada pela tela e pelo servidor): 1ª pergunta no fim do tempo previsto (expected_duration_min, duração ou início-fim) ou em 30 min; "Continuar" grava `active_timer.confirmado_em` e recomeça os 30 min; "Pausar" para contando só até a hora da pergunta (se respondeu em até 5 min, conta até agora). Aviso na tela: `TimerNudges.tsx`. Push: `src/lib/push/cronometros.ts` chamado pelo agendador de minuto em dispatch-reminders (marca `perguntado_para` antes de enviar; repete a cada 30 min, máx. 3). Migração `active_timer_confirmacao`. Vale para tarefa, hábito e bloco. Substitui o antigo aviso "já passou dos X min previstos. Terminou?" (Concluir / +15min).
+
+## 11/11/2026 — Emojis no editor de texto e seletor Texto/Título
+
+Botão 🙂 na barra do RichTextEditor abre um seletor com 6 grupos (mais usados com 💡, rostos, gestos, trabalho, símbolos, natureza); fica aberto para pôr vários. Corrigido o seletor "Texto/Título 1-3", que não abria porque a barra dava preventDefault no mousedown de tudo (agora ignora o select).
