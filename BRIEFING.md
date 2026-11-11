@@ -6633,3 +6633,7 @@ No bloco "Quando e lembrete" da tarefa: opção "Personalizado…" (número + mi
 ## 10/11/2026 — "Me lembra no WhatsApp" liga o botão do WhatsApp
 
 No cachorrinho, criar lembrete e criar reunião ganharam `no_whatsapp`. O lembrete nasce com aviso na hora marcada e WhatsApp ligado (antes não ligava o aviso, então o botão não acendia). Sem pedir WhatsApp, o lembrete nasce com WhatsApp desligado. Reunião só liga o zap se tiver hora. Tarefa comum (sem ser reunião) não tem essa opção ainda.
+
+## 11/11/2026 — "Você ainda está aí?" no cronômetro
+
+Regra em `src/lib/board/timer-pergunta.ts` (usada pela tela e pelo servidor): 1ª pergunta no fim do tempo previsto (expected_duration_min, duração ou início-fim) ou em 30 min; "Continuar" grava `active_timer.confirmado_em` e recomeça os 30 min; "Pausar" para contando só até a hora da pergunta (se respondeu em até 5 min, conta até agora). Aviso na tela: `TimerNudges.tsx`. Push: `src/lib/push/cronometros.ts` chamado pelo agendador de minuto em dispatch-reminders (marca `perguntado_para` antes de enviar; repete a cada 30 min, máx. 3). Migração `active_timer_confirmacao`. Vale para tarefa, hábito e bloco. Substitui o antigo aviso "já passou dos X min previstos. Terminou?" (Concluir / +15min).

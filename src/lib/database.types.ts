@@ -16,26 +16,32 @@ export type Database = {
     Tables: {
       active_timer: {
         Row: {
+          confirmado_em: string | null
           id: string
           item_id: string
           kind: string
           log_date: string
+          perguntado_para: string | null
           started_at: string
           user_id: string
         }
         Insert: {
+          confirmado_em?: string | null
           id?: string
           item_id: string
           kind: string
           log_date: string
+          perguntado_para?: string | null
           started_at: string
           user_id: string
         }
         Update: {
+          confirmado_em?: string | null
           id?: string
           item_id?: string
           kind?: string
           log_date?: string
+          perguntado_para?: string | null
           started_at?: string
           user_id?: string
         }

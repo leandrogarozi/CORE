@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { BellIcon, CheckIcon, PlayIcon, SendIcon } from "./icons";
-import { todayISO } from "@/lib/date-utils";
+import { fmtTempoCurto, todayISO } from "@/lib/date-utils";
 import { isReminderAlerting } from "@/lib/board/reminder-alerts";
+import { fimDoTempoAoPausar, minutosPrevistos, perguntaVenceEm } from "@/lib/board/timer-pergunta";
 
 // Quanto tempo depois do horário da refeição o aviso "Foco na dieta" ainda aparece.
 // Antes ele aparecia para TODA refeição já passada do dia, e como o "×" só
@@ -31,7 +32,6 @@ function minutosDoDia(hm: string): number {
 export function TimerNudges() {
   const { board } = useBoardCtx();
   const [nowMs, setNowMs] = useState<number | null>(null);
-  const [dismissedOverdue, setDismissedOverdue] = useState<Set<string>>(new Set());
   const [dismissedUpcoming, setDismissedUpcoming] = useState<Set<string>>(new Set());
   const [dismissedReminders, setDismissedReminders] = useState<Set<string>>(new Set());
   // O "×" da dieta vale pelo dia inteiro, mesmo fechando e abrindo o app.
@@ -58,41 +58,52 @@ export function TimerNudges() {
     return () => clearInterval(h);
   }, []);
 
-  const activeTaskTimers =
+  // "Você ainda está aí?": cronômetro rodando passou do tempo previsto (ou de 30 min sem confirmação).
+  const perguntas =
     nowMs !== null
-      ? board.state.activeTimers.filter((at) => at.kind === "task").flatMap((at) => {
-          const task = board.state.tasks.find((t) => t.id === at.itemId);
-          if (!task || !task.expectedDurationMin || dismissedOverdue.has(task.id)) return [];
-          const elapsedMin = Math.floor((nowMs! - at.startedAt) / 60000);
-          if (elapsedMin < task.expectedDurationMin) return [];
-          return [{ at, task }];
+      ? board.state.activeTimers.flatMap((at) => {
+          let nome: string | null = null;
+          let previsto: number | null = null;
+          if (at.kind === "task") {
+            const task = board.state.tasks.find((t) => t.id === at.itemId);
+            if (!task) return [];
+            nome = task.title;
+            previsto = minutosPrevistos(task);
+          } else {
+            const item = (at.kind === "habit" ? board.state.habits : board.state.fixedBlocks).find((x) => x.id === at.itemId);
+            if (!item) return [];
+            nome = item.name;
+            previsto = item.durationMin;
+          }
+          const venceEm = perguntaVenceEm(at.startedAt, at.confirmedAt, previsto);
+          if (nowMs < venceEm) return [];
+          return [{ at, nome, venceEm }];
         })
       : [];
 
-  const overdueBanners = activeTaskTimers.map(({ task }) => (
-    <div className="timer-nudge" key={`overdue-${task.id}`}>
-      <span className="timer-nudge-text">
-        <BellIcon filled />
-        &ldquo;{task.title}&rdquo; já passou dos {task.expectedDurationMin}min previstos. Terminou?
-      </span>
-      <div className="timer-nudge-actions">
-        <button type="button" className="btn btn-accent" onClick={() => board.concludeMeeting(task.id)}>
-          <CheckIcon /> Concluir
-        </button>
-        <button type="button" className="btn btn-ghost" onClick={() => board.bumpExpectedDuration(task.id, 15)}>
-          +15min
-        </button>
-        <button
-          type="button"
-          className="icon-btn timer-nudge-close"
-          onClick={() => setDismissedOverdue((s) => new Set(s).add(task.id))}
-          aria-label="Dispensar"
-        >
-          ×
-        </button>
+  const overdueBanners = perguntas.map(({ at, nome, venceEm }) => {
+    const rodando = fmtTempoCurto(Math.floor((nowMs! - at.startedAt) / 1000));
+    const fim = fimDoTempoAoPausar(venceEm, nowMs!);
+    const atrasada = fim === venceEm && nowMs! - venceEm > 60000;
+    const horaDaPergunta = new Date(venceEm).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    return (
+      <div className="timer-nudge timer-nudge-ainda" key={`ainda-${at.id}`} role="alert">
+        <span className="timer-nudge-text">
+          <BellIcon filled />
+          Você ainda está aí? &ldquo;{nome}&rdquo; está rodando há {rodando}.
+          {atrasada ? ` Se pausar, conto só até ${horaDaPergunta}.` : ""}
+        </span>
+        <div className="timer-nudge-actions">
+          <button type="button" className="btn btn-accent" onClick={() => board.confirmTimer(at.id)}>
+            <PlayIcon /> Continuar
+          </button>
+          <button type="button" className="btn btn-ghost" onClick={() => board.pauseTimerUntil(at.id, fim)}>
+            Pausar
+          </button>
+        </div>
       </div>
-    </div>
-  ));
+    );
+  });
 
   const today = todayISO();
   let upcoming: (typeof board.state.tasks)[number] | undefined;

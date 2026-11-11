@@ -8,6 +8,7 @@ import { sendWhatsAppReminderMessage } from "@/lib/whatsapp/send";
 import { AVISO_DE_CREDITO_BAIXO, CREDITO_INICIAL, decidirEnvio, saldoDe, tetoGlobalDoAmbiente } from "@/lib/whatsapp/credito";
 import { fmtDayMonth } from "@/lib/date-utils";
 import { enviarPushesDosLembretes } from "@/lib/push/dispatch";
+import { enviarPushesDosCronometros } from "@/lib/push/cronometros";
 import { enviarFrasesDaMetanoia } from "@/lib/push/metanoia";
 import { espelharNoGoogle } from "@/lib/google/agenda";
 import { avisarFeriadosDaSemana } from "@/lib/push/feriados";
@@ -62,6 +63,13 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     push = { candidatos: 0, avisados: 0, semAparelho: 0, erros: [e instanceof Error ? e.message : "falha no push"] };
   }
+  // "Você ainda está aí?" do cronômetro esquecido: canal próprio, falha aqui não cala os outros.
+  let cronometros: Awaited<ReturnType<typeof enviarPushesDosCronometros>>;
+  try {
+    cronometros = await enviarPushesDosCronometros(createServiceClient(), Date.now());
+  } catch (e) {
+    cronometros = { candidatos: 0, avisados: 0, erros: [e instanceof Error ? e.message : "falha no aviso dos cronômetros"] };
+  }
   // Frase da Metanoia nos horários escolhidos: canal próprio, falha aqui não cala os outros.
   let metanoia: Awaited<ReturnType<typeof enviarFrasesDaMetanoia>>;
   try {
@@ -93,7 +101,7 @@ export async function POST(req: NextRequest) {
   }
   const resposta = await dispararWhatsApp();
   const corpo = await resposta.json();
-  return NextResponse.json({ ...corpo, push, metanoia, backup, google, feriados }, { status: resposta.status });
+  return NextResponse.json({ ...corpo, push, cronometros, metanoia, backup, google, feriados }, { status: resposta.status });
 }
 
 async function dispararWhatsApp(): Promise<NextResponse> {

@@ -558,6 +558,7 @@ export function rowToActiveTimer(row: ActiveTimerRow): ActiveTimer {
     itemId: row.item_id,
     logDate: row.log_date,
     startedAt: new Date(row.started_at).getTime(),
+    confirmedAt: row.confirmado_em ? new Date(row.confirmado_em).getTime() : null,
   };
 }
 

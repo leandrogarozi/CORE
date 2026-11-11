@@ -389,6 +389,8 @@ export interface ActiveTimer {
   itemId: string;
   logDate: string;
   startedAt: number; // epoch ms
+  /** Última vez que ele respondeu "Continuar" ao "você ainda está aí?" (epoch ms). */
+  confirmedAt: number | null;
 }
 
 export type BookStatus = "para_ler" | "lendo" | "finalizado";

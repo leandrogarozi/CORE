@@ -64,6 +64,7 @@ export const TUTORIAL: SecaoDoTutorial[] = [
       "Raios (⚡ de 1 a 3): quanto mais raios, mais rápida de fazer. Toque no mesmo raio para tirar. O botão “Rápidas primeiro” ordena por eles.",
       "Arrastar: puxe a tarefa para reordenar. A que tem raio ou bandeira não-média é posicionada pela regra, não pelo arrasto.",
       "Play: o cronômetro conta o tempo que você trabalhou na tarefa, dia a dia. Dá para ver o tempo de cada dia e apagar o de um dia errado.",
+      "Você ainda está aí?: com o cronômetro rodando, o FARO pergunta quando o tempo previsto acaba (evento, reunião, tarefa com duração) ou, sem tempo previsto, depois de 30 minutos. “Continuar” recomeça a contagem de 30 min; “Pausar” para o cronômetro. Se você esquecer e só pausar horas depois, o tempo conta só até a hora da pergunta. O celular também recebe um aviso (repete a cada 30 min, até 3 vezes).",
       "Copiar tarefa: duplica a tarefa. Copiar o ID: cola o código (6 letras e números) num lembrete ou numa anotação, e a busca acha a tarefa por ele.",
       "Evento: desligado, é uma tarefa comum que pode mudar de dia; ligado, é um compromisso com hora marcada. Sem tag, o app pede para escolher entre Reunião e Evento.",
       "Rastrear (“Faro, rastreia!”): para tarefa de vários dias. Se o dia virar e ela não estiver concluída, o FARO a leva para hoje, mantendo status e horário, sem contar como adiamento nem atrasar.",

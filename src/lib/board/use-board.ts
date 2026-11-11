@@ -3936,9 +3936,10 @@ export function useBoard(userId: string | null) {
   }, []);
 
   const stopTimer = useCallback(
-    (at: ActiveTimer) => {
+    (at: ActiveTimer, endMs?: number) => {
       if (!userId) return;
-      const elapsed = Math.max(0, Math.floor((Date.now() - at.startedAt) / 1000));
+      // endMs: pausou depois de a pergunta "ainda está aí?" ficar sem resposta; o tempo vale só até a pergunta.
+      const elapsed = Math.max(0, Math.floor(((endMs ?? Date.now()) - at.startedAt) / 1000));
       if (at.kind === "task") {
         // Cai no dia em que o cronômetro COMEÇOU (at.logDate) — é o mesmo
         // critério de hábitos e blocos. Cronômetro que atravessa a meia-noite
@@ -4018,7 +4019,7 @@ export function useBoard(userId: string | null) {
         });
         return;
       }
-      const at: ActiveTimer = { id: uid(), kind, itemId: id, logDate, startedAt: Date.now() };
+      const at: ActiveTimer = { id: uid(), kind, itemId: id, logDate, startedAt: Date.now(), confirmedAt: null };
       apply((s) => ({ ...s, activeTimers: [...s.activeTimers, at] }));
       supabase
         .from("active_timer")
@@ -4026,6 +4027,37 @@ export function useBoard(userId: string | null) {
         .then(({ error }) => {
           if (error) reportSaveError("toggleTimer", error);
         });
+    },
+    [apply, stopTimer, supabase, userId]
+  );
+
+  // "Você ainda está aí?" — Continuar: recomeça a contagem de 30 min.
+  const confirmTimer = useCallback(
+    (timerId: string) => {
+      const agora = Date.now();
+      apply((s) => ({ ...s, activeTimers: s.activeTimers.map((at) => (at.id === timerId ? { ...at, confirmedAt: agora } : at)) }));
+      supabase
+        .from("active_timer")
+        .update({ confirmado_em: new Date(agora).toISOString() })
+        .eq("id", timerId)
+        .then(({ error }) => {
+          if (error) reportSaveError("confirmar cronômetro", error);
+        });
+    },
+    [apply, supabase]
+  );
+
+  // "Você ainda está aí?" — Pausar: para o cronômetro contando só até `fimMs` (a hora da pergunta, se ficou sem resposta).
+  const pauseTimerUntil = useCallback(
+    (timerId: string, fimMs: number) => {
+      if (!userId) return;
+      const running = stateRef.current.activeTimers.find((at) => at.id === timerId);
+      if (!running) return;
+      stopTimer(running, fimMs);
+      apply((s) => ({ ...s, activeTimers: s.activeTimers.filter((at) => at.id !== timerId) }));
+      supabase.from("active_timer").delete().eq("id", timerId).then(({ error }) => {
+        if (error) reportSaveError("pausar cronômetro", error);
+      });
     },
     [apply, stopTimer, supabase, userId]
   );
@@ -4069,7 +4101,7 @@ export function useBoard(userId: string | null) {
         cancelled: false,
         guests: [],
       };
-      const at: ActiveTimer = { id: uid(), kind: "task", itemId: t.id, logDate: today, startedAt: Date.now() };
+      const at: ActiveTimer = { id: uid(), kind: "task", itemId: t.id, logDate: today, startedAt: Date.now(), confirmedAt: null };
       apply((s) => ({ ...s, tasks: [...s.tasks, t], activeTimers: [...s.activeTimers, at] }));
       supabase.from("tasks").insert(taskToInsertRow(t, userId)).then(({ error }) => {
         if (error) reportSaveError("startMeeting task", error);
@@ -4681,6 +4713,8 @@ export function useBoard(userId: string | null) {
     startMeeting,
     addMeeting,
     bumpExpectedDuration,
+    confirmTimer,
+    pauseTimerUntil,
     concludeMeeting,
     updateSettings,
     uploadAvatar,

@@ -5367,3 +5367,6 @@ textarea.titulo-cresce{ display:block; resize:none; overflow:hidden; font-family
 .aviso-extra { display: flex; align-items: flex-start; gap: 6px; margin-top: 6px; }
 .aviso-extra .aviso-seletor { flex: 1; }
 .aviso-mais { margin-top: 6px; align-self: flex-start; padding: 4px 10px; font-size: 12px; }
+
+/* 11/11/2026 — "Você ainda está aí?" do cronômetro. */
+.timer-nudge-ainda { border-color: var(--accent); }
