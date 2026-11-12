@@ -5404,7 +5404,9 @@ textarea.titulo-cresce{ display:block; resize:none; overflow:hidden; font-family
 /* 12/11/2026 — Logo FARO leva para a página inicial; lembrete do sininho mostra o nome inteiro. */
 .brand-home{ background:none; border:0; padding:0; color:inherit; font-family:inherit; cursor:pointer; }
 .brand-home:hover{ opacity:.8; }
-.reminder-title-link{ flex:1; min-width:0; text-align:left; background:none; border:0; padding:2px 0; font-size:12px; line-height:1.35; color:var(--text); white-space:normal; overflow-wrap:anywhere; cursor:pointer; }
+.reminders-popover .reminder-row{ flex-wrap:wrap; row-gap:2px; }
+.reminders-popover .reminder-row .reminder-title-link{ flex:1 1 150px; min-width:150px; }
+.reminder-title-link{ flex:1; min-width:0; text-align:left; background:none; border:0; padding:2px 0; font-size:12px; line-height:1.35; color:var(--text); white-space:normal; overflow-wrap:break-word; cursor:pointer; }
 .reminder-title-link:hover{ color:var(--accent); }
 .reminder-row.done .reminder-title-link{ color:var(--text-faint); text-decoration:line-through; }
 
