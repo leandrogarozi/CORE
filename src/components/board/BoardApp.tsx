@@ -363,7 +363,9 @@ function BoardShell() {
         <button className="icon-btn menu-btn" type="button" aria-label="Abrir menu" onClick={() => setSidebarOpen(true)}>
           <MenuIcon />
         </button>
-        <div className="brand">FARO</div>
+        <button type="button" className="brand brand-home" title="Ir para a página inicial" aria-label="FARO — ir para a página inicial" onClick={goToday}>
+          FARO
+        </button>
         <TaskSearch onNavigate={handleSearchNavigate} />
         <div className="topbar-right">
           <AvisosButton onNavigate={selectView} />

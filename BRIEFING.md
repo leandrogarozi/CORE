@@ -6649,3 +6649,7 @@ Segundo botão ao lado de "Rápidas primeiro" (bandeirinha). Independentes: ráp
 ## 12/11/2026 — Eventos no Calendário e na saudação
 
 Calendário: compromissos do dia (reunião, evento ou "compromisso", via `eventosDoDia` em `src/lib/board/eventos-do-dia.ts`) aparecem em azul (`--info`) com hora e nome, até 2 por dia e "+N eventos"; célula mais alta (84px); no celular, pontinho azul. Saudação (`DayGreeting`): nova linha azul "Hoje: ... · Amanhã: ...". Cancelados e apagados ficam de fora. Push dedicado para eventos de amanhã NÃO foi feito (a mensagem do pedido veio cortada).
+
+## 12/11/2026 — Feedbacks: sininho de Lembretes e logo
+
+Na caixinha de Lembretes (sino), o nome do lembrete agora aparece inteiro, quebrando linha, e tocar nele abre o lembrete na tela cheia (via requestFocus) em vez de virar um campo editável; a edição fica na tela cheia. O logo FARO da barra de cima virou botão que leva à página inicial (Hoje).

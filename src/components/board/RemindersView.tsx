@@ -792,17 +792,9 @@ export function ReminderRow({ reminder }: { reminder: Reminder }) {
 }
 
 // Versão compacta (linha única, sem grid) pro popover estreito do sininho.
-function ReminderCompactRow({ reminder }: { reminder: Reminder }) {
+function ReminderCompactRow({ reminder, onOpen }: { reminder: Reminder; onOpen: () => void }) {
   const { board } = useBoardCtx();
   const concluir = useConcluirLembrete();
-  const [titleDraft, setTitleDraft] = useState<string | null>(null);
-
-  function commitTitle() {
-    if (titleDraft === null) return;
-    const trimmed = titleDraft.trim();
-    if (trimmed && trimmed !== reminder.title) board.updateReminder(reminder.id, { title: trimmed });
-    setTitleDraft(null);
-  }
 
   const today = todayISO();
   const overdue = isReminderOverdue(reminder);
@@ -827,14 +819,10 @@ function ReminderCompactRow({ reminder }: { reminder: Reminder }) {
       >
         {reminder.done && <CheckIcon />}
       </button>
-      <input
-        type="text"
-        className="reminder-title-input"
-        value={titleDraft ?? reminder.title}
-        onChange={(e) => setTitleDraft(e.target.value)}
-        onBlur={commitTitle}
-        onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-      />
+      {/* O nome inteiro, quebrando linha. Tocar nele abre o lembrete (a edição fica lá, na tela cheia). */}
+      <button type="button" className="reminder-title-link" title="Abrir este lembrete" onClick={onOpen}>
+        {reminder.title}
+      </button>
       {isRecurring && (
         <span className="chip chip-recurring">
           <RepeatIcon />
@@ -861,7 +849,7 @@ function ReminderCompactRow({ reminder }: { reminder: Reminder }) {
 }
 
 export function RemindersButton({ onOpenFull }: { onOpenFull: () => void }) {
-  const { board } = useBoardCtx();
+  const { board, requestFocus } = useBoardCtx();
   const [open, setOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newDate, setNewDate] = useState("");
@@ -1001,7 +989,15 @@ export function RemindersButton({ onOpenFull }: { onOpenFull: () => void }) {
             ) : (
               <div className="reminders-popover-list">
                 {pending.map((r) => (
-                  <ReminderCompactRow key={r.id} reminder={r} />
+                  <ReminderCompactRow
+                    key={r.id}
+                    reminder={r}
+                    onOpen={() => {
+                      requestFocus({ kind: "reminder", id: r.id });
+                      setOpen(false);
+                      onOpenFull();
+                    }}
+                  />
                 ))}
               </div>
             )}
