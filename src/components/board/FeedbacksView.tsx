@@ -41,6 +41,10 @@ export function FeedbacksView({ onBack }: { onBack: () => void }) {
   const [lista, setLista] = useState<Feedback[] | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [aba, setAba] = useState<Aba>("aresolver");
+  // Recado opcional por feedback e se avisa quem mandou (ligado: ao resolver, a pessoa recebe "resolvemos, confere").
+  const [recados, setRecados] = useState<Record<string, string>>({});
+  const [semAvisar, setSemAvisar] = useState<Set<string>>(new Set());
+  const [avisados, setAvisados] = useState<Set<string>>(new Set());
 
   const carregar = useCallback(async () => {
     try {
@@ -61,7 +65,13 @@ export function FeedbacksView({ onBack }: { onBack: () => void }) {
 
   async function marcar(f: Feedback, lido: boolean) {
     setLista((l) => (l ? l.map((x) => (x.id === f.id ? { ...x, lido_em: lido ? new Date().toISOString() : null } : x)) : l));
-    await fetch("/api/feedback", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: f.id, lido }) }).catch(() => {});
+    const r = await fetch("/api/feedback", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: f.id, lido, avisar: !semAvisar.has(f.id), recado: recados[f.id] ?? "" }),
+    }).catch(() => null);
+    const j = r ? await r.json().catch(() => null) : null;
+    if (j?.avisado) setAvisados((s) => new Set(s).add(f.id));
   }
 
   async function excluir(f: Feedback) {
@@ -114,6 +124,34 @@ export function FeedbacksView({ onBack }: { onBack: () => void }) {
               <span className="fb-data">{dataHora(f.criado_em)}</span>
             </div>
             <p className="fb-texto">{f.texto}</p>
+            {!f.lido_em && f.email && (
+              <div className="fb-aviso">
+                <input
+                  type="text"
+                  className="fb-recado"
+                  placeholder="Recado para quem mandou (opcional)"
+                  maxLength={300}
+                  value={recados[f.id] ?? ""}
+                  onChange={(e) => setRecados((r) => ({ ...r, [f.id]: e.target.value }))}
+                />
+                <label className="fb-check" title="Ao marcar como resolvido, a pessoa recebe um aviso no FARO e no celular">
+                  <input
+                    type="checkbox"
+                    checked={!semAvisar.has(f.id)}
+                    onChange={(e) =>
+                      setSemAvisar((s) => {
+                        const n = new Set(s);
+                        if (e.target.checked) n.delete(f.id);
+                        else n.add(f.id);
+                        return n;
+                      })
+                    }
+                  />
+                  <span>Avisar quem mandou ao resolver</span>
+                </label>
+              </div>
+            )}
+            {avisados.has(f.id) && <div className="fb-avisado">Aviso enviado para {f.email}.</div>}
             <div className="fb-rodape">
               <span className="fb-meta">
                 {f.pagina ? `Tela: ${f.pagina}` : ""}

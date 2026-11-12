@@ -84,17 +84,42 @@ export async function GET() {
   });
 }
 
-/** Marca como lido/resolvido (lido = true) ou volta para novo (lido = false). Corpo: { id, lido }. */
+/**
+ * Marca como lido/resolvido (lido = true) ou volta para novo (lido = false).
+ * Corpo: { id, lido, avisar?, recado? }.
+ * Ao RESOLVER (e só na primeira vez), avisa quem mandou: caixa de Avisos + push, "o dono disse que
+ * resolveu, confere se está ok". `avisar: false` resolve em silêncio; `recado` acrescenta uma frase do dono.
+ */
 export async function PATCH(req: NextRequest) {
-  if (!(await donoLogado())) return NextResponse.json({ erro: "so_dono" }, { status: 403 });
-  const corpo = (await req.json().catch(() => null)) as { id?: unknown; lido?: unknown } | null;
+  const donoId = await donoLogado();
+  if (!donoId) return NextResponse.json({ erro: "so_dono" }, { status: 403 });
+  const corpo = (await req.json().catch(() => null)) as { id?: unknown; lido?: unknown; avisar?: unknown; recado?: unknown } | null;
   if (typeof corpo?.id !== "string" || typeof corpo.lido !== "boolean") return NextResponse.json({ erro: "pedido_invalido" }, { status: 400 });
-  const { error } = await createServiceClient()
+  const servico = createServiceClient();
+  const { data: antes } = await servico.from("faro_feedback").select("user_id, texto, lido_em").eq("id", corpo.id).maybeSingle();
+  const { error } = await servico
     .from("faro_feedback")
     .update({ lido_em: corpo.lido ? new Date().toISOString() : null })
     .eq("id", corpo.id);
   if (error) return NextResponse.json({ erro: error.message }, { status: 500 });
-  return NextResponse.json({ ok: true });
+
+  let avisado = false;
+  if (corpo.lido && corpo.avisar !== false && antes && !antes.lido_em && antes.user_id !== donoId) {
+    try {
+      const { data: cfg } = await servico.from("settings").select("preferred_name").eq("user_id", donoId).maybeSingle();
+      const quem = cfg?.preferred_name?.trim() || "Quem cuida do FARO";
+      const trecho = antes.texto.replace(/\s+/g, " ").slice(0, 120) + (antes.texto.length > 120 ? "…" : "");
+      const recado = typeof corpo.recado === "string" ? corpo.recado.trim().slice(0, 300) : "";
+      const titulo = "Seu feedback foi resolvido";
+      const texto = `${quem} disse que resolveu o que você enviou: “${trecho}”. Confere se está tudo certo agora?${recado ? ` ${quem}: ${recado}` : ""}`;
+      await servico.from("faro_avisos").insert({ user_id: antes.user_id, tipo: "feedback_resolvido", titulo, corpo: texto, destino: null });
+      await enviarPushAoUsuario(servico, antes.user_id, { title: titulo, body: texto.slice(0, 160) }).catch(() => 0);
+      avisado = true;
+    } catch (e) {
+      console.error("feedback: aviso de resolvido falhou", e instanceof Error ? e.message : e);
+    }
+  }
+  return NextResponse.json({ ok: true, avisado });
 }
 
 /** Exclui um feedback de vez (só o dono). Corpo: { id }. */

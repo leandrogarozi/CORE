@@ -112,7 +112,7 @@ export const TUTORIAL: SecaoDoTutorial[] = [
       "Anotação solta: “anota: ver o preço da sauna”. Ele guarda em Anotações, ou no lugar certo quando o assunto tem um.",
       "Metanoia: “adiciona na Metanoia a frase ‘O que você faz todo dia constrói quem você é’, do James Clear”. Ele guarda frase e autor direto na Metanoia, aprovada; não vai para Anotações.",
       "Manutenção: “adiciona limpeza do dente 6 em 6 meses, feito em outubro” cria o item com o ciclo e a última vez. Ele pergunta o que faltar (em qual bem fica, de quanto em quanto tempo, o dia em que foi feito).",
-      "Feedbacks (só para quem administra o app): “resolve o feedback do botão do WhatsApp” marca como resolvido.",
+      "Feedbacks (só para quem administra o app): “resolve o feedback do botão do WhatsApp” marca como resolvido. Ao resolver, quem mandou recebe um aviso no FARO e no celular (“resolvi, confere se está ok”); dá para escrever um recado junto ou desligar o aviso.",
       "Plano de Estudo: “reorganiza meu plano de inglês para 4 horas por semana, só de segunda a quinta” refaz as sessões futuras (as já feitas e o tempo registrado nunca são apagados).",
       "Perguntas sobre o app: “me ensina a usar os lembretes”, “o que significa esse ícone?”. Ele responde com este tutorial.",
       "Saúde e remédios ficam fora: o FARO não lê nem envia essas informações à IA.",

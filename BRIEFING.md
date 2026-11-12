@@ -6653,3 +6653,7 @@ Calendário: compromissos do dia (reunião, evento ou "compromisso", via `evento
 ## 12/11/2026 — Feedbacks: sininho de Lembretes e logo
 
 Na caixinha de Lembretes (sino), o nome do lembrete agora aparece inteiro, quebrando linha, e tocar nele abre o lembrete na tela cheia (via requestFocus) em vez de virar um campo editável; a edição fica na tela cheia. O logo FARO da barra de cima virou botão que leva à página inicial (Hoje).
+
+## 12/11/2026 — Resolver feedback avisa quem mandou
+
+PATCH /api/feedback: ao marcar resolvido pela primeira vez, insere em `faro_avisos` (tipo `feedback_resolvido`, destino null) + push para o autor: "<nome do dono> disse que resolveu o que você enviou: “trecho”. Confere se está tudo certo agora?" (+ recado opcional). `avisar:false` resolve em silêncio. Não avisa se o autor é o próprio dono, nem ao reabrir/re-resolver. Vale também quando o dono resolve pelo cachorrinho. FeedbacksView: campo "Recado" e caixinha "Avisar quem mandou ao resolver".
