@@ -3,6 +3,7 @@
 import { useBoardCtx } from "./board-context";
 import { CalendarCheckIcon, GiftIcon } from "./icons";
 import { feriadosEntre } from "@/lib/feriados";
+import { eventosDoDia, rotuloDoEvento } from "@/lib/board/eventos-do-dia";
 import { diasAteAniversario, idadeQueFara, ordenarPorProximos } from "@/lib/board/aniversarios";
 import { todayISO } from "@/lib/date-utils";
 import { isFeatureEnabled, isMeetingTask } from "@/lib/types";
@@ -56,6 +57,15 @@ export function DayGreeting({ onAtrasadas }: { onAtrasadas?: () => void }) {
   const verFeriados = isFeatureEnabled(board.state.settings.featureFlags, "feriados");
   const feriados = verFeriados ? feriadosEntre(hoje, somaDias(hoje, 6)).slice(0, 3) : [];
 
+  // Compromissos de hoje (que ainda não passaram/foram feitos) e de amanhã, para não pegar ninguém de surpresa.
+  const amanha = somaDias(hoje, 1);
+  const eventosHoje = eventosDoDia(board.state.tasks, hoje).filter((t) => !t.done);
+  const eventosAmanha = eventosDoDia(board.state.tasks, amanha).filter((t) => !t.done);
+  const gruposDeEventos = [
+    { rotulo: "Hoje", lista: eventosHoje },
+    { rotulo: "Amanhã", lista: eventosAmanha },
+  ].filter((g) => g.lista.length > 0);
+
   return (
     <div className="day-greeting">
       <h1 className="day-greeting-text">
@@ -98,6 +108,20 @@ export function DayGreeting({ onAtrasadas }: { onAtrasadas?: () => void }) {
           </span>
         )}
       </h1>
+      {gruposDeEventos.length > 0 && (
+        <div className="day-greeting-eventos">
+          <CalendarCheckIcon />
+          <span>
+            {gruposDeEventos.map((g, i) => (
+              <span key={g.rotulo}>
+                {i > 0 && " · "}
+                <b>{g.rotulo}:</b> {g.lista.slice(0, 3).map(rotuloDoEvento).join(", ")}
+                {g.lista.length > 3 ? ` e mais ${g.lista.length - 3}` : ""}
+              </span>
+            ))}
+          </span>
+        </div>
+      )}
       {aniversarios.length > 0 && (
         <div className="day-greeting-aniv">
           <GiftIcon />

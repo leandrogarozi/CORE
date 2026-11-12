@@ -5385,3 +5385,18 @@ textarea.titulo-cresce{ display:block; resize:none; overflow:hidden; font-family
 .rte-emoji-grade{ display:grid; grid-template-columns:repeat(8, 1fr); gap:2px; max-height:200px; overflow-y:auto; }
 .rte-emoji-item{ font-size:20px; line-height:1; padding:5px 0; border-radius:6px; }
 .rte-emoji-item:hover{ background:var(--surface-2); transform:scale(1.15); }
+
+/* 12/11/2026 — Eventos da agenda no calendário (azul) e na saudação. */
+.cal-day-evento{ display:block; max-width:100%; min-width:0; font-size:9.5px; line-height:1.2; font-weight:600; color:var(--info); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cal-day-evento.feito{ text-decoration:line-through; opacity:.6; }
+.cal-day-evento.mais{ color:var(--text-faint); font-weight:500; }
+.cal-day{ min-height:84px; }
+.day-greeting-eventos{ display:flex; align-items:center; gap:8px; margin-top:6px; font-size:12.5px; color:var(--text-muted); flex-wrap:wrap; }
+.day-greeting-eventos svg{ width:14px; height:14px; flex:none; color:var(--info); }
+.day-greeting-eventos b{ color:var(--info); font-weight:650; }
+@media (max-width:640px){
+  /* No celular não cabe texto na célula: vira um pontinho azul ao lado do número, como o do feriado. */
+  .cal-day-evento{ display:none; }
+  .cal-day:has(.cal-day-evento) .cal-day-num::after{ content:""; display:inline-block; width:5px; height:5px; border-radius:50%; background:var(--info); margin-left:3px; vertical-align:middle; }
+  .cal-day{ min-height:58px; }
+}

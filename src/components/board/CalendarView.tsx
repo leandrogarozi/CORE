@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useBoardCtx } from "./board-context";
 import { feriadoDe } from "@/lib/feriados";
+import { eventosDoDia, rotuloDoEvento } from "@/lib/board/eventos-do-dia";
 import { isFeatureEnabled } from "@/lib/types";
 import { isoFromDate, monthAnchorOf, monthGridDates, todayISO, MONTH_NAMES_FULL, DAY_NAMES } from "@/lib/date-utils";
 
@@ -28,7 +29,8 @@ export function CalendarView({
       const chips = statuses
         .map((st) => ({ id: st.id, color: st.color, count: dayTasks.filter((t) => t.statusId === st.id).length }))
         .filter((c) => c.count > 0);
-      return { iso, dayNum: d.getDate(), inMonth: d.getMonth() === monthAnchor.getMonth(), chips, feriado: verFeriados ? feriadoDe(iso) : null };
+      const eventos = eventosDoDia(dayTasks, iso).map((t) => ({ id: t.id, texto: rotuloDoEvento(t), feito: t.done }));
+      return { iso, dayNum: d.getDate(), inMonth: d.getMonth() === monthAnchor.getMonth(), chips, eventos, feriado: verFeriados ? feriadoDe(iso) : null };
     });
   }, [monthAnchor, board.state.tasks, statuses, verFeriados]);
 
@@ -103,6 +105,12 @@ export function CalendarView({
                   {cell.feriado.nome}
                 </span>
               )}
+              {cell.eventos.slice(0, 2).map((e) => (
+                <span key={e.id} className={"cal-day-evento" + (e.feito ? " feito" : "")} title={e.texto}>
+                  {e.texto}
+                </span>
+              ))}
+              {cell.eventos.length > 2 && <span className="cal-day-evento mais">+{cell.eventos.length - 2} {cell.eventos.length - 2 === 1 ? "evento" : "eventos"}</span>}
               {cell.chips.length > 0 && (
                 <div className="cal-day-chips">
                   {cell.chips.map((c) => (

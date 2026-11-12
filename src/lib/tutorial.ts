@@ -133,6 +133,7 @@ export const TUTORIAL: SecaoDoTutorial[] = [
     linhas: [
       "Semana: os 7 dias lado a lado. Você adiciona tarefa direto no dia.",
       "Calendário: o mês inteiro; toque num dia para ir até ele ou numa semana para abrir a Semana.",
+      "Eventos da agenda: reuniões e compromissos aparecem no Calendário, em azul, com a hora e o nome embaixo do número do dia (até 2 por dia; no celular vira um pontinho azul). Embaixo da saudação o FARO lista os de hoje e de amanhã.",
       "Feriados: o FARO mostra os feriados e pontos facultativos nacionais do Brasil no Calendário (em vermelho os feriados, em cinza os facultativos), na Semana e embaixo da saudação nos 7 dias antes. No domingo à noite ele avisa se a semana seguinte tem feriado. Feriados de estado e de cidade não entram. Para desligar: Configurações > Painéis da tela principal > Feriados.",
     ],
   },

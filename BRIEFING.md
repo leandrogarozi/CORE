@@ -6645,3 +6645,7 @@ Botão 🙂 na barra do RichTextEditor abre um seletor com 6 grupos (mais usados
 ## 11/11/2026 — Botão "Por prioridades"
 
 Segundo botão ao lado de "Rápidas primeiro" (bandeirinha). Independentes: rápidas ordena por raios; prioridades por bandeira (alta, média, baixa); ligados juntos, raios primeiro e bandeira desempata. Liga sozinho ao marcar uma bandeira diferente de média (clique na bandeira ou na edição). Preferência salva em `faro-sort-by-priority`. Antes, "Rápidas primeiro" já usava a bandeira como desempate; agora isso só vale com "Por prioridades" ligado.
+
+## 12/11/2026 — Eventos no Calendário e na saudação
+
+Calendário: compromissos do dia (reunião, evento ou "compromisso", via `eventosDoDia` em `src/lib/board/eventos-do-dia.ts`) aparecem em azul (`--info`) com hora e nome, até 2 por dia e "+N eventos"; célula mais alta (84px); no celular, pontinho azul. Saudação (`DayGreeting`): nova linha azul "Hoje: ... · Amanhã: ...". Cancelados e apagados ficam de fora. Push dedicado para eventos de amanhã NÃO foi feito (a mensagem do pedido veio cortada).
