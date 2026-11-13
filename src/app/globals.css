@@ -5414,3 +5414,11 @@ textarea.titulo-cresce{ display:block; resize:none; overflow:hidden; font-family
 .fb-aviso{ display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; margin:8px 0 2px; }
 .fb-recado{ flex:1 1 220px; min-width:0; font-size:12px; padding:6px 10px; border:1px solid var(--linha); border-radius:var(--r-2); background:var(--surface); color:var(--text); }
 .fb-avisado{ font-size:11.5px; color:var(--accent); margin:4px 0 0; }
+
+/* 13/11/2026 — Dashboard: coluna do meio empilhada (sem buraco) e anotação sensível oculta no aviso. */
+.dsh-coluna-meio{ display:flex; flex-direction:column; gap:var(--sp-3); min-width:0; }
+@media (min-width:1041px){
+  .dsh-coluna-meio{ grid-column:2; grid-row:1; }
+  .dsh-card-humor{ grid-column:3; grid-row:1; }
+}
+.anot-painel-oculto{ color:var(--text-muted); font-style:italic; }

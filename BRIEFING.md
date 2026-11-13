@@ -6657,3 +6657,7 @@ Na caixinha de Lembretes (sino), o nome do lembrete agora aparece inteiro, quebr
 ## 12/11/2026 — Resolver feedback avisa quem mandou
 
 PATCH /api/feedback: ao marcar resolvido pela primeira vez, insere em `faro_avisos` (tipo `feedback_resolvido`, destino null) + push para o autor: "<nome do dono> disse que resolveu o que você enviou: “trecho”. Confere se está tudo certo agora?" (+ recado opcional). `avisar:false` resolve em silêncio. Não avisa se o autor é o próprio dono, nem ao reabrir/re-resolver. Vale também quando o dono resolve pelo cachorrinho. FeedbacksView: campo "Recado" e caixinha "Avisar quem mandou ao resolver".
+
+## 13/11/2026 — Dashboard: aviso de anotação sem senha e coluna do meio sem buraco
+
+AnotacoesPainel: nota com senha/login/usuário/token/cartão ou assunto de saúde (pareceSaude) mostra "Texto oculto" no aviso do Dashboard (tela pode estar compartilhada). Dashboard: gráfico por dia, hábitos e horas por cliente agora ficam empilhados na coluna do meio (`.dsh-coluna-meio`), Humor/Sono na 3ª; em telas ≤1040px volta à ordem normal. Aprovado dos 7 itens da revisão: só 1 e 4.

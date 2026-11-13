@@ -526,34 +526,7 @@ export function Dashboard({ abrirAtrasadas = false, onAbrirAnotacoes }: { abrirA
           ))}
         </div>
 
-        {stats.porDia.length > 1 && (
-          <div className="dsh-card">
-            <div className="dsh-card-title">
-              Concluídas e pendentes por dia
-            </div>
-            <div className="dsh-dia-chart" role="img" aria-label="Tarefas concluídas e pendentes em cada dia do período">
-              {stats.porDia.map((d) => (
-                <div className="dsh-dia-col" key={d.iso} title={`${fmtDayMonth(d.iso)}: ${d.done} concluídas, ${d.pending} pendentes`}>
-                  <span className="dsh-dia-n">{d.done + d.pending > 0 ? d.done + d.pending : ""}</span>
-                  <span className="dsh-dia-pend" style={{ height: `${(d.pending / maxPorDia) * 96}px` }} />
-                  <span className="dsh-dia-done" style={{ height: `${(d.done / maxPorDia) * 96}px` }} />
-                </div>
-              ))}
-            </div>
-            <div className="dsh-dia-eixo">
-              {stats.porDia.map((d) => (
-                <span key={d.iso} className={d.iso === today ? "hoje" : undefined}>
-                  {period === "month" ? dateFromISO(d.iso).getDate() : DAY_NAMES[dateFromISO(d.iso).getDay()].slice(0, 3)}
-                </span>
-              ))}
-            </div>
-            <div className="dsh-hint">
-              <span className="dsh-legenda-quad done" /> concluídas <span className="dsh-legenda-quad pend" /> pendentes
-            </div>
-          </div>
-        )}
-
-        <div className="dsh-card">
+        <div className="dsh-card dsh-card-humor">
           {moodOn && (
             <>
               <div className="dsh-card-title">Humor</div>
@@ -630,6 +603,35 @@ export function Dashboard({ abrirAtrasadas = false, onAbrirAnotacoes }: { abrirA
             continuam fora — ele foi explícito que ali no Dashboard não quer
             aquilo, e já tinha pedido pra remover. Resumo lê; a home é onde se
             mexe. */}
+        {/* Coluna do meio: gráfico, hábitos e horas por cliente empilhados. Assim "Horas por cliente" não fica sozinho com a linha vazia ao lado, e o gráfico não estica por causa do vizinho. */}
+        <div className="dsh-coluna-meio">
+        {stats.porDia.length > 1 && (
+          <div className="dsh-card">
+            <div className="dsh-card-title">
+              Concluídas e pendentes por dia
+            </div>
+            <div className="dsh-dia-chart" role="img" aria-label="Tarefas concluídas e pendentes em cada dia do período">
+              {stats.porDia.map((d) => (
+                <div className="dsh-dia-col" key={d.iso} title={`${fmtDayMonth(d.iso)}: ${d.done} concluídas, ${d.pending} pendentes`}>
+                  <span className="dsh-dia-n">{d.done + d.pending > 0 ? d.done + d.pending : ""}</span>
+                  <span className="dsh-dia-pend" style={{ height: `${(d.pending / maxPorDia) * 96}px` }} />
+                  <span className="dsh-dia-done" style={{ height: `${(d.done / maxPorDia) * 96}px` }} />
+                </div>
+              ))}
+            </div>
+            <div className="dsh-dia-eixo">
+              {stats.porDia.map((d) => (
+                <span key={d.iso} className={d.iso === today ? "hoje" : undefined}>
+                  {period === "month" ? dateFromISO(d.iso).getDate() : DAY_NAMES[dateFromISO(d.iso).getDay()].slice(0, 3)}
+                </span>
+              ))}
+            </div>
+            <div className="dsh-hint">
+              <span className="dsh-legenda-quad done" /> concluídas <span className="dsh-legenda-quad pend" /> pendentes
+            </div>
+          </div>
+        )}
+
         {((habitosOn && stats.habitStats.length > 0) || (diaADiaOn && stats.blockStats.length > 0)) && (
           <div className="dsh-card">
             {habitosOn && stats.habitStats.length > 0 && (
@@ -694,6 +696,8 @@ export function Dashboard({ abrirAtrasadas = false, onAbrirAnotacoes }: { abrirA
             </div>
           </div>
         )}
+
+        </div>
 
         {/* Faixa de largura inteira, não um terceiro cartão na grade de duas
             colunas: um cartão sozinho na segunda linha deixaria metade da linha
