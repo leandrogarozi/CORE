@@ -6667,3 +6667,10 @@ AnotacoesPainel: nota com senha/login/usuário/token/cartão ou assunto de saúd
 - **Causa:** o resumo que vai para a IA é cortado em `LIMITE_DO_RESUMO` caracteres (`conversa.ts`) e o PANORAMA era a última seção, depois de estudos, manutenção e dispensa. O corte levava embora quase todo o panorama (sobravam ~3 dias).
 - **Correção:** o panorama sobe para antes dessas seções; o limite foi de 8000 para 12000.
 - **Cruzamento de volta:** cada dia do panorama agora traz `estudo` (cronômetro dos planos de estudo) e `marcou:` (hábitos e blocos da rotina marcados: Leitura, Gratidão, Crossfit, Corrida, Lazer...). Há também a linha `DIAS MARCADOS NOS ÚLTIMOS 30 DIAS` (X/30 por hábito). A instrução manda cruzar isso com tarefas, cronômetro, humor e sono, dizendo "parece" (correlação, não prova).
+
+## FARO: relatório de produtividade organizado, com cruzamentos e janela ampliável (14/11)
+
+- **Resposta cortada ("D…"):** `MAX_TOKENS_DA_RESPOSTA` era 1024; agora 2048. Limite do resumo 16000.
+- **Cruzamentos prontos:** `cruzamentosDosPeriodos` (resumo-do-dia.ts) calcula, para este mês / 30 / 90 dias (hoje fora), total e média de tarefas, cronômetro, humor, sono e, por hábito/bloco (Leitura, Gratidão, exercício...), além de "dormiu 7h+" e "estudou", os números COM vs SEM a marca (só com 3+ dias de cada lado). A conta é do código, não da IA.
+- **Formato e período:** pergunta geral de produtividade sem período → o FARO pergunta "este mês, 30 dias ou 3 meses?"; depois responde em RESUMO / O QUE ANDA JUNTO / O QUE NÃO MOSTROU DIFERENÇA / SUGESTÃO, em texto puro.
+- **Janela ampliável:** botão ▲▼ no topo da janela do FARO (`ampliado` em FaroMascot.tsx; CSS `.faro-ampliado`): 680px de largura e lista mais alta.

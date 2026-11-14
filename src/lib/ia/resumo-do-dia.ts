@@ -128,6 +128,7 @@ export function resumoDoDia(estado: Estado, hoje: string): string {
   // O panorama vem ANTES das seções longas (estudos, manutenção, dispensa): o resumo é cortado no
   // limite de caracteres, e o que fica no fim é o que se perde. Era isso que deixava só 3 dos 14 dias.
   linhas.push(panoramaDosDias(estado, hoje, 14));
+  linhas.push(cruzamentosDosPeriodos(estado, hoje));
 
   const comGastos = estado.checklists.filter((c) => c.expensesEnabled).map((c) => c.title);
   if (estado.checklists.length) {
@@ -219,6 +220,81 @@ export function panoramaDosDias(estado: Estado, hoje: string, dias: number): str
     linhas.push(`DIAS MARCADOS NOS ÚLTIMOS ${janela} DIAS: ${contagem.join("; ")}.`);
   }
   return linhas.join("\n");
+}
+
+const num = (n: number, casas = 1) => n.toFixed(casas).replace(".", ",");
+const media = (v: number[]) => (v.length ? v.reduce((a, b) => a + b, 0) / v.length : null);
+
+/**
+ * Cruzamentos já calculados (a conta é do código, não da IA): para cada período, o total e, para cada hábito/bloco da rotina
+ * (Leitura, Gratidão, Crossfit...), como foram tarefas, cronômetro, humor e sono nos dias COM e SEM a marca.
+ * Hoje fica de fora (o dia ainda está aberto). Só entra o que tem ao menos 3 dias de cada lado.
+ */
+export function cruzamentosDosPeriodos(estado: Estado, hoje: string): string {
+  const feitas = new Map<string, number>();
+  for (const t of estado.tasks) if (t.done && t.date && !t.deletedAt) feitas.set(t.date, (feitas.get(t.date) ?? 0) + 1);
+  const seg = new Map<string, number>();
+  for (const e of estado.taskTimeEntries) seg.set(e.date, (seg.get(e.date) ?? 0) + e.seconds);
+  const rotinas = [...estado.habits, ...estado.fixedBlocks];
+
+  const dia = (iso: string) => {
+    const log = estado.dailyLogs[iso];
+    const sono = duracaoDoSonoMin(log?.sleptAt ?? null, log?.wokeAt ?? null);
+    const mood = log?.mood ?? null;
+    return {
+      iso,
+      tarefas: feitas.get(iso) ?? 0,
+      horas: (seg.get(iso) ?? 0) / 3600,
+      humor: mood !== null && mood > 0 ? mood : null,
+      sono,
+    };
+  };
+
+  const periodos: { nome: string; dias: number }[] = [];
+  const diaDoMes = Number(hoje.slice(8, 10));
+  if (diaDoMes - 1 >= 3) periodos.push({ nome: "ESTE MÊS", dias: diaDoMes - 1 });
+  periodos.push({ nome: "ÚLTIMOS 30 DIAS", dias: 30 }, { nome: "ÚLTIMOS 90 DIAS", dias: 90 });
+
+  const saida = [
+    "\nCRUZAMENTOS POR PERÍODO (já calculados; hoje fora; \"com\" = dias em que o hábito foi marcado, \"sem\" = dias em que não foi; só afirme relação se houver 3+ dias de cada lado e a diferença for clara):",
+  ];
+  for (const per of periodos) {
+    const lista = [];
+    for (let i = 1; i <= per.dias; i++) lista.push(dia(isoAddDays(hoje, -i)));
+    const total = lista.reduce((a, d) => a + d.tarefas, 0);
+    const comCron = lista.filter((d) => d.horas > 0);
+    const hm = media(lista.map((d) => d.humor).filter((x): x is number => x !== null));
+    const sm = media(lista.map((d) => d.sono).filter((x): x is number => x !== null));
+    saida.push(
+      `${per.nome} (${dataBr(lista[lista.length - 1].iso)} a ${dataBr(lista[0].iso)}, ${lista.length} dias): ${total} tarefas concluídas (${num(total / lista.length)} por dia); ` +
+        `cronômetro médio ${comCron.length ? num(media(comCron.map((d) => d.horas)) ?? 0) + "h nos " + comCron.length + " dias com cronômetro" : "sem registro"}; ` +
+        `humor médio ${hm === null ? "—" : num(hm)}; sono médio ${sm === null ? "—" : fmtHorasMin(Math.round(sm))}.`
+    );
+    const comparar = (rotulo: string, com: ReturnType<typeof dia>[], sem: ReturnType<typeof dia>[]) => {
+      if (com.length < 3 || sem.length < 3) return;
+      const par = (f: (d: ReturnType<typeof dia>) => number | null, c = 1) => {
+        const a = media(com.map(f).filter((x): x is number => x !== null));
+        const b = media(sem.map(f).filter((x): x is number => x !== null));
+        return a === null || b === null ? null : `${num(a, c)} com vs ${num(b, c)} sem`;
+      };
+      const partes = [
+        `tarefas/dia ${par((d) => d.tarefas)}`,
+        par((d) => d.humor) ? `humor ${par((d) => d.humor)}` : null,
+        par((d) => (d.horas > 0 ? d.horas : null)) ? `cronômetro (h) ${par((d) => (d.horas > 0 ? d.horas : null))}` : null,
+      ].filter(Boolean);
+      saida.push(`  · ${rotulo}: ${com.length} dias com, ${sem.length} sem | ${partes.join(" | ")}`);
+    };
+    for (const r of rotinas) {
+      const com = lista.filter((d) => r.logs[d.iso]?.checked === true);
+      comparar(r.name, com, lista.filter((d) => r.logs[d.iso]?.checked !== true));
+    }
+    const comSono = lista.filter((d) => d.sono !== null);
+    comparar("Dormiu 7h ou mais", comSono.filter((d) => (d.sono ?? 0) >= 420), comSono.filter((d) => (d.sono ?? 0) < 420));
+    const estudo = new Set(estado.tasks.filter((t) => !t.deletedAt && t.studyPlanId).map((t) => t.id));
+    const diasEstudo = new Set(estado.taskTimeEntries.filter((e) => estudo.has(e.taskId) && e.seconds > 0).map((e) => e.date));
+    comparar("Estudou (cronômetro de estudo)", lista.filter((d) => diasEstudo.has(d.iso)), lista.filter((d) => !diasEstudo.has(d.iso)));
+  }
+  return saida.join("\n");
 }
 
 /** Anotações novas (as que ele ainda não revisou), sem as marcadas "só minha". */

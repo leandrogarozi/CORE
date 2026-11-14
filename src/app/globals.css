@@ -5422,3 +5422,9 @@ textarea.titulo-cresce{ display:block; resize:none; overflow:hidden; font-family
   .dsh-card-humor{ grid-column:3; grid-row:1; }
 }
 .anot-painel-oculto{ color:var(--text-muted); font-style:italic; }
+
+/* Janela do FARO ampliada: botão ▲▼ no topo; a conversa ganha largura e altura para ler respostas longas. */
+.faro-janela-cab .faro-ampliar{ margin-left:auto; margin-right:2px; display:flex; align-items:center; }
+.faro-bubble.faro-bubble-chat.faro-ampliado{ width:min(680px, calc(100vw - 28px)); }
+.faro-ampliado .faro-chat-lista{ max-height:min(68vh, 620px); }
+.faro-ampliado .faro-fala{ font-size:14px; max-width:100%; }

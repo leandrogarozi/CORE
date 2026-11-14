@@ -68,6 +68,7 @@ function ehCelular(): boolean {
 export function FaroMascot({ comDock = false }: { comDock?: boolean }) {
   const { board } = useBoardCtx();
   const [open, setOpen] = useState(false);
+  const [ampliado, setAmpliado] = useState(false);
   const [falas, setFalas] = useState<Fala[]>([]);
   const [texto, setTexto] = useState("");
   const [pensando, setPensando] = useState(false);
@@ -303,9 +304,20 @@ export function FaroMascot({ comDock = false }: { comDock?: boolean }) {
   return (
     <div className={"faro-mascot" + (comDock ? " com-dock" : "")}>
       {open && (
-        <div className="faro-bubble faro-bubble-chat">
+        <div className={"faro-bubble faro-bubble-chat" + (ampliado ? " faro-ampliado" : "")}>
           <div className="faro-janela-cab">
             <b>FARO</b>
+            <button
+              className="faro-bubble-close faro-ampliar"
+              type="button"
+              aria-label={ampliado ? "Reduzir a janela" : "Ampliar a janela"}
+              title={ampliado ? "Reduzir" : "Ampliar"}
+              onClick={() => setAmpliado((v) => !v)}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                {ampliado ? <path d="M7 4l5 5 5-5M7 20l5-5 5 5" /> : <path d="M7 9l5-5 5 5M7 15l5 5 5-5" />}
+              </svg>
+            </button>
             <button className="faro-bubble-close" type="button" aria-label="Fechar" onClick={() => setOpen(false)}>
               ×
             </button>
