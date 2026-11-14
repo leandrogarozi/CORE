@@ -27,7 +27,7 @@ export const NOVIDADES: Novidade[] = [
     data: "2026-11-14",
     titulo: "O FARO lança hábitos e lazer por voz",
     corpo:
-      "Diga “lança lazer, 1h30 de futebol com meu filho” e o FARO registra o tempo no dia, na aba Hábitos. Se faltar o tempo ou o tipo (nos hábitos que têm opções cadastradas), ele pergunta antes. Você confirma no cartão.",
+      "Diga “lança lazer, 1h30 de futebol com meu filho” e o FARO registra o tempo no dia, na aba Hábitos. Vale para todos os hábitos e blocos da rotina. Se faltar o tempo, o tipo ou um detalhe (“Como você se sentiu?”, “O que você estudou?”), ele pergunta. Se for algo que não está nas opções, ele cadastra a opção nova e lança. Você confirma no cartão.",
   },
   {
     id: "2026-11-14-resumo-da-semana",

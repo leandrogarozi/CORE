@@ -51,6 +51,7 @@ export interface QuadroParaAcoes {
   habits: RecurringItem[];
   fixedBlocks: RecurringItem[];
   commitRecurringDay: (kind: "habit" | "block", id: string, iso: string, minutes: number, note?: string) => void;
+  updateRecurringNoteOptions: (kind: "habit" | "block", id: string, noteOptions: string[]) => void;
   addBlockLogEntry: (blockId: string, iso: string, note: string, minutes: number) => void;
   /** O registro de hoje, para somar água em cima do que já tem. */
   logDeHoje: DailyLog | undefined;
@@ -235,7 +236,15 @@ export async function executarAcao(acaoBruta: AcaoProposta, quadro: QuadroParaAc
       // Opção cadastrada que combina com o que ele disse; se não combina, vale o texto dele.
       const nota = acao.anotacao;
       const opcao = nota ? opcoes.find((o) => semAcento(o) === semAcento(nota)) ?? opcoes.find((o) => semAcento(nota).includes(semAcento(o)) || semAcento(o).includes(semAcento(nota))) : undefined;
-      const anotacao = opcao ?? nota ?? "";
+      // Item que já usa opções e a anotação é algo novo: cadastra como opção nova (nunca troca nem apaga as existentes).
+      let opcaoNovaCadastrada = false;
+      let anotacao = opcao ?? nota ?? "";
+      if (!opcao && nota && opcoes.length > 0 && acao.novaOpcao) {
+        anotacao = nota.charAt(0).toUpperCase() + nota.slice(1);
+        quadro.updateRecurringNoteOptions(kind, item.id, [...opcoes, anotacao]);
+        opcaoNovaCadastrada = true;
+      }
+      const aviso = opcaoNovaCadastrada ? ` A opção "${anotacao}" não existia: cadastrei em ${item.name}.` : "";
       const antes = item.logs[dia];
 
       // Bloco com opções: cada lançamento é uma entrada (tipo + minutos) e precisa dos dois.
@@ -244,7 +253,7 @@ export async function executarAcao(acaoBruta: AcaoProposta, quadro: QuadroParaAc
         const min = acao.minutos ?? item.durationMin;
         if (!min) return { ok: false, mensagem: `Quanto tempo foi em "${item.name}"?` };
         quadro.addBlockLogEntry(item.id, dia, anotacao, min);
-        return { ok: true, mensagem: `${item.name} (${dataTxt}): ${duracaoCurta(min)} de ${anotacao} lançados.` };
+        return { ok: true, mensagem: `${item.name} (${dataTxt}): ${duracaoCurta(min)} de ${anotacao} lançados.${aviso}` };
       }
 
       // Hábito ou bloco simples: soma ao que já estava no dia, nunca apaga o que havia.
@@ -255,7 +264,7 @@ export async function executarAcao(acaoBruta: AcaoProposta, quadro: QuadroParaAc
       const notaFinal = [notaAntes, anotacao].filter((t, i, v) => t && v.indexOf(t) === i).join(", ");
       quadro.commitRecurringDay(kind, item.id, dia, total, notaFinal || undefined);
       const soma = minutosAntes > 0 && minutosAgora > 0 ? ` (somou ao que já tinha: ${duracaoCurta(minutosAntes)})` : "";
-      return { ok: true, mensagem: `${item.name} (${dataTxt}) lançado${total ? `: ${duracaoCurta(total)}` : ""}${notaFinal ? `, ${notaFinal}` : ""}${soma}.` };
+      return { ok: true, mensagem: `${item.name} (${dataTxt}) lançado${total ? `: ${duracaoCurta(total)}` : ""}${notaFinal ? `, ${notaFinal}` : ""}${soma}.${aviso}` };
     }
     case "registrar_dieta": {
       quadro.updateDailyLog(hoje, { dietPct: acao.percentual });
@@ -400,7 +409,7 @@ function converterParaEntrada(a: AcaoProposta): Record<string, unknown> {
     case "registrar_agua":
       return { ml: a.ml };
     case "registrar_habito":
-      return { nome: a.nome, minutos: a.minutos ?? undefined, anotacao: a.anotacao ?? undefined, data: a.data ?? undefined };
+      return { nome: a.nome, minutos: a.minutos ?? undefined, anotacao: a.anotacao ?? undefined, opcao_nova: a.novaOpcao, data: a.data ?? undefined };
     case "registrar_dieta":
       return { percentual: a.percentual };
     case "repor_dispensa":

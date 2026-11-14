@@ -6711,3 +6711,5 @@ AnotacoesPainel: nota com senha/login/usuário/token/cartão ou assunto de saúd
 - **Perguntas:** o resumo do dia ganhou a seção "HÁBITOS E BLOCOS DA ROTINA" (nome exato, meta, OPÇÕES e o que já foi lançado hoje); o prompt (item 13) manda perguntar UMA coisa curta (tempo ou opção) quando faltar.
 - Continua com cartão de confirmação; a tela revalida tudo antes de gravar. "Como usar" e Novidades atualizados.
 - Pendente: testar no celular com o Lazer real do Leandro (nome exato e opções cadastradas).
+
+- **Todos os hábitos e blocos (14/11, mesma data):** `registrar_habito` vale para qualquer item de "HÁBITOS E BLOCOS DA ROTINA". Novo campo `opcao_nova`: se o item já tem opções e a anotação não é nenhuma, o app cadastra a opção (`updateRecurringNoteOptions`) e lança, avisando na mensagem. Item sem opções: o FARO faz uma pergunta de contexto (Corrida/Crossfit "Como você se sentiu?", Estudos "O que você estudou?", Leitura "Qual livro?") e a resposta vira a anotação do dia; deslocamento, almoço e Gratidão não perguntam nada.

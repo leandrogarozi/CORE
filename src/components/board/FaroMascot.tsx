@@ -314,6 +314,7 @@ export function FaroMascot({ comDock = false }: { comDock?: boolean }) {
         fixedBlocks: board.state.fixedBlocks,
         commitRecurringDay: board.commitRecurringDay,
         addBlockLogEntry: board.addBlockLogEntry,
+        updateRecurringNoteOptions: board.updateRecurringNoteOptions,
         studyPlans: board.state.studyPlans,
         updateStudyPlan: board.updateStudyPlan,
         generateStudySessions: board.generateStudySessions,

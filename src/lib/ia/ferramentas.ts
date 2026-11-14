@@ -39,7 +39,7 @@ export type AcaoProposta =
   | { tipo: "registrar_humor"; nivel: 1 | 2 | 3 | 4 | 5; emocao: string | null }
   | { tipo: "registrar_sono"; dormiu: string | null; acordou: string | null }
   | { tipo: "registrar_agua"; ml: number }
-  | { tipo: "registrar_habito"; nome: string; minutos: number | null; anotacao: string | null; data: string | null }
+  | { tipo: "registrar_habito"; nome: string; minutos: number | null; anotacao: string | null; novaOpcao: boolean; data: string | null }
   | { tipo: "registrar_dieta"; percentual: number }
   | { tipo: "repor_dispensa"; item: string; quantidade: number | null }
   | { tipo: "anotar"; texto: string; etiqueta: string | null }
@@ -252,7 +252,8 @@ export const FERRAMENTAS_DO_FARO: Anthropic.Tool[] = [
       properties: {
         nome: { type: "string", description: "Nome do hábito/bloco, como em HÁBITOS E BLOCOS DA ROTINA." },
         minutos: { type: "integer", minimum: 1, maximum: 1440, description: "Duração em minutos (1h30 = 90). Omita se ele só marcou que fez e o item não mede tempo." },
-        anotacao: { type: "string", description: "O que foi feito, nas palavras dele ou a opção cadastrada que mais combina. Ex.: 'Futebol com o filho'." },
+        anotacao: { type: "string", description: "O que foi feito, nas palavras dele ou a opção cadastrada que mais combina. Ex.: 'Futebol' (opção) ou, para Estudos, 'Inglês'; para Corrida, como se sentiu." },
+        opcao_nova: { type: "boolean", description: "true se o item tem OPÇÕES cadastradas e a anotação NÃO é nenhuma delas (algo novo): o app cadastra a opção nova e lança. Nesse caso escreva a anotação curta, como uma opção ('Inglês', 'Skate'), não uma frase." },
         data: { type: "string", description: "AAAA-MM-DD. Omita para hoje; não pode ser futura." },
       },
       required: ["nome"],
@@ -539,7 +540,7 @@ export function validarAcao(nome: string, entrada: unknown): ResultadoDaValidaca
       if (!nome) return { ok: false, motivo: "faltou o nome do hábito" };
       const min = typeof e.minutos === "number" && Number.isFinite(e.minutos) ? Math.round(e.minutos) : null;
       if (min !== null && (min < 1 || min > 1440)) return { ok: false, motivo: "tempo do hábito inválido (de 1 min a 24 h)" };
-      return { ok: true, acao: { tipo: "registrar_habito", nome, minutos: min, anotacao: texto(e.anotacao, 200), data: dataValida(e.data) } };
+      return { ok: true, acao: { tipo: "registrar_habito", nome, minutos: min, anotacao: texto(e.anotacao, 200), novaOpcao: e.opcao_nova === true, data: dataValida(e.data) } };
     }
     case "registrar_dieta": {
       const p = typeof e.percentual === "number" ? Math.round(e.percentual) : -1;
@@ -688,7 +689,7 @@ export function descreverAcao(a: AcaoProposta): string {
       return `Somar ${a.ml} ml de água ao total de hoje`;
     case "registrar_habito": {
       const t = a.minutos ? duracaoCurta(a.minutos) : "";
-      return `Lançar em ${a.nome}${a.data ? ` (${dataBr(a.data)})` : " hoje"}:${t ? ` ${t}` : " feito"}${a.anotacao ? ` — ${a.anotacao}` : ""}`;
+      return `Lançar em ${a.nome}${a.data ? ` (${dataBr(a.data)})` : " hoje"}:${t ? ` ${t}` : " feito"}${a.anotacao ? ` — ${a.anotacao}` : ""}${a.novaOpcao && a.anotacao ? ` (opção nova: será cadastrada em ${a.nome})` : ""}`;
     }
     case "registrar_dieta":
       return `Registrar a dieta de hoje: ${a.percentual}%`;
