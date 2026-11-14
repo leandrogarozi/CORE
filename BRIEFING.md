@@ -6689,3 +6689,9 @@ AnotacoesPainel: nota com senha/login/usuário/token/cartão ou assunto de saúd
 - Cada comparação já sai pronta do código: "com X · sem Y → diferença (MAIS / MENOS / IGUAL)"; limites de "igual": 0,5 tarefa, 0,3 de humor, 0,5 h de cronômetro. Humor quase não muda: a instrução manda resumir numa linha, não repetir por hábito.
 - Formato do relatório: **RESUMO**, **O QUE MAIS AJUDA**, **SEM DIFERENÇA**, **ATENÇÃO** (só se houver), **SUGESTÃO** ("Tente..."), máximo ~12 linhas.
 - A tela aceita só **negrito** (`comNegrito` em FaroMascot.tsx), sem biblioteca de markdown.
+
+## Histórico de conversas do FARO (14/11)
+
+- Relógio ao lado do nome FARO na janela de conversa: abre a lista das conversas (agrupadas Hoje/Ontem/data, com hora e o primeiro pedido); tocar numa conversa mostra as falas (com negrito). "Apagar histórico deste aparelho" e "Fechar histórico".
+- `src/lib/ia/historico.ts`: guarda em localStorage (`faro-historico-v1`), só neste aparelho, 14 dias, máx. 40 conversas. Salva quando uma resposta termina; cartões de ação entram como linha com o desfecho. Nada vai para o servidor.
+- Limite conhecido: a chave é por navegador (não por usuário); em aparelho compartilhado, quem entra depois vê o histórico de quem usou antes (dá para apagar pelo botão).

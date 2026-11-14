@@ -5429,3 +5429,17 @@ textarea.titulo-cresce{ display:block; resize:none; overflow:hidden; font-family
 .faro-ampliado .faro-chat-lista{ max-height:min(68vh, 620px); }
 .faro-ampliado .faro-fala{ font-size:14px; max-width:100%; }
 .faro-fala strong{ font-weight:700; }
+
+/* Histórico de conversas do FARO: o relógio ao lado do nome troca o corpo da janela pela lista. */
+.faro-janela-cab .faro-hist-btn{ margin-left:6px; margin-right:auto; display:flex; align-items:center; }
+.faro-em-historico > :not(.faro-janela-cab):not(.faro-hist){ display:none; }
+.faro-hist{ display:flex; flex-direction:column; gap:8px; }
+.faro-hist-lista{ display:flex; flex-direction:column; gap:4px; max-height:min(52vh, 380px); overflow-y:auto; }
+.faro-ampliado .faro-hist-lista{ max-height:min(68vh, 620px); }
+.faro-hist-dia{ font-size:11px; font-weight:700; color:var(--text-muted); margin:8px 0 2px; text-transform:uppercase; letter-spacing:.04em; }
+.faro-hist-item{ display:flex; gap:10px; align-items:baseline; text-align:left; width:100%; padding:8px 10px; border-radius:10px; border:1px solid var(--border); background:var(--surface); font-size:12.5px; cursor:pointer; }
+.faro-hist-item:hover{ border-color:var(--accent); background:var(--accent-soft); }
+.faro-hist-hora{ color:var(--text-muted); font-size:11px; flex:none; }
+.faro-hist-pedido{ color:var(--text); }
+.faro-hist-voltar{ align-self:flex-start; font-size:12px; color:var(--accent); background:none; border:0; padding:2px 0; cursor:pointer; }
+.faro-hist-quando{ font-size:11px; color:var(--text-muted); }

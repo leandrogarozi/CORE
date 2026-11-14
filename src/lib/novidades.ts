@@ -23,6 +23,13 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: "2026-11-14-historico-de-conversas",
+    data: "2026-11-14",
+    titulo: "Histórico das conversas com o FARO",
+    corpo:
+      "Ao lado do nome FARO, na janela de conversa, há um relógio: ele mostra as últimas conversas (por dia e hora), com o que você pediu e o que o FARO respondeu. Ficam guardadas neste aparelho por 14 dias.",
+  },
+  {
     id: "2026-11-14-respostas-organizadas",
     data: "2026-11-14",
     titulo: "O FARO ficou mais fácil de ler",

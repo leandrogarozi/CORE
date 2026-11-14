@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useBoardCtx } from "./board-context";
-import { MicIcon, MoodFaceIcon, SendIcon } from "./icons";
+import { ClockIcon, MicIcon, MoodFaceIcon, SendIcon } from "./icons";
+import { horaDe, lerConversas, limparHistorico, rotuloDoDia, salvarConversa, type ConversaSalva } from "@/lib/ia/historico";
 import { MOODS } from "@/lib/mood";
 import { avisoDaVez, chaveDosAvisos, lerHistorico, type AcaoDoBotao, type AvisoDoFaro } from "@/lib/ia/avisos";
 import { todayISO } from "@/lib/date-utils";
@@ -74,6 +75,12 @@ export function FaroMascot({ comDock = false }: { comDock?: boolean }) {
   const { board } = useBoardCtx();
   const [open, setOpen] = useState(false);
   const [ampliado, setAmpliado] = useState(false);
+  // Histórico: lista das conversas guardadas neste aparelho; `aberta` = a que está sendo lida (null = a lista).
+  const [verHistorico, setVerHistorico] = useState(false);
+  const [conversas, setConversas] = useState<ConversaSalva[]>([]);
+  const [aberta, setAberta] = useState<ConversaSalva | null>(null);
+  const idDaConversa = useRef(`c${Date.now()}`);
+  const inicioDaConversa = useRef(Date.now());
   const [falas, setFalas] = useState<Fala[]>([]);
   const [texto, setTexto] = useState("");
   const [pensando, setPensando] = useState(false);
@@ -103,6 +110,26 @@ export function FaroMascot({ comDock = false }: { comDock?: boolean }) {
   useEffect(() => {
     fim.current?.scrollIntoView({ block: "end" });
   }, [falas, open]);
+
+  // Guarda a conversa no histórico quando uma resposta termina (não a cada pedaço do texto que chega).
+  useEffect(() => {
+    if (pensando || !falas.length) return;
+    salvarConversa({
+      id: idDaConversa.current,
+      inicio: inicioDaConversa.current,
+      fim: Date.now(),
+      falas: falas.map((f) => {
+        const feitos = (f.cartoes ?? []).map((c) => `[${descreverAcao(c.acao)}: ${c.estado === "feito" ? "feito" : c.estado === "cancelado" ? "cancelado" : c.estado === "erro" ? "não gravou" : "não confirmado"}]`);
+        return { role: f.role, content: [f.content, ...feitos].filter(Boolean).join("\n") };
+      }),
+    });
+  }, [falas, pensando]);
+
+  function abrirHistorico() {
+    setConversas(lerConversas());
+    setAberta(null);
+    setVerHistorico((v) => !v);
+  }
 
   // O botão FARO do menu inferior do celular abre a janela e já começa a ouvir (se o aparelho tem ditado).
   const ditadoRef = useRef(ditado);
@@ -309,9 +336,18 @@ export function FaroMascot({ comDock = false }: { comDock?: boolean }) {
   return (
     <div className={"faro-mascot" + (comDock ? " com-dock" : "")}>
       {open && (
-        <div className={"faro-bubble faro-bubble-chat" + (ampliado ? " faro-ampliado" : "")}>
+        <div className={"faro-bubble faro-bubble-chat" + (ampliado ? " faro-ampliado" : "") + (verHistorico ? " faro-em-historico" : "")}>
           <div className="faro-janela-cab">
             <b>FARO</b>
+            <button
+              className="faro-bubble-close faro-hist-btn"
+              type="button"
+              aria-label="Histórico de conversas"
+              title="Histórico de conversas"
+              onClick={abrirHistorico}
+            >
+              <ClockIcon />
+            </button>
             <button
               className="faro-bubble-close faro-ampliar"
               type="button"
@@ -327,7 +363,62 @@ export function FaroMascot({ comDock = false }: { comDock?: boolean }) {
               ×
             </button>
           </div>
-          {aviso ? (
+          {verHistorico && (
+            <div className="faro-hist">
+              {aberta ? (
+                <>
+                  <button type="button" className="faro-hist-voltar" onClick={() => setAberta(null)}>
+                    ‹ Voltar às conversas
+                  </button>
+                  <div className="faro-hist-quando">
+                    {rotuloDoDia(aberta.inicio)}, {horaDe(aberta.inicio)}
+                  </div>
+                  <div className="faro-chat-lista faro-hist-lista">
+                    {aberta.falas.map((f, i) => (
+                      <div key={i} className={"faro-fala " + (f.role === "user" ? "faro-fala-eu" : "faro-fala-faro")}>
+                        {comNegrito(f.content)}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : conversas.length === 0 ? (
+                <div className="faro-bubble-hint">Ainda não há conversas guardadas. Elas ficam neste aparelho por 14 dias.</div>
+              ) : (
+                <>
+                  <div className="faro-hist-lista">
+                    {conversas.map((c, i) => {
+                      const dia = rotuloDoDia(c.inicio);
+                      const novoDia = i === 0 || rotuloDoDia(conversas[i - 1].inicio) !== dia;
+                      const pedido = c.falas.find((f) => f.role === "user")?.content ?? "";
+                      return (
+                        <div key={c.id}>
+                          {novoDia && <div className="faro-hist-dia">{dia}</div>}
+                          <button type="button" className="faro-hist-item" onClick={() => setAberta(c)}>
+                            <span className="faro-hist-hora">{horaDe(c.inicio)}</span>
+                            <span className="faro-hist-pedido">{pedido.length > 90 ? pedido.slice(0, 87) + "…" : pedido}</span>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <button
+                    type="button"
+                    className="faro-hist-voltar"
+                    onClick={() => {
+                      limparHistorico();
+                      setConversas([]);
+                    }}
+                  >
+                    Apagar histórico deste aparelho
+                  </button>
+                </>
+              )}
+              <button type="button" className="faro-hist-voltar" onClick={() => setVerHistorico(false)}>
+                Fechar histórico
+              </button>
+            </div>
+          )}
+          {verHistorico ? null : aviso ? (
             <div className="faro-aviso">
               <div className="faro-bubble-text faro-fala-abertura">{aviso.texto}</div>
               {aviso.escalaDeHumor && (
