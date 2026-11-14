@@ -6683,3 +6683,9 @@ AnotacoesPainel: nota com senha/login/usuário/token/cartão ou assunto de saúd
   - **REGRA:** toda mudança visível ganha uma entrada em `NOVIDADES` no mesmo commit.
   - O FARO conversacional lê as novidades (seção NOVIDADES DO FARO do resumo) e explica "o que mudou?".
 - **Cruzamento só com a aba Hábitos** (Leitura, Gratidão, Crossfit, Corrida...), mais sono 7h+ e estudo. Os **blocos fixos** do dia a dia (piscina, deslocamento do cross...) saíram do panorama e dos cruzamentos principais; ficam numa seção própria no fim do resumo (30 dias), que o FARO só usa se perguntarem pelos blocos.
+
+## Respostas do FARO mais objetivas e com negrito (14/11)
+
+- Cada comparação já sai pronta do código: "com X · sem Y → diferença (MAIS / MENOS / IGUAL)"; limites de "igual": 0,5 tarefa, 0,3 de humor, 0,5 h de cronômetro. Humor quase não muda: a instrução manda resumir numa linha, não repetir por hábito.
+- Formato do relatório: **RESUMO**, **O QUE MAIS AJUDA**, **SEM DIFERENÇA**, **ATENÇÃO** (só se houver), **SUGESTÃO** ("Tente..."), máximo ~12 linhas.
+- A tela aceita só **negrito** (`comNegrito` em FaroMascot.tsx), sem biblioteca de markdown.

@@ -283,17 +283,21 @@ export function cruzamentosDosPeriodos(estado: Estado, hoje: string, so: "habito
     );
     const comparar = (rotulo: string, com: ReturnType<typeof dia>[], sem: ReturnType<typeof dia>[]) => {
       if (com.length < 3 || sem.length < 3) return;
-      const par = (f: (d: ReturnType<typeof dia>) => number | null, c = 1) => {
+      // Cada medida já vem pronta: com X, sem Y, a diferença e o veredito (mais / menos / igual). A IA só repassa.
+      const par = (nome: string, f: (d: ReturnType<typeof dia>) => number | null, minimo: number, unidade = "") => {
         const a = media(com.map(f).filter((x): x is number => x !== null));
         const b = media(sem.map(f).filter((x): x is number => x !== null));
-        return a === null || b === null ? null : `${num(a, c)} com vs ${num(b, c)} sem`;
+        if (a === null || b === null) return null;
+        const dif = a - b;
+        const veredito = Math.abs(dif) < minimo ? "IGUAL (diferença pequena)" : dif > 0 ? "MAIS" : "MENOS";
+        return `${nome}: com ${num(a)}${unidade} · sem ${num(b)}${unidade} → ${dif >= 0 ? "+" : "−"}${num(Math.abs(dif))}${unidade} (${veredito})`;
       };
       const partes = [
-        `tarefas/dia ${par((d) => d.tarefas)}`,
-        par((d) => d.humor) ? `humor ${par((d) => d.humor)}` : null,
-        par((d) => (d.horas > 0 ? d.horas : null)) ? `cronômetro (h) ${par((d) => (d.horas > 0 ? d.horas : null))}` : null,
+        par("tarefas/dia", (d) => d.tarefas, 0.5),
+        par("humor", (d) => d.humor, 0.3),
+        par("cronômetro", (d) => (d.horas > 0 ? d.horas : null), 0.5, "h"),
       ].filter(Boolean);
-      saida.push(`  · ${rotulo}: ${com.length} dias com, ${sem.length} sem | ${partes.join(" | ")}`);
+      saida.push(`  · ${rotulo} (${com.length} dias com, ${sem.length} sem): ${partes.join(" | ")}`);
     };
     for (const r of rotinas) {
       const com = lista.filter((d) => r.logs[d.iso]?.checked === true);

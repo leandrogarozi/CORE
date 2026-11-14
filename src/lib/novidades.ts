@@ -23,6 +23,13 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: "2026-11-14-respostas-organizadas",
+    data: "2026-11-14",
+    titulo: "O FARO ficou mais fácil de ler",
+    corpo:
+      "As respostas do FARO sobre desempenho agora vêm em blocos curtos, com títulos em negrito e cada comparação no formato “com X, sem Y, resultado” (ex.: com leitura 2,8 tarefas por dia, sem leitura 1,9). Ele também destaca os pontos de atenção e fecha com uma sugestão.",
+  },
+  {
     id: "2026-11-14-conversa-produtividade",
     data: "2026-11-14",
     titulo: "O FARO foi atualizado",

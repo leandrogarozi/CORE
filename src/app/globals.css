@@ -5428,3 +5428,4 @@ textarea.titulo-cresce{ display:block; resize:none; overflow:hidden; font-family
 .faro-bubble.faro-bubble-chat.faro-ampliado{ width:min(680px, calc(100vw - 28px)); }
 .faro-ampliado .faro-chat-lista{ max-height:min(68vh, 620px); }
 .faro-ampliado .faro-fala{ font-size:14px; max-width:100%; }
+.faro-fala strong{ font-weight:700; }

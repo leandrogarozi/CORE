@@ -34,6 +34,11 @@ type Fala = { role: "user" | "assistant"; content: string; cartoes?: Cartao[] };
 // Atalhos de um toque: o que ele mais vai querer pedir, sem digitar.
 const ATALHOS = ["O que estou esquecendo?", "Como foi minha semana?", "Por onde começo?"];
 
+// Negrito simples: o que está entre ** vira destaque. É o único formato que a tela aceita (sem biblioteca de markdown).
+function comNegrito(texto: string) {
+  return texto.split("**").map((parte, i) => (i % 2 === 1 ? <strong key={i}>{parte}</strong> : parte));
+}
+
 // O que a IA vê da conversa: o texto mais o desfecho de cada ação, para ela saber
 // o que de fato foi gravado e o que ele recusou.
 function paraHistorico(f: Fala): { role: "user" | "assistant"; content: string } {
@@ -367,7 +372,7 @@ export function FaroMascot({ comDock = false }: { comDock?: boolean }) {
             <div className="faro-chat-lista">
               {falas.map((f, i) => (
                 <div key={i} className={"faro-fala " + (f.role === "user" ? "faro-fala-eu" : "faro-fala-faro")}>
-                  {f.content || (!f.cartoes?.length && pensando && i === falas.length - 1 ? "…" : "")}
+                  {f.content ? comNegrito(f.content) : !f.cartoes?.length && pensando && i === falas.length - 1 ? "…" : ""}
                   {f.cartoes?.map((c) => (
                     <div key={c.id} className={"faro-cartao faro-cartao-" + c.estado}>
                       <div className="faro-cartao-texto">{descreverAcao(c.acao)}</div>
