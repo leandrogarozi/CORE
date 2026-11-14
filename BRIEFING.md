@@ -6703,3 +6703,11 @@ AnotacoesPainel: nota com senha/login/usuário/token/cartão ou assunto de saúd
 - **Trava:** tabela `resumo_semanal_enviado (user_id, semana)` (migração `resumo_semanal_enviado`, RLS ligada, `grant ... to service_role`); marca antes de enviar. Chamado pelo `dispatch-reminders` (canal próprio, campo `resumoSemana` na resposta).
 - **Liga/desliga:** Configurações > "Resumo da semana" (flag `resumo_semana`, ligado por padrão).
 - Primeiro envio: domingo 15/11, 19h.
+
+## FARO lança hábito e lazer por voz (14/11)
+
+- **Ferramenta `registrar_habito`** (`src/lib/ia/ferramentas.ts`, `executar.ts`): nome do hábito/bloco, minutos, anotação e data (padrão hoje; dia futuro é recusado). Procura primeiro na aba Hábitos e depois nos blocos fixos, sem ligar para acento; se o nome combina com mais de um, devolve a dúvida.
+- **Bloco com opções cadastradas** (ex.: Lazer): vira uma entrada (tipo + minutos) pelo `addBlockLogEntry`; sem tipo ou sem tempo, o FARO pergunta. **Hábito ou bloco simples:** `commitRecurringDay` com o tempo SOMADO ao que já havia no dia (nada é apagado) e a anotação acrescentada.
+- **Perguntas:** o resumo do dia ganhou a seção "HÁBITOS E BLOCOS DA ROTINA" (nome exato, meta, OPÇÕES e o que já foi lançado hoje); o prompt (item 13) manda perguntar UMA coisa curta (tempo ou opção) quando faltar.
+- Continua com cartão de confirmação; a tela revalida tudo antes de gravar. "Como usar" e Novidades atualizados.
+- Pendente: testar no celular com o Lazer real do Leandro (nome exato e opções cadastradas).

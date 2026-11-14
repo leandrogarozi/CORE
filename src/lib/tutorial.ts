@@ -108,6 +108,7 @@ export const TUTORIAL: SecaoDoTutorial[] = [
       "Aniversário: “cadastra o aniversário da Ana, 12 de março, amiga” e “liga o lembrete de aniversário da Ana no WhatsApp”.",
       "Gasto de um checklist: “anota 87 reais de gasolina no checklist da viagem”.",
       "Registro do dia: “hoje estou bem, nível 4”, “acordei às 6h30”, “bebi 500 ml de água”, “cumpri o café da manhã da dieta”.",
+      "Hábitos e lazer: “lança lazer, 1h30 de futebol com meu filho” ou “fiz 40 minutos de leitura ontem”. Ele lança o tempo no dia (hoje, se você não disser outro) na aba Hábitos. Se faltar algo, pergunta: quanto tempo foi ou, quando o hábito tem opções cadastradas, qual foi. Se já havia tempo lançado no dia, ele soma.",
       "Dispensa: “adiciona na dispensa 3 filtros de piscina, no galpão” (aceita vários de uma vez). “Comprei cloro” volta o item para “tenho”. “Acabou a lâmpada” ou “o filtro está acabando” muda a situação. Quantidade: “o clarificante está em 40%”, “gastei 10% do cloro” ou “sobrou só 1 refil” muda o número na Dispensa e conta para a média de uso. Pergunta: “eu tenho tinta branca na dispensa?” ou “quanto tempo dura meu cloro?”.",
       "Anotação solta: “anota: ver o preço da sauna”. Ele guarda em Anotações, ou no lugar certo quando o assunto tem um.",
       "Metanoia: “adiciona na Metanoia a frase ‘O que você faz todo dia constrói quem você é’, do James Clear”. Ele guarda frase e autor direto na Metanoia, aprovada; não vai para Anotações.",

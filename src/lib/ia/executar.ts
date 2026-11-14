@@ -1,6 +1,6 @@
-import type { Birthday, Checklist, MaintenanceAsset, MaintenanceItem, ChecklistExpense, DailyLog, PantryItem, Priority, Reminder, StudyPlan, Task, TaskStatus } from "@/lib/types";
+import type { Birthday, RecurringItem, Checklist, MaintenanceAsset, MaintenanceItem, ChecklistExpense, DailyLog, PantryItem, Priority, Reminder, StudyPlan, Task, TaskStatus } from "@/lib/types";
 import { acharUmItemPeloNome, aposAjuste, aposComprar, ehRemedioOuSaude, lembreteDeCompraPendente } from "@/lib/board/dispensa";
-import { descreverAcao, validarAcao, type AcaoProposta } from "./ferramentas";
+import { descreverAcao, duracaoCurta, validarAcao, type AcaoProposta } from "./ferramentas";
 import { acharFeedback, type FeedbackDoDono } from "./feedbacks";
 
 /**
@@ -47,6 +47,11 @@ export interface QuadroParaAcoes {
   addMaintenanceAsset: (name: string, kind: MaintenanceAsset["kind"]) => Promise<string | null>;
   addMaintenanceItem: (assetId: string, name: string, intervalMonths: number | null, intervalDistance: number | null) => Promise<string | null>;
   registerMaintenanceService: (itemId: string, doneOn: string, odometer: number | null, costCents: number | null, note: string) => void;
+  /** Hábitos e blocos da rotina, e como lançar um dia neles. */
+  habits: RecurringItem[];
+  fixedBlocks: RecurringItem[];
+  commitRecurringDay: (kind: "habit" | "block", id: string, iso: string, minutes: number, note?: string) => void;
+  addBlockLogEntry: (blockId: string, iso: string, note: string, minutes: number) => void;
   /** O registro de hoje, para somar água em cima do que já tem. */
   logDeHoje: DailyLog | undefined;
 }
@@ -212,6 +217,46 @@ export async function executarAcao(acaoBruta: AcaoProposta, quadro: QuadroParaAc
       quadro.updateDailyLog(hoje, { waterMl: atual + acao.ml });
       return { ok: true, mensagem: `Água somada: ${atual + acao.ml} ml hoje.` };
     }
+    case "registrar_habito": {
+      const dia = acao.data ?? hoje;
+      if (dia > hoje) return { ok: false, mensagem: "Não lanço hábito em dia que ainda não chegou." };
+      const alvo = semAcento(acao.nome);
+      const todos = [
+        ...quadro.habits.map((item) => ({ kind: "habit" as const, item })),
+        ...quadro.fixedBlocks.map((item) => ({ kind: "block" as const, item })),
+      ];
+      const exatos = todos.filter((x) => semAcento(x.item.name) === alvo);
+      const achados = exatos.length ? exatos : todos.filter((x) => semAcento(x.item.name).includes(alvo) || alvo.includes(semAcento(x.item.name)));
+      if (!achados.length) return { ok: false, mensagem: `Não achei o hábito "${acao.nome}". Confira o nome na aba Hábitos.` };
+      if (achados.length > 1) return { ok: false, mensagem: `Achei mais de um (${achados.map((x) => `"${x.item.name}"`).join(", ")}). Diga qual.` };
+      const { kind, item } = achados[0];
+      const opcoes = item.noteOptions ?? [];
+      const dataTxt = dia === hoje ? "hoje" : dia.split("-").reverse().join("/");
+      // Opção cadastrada que combina com o que ele disse; se não combina, vale o texto dele.
+      const nota = acao.anotacao;
+      const opcao = nota ? opcoes.find((o) => semAcento(o) === semAcento(nota)) ?? opcoes.find((o) => semAcento(nota).includes(semAcento(o)) || semAcento(o).includes(semAcento(nota))) : undefined;
+      const anotacao = opcao ?? nota ?? "";
+      const antes = item.logs[dia];
+
+      // Bloco com opções: cada lançamento é uma entrada (tipo + minutos) e precisa dos dois.
+      if (kind === "block" && opcoes.length > 0) {
+        if (!anotacao) return { ok: false, mensagem: `"${item.name}" pede o tipo (${opcoes.join(", ")}). Diga qual foi.` };
+        const min = acao.minutos ?? item.durationMin;
+        if (!min) return { ok: false, mensagem: `Quanto tempo foi em "${item.name}"?` };
+        quadro.addBlockLogEntry(item.id, dia, anotacao, min);
+        return { ok: true, mensagem: `${item.name} (${dataTxt}): ${duracaoCurta(min)} de ${anotacao} lançados.` };
+      }
+
+      // Hábito ou bloco simples: soma ao que já estava no dia, nunca apaga o que havia.
+      const minutosAntes = antes?.checked ? Math.round(antes.trackedSeconds / 60) : 0;
+      const minutosAgora = acao.minutos ?? (antes?.checked ? 0 : item.durationMin ?? 0);
+      const total = minutosAntes + minutosAgora;
+      const notaAntes = antes?.note?.trim() ?? "";
+      const notaFinal = [notaAntes, anotacao].filter((t, i, v) => t && v.indexOf(t) === i).join(", ");
+      quadro.commitRecurringDay(kind, item.id, dia, total, notaFinal || undefined);
+      const soma = minutosAntes > 0 && minutosAgora > 0 ? ` (somou ao que já tinha: ${duracaoCurta(minutosAntes)})` : "";
+      return { ok: true, mensagem: `${item.name} (${dataTxt}) lançado${total ? `: ${duracaoCurta(total)}` : ""}${notaFinal ? `, ${notaFinal}` : ""}${soma}.` };
+    }
     case "registrar_dieta": {
       quadro.updateDailyLog(hoje, { dietPct: acao.percentual });
       return { ok: true, mensagem: "Dieta de hoje registrada." };
@@ -354,6 +399,8 @@ function converterParaEntrada(a: AcaoProposta): Record<string, unknown> {
       return { dormiu: a.dormiu ?? undefined, acordou: a.acordou ?? undefined };
     case "registrar_agua":
       return { ml: a.ml };
+    case "registrar_habito":
+      return { nome: a.nome, minutos: a.minutos ?? undefined, anotacao: a.anotacao ?? undefined, data: a.data ?? undefined };
     case "registrar_dieta":
       return { percentual: a.percentual };
     case "repor_dispensa":

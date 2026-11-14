@@ -97,9 +97,19 @@ export function resumoDoDia(estado: Estado, hoje: string): string {
     const faltam = estado.habits.filter((h) => !doDia(h)).map((h) => h.name);
     linhas.push(`\nHÁBITOS: feitos hoje: ${feitos.join(", ") || "nenhum ainda"}. Faltam: ${faltam.join(", ") || "nenhum"}.`);
   }
-  if (estado.fixedBlocks.length) {
-    const blocos = estado.fixedBlocks.map((b) => `${b.name}${doDia(b) ? " (feito)" : ""}`);
-    linhas.push(`Blocos fixos da rotina: ${blocos.join(", ")}.`);
+  // Os nomes exatos (e as opções cadastradas) para o FARO conseguir lançar um dia e perguntar o que faltar.
+  const rotina = [...estado.habits.map((h) => ({ ...h, tipo: "hábito" })), ...estado.fixedBlocks.map((b) => ({ ...b, tipo: "bloco" }))];
+  if (rotina.length) {
+    linhas.push("\nHÁBITOS E BLOCOS DA ROTINA (nomes exatos para a ferramenta registrar_habito):");
+    for (const r of rotina.slice(0, 40)) {
+      const hoje_ = r.logs[hoje];
+      const partes = [
+        r.durationMin ? `meta ${Math.floor(r.durationMin / 60) ? Math.floor(r.durationMin / 60) + "h" : ""}${r.durationMin % 60 ? (r.durationMin % 60) + "min" : ""}` : null,
+        r.noteOptions?.length ? `OPÇÕES: ${r.noteOptions.join(" / ")}` : null,
+        hoje_?.checked ? `hoje já lançado: ${Math.round(hoje_.trackedSeconds / 60)} min${hoje_.note ? ` (${hoje_.note})` : ""}` : null,
+      ].filter(Boolean);
+      linhas.push(`- ${r.name} [${r.tipo}]${partes.length ? ": " + partes.join("; ") : ""}`);
+    }
   }
 
   // O dia seguinte ajuda a conversar sobre "o que vem aí".

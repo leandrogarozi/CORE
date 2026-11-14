@@ -39,6 +39,7 @@ export type AcaoProposta =
   | { tipo: "registrar_humor"; nivel: 1 | 2 | 3 | 4 | 5; emocao: string | null }
   | { tipo: "registrar_sono"; dormiu: string | null; acordou: string | null }
   | { tipo: "registrar_agua"; ml: number }
+  | { tipo: "registrar_habito"; nome: string; minutos: number | null; anotacao: string | null; data: string | null }
   | { tipo: "registrar_dieta"; percentual: number }
   | { tipo: "repor_dispensa"; item: string; quantidade: number | null }
   | { tipo: "anotar"; texto: string; etiqueta: string | null }
@@ -240,6 +241,21 @@ export const FERRAMENTAS_DO_FARO: Anthropic.Tool[] = [
       type: "object",
       properties: { ml: { type: "integer", minimum: 50, maximum: 5000, description: "Mililitros bebidos agora." } },
       required: ["ml"],
+    },
+  },
+  {
+    name: "registrar_habito",
+    description:
+      "Lança no dia o que ele FEZ de um hábito ou bloco da rotina (aba Hábitos / blocos fixos), com o tempo. Ex.: 'lança lazer com meu filho, 1h30 de futebol' => nome 'Lazer', minutos 90, anotacao 'Futebol com o filho'. Use o nome EXATAMENTE como aparece em HÁBITOS E BLOCOS DA ROTINA do resumo. Se o item tem OPÇÕES cadastradas, a anotação deve ser uma delas (a mais próxima do que ele disse). Se faltar o tempo, ou se o item tem opções e não dá para saber qual é, PERGUNTE antes de chamar (uma pergunta curta, com as opções). Se ele não disser o dia, é hoje.",
+    input_schema: {
+      type: "object",
+      properties: {
+        nome: { type: "string", description: "Nome do hábito/bloco, como em HÁBITOS E BLOCOS DA ROTINA." },
+        minutos: { type: "integer", minimum: 1, maximum: 1440, description: "Duração em minutos (1h30 = 90). Omita se ele só marcou que fez e o item não mede tempo." },
+        anotacao: { type: "string", description: "O que foi feito, nas palavras dele ou a opção cadastrada que mais combina. Ex.: 'Futebol com o filho'." },
+        data: { type: "string", description: "AAAA-MM-DD. Omita para hoje; não pode ser futura." },
+      },
+      required: ["nome"],
     },
   },
   {
@@ -518,6 +534,13 @@ export function validarAcao(nome: string, entrada: unknown): ResultadoDaValidaca
       if (ml < 50 || ml > 5000) return { ok: false, motivo: "quantidade de água inválida" };
       return { ok: true, acao: { tipo: "registrar_agua", ml } };
     }
+    case "registrar_habito": {
+      const nome = texto(e.nome, 120);
+      if (!nome) return { ok: false, motivo: "faltou o nome do hábito" };
+      const min = typeof e.minutos === "number" && Number.isFinite(e.minutos) ? Math.round(e.minutos) : null;
+      if (min !== null && (min < 1 || min > 1440)) return { ok: false, motivo: "tempo do hábito inválido (de 1 min a 24 h)" };
+      return { ok: true, acao: { tipo: "registrar_habito", nome, minutos: min, anotacao: texto(e.anotacao, 200), data: dataValida(e.data) } };
+    }
     case "registrar_dieta": {
       const p = typeof e.percentual === "number" ? Math.round(e.percentual) : -1;
       if (p < 0 || p > 100) return { ok: false, motivo: "percentual da dieta deve ser de 0 a 100" };
@@ -624,6 +647,13 @@ export function validarAcao(nome: string, entrada: unknown): ResultadoDaValidaca
 const dataBr = (iso: string) => iso.split("-").reverse().join("/");
 const reais = (c: number) => (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const NIVEIS = ["", "péssimo", "ruim", "neutro", "bom", "ótimo"];
+/** 90 => "1h30", 45 => "45 min", 120 => "2h". */
+export const duracaoCurta = (min: number) => {
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  if (!h) return `${m} min`;
+  return m ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`;
+};
 const NOMES_DIAS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 
 /** A frase do cartão de confirmação: o que VAI acontecer se ele aceitar. */
@@ -656,6 +686,10 @@ export function descreverAcao(a: AcaoProposta): string {
       return `Registrar o sono de hoje:${a.acordou ? ` acordou ${a.acordou}` : ""}${a.dormiu ? ` dormiu ${a.dormiu}` : ""}`;
     case "registrar_agua":
       return `Somar ${a.ml} ml de água ao total de hoje`;
+    case "registrar_habito": {
+      const t = a.minutos ? duracaoCurta(a.minutos) : "";
+      return `Lançar em ${a.nome}${a.data ? ` (${dataBr(a.data)})` : " hoje"}:${t ? ` ${t}` : " feito"}${a.anotacao ? ` — ${a.anotacao}` : ""}`;
+    }
     case "registrar_dieta":
       return `Registrar a dieta de hoje: ${a.percentual}%`;
     case "repor_dispensa":

@@ -2,6 +2,9 @@
 
 Atualizar a cada mudança que apareça para o usuário. Mais novo em cima. Fonte: `BRIEFING.md`.
 
+## 14/11/2026
+- **FARO lança hábito e lazer por voz:** "lança lazer, 1h30 de futebol com meu filho" → cartão → tempo registrado no dia, na aba Hábitos. Se faltar o tempo ou o tipo, ele pergunta.
+
 ## 04/11/2026
 - **Backup no computador com alerta:** em Configurações, a caixa do backup automático fica vermelha, mesmo fechada, quando o computador passa mais de um dia sem guardar a cópia.
 

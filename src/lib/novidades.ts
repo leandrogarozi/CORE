@@ -23,6 +23,13 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: "2026-11-14-lancar-habito-por-voz",
+    data: "2026-11-14",
+    titulo: "O FARO lança hábitos e lazer por voz",
+    corpo:
+      "Diga “lança lazer, 1h30 de futebol com meu filho” e o FARO registra o tempo no dia, na aba Hábitos. Se faltar o tempo ou o tipo (nos hábitos que têm opções cadastradas), ele pergunta antes. Você confirma no cartão.",
+  },
+  {
     id: "2026-11-14-resumo-da-semana",
     data: "2026-11-14",
     titulo: "Novo: como foi sua semana",
