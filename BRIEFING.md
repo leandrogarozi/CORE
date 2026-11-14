@@ -6674,3 +6674,12 @@ AnotacoesPainel: nota com senha/login/usuário/token/cartão ou assunto de saúd
 - **Cruzamentos prontos:** `cruzamentosDosPeriodos` (resumo-do-dia.ts) calcula, para este mês / 30 / 90 dias (hoje fora), total e média de tarefas, cronômetro, humor, sono e, por hábito/bloco (Leitura, Gratidão, exercício...), além de "dormiu 7h+" e "estudou", os números COM vs SEM a marca (só com 3+ dias de cada lado). A conta é do código, não da IA.
 - **Formato e período:** pergunta geral de produtividade sem período → o FARO pergunta "este mês, 30 dias ou 3 meses?"; depois responde em RESUMO / O QUE ANDA JUNTO / O QUE NÃO MOSTROU DIFERENÇA / SUGESTÃO, em texto puro.
 - **Janela ampliável:** botão ▲▼ no topo da janela do FARO (`ampliado` em FaroMascot.tsx; CSS `.faro-ampliado`): 680px de largura e lista mais alta.
+
+## Avisos de atualização, ícone de ampliar e só hábitos no cruzamento (14/11)
+
+- **Ícone de ampliar:** agora são os dois cantos (↗ e ↙), como o ícone de tela cheia; quando ampliado, os cantos apontam para dentro.
+- **"O FARO foi atualizado":** `src/lib/novidades.ts` é a lista do que mudou (a mais nova em cima). Ao abrir o app, `AvisosButton` chama `POST /api/novidades`, que grava na caixa de Avisos (`faro_avisos`, tipo `novidade:<id>`) cada novidade que a pessoa ainda não recebeu (só as dos últimos 30 dias e posteriores à criação da conta). "Limpar tudo" não apaga as novidades (só marca como lidas), porque a linha é a prova de "já entregue".
+  - **Feedback:** uma entrada pode ter `feedbackIds`; quem mandou esses feedbacks já recebe o aviso "feedback resolvido" e NÃO recebe o aviso geral. Os demais recebem.
+  - **REGRA:** toda mudança visível ganha uma entrada em `NOVIDADES` no mesmo commit.
+  - O FARO conversacional lê as novidades (seção NOVIDADES DO FARO do resumo) e explica "o que mudou?".
+- **Cruzamento só com a aba Hábitos** (Leitura, Gratidão, Crossfit, Corrida...), mais sono 7h+ e estudo. Os **blocos fixos** do dia a dia (piscina, deslocamento do cross...) saíram do panorama e dos cruzamentos principais; ficam numa seção própria no fim do resumo (30 dias), que o FARO só usa se perguntarem pelos blocos.

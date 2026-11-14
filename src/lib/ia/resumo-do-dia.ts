@@ -5,6 +5,7 @@ import { ciclosDoItem, maintenanceStatus } from "@/lib/board/maintenance";
 import { ehRemedioOuSaude, situacaoDaValidade } from "@/lib/board/dispensa";
 import { fmtRitmo, fmtTempo, mediaDeUso } from "@/lib/board/dispensa-uso";
 import type { BoardState } from "@/lib/types";
+import { novidadesDoFaro } from "@/lib/novidades";
 
 /**
  * O resumo do dia que o FARO entrega à IA: o que há para hoje, o que está
@@ -163,6 +164,8 @@ export function resumoDoDia(estado: Estado, hoje: string): string {
   linhas.push(manutencao(estado, hoje));
   linhas.push(dispensa(estado, hoje));
   linhas.push(anotacoes(estado));
+  linhas.push(cruzamentosDosPeriodos(estado, hoje, "blocos"));
+  linhas.push(novidadesDoFaro(hoje));
   return linhas.join("\n");
 }
 
@@ -182,11 +185,12 @@ export function panoramaDosDias(estado: Estado, hoje: string, dias: number): str
     if (tarefasDeEstudo.has(e.taskId)) estudoPorDia.set(e.date, (estudoPorDia.get(e.date) ?? 0) + e.seconds);
   }
 
-  // Hábitos e blocos fixos (Leitura, Gratidão, Crossfit, Corrida, Lazer...): o que foi marcado em cada dia.
-  const rotinas = [...estado.habits, ...estado.fixedBlocks];
+  // Só a aba HÁBITOS (Leitura, Gratidão, Crossfit, Corrida...). Os blocos fixos do dia a dia (piscina, deslocamento...)
+  // ficam de fora daqui e vão em seção própria no fim do resumo, para quando ele perguntar.
+  const rotinas = estado.habits;
 
   const linhas = [
-    `\nPANORAMA DOS ÚLTIMOS ${dias} DIAS (um dia por linha; "—" = não anotado; "marcou" = hábitos e blocos da rotina marcados no dia, ` +
+    `\nPANORAMA DOS ÚLTIMOS ${dias} DIAS (um dia por linha; "—" = não anotado; "marcou" = hábitos marcados no dia,` +
       `ex. leitura, gratidão, exercício; "estudo" = tempo cronometrado em planos de estudo):`,
   ];
   for (let i = 0; i < dias; i++) {
@@ -230,12 +234,13 @@ const media = (v: number[]) => (v.length ? v.reduce((a, b) => a + b, 0) / v.leng
  * (Leitura, Gratidão, Crossfit...), como foram tarefas, cronômetro, humor e sono nos dias COM e SEM a marca.
  * Hoje fica de fora (o dia ainda está aberto). Só entra o que tem ao menos 3 dias de cada lado.
  */
-export function cruzamentosDosPeriodos(estado: Estado, hoje: string): string {
+export function cruzamentosDosPeriodos(estado: Estado, hoje: string, so: "habitos" | "blocos" = "habitos"): string {
   const feitas = new Map<string, number>();
   for (const t of estado.tasks) if (t.done && t.date && !t.deletedAt) feitas.set(t.date, (feitas.get(t.date) ?? 0) + 1);
   const seg = new Map<string, number>();
   for (const e of estado.taskTimeEntries) seg.set(e.date, (seg.get(e.date) ?? 0) + e.seconds);
-  const rotinas = [...estado.habits, ...estado.fixedBlocks];
+  const rotinas = so === "habitos" ? estado.habits : estado.fixedBlocks;
+  if (!rotinas.length) return "";
 
   const dia = (iso: string) => {
     const log = estado.dailyLogs[iso];
@@ -252,11 +257,17 @@ export function cruzamentosDosPeriodos(estado: Estado, hoje: string): string {
 
   const periodos: { nome: string; dias: number }[] = [];
   const diaDoMes = Number(hoje.slice(8, 10));
-  if (diaDoMes - 1 >= 3) periodos.push({ nome: "ESTE MÊS", dias: diaDoMes - 1 });
-  periodos.push({ nome: "ÚLTIMOS 30 DIAS", dias: 30 }, { nome: "ÚLTIMOS 90 DIAS", dias: 90 });
+  if (so === "habitos") {
+    if (diaDoMes - 1 >= 3) periodos.push({ nome: "ESTE MÊS", dias: diaDoMes - 1 });
+    periodos.push({ nome: "ÚLTIMOS 30 DIAS", dias: 30 }, { nome: "ÚLTIMOS 90 DIAS", dias: 90 });
+  } else {
+    periodos.push({ nome: "ÚLTIMOS 30 DIAS", dias: 30 });
+  }
 
   const saida = [
-    "\nCRUZAMENTOS POR PERÍODO (já calculados; hoje fora; \"com\" = dias em que o hábito foi marcado, \"sem\" = dias em que não foi; só afirme relação se houver 3+ dias de cada lado e a diferença for clara):",
+    so === "blocos"
+      ? "\nCRUZAMENTOS DOS BLOCOS FIXOS DA ROTINA (piscina, deslocamento etc.; use SÓ se ele perguntar pelos blocos; \"com\" = marcado, \"sem\" = não marcado; 3+ dias de cada lado):"
+      : "\nCRUZAMENTOS POR PERÍODO (já calculados; hoje fora; \"com\" = dias em que o hábito foi marcado, \"sem\" = dias em que não foi; só afirme relação se houver 3+ dias de cada lado e a diferença for clara):",
   ];
   for (const per of periodos) {
     const lista = [];
@@ -288,11 +299,13 @@ export function cruzamentosDosPeriodos(estado: Estado, hoje: string): string {
       const com = lista.filter((d) => r.logs[d.iso]?.checked === true);
       comparar(r.name, com, lista.filter((d) => r.logs[d.iso]?.checked !== true));
     }
-    const comSono = lista.filter((d) => d.sono !== null);
-    comparar("Dormiu 7h ou mais", comSono.filter((d) => (d.sono ?? 0) >= 420), comSono.filter((d) => (d.sono ?? 0) < 420));
-    const estudo = new Set(estado.tasks.filter((t) => !t.deletedAt && t.studyPlanId).map((t) => t.id));
-    const diasEstudo = new Set(estado.taskTimeEntries.filter((e) => estudo.has(e.taskId) && e.seconds > 0).map((e) => e.date));
-    comparar("Estudou (cronômetro de estudo)", lista.filter((d) => diasEstudo.has(d.iso)), lista.filter((d) => !diasEstudo.has(d.iso)));
+    if (so === "habitos") {
+      const comSono = lista.filter((d) => d.sono !== null);
+      comparar("Dormiu 7h ou mais", comSono.filter((d) => (d.sono ?? 0) >= 420), comSono.filter((d) => (d.sono ?? 0) < 420));
+      const estudo = new Set(estado.tasks.filter((t) => !t.deletedAt && t.studyPlanId).map((t) => t.id));
+      const diasEstudo = new Set(estado.taskTimeEntries.filter((e) => estudo.has(e.taskId) && e.seconds > 0).map((e) => e.date));
+      comparar("Estudou (cronômetro de estudo)", lista.filter((d) => diasEstudo.has(d.iso)), lista.filter((d) => !diasEstudo.has(d.iso)));
+    }
   }
   return saida.join("\n");
 }

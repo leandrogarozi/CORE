@@ -315,7 +315,7 @@ export function FaroMascot({ comDock = false }: { comDock?: boolean }) {
               onClick={() => setAmpliado((v) => !v)}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                {ampliado ? <path d="M7 4l5 5 5-5M7 20l5-5 5 5" /> : <path d="M7 9l5-5 5 5M7 15l5 5 5-5" />}
+                {ampliado ? <path d="M14 10h6M14 10V4M10 14H4M10 14v6" /> : <path d="M15 3h6v6M9 21H3v-6" />}
               </svg>
             </button>
             <button className="faro-bubble-close" type="button" aria-label="Fechar" onClick={() => setOpen(false)}>

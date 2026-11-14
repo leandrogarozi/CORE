@@ -70,7 +70,10 @@ export function AvisosButton({ onNavigate }: { onNavigate: (modo: ViewMode) => v
 
   useEffect(() => {
     // Fora do corpo do efeito: a primeira carga também é assíncrona.
-    const primeira = setTimeout(carregar, 0);
+    // Primeiro entrega as novidades do FARO (aviso "foi atualizado") e só então lê a caixa.
+    const primeira = setTimeout(() => {
+      fetch("/api/novidades", { method: "POST" }).catch(() => null).finally(() => void carregar());
+    }, 0);
     const aoVoltar = () => document.visibilityState === "visible" && carregar();
     document.addEventListener("visibilitychange", aoVoltar);
     window.addEventListener("focus", carregar);
@@ -101,8 +104,10 @@ export function AvisosButton({ onNavigate }: { onNavigate: (modo: ViewMode) => v
     setAvisos([]);
     setConfirmandoLimpar(false);
     // RLS já limita ao dono; o filtro só diz "todas as linhas visíveis".
-    const { error } = await supabase.from("faro_avisos").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    // As novidades do FARO não são apagadas (a linha é a prova de "já entregue"): só marcadas como lidas.
+    const { error } = await supabase.from("faro_avisos").delete().not("tipo", "like", "novidade:%");
     if (error) setAvisos(antes);
+    else await supabase.from("faro_avisos").update({ lido_em: new Date().toISOString() }).like("tipo", "novidade:%").is("lido_em", null);
   }
 
   async function marcarLidos(ids: string[]) {
