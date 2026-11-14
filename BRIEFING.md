@@ -6661,3 +6661,9 @@ PATCH /api/feedback: ao marcar resolvido pela primeira vez, insere em `faro_avis
 ## 13/11/2026 — Dashboard: aviso de anotação sem senha e coluna do meio sem buraco
 
 AnotacoesPainel: nota com senha/login/usuário/token/cartão ou assunto de saúde (pareceSaude) mostra "Texto oculto" no aviso do Dashboard (tela pode estar compartilhada). Dashboard: gráfico por dia, hábitos e horas por cliente agora ficam empilhados na coluna do meio (`.dsh-coluna-meio`), Humor/Sono na 3ª; em telas ≤1040px volta à ordem normal. Aprovado dos 7 itens da revisão: só 1 e 4.
+
+## FARO só enxergava 3 dos 14 dias (14/11)
+
+- **Causa:** o resumo que vai para a IA é cortado em `LIMITE_DO_RESUMO` caracteres (`conversa.ts`) e o PANORAMA era a última seção, depois de estudos, manutenção e dispensa. O corte levava embora quase todo o panorama (sobravam ~3 dias).
+- **Correção:** o panorama sobe para antes dessas seções; o limite foi de 8000 para 12000.
+- **Cruzamento de volta:** cada dia do panorama agora traz `estudo` (cronômetro dos planos de estudo) e `marcou:` (hábitos e blocos da rotina marcados: Leitura, Gratidão, Crossfit, Corrida, Lazer...). Há também a linha `DIAS MARCADOS NOS ÚLTIMOS 30 DIAS` (X/30 por hábito). A instrução manda cruzar isso com tarefas, cronômetro, humor e sono, dizendo "parece" (correlação, não prova).

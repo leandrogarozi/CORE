@@ -14,7 +14,7 @@ import type { BoardState } from "@/lib/types";
  * essas tabelas, e lembrete que nasceu de remédio ou refeição é pulado) e todo
  * texto livre de saúde (observação de dieta, comentário de humor).
  * ENTRA, a pedido dele para cruzar dados: só os NÚMEROS do registro do dia
- * (humor 1 a 5, horas de sono, água, % da dieta), no panorama dos 14 dias.
+ * (humor 1 a 5, horas de sono, água, % da dieta), mais hábitos/blocos marcados e tempo de estudo, no panorama dos 14 dias.
  *
  * Módulo puro: sem rede e sem banco, testável com dados de mentira.
  */
@@ -125,6 +125,10 @@ export function resumoDoDia(estado: Estado, hoje: string): string {
   }
   if (proximos.length) linhas.push(`\nPRÓXIMOS DIAS:\n${proximos.map((p) => `- ${p}`).join("\n")}`);
 
+  // O panorama vem ANTES das seções longas (estudos, manutenção, dispensa): o resumo é cortado no
+  // limite de caracteres, e o que fica no fim é o que se perde. Era isso que deixava só 3 dos 14 dias.
+  linhas.push(panoramaDosDias(estado, hoje, 14));
+
   const comGastos = estado.checklists.filter((c) => c.expensesEnabled).map((c) => c.title);
   if (estado.checklists.length) {
     linhas.push(
@@ -158,7 +162,6 @@ export function resumoDoDia(estado: Estado, hoje: string): string {
   linhas.push(manutencao(estado, hoje));
   linhas.push(dispensa(estado, hoje));
   linhas.push(anotacoes(estado));
-  linhas.push(panoramaDosDias(estado, hoje, 14));
   return linhas.join("\n");
 }
 
@@ -171,21 +174,49 @@ export function panoramaDosDias(estado: Estado, hoje: string, dias: number): str
   const segundosPorDia = new Map<string, number>();
   for (const e of estado.taskTimeEntries) segundosPorDia.set(e.date, (segundosPorDia.get(e.date) ?? 0) + e.seconds);
 
-  const linhas = [`\nPANORAMA DOS ÚLTIMOS ${dias} DIAS (um dia por linha; "—" = não anotado):`];
+  // Tempo de ESTUDO por dia: cronômetro das tarefas que pertencem a um plano de estudo.
+  const tarefasDeEstudo = new Set(estado.tasks.filter((t) => !t.deletedAt && t.studyPlanId).map((t) => t.id));
+  const estudoPorDia = new Map<string, number>();
+  for (const e of estado.taskTimeEntries) {
+    if (tarefasDeEstudo.has(e.taskId)) estudoPorDia.set(e.date, (estudoPorDia.get(e.date) ?? 0) + e.seconds);
+  }
+
+  // Hábitos e blocos fixos (Leitura, Gratidão, Crossfit, Corrida, Lazer...): o que foi marcado em cada dia.
+  const rotinas = [...estado.habits, ...estado.fixedBlocks];
+
+  const linhas = [
+    `\nPANORAMA DOS ÚLTIMOS ${dias} DIAS (um dia por linha; "—" = não anotado; "marcou" = hábitos e blocos da rotina marcados no dia, ` +
+      `ex. leitura, gratidão, exercício; "estudo" = tempo cronometrado em planos de estudo):`,
+  ];
   for (let i = 0; i < dias; i++) {
     const iso = isoAddDays(hoje, -i);
     const log = estado.dailyLogs[iso];
     const sono = duracaoDoSonoMin(log?.sleptAt ?? null, log?.wokeAt ?? null);
     const horas = (segundosPorDia.get(iso) ?? 0) / 3600;
+    const estudoMin = Math.round((estudoPorDia.get(iso) ?? 0) / 60);
+    const marcados = rotinas.filter((r) => r.logs[iso]?.checked === true).map((r) => r.name);
     const partes = [
       `${feitasPorDia.get(iso) ?? 0} tarefas concluídas`,
       horas > 0 ? `${horas.toFixed(1).replace(".", ",")}h cronometradas` : "sem cronômetro",
+      `estudo ${estudoMin > 0 ? fmtHorasMin(estudoMin) : "—"}`,
       `humor ${log?.mood === null || log?.mood === undefined ? "—" : log.mood === 0 ? "doente" : log.mood}`,
       `sono ${sono === null ? "—" : fmtHorasMin(sono)}`,
       `água ${log && log.waterMl > 0 ? log.waterMl + "ml" : "—"}`,
       `dieta ${log?.dietPct === null || log?.dietPct === undefined ? "—" : log.dietPct + "%"}`,
+      `marcou: ${marcados.join(", ") || "nada"}`,
     ];
     linhas.push(`${dataBr(iso)} (${DIAS[dateFromISO(iso).getDay()].slice(0, 3)}): ${partes.join(", ")}`);
+  }
+
+  // Visão de 30 dias: quantos dias cada hábito/bloco foi marcado (para ver constância, não só os últimos dias).
+  const janela = 30;
+  if (rotinas.length) {
+    const contagem = rotinas.map((r) => {
+      let n = 0;
+      for (let i = 0; i < janela; i++) if (r.logs[isoAddDays(hoje, -i)]?.checked === true) n++;
+      return `${r.name} ${n}/${janela}`;
+    });
+    linhas.push(`DIAS MARCADOS NOS ÚLTIMOS ${janela} DIAS: ${contagem.join("; ")}.`);
   }
   return linhas.join("\n");
 }
