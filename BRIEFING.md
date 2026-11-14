@@ -6695,3 +6695,11 @@ AnotacoesPainel: nota com senha/login/usuário/token/cartão ou assunto de saúd
 - Relógio ao lado do nome FARO na janela de conversa: abre a lista das conversas (agrupadas Hoje/Ontem/data, com hora e o primeiro pedido); tocar numa conversa mostra as falas (com negrito). "Apagar histórico deste aparelho" e "Fechar histórico".
 - `src/lib/ia/historico.ts`: guarda em localStorage (`faro-historico-v1`), só neste aparelho, 14 dias, máx. 40 conversas. Salva quando uma resposta termina; cartões de ação entram como linha com o desfecho. Nada vai para o servidor.
 - Limite conhecido: a chave é por navegador (não por usuário); em aparelho compartilhado, quem entra depois vê o histórico de quem usou antes (dá para apagar pelo botão).
+
+## "Como foi sua semana": push semanal (14/11)
+
+- **Quando:** domingo às 19h no fuso da pessoa (semana segunda a domingo); se falhar, na segunda entre 7h e 12h. Escolhido domingo (e não sexta) para a semana vir fechada, com o treino do fim de semana.
+- **O quê:** `src/lib/push/resumo-semanal.ts` (busca) + `resumo-semanal-texto.ts` (texto puro, sem IA): tarefas, tempo cronometrado, estudo, hábitos que subiram/caíram/ficaram iguais (só aba Hábitos) e humor/sono médios, sempre contra a semana anterior. Caixa de Avisos (tipo `resumo_semana`, destino Dashboard) + push (versão curta).
+- **Trava:** tabela `resumo_semanal_enviado (user_id, semana)` (migração `resumo_semanal_enviado`, RLS ligada, `grant ... to service_role`); marca antes de enviar. Chamado pelo `dispatch-reminders` (canal próprio, campo `resumoSemana` na resposta).
+- **Liga/desliga:** Configurações > "Resumo da semana" (flag `resumo_semana`, ligado por padrão).
+- Primeiro envio: domingo 15/11, 19h.

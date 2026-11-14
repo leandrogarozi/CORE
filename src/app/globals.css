@@ -5443,3 +5443,4 @@ textarea.titulo-cresce{ display:block; resize:none; overflow:hidden; font-family
 .faro-hist-pedido{ color:var(--text); }
 .faro-hist-voltar{ align-self:flex-start; font-size:12px; color:var(--accent); background:none; border:0; padding:2px 0; cursor:pointer; }
 .faro-hist-quando{ font-size:11px; color:var(--text-muted); }
+.aviso-corpo{ white-space:pre-line; }

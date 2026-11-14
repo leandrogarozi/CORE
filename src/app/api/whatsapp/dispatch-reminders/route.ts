@@ -12,6 +12,7 @@ import { enviarPushesDosCronometros } from "@/lib/push/cronometros";
 import { enviarFrasesDaMetanoia } from "@/lib/push/metanoia";
 import { espelharNoGoogle } from "@/lib/google/agenda";
 import { avisarFeriadosDaSemana } from "@/lib/push/feriados";
+import { enviarResumoDaSemana } from "@/lib/push/resumo-semanal";
 
 export const dynamic = "force-dynamic";
 
@@ -99,9 +100,16 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     feriados = { erro: e instanceof Error ? e.message : "falha no aviso de feriados" };
   }
+  // "Como foi sua semana" (domingo à noite). Canal próprio: falha aqui não derruba o resto.
+  let resumoSemana: Awaited<ReturnType<typeof enviarResumoDaSemana>> | { erro: string };
+  try {
+    resumoSemana = await enviarResumoDaSemana(createServiceClient(), Date.now());
+  } catch (e) {
+    resumoSemana = { erro: e instanceof Error ? e.message : "falha no resumo da semana" };
+  }
   const resposta = await dispararWhatsApp();
   const corpo = await resposta.json();
-  return NextResponse.json({ ...corpo, push, cronometros, metanoia, backup, google, feriados }, { status: resposta.status });
+  return NextResponse.json({ ...corpo, push, cronometros, metanoia, backup, google, feriados, resumoSemana }, { status: resposta.status });
 }
 
 async function dispararWhatsApp(): Promise<NextResponse> {

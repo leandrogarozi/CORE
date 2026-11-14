@@ -2381,6 +2381,9 @@ function PaineisDaTela() {
       <CollapsibleBox title="Feriados" icon={<CalendarCheckIcon />} resumo="Feriados e pontos facultativos do Brasil" ligado={ligado("feriados")} onLigar={ligar("feriados")}>
         {texto("Mostra os feriados e pontos facultativos nacionais no Calendário, na Semana e embaixo da saudação, e avisa no domingo à noite quando a semana seguinte tem feriado. Feriados de estado e de cidade não entram.")}
       </CollapsibleBox>
+      <CollapsibleBox title="Resumo da semana" icon={<CalendarCheckIcon />} resumo="Aviso de domingo: como foi a semana" ligado={ligado("resumo_semana")} onLigar={ligar("resumo_semana")}>
+        {texto("Todo domingo, às 19h, o FARO avisa (na caixa de Avisos e no celular) como foi a semana: tarefas, tempo cronometrado, estudo e quais hábitos subiram ou caíram em relação à semana anterior, mais humor e sono. Só os hábitos entram, não os itens do dia a dia.")}
+      </CollapsibleBox>
       <CollapsibleBox title="Agenda" icon={<WeekIcon />} resumo="Compromissos e lembretes do dia" ligado={ligado("panel_agenda")} onLigar={ligar("panel_agenda")}>
         {texto("Mostra os compromissos com horário e os lembretes do dia escolhido. Nada para cadastrar aqui: vem das tarefas e dos lembretes.")}
       </CollapsibleBox>

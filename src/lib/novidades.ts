@@ -23,6 +23,13 @@ export interface Novidade {
 
 export const NOVIDADES: Novidade[] = [
   {
+    id: "2026-11-14-resumo-da-semana",
+    data: "2026-11-14",
+    titulo: "Novo: como foi sua semana",
+    corpo:
+      "Todo domingo, às 19h, o FARO avisa como foi a semana: tarefas, tempo cronometrado e quais hábitos subiram ou caíram em relação à semana anterior. Chega na caixa de Avisos e no celular. Dá para desligar em Configurações > Resumo da semana.",
+  },
+  {
     id: "2026-11-14-historico-de-conversas",
     data: "2026-11-14",
     titulo: "Histórico das conversas com o FARO",
