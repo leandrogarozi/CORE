@@ -106,7 +106,7 @@ export const TUTORIAL: SecaoDoTutorial[] = [
       "Lembrete: “me lembra de ligar para o Bruno sexta às 15h”.",
       "Reunião: “marca reunião com o João amanhã às 15h e me lembra 10 min antes”.",
       "Aniversário: “cadastra o aniversário da Ana, 12 de março, amiga” e “liga o lembrete de aniversário da Ana no WhatsApp”.",
-      "Gasto de um checklist: “anota 87 reais de gasolina no checklist da viagem”.",
+      "Gastos da viagem: diga onde passou e quanto foi, e o FARO lança na aba Gastos do checklist: “acabei de passar no restaurante Sabor do Mar, 85 reais, viagem Vitória, joga no checklist”. Se você esquecer o valor, ele pergunta só o valor. Sem dizer a viagem, ele usa o checklist com Gastos mais novo e avisa qual. Vários de uma vez também vale: “almoço 45 e táxi 30”. Ele confere se o gasto já não está lançado, e dá para perguntar “quanto gastei na viagem?” (total e últimos gastos).",
       "Registro do dia: “hoje estou bem, nível 4”, “acordei às 6h30”, “bebi 500 ml de água”, “cumpri o café da manhã da dieta”.",
       "Hábitos e lazer: “lança lazer, 1h30 de futebol com meu filho” ou “fiz 40 minutos de leitura ontem”. Ele lança o tempo no dia (hoje, se você não disser outro) na aba Hábitos. Vale para todos os hábitos e blocos da rotina (Lazer, Tratar piscina, Corrida, Crossfit, Estudos, Leitura...). Se faltar algo, ele pergunta: o tempo, qual opção foi, ou um detalhe (“Como você se sentiu?” na corrida, “O que você estudou?” em Estudos). Se você citar algo que não está nas opções, ele cadastra a opção nova e lança. Se já havia tempo no dia, ele soma.",
       "Dispensa: “adiciona na dispensa 3 filtros de piscina, no galpão” (aceita vários de uma vez). “Comprei cloro” volta o item para “tenho”. “Acabou a lâmpada” ou “o filtro está acabando” muda a situação. Quantidade: “o clarificante está em 40%”, “gastei 10% do cloro” ou “sobrou só 1 refil” muda o número na Dispensa e conta para a média de uso. Pergunta: “eu tenho tinta branca na dispensa?” ou “quanto tempo dura meu cloro?”.",
@@ -321,7 +321,7 @@ export const TUTORIAL: SecaoDoTutorial[] = [
     linhas: [
       "Listas de passos que você repete (viagem, abertura da loja...). Marque os itens e arraste para reordenar.",
       "O carrinho de cada item marca “comprar” e pergunta quando lembrar: dia, hora e como avisar (Push, WhatsApp ou os dois). O lembrete aparece em Lembretes.",
-      "Um checklist também guarda os gastos (no que gastou, quanto e quando) e as anotações (reservas, endereços, links).",
+      "Um checklist também guarda os gastos (no que gastou, quanto e quando) e as anotações (reservas, endereços, links). A aba Gastos precisa estar ligada no checklist. Em viagem, você nem precisa abrir: fale com o FARO (“paguei 45 no táxi, viagem Vitória”) e ele lança. Veja “Comandos que o FARO entende”.",
     ],
   },
   {

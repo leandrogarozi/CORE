@@ -8,6 +8,10 @@ Atualizar a cada mudança que apareça para o usuário. Mais novo em cima. Fonte
 ## 04/11/2026
 - **Backup no computador com alerta:** em Configurações, a caixa do backup automático fica vermelha, mesmo fechada, quando o computador passa mais de um dia sem guardar a cópia.
 
+## 15/11/2026
+- **Gastos de viagem por voz:** "acabei de passar no restaurante X, 85 reais, viagem Vitória, joga no checklist" → o FARO lança na aba Gastos. Pergunta o valor se faltar, acha a viagem pelo nome falado (ou usa a mais nova), lança vários de uma vez, não duplica e responde "quanto gastei na viagem?".
+- **Campo de data no celular:** o toque no calendário agora abre o seletor.
+
 ## 03/11/2026
 - **Metanoia, perguntas:** agora dá para escolher de quem é a pergunta (campo de autor, ao escrever e ao editar), como já era nas frases.
 - **Dispensa com média de uso:** o FARO guarda cada vez que a quantidade baixa e mostra quanto você gasta por dia/semana/mês, quanto falta para acabar e um gráfico; na lista aparece a previsão (vermelha quando faltam 7 dias ou menos). Dá para marcar uma mudança como "foi correção".

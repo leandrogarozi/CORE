@@ -117,7 +117,7 @@ export const FERRAMENTAS_DO_FARO: Anthropic.Tool[] = [
   {
     name: "anotar_gasto",
     description:
-      "Anota um gasto na aba Gastos de um checklist (ex.: uma viagem). O checklist precisa ter a aba de Gastos ligada; use o nome exatamente como aparece na lista CHECKLISTS.",
+      "Anota UM gasto na aba Gastos de um checklist (ex.: uma viagem). Use quando ele disser que gastou, pagou ou passou em algum lugar. Precisa do valor: se ele não disse, pergunte antes. Use o título como aparece na lista CHECKLISTS; sem o nome, o checklist com Gastos mais novo. Vários gastos = uma chamada para cada.",
     input_schema: {
       type: "object",
       properties: {

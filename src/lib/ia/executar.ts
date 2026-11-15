@@ -1,6 +1,7 @@
 import type { Birthday, RecurringItem, Checklist, MaintenanceAsset, MaintenanceItem, ChecklistExpense, DailyLog, PantryItem, Priority, Reminder, StudyPlan, Task, TaskStatus } from "@/lib/types";
 import { acharUmItemPeloNome, aposAjuste, aposComprar, ehRemedioOuSaude, lembreteDeCompraPendente } from "@/lib/board/dispensa";
 import { descreverAcao, duracaoCurta, validarAcao, type AcaoProposta } from "./ferramentas";
+import { fmtBRL } from "@/lib/money";
 import { acharFeedback, type FeedbackDoDono } from "./feedbacks";
 
 /**
@@ -66,13 +67,41 @@ const semAcento = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLo
 
 /** Acha o checklist pelo nome (sem ligar para acento ou maiúscula), só entre os que têm Gastos ligado. */
 export function acharChecklistDeGastos(checklists: Checklist[], nome: string): Checklist | null {
+  const r = procurarChecklistDeGastos(checklists, nome);
+  return "lista" in r ? r.lista : null;
+}
+
+const PALAVRAS_SOLTAS = new Set(["viagem", "checklist", "lista", "para", "com", "dos", "das", "semana", "de", "da", "do", "em", "na", "no"]);
+
+/**
+ * Como acharChecklistDeGastos, mas com um passo a mais para quem fala de memória ("viagem Vitória"): se o nome não bate
+ * por inteiro, procura pelas palavras que ele disse. Só aceita quando UMA lista combina; se mais de uma combina, devolve
+ * o erro com as opções (marcar o gasto na viagem errada é pior do que perguntar).
+ */
+export function procurarChecklistDeGastos(checklists: Checklist[], nome: string): { lista: Checklist } | { erro: string; opcoes: string[] } {
   const alvo = semAcento(nome);
   const candidatos = checklists.filter((c) => c.expensesEnabled);
-  return (
+  const certa =
     candidatos.find((c) => semAcento(c.title) === alvo) ??
-    candidatos.find((c) => semAcento(c.title).includes(alvo) || alvo.includes(semAcento(c.title))) ??
-    null
-  );
+    candidatos.find((c) => semAcento(c.title).includes(alvo) || alvo.includes(semAcento(c.title)));
+  if (certa) return { lista: certa };
+  const palavras = alvo.split(/[^a-z0-9]+/).filter((w) => w.length > 2 && !PALAVRAS_SOLTAS.has(w));
+  if (palavras.length) {
+    const combinam = candidatos.filter((c) => {
+      const titulo = semAcento(c.title);
+      return palavras.every((w) => titulo.includes(w));
+    });
+    if (combinam.length === 1) return { lista: combinam[0] };
+    if (combinam.length > 1) {
+      const opcoes = [...combinam].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map((c) => c.title);
+      return { erro: `Mais de um checklist combina com "${nome}". Diga qual: ${opcoes.join("; ")}.`, opcoes };
+    }
+  }
+  const ligados = candidatos.map((c) => c.title);
+  return {
+    erro: `Não achei o checklist "${nome}" com a aba Gastos ligada.${ligados.length ? ` Com Gastos: ${ligados.join(", ")}.` : " Nenhum checklist tem Gastos ligado ainda."}`,
+    opcoes: ligados,
+  };
 }
 
 /**
@@ -126,14 +155,9 @@ export async function executarAcao(acaoBruta: AcaoProposta, quadro: QuadroParaAc
       return ok ? { ok: true, mensagem: "Tarefa criada." } : { ok: false, mensagem: "Não consegui criar a tarefa." };
     }
     case "anotar_gasto": {
-      const lista = acharChecklistDeGastos(quadro.checklists, acao.checklist);
-      if (!lista) {
-        const ligados = quadro.checklists.filter((c) => c.expensesEnabled).map((c) => c.title);
-        return {
-          ok: false,
-          mensagem: `Não achei o checklist "${acao.checklist}" com a aba Gastos ligada.${ligados.length ? ` Com Gastos: ${ligados.join(", ")}.` : " Nenhum checklist tem Gastos ligado ainda."}`,
-        };
-      }
+      const achado = procurarChecklistDeGastos(quadro.checklists, acao.checklist);
+      if (!("lista" in achado)) return { ok: false, mensagem: achado.erro };
+      const lista = achado.lista;
       const gasto: ChecklistExpense = {
         id: crypto.randomUUID(),
         label: acao.descricao,
@@ -141,7 +165,8 @@ export async function executarAcao(acaoBruta: AcaoProposta, quadro: QuadroParaAc
         date: acao.data ?? hoje,
       };
       quadro.updateChecklist(lista.id, { expenses: [...lista.expenses, gasto] });
-      return { ok: true, mensagem: `Gasto anotado em "${lista.title}".` };
+      const total = lista.expenses.reduce((s, g) => s + g.amountCents, 0) + acao.valorCentavos;
+      return { ok: true, mensagem: `Gasto anotado em "${lista.title}". Total da lista: ${fmtBRL(total)}${lista.budgetCents ? ` de ${fmtBRL(lista.budgetCents)} planejados` : ""}.` };
     }
     case "adicionar_aniversario": {
       // Mesmo nome (sem contar acento ou maiúscula) já está na lista: não duplica.

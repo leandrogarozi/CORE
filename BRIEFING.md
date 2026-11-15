@@ -43,6 +43,11 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
 - **Alerta feito (04/11):** em Configurações, o bloco "Backup automático no meu computador" fica vermelho, mesmo fechado, quando `ultimo_backup_em` tem mais de 30 h (`alerta` em `CollapsibleBox`, `SettingsView.tsx`). O push das 18h (`avisarBackupAtrasado`) já existia.
 - **Onde está o código:** repositório GitHub `leandrogarozi/CORE` (público), branch `claude/new-session-7uftof`, publicado pela Vercel (`core-app`). Cópia de trabalho no Mac: `/Volumes/TRABALHO/CLAUDE_COWORK/Apps Claude/FARO` (disco exFAT: cria arquivos `._*`, já ignorados em `.git/info/exclude`; não rodar `npm install` ali, copiar para o disco interno se for ver o app rodando).
 
+## 15/11/2026 — Gastos de viagem pelo FARO
+
+- Pedido do Leandro (viajando uma semana a Vitória): falar "acabei de passar no restaurante X, viagem Vitória, joga no checklist" e o gasto entrar no checklist. A ação `anotar_gasto` já existia; faltava robustez: (1) `procurarChecklistDeGastos` em `executar.ts` acha a lista por nome inteiro, trecho ou pelas palavras faladas (só aceita se UMA combina; se várias, devolve as opções); (2) o resumo lista os checklists do mais novo para o mais antigo e traz **GASTOS JÁ LANÇADOS** (total, orçamento e últimos lançamentos) para evitar duplicar e responder "quanto gastei?"; (3) item 13 da instrução (`conversa.ts`): perguntar só o valor quando faltar, usar o checklist com Gastos mais novo quando não houver nome, uma chamada por gasto; (4) a mensagem de confirmação mostra o total da lista. Como usar e comandos atualizados.
+- Conferido no banco: os 7 checklists do Leandro têm a aba Gastos ligada.
+
 ## 15/11/2026 — Campo de data no celular
 
 - **Problema:** no celular, tocar no calendário do campo de data não abria nada (`DateField.tsx` chamava `showPicker()` num campo de data escondido, 1 px e sem toque, e o celular ignora isso).

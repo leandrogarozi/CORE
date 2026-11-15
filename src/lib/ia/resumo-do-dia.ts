@@ -4,6 +4,7 @@ import { studyPlanMath, tempoPorModulo } from "@/lib/board/study-plan";
 import { ciclosDoItem, maintenanceStatus } from "@/lib/board/maintenance";
 import { ehRemedioOuSaude, situacaoDaValidade } from "@/lib/board/dispensa";
 import { fmtRitmo, fmtTempo, mediaDeUso } from "@/lib/board/dispensa-uso";
+import { fmtBRL } from "@/lib/money";
 import type { BoardState } from "@/lib/types";
 import { novidadesDoFaro } from "@/lib/novidades";
 
@@ -141,11 +142,30 @@ export function resumoDoDia(estado: Estado, hoje: string): string {
   linhas.push(panoramaDosDias(estado, hoje, 14));
   linhas.push(cruzamentosDosPeriodos(estado, hoje));
 
-  const comGastos = estado.checklists.filter((c) => c.expensesEnabled).map((c) => c.title);
+  // Do mais novo para o mais antigo: "a viagem de agora" costuma ser a primeira. Cada lista com Gastos traz o total e os
+  // últimos lançamentos, para ele perguntar "quanto gastei na viagem?" e para o FARO não lançar duas vezes o mesmo gasto.
+  const checklistsNovosPrimeiro = [...estado.checklists].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const comGastos = checklistsNovosPrimeiro.filter((c) => c.expensesEnabled).map((c) => c.title);
   if (estado.checklists.length) {
     linhas.push(
-      `\nCHECKLISTS: ${estado.checklists.map((c) => c.title).join("; ")}. Com aba de Gastos ligada: ${comGastos.join("; ") || "nenhum"}.`
+      `\nCHECKLISTS (do mais novo para o mais antigo): ${checklistsNovosPrimeiro.map((c) => c.title).join("; ")}. Com aba de Gastos ligada: ${comGastos.join("; ") || "nenhum"}.`
     );
+    const gastosAbertos = checklistsNovosPrimeiro.filter((c) => c.expensesEnabled && c.expenses.length).slice(0, 4);
+    if (gastosAbertos.length) {
+      linhas.push(
+        `GASTOS JÁ LANÇADOS:\n${gastosAbertos
+          .map((c) => {
+            const total = c.expenses.reduce((s, g) => s + g.amountCents, 0);
+            const ultimos = [...c.expenses]
+              .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""))
+              .slice(0, 5)
+              .map((g) => `${g.label} ${fmtBRL(g.amountCents)}${g.date ? ` (${g.date.slice(8, 10)}/${g.date.slice(5, 7)})` : ""}`)
+              .join("; ");
+            return `- ${c.title}: total ${fmtBRL(total)}${c.budgetCents ? ` de ${fmtBRL(c.budgetCents)} planejados` : ""}. Últimos: ${ultimos}`;
+          })
+          .join("\n")}`
+      );
+    }
   }
 
   const estudos = estado.studyPlans.filter((p) => p.status !== "concluido");
