@@ -5444,3 +5444,14 @@ textarea.titulo-cresce{ display:block; resize:none; overflow:hidden; font-family
 .faro-hist-voltar{ align-self:flex-start; font-size:12px; color:var(--accent); background:none; border:0; padding:2px 0; cursor:pointer; }
 .faro-hist-quando{ font-size:11px; color:var(--text-muted); }
 .aviso-corpo{ white-space:pre-line; }
+
+/* 15/11 — Campo de data no celular: o toque no calendário não abria nada (o celular ignora abrir o seletor por código
+   num campo escondido). No toque, o campo de data nativo, transparente, fica POR CIMA do ícone: o dedo cai direto nele. */
+@media (pointer:coarse){
+  .datefield-cal{ pointer-events:none; }
+  .datefield-nativo{
+    right:0; top:0; bottom:auto; width:44px; height:100%; opacity:0; pointer-events:auto; z-index:2;
+    font-size:16px; border:0; padding:0; margin:0; cursor:pointer; -webkit-appearance:none; appearance:none;
+  }
+  .datefield > input[type="text"]{ padding-right:44px; }
+}

@@ -98,7 +98,7 @@ export function DateField({ value, onChange, className, ariaLabel, autoFocus, on
         ref={nativo}
         type="date"
         tabIndex={-1}
-        aria-hidden="true"
+        aria-label={ariaLabel ? `${ariaLabel} (calendário)` : "Escolher a data no calendário"}
         className="datefield-nativo"
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}

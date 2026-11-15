@@ -43,6 +43,11 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
 - **Alerta feito (04/11):** em Configurações, o bloco "Backup automático no meu computador" fica vermelho, mesmo fechado, quando `ultimo_backup_em` tem mais de 30 h (`alerta` em `CollapsibleBox`, `SettingsView.tsx`). O push das 18h (`avisarBackupAtrasado`) já existia.
 - **Onde está o código:** repositório GitHub `leandrogarozi/CORE` (público), branch `claude/new-session-7uftof`, publicado pela Vercel (`core-app`). Cópia de trabalho no Mac: `/Volumes/TRABALHO/CLAUDE_COWORK/Apps Claude/FARO` (disco exFAT: cria arquivos `._*`, já ignorados em `.git/info/exclude`; não rodar `npm install` ali, copiar para o disco interno se for ver o app rodando).
 
+## 15/11/2026 — Campo de data no celular
+
+- **Problema:** no celular, tocar no calendário do campo de data não abria nada (`DateField.tsx` chamava `showPicker()` num campo de data escondido, 1 px e sem toque, e o celular ignora isso).
+- **Correção:** só em aparelho de toque (`@media (pointer:coarse)`), o campo de data nativo fica transparente por cima do ícone (44 px), e o toque cai direto nele. No computador continua o botão do calendário como antes. Digitar `dd/mm/aaaa` segue valendo. Não consegui testar o seletor real do iPhone neste ambiente; conferir no aparelho.
+
 ## 03/11/2026 — Pacote das conversas paradas (média de uso, Metanoia por voz, novo lembrete, estudos, Como usar)
 
 - **Dispensa, média de uso:** tabela `pantry_usage` (histórico de cada mudança de quantidade: uso, compra ou ajuste) alimentada em `updatePantryItem`; cálculo em `src/lib/board/dispensa-uso.ts` (precisa de 2+ usos em 7+ dias; o primeiro uso não entra no numerador). Tela `MediaDeUso` em `DispensaView.tsx` (quatro números, gráfico, "foi correção"/"contar de novo") e previsão na linha da lista. Entra no backup JSON e no resumo que o FARO lê (nunca remédios).
