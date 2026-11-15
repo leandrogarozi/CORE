@@ -46,6 +46,7 @@ Atualizar sempre que uma decisão de produto for tomada ou o backlog mudar.
 ## 15/11/2026 — Gastos de viagem pelo FARO
 
 - Pedido do Leandro (viajando uma semana a Vitória): falar "acabei de passar no restaurante X, viagem Vitória, joga no checklist" e o gasto entrar no checklist. A ação `anotar_gasto` já existia; faltava robustez: (1) `procurarChecklistDeGastos` em `executar.ts` acha a lista por nome inteiro, trecho ou pelas palavras faladas (só aceita se UMA combina; se várias, devolve as opções); (2) o resumo lista os checklists do mais novo para o mais antigo e traz **GASTOS JÁ LANÇADOS** (total, orçamento e últimos lançamentos) para evitar duplicar e responder "quanto gastei?"; (3) item 13 da instrução (`conversa.ts`): perguntar só o valor quando faltar, usar o checklist com Gastos mais novo quando não houver nome, uma chamada por gasto; (4) a mensagem de confirmação mostra o total da lista. Como usar e comandos atualizados.
+- **Observações do checklist por voz:** nova ação `anotar_em_checklist` (`ferramentas.ts`, `executar.ts`): soma um parágrafo ao fim de `checklists.notes` (nunca apaga). Acha o checklist pelo mesmo critério dos gastos, mas sem exigir a aba Gastos. O resumo traz **OBSERVAÇÕES DOS CHECKLISTS** (começo e fim) para o FARO não repetir. Linha adicionada em `docs/MAPA-IA-E-FARO.md`.
 - Conferido no banco: os 7 checklists do Leandro têm a aba Gastos ligada.
 
 ## 15/11/2026 — Campo de data no celular

@@ -110,6 +110,7 @@ export const TUTORIAL: SecaoDoTutorial[] = [
       "Registro do dia: “hoje estou bem, nível 4”, “acordei às 6h30”, “bebi 500 ml de água”, “cumpri o café da manhã da dieta”.",
       "Hábitos e lazer: “lança lazer, 1h30 de futebol com meu filho” ou “fiz 40 minutos de leitura ontem”. Ele lança o tempo no dia (hoje, se você não disser outro) na aba Hábitos. Vale para todos os hábitos e blocos da rotina (Lazer, Tratar piscina, Corrida, Crossfit, Estudos, Leitura...). Se faltar algo, ele pergunta: o tempo, qual opção foi, ou um detalhe (“Como você se sentiu?” na corrida, “O que você estudou?” em Estudos). Se você citar algo que não está nas opções, ele cadastra a opção nova e lança. Se já havia tempo no dia, ele soma.",
       "Dispensa: “adiciona na dispensa 3 filtros de piscina, no galpão” (aceita vários de uma vez). “Comprei cloro” volta o item para “tenho”. “Acabou a lâmpada” ou “o filtro está acabando” muda a situação. Quantidade: “o clarificante está em 40%”, “gastei 10% do cloro” ou “sobrou só 1 refil” muda o número na Dispensa e conta para a média de uso. Pergunta: “eu tenho tinta branca na dispensa?” ou “quanto tempo dura meu cloro?”.",
+      "Observações do checklist: “coloca na observação da viagem Vitória: hotel Mar Azul, reserva 4521, check-in às 14h”. Vale para a primeira anotação e para as novas depois; o FARO sempre soma ao fim e nunca apaga o que você já escreveu. Dá para dizer a observação e o gasto juntos.",
       "Anotação solta: “anota: ver o preço da sauna”. Ele guarda em Anotações, ou no lugar certo quando o assunto tem um.",
       "Metanoia: “adiciona na Metanoia a frase ‘O que você faz todo dia constrói quem você é’, do James Clear”. Ele guarda frase e autor direto na Metanoia, aprovada; não vai para Anotações.",
       "Manutenção: “adiciona limpeza do dente 6 em 6 meses, feito em outubro” cria o item com o ciclo e a última vez. Ele pergunta o que faltar (em qual bem fica, de quanto em quanto tempo, o dia em que foi feito).",
@@ -321,7 +322,7 @@ export const TUTORIAL: SecaoDoTutorial[] = [
     linhas: [
       "Listas de passos que você repete (viagem, abertura da loja...). Marque os itens e arraste para reordenar.",
       "O carrinho de cada item marca “comprar” e pergunta quando lembrar: dia, hora e como avisar (Push, WhatsApp ou os dois). O lembrete aparece em Lembretes.",
-      "Um checklist também guarda os gastos (no que gastou, quanto e quando) e as anotações (reservas, endereços, links). A aba Gastos precisa estar ligada no checklist. Em viagem, você nem precisa abrir: fale com o FARO (“paguei 45 no táxi, viagem Vitória”) e ele lança. Veja “Comandos que o FARO entende”.",
+      "Um checklist também guarda os gastos (no que gastou, quanto e quando) e as anotações (reservas, endereços, links). A aba Gastos precisa estar ligada no checklist. Em viagem, você nem precisa abrir: fale com o FARO (“paguei 45 no táxi, viagem Vitória”) e ele lança o gasto; “coloca na observação da viagem: ...” acrescenta o texto nas anotações do checklist. Veja “Comandos que o FARO entende”.",
     ],
   },
   {

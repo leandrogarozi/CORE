@@ -19,7 +19,7 @@ export interface QuadroParaAcoes {
     titulo: string,
     extras?: { time?: string; priority?: Priority; note?: string }
   ) => Promise<boolean>;
-  updateChecklist: (id: string, patch: { expenses: ChecklistExpense[] }) => void;
+  updateChecklist: (id: string, patch: { expenses?: ChecklistExpense[]; notes?: string }) => void;
   tasks: Task[];
   taskStatuses: TaskStatus[];
   setTaskStatus: (id: string, statusId: string) => void;
@@ -78,9 +78,9 @@ const PALAVRAS_SOLTAS = new Set(["viagem", "checklist", "lista", "para", "com", 
  * por inteiro, procura pelas palavras que ele disse. Só aceita quando UMA lista combina; se mais de uma combina, devolve
  * o erro com as opções (marcar o gasto na viagem errada é pior do que perguntar).
  */
-export function procurarChecklistDeGastos(checklists: Checklist[], nome: string): { lista: Checklist } | { erro: string; opcoes: string[] } {
+export function procurarChecklistDeGastos(checklists: Checklist[], nome: string, soComGastos = true): { lista: Checklist } | { erro: string; opcoes: string[] } {
   const alvo = semAcento(nome);
-  const candidatos = checklists.filter((c) => c.expensesEnabled);
+  const candidatos = soComGastos ? checklists.filter((c) => c.expensesEnabled) : checklists;
   const certa =
     candidatos.find((c) => semAcento(c.title) === alvo) ??
     candidatos.find((c) => semAcento(c.title).includes(alvo) || alvo.includes(semAcento(c.title)));
@@ -99,7 +99,9 @@ export function procurarChecklistDeGastos(checklists: Checklist[], nome: string)
   }
   const ligados = candidatos.map((c) => c.title);
   return {
-    erro: `Não achei o checklist "${nome}" com a aba Gastos ligada.${ligados.length ? ` Com Gastos: ${ligados.join(", ")}.` : " Nenhum checklist tem Gastos ligado ainda."}`,
+    erro: soComGastos
+      ? `Não achei o checklist "${nome}" com a aba Gastos ligada.${ligados.length ? ` Com Gastos: ${ligados.join(", ")}.` : " Nenhum checklist tem Gastos ligado ainda."}`
+      : `Não achei o checklist "${nome}".${ligados.length ? ` Checklists: ${ligados.join(", ")}.` : ""}`,
     opcoes: ligados,
   };
 }
@@ -226,6 +228,14 @@ export async function executarAcao(acaoBruta: AcaoProposta, quadro: QuadroParaAc
       const novo = `<p>${escaparHtml(acao.texto).replace(/\n/g, "<br>")}</p>`;
       quadro.updateTaskNote(r.tarefa.id, `${r.tarefa.note ?? ""}${novo}`);
       return { ok: true, mensagem: `Anotação acrescentada em "${r.tarefa.title}".` };
+    }
+    case "anotar_em_checklist": {
+      const achado = procurarChecklistDeGastos(quadro.checklists, acao.checklist, false);
+      if (!("lista" in achado)) return { ok: false, mensagem: achado.erro };
+      // Só acrescenta no fim: o que já estava nas observações fica exatamente como está.
+      const novo = `<p>${escaparHtml(acao.texto).replace(/\n/g, "<br>")}</p>`;
+      quadro.updateChecklist(achado.lista.id, { notes: `${achado.lista.notes ?? ""}${novo}` });
+      return { ok: true, mensagem: `Observação acrescentada em "${achado.lista.title}".` };
     }
     case "registrar_humor": {
       quadro.updateDailyLog(hoje, { mood: acao.nivel, ...(acao.emocao ? { moodEmotion: acao.emocao } : {}) });
@@ -427,6 +437,8 @@ function converterParaEntrada(a: AcaoProposta): Record<string, unknown> {
       return { titulo: a.titulo, cliente: a.cliente ?? undefined, data: a.data, hora: a.hora ?? undefined, no_whatsapp: a.whatsapp };
     case "anotar_em_tarefa":
       return { titulo: a.titulo, data: a.data ?? undefined, texto: a.texto };
+    case "anotar_em_checklist":
+      return { checklist: a.checklist, texto: a.texto };
     case "registrar_humor":
       return { nivel: a.nivel, emocao: a.emocao ?? undefined };
     case "registrar_sono":

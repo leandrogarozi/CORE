@@ -10,6 +10,7 @@ Atualizar a cada mudança que apareça para o usuário. Mais novo em cima. Fonte
 
 ## 15/11/2026
 - **Gastos de viagem por voz:** "acabei de passar no restaurante X, 85 reais, viagem Vitória, joga no checklist" → o FARO lança na aba Gastos. Pergunta o valor se faltar, acha a viagem pelo nome falado (ou usa a mais nova), lança vários de uma vez, não duplica e responde "quanto gastei na viagem?".
+- **Observações do checklist por voz:** "coloca na observação da viagem Vitória: hotel Mar Azul, reserva 4521". Vale para a primeira anotação e para as seguintes, sempre somando ao fim, sem apagar.
 - **Campo de data no celular:** o toque no calendário agora abre o seletor.
 
 ## 03/11/2026

@@ -87,6 +87,7 @@ A pessoa toca no mascote, fala ou escreve, e a IA propõe **cartões de ação**
 | Marcar tarefa como feita | sim | sim | **sim** |
 | Acrescentar texto na anotação de tarefa/reunião (pauta, decisões) | sim | sim | **sim** |
 | Anotar gasto num checklist | sim | (em breve) | **sim** |
+| Acrescentar texto nas observações de um checklist (só soma, nunca apaga) | sim | não | **sim** |
 | Registrar humor, sono, água, dieta | sim | não (de propósito) | **sim** |
 | Reajustar plano de estudo | sim | não | **sim** |
 | Cadastrar item de manutenção (bem, intervalo, última vez) | sim | não | **sim** |

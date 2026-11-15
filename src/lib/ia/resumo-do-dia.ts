@@ -151,6 +151,18 @@ export function resumoDoDia(estado: Estado, hoje: string): string {
       `\nCHECKLISTS (do mais novo para o mais antigo): ${checklistsNovosPrimeiro.map((c) => c.title).join("; ")}. Com aba de Gastos ligada: ${comGastos.join("; ") || "nenhum"}.`
     );
     const gastosAbertos = checklistsNovosPrimeiro.filter((c) => c.expensesEnabled && c.expenses.length).slice(0, 4);
+    // Observações já escritas (só o começo e o fim, para caber): o FARO sabe o que já consta e não repete.
+    const comNotas = checklistsNovosPrimeiro.filter((c) => (c.notes ?? "").replace(/<[^>]*>/g, "").trim()).slice(0, 4);
+    if (comNotas.length) {
+      linhas.push(
+        `OBSERVAÇÕES DOS CHECKLISTS:\n${comNotas
+          .map((c) => {
+            const t = (c.notes ?? "").replace(/<\/(?:p|li|div)>|<br\s*\/?>/gi, " / ").replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
+            return `- ${c.title}: ${t.length > 500 ? `${t.slice(0, 200)} […] ${t.slice(-280)}` : t}`;
+          })
+          .join("\n")}`
+      );
+    }
     if (gastosAbertos.length) {
       linhas.push(
         `GASTOS JÁ LANÇADOS:\n${gastosAbertos

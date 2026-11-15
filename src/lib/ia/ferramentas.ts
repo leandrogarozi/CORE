@@ -36,6 +36,7 @@ export type AcaoProposta =
   | { tipo: "marcar_tarefa_feita"; titulo: string; data: string | null }
   | { tipo: "criar_reuniao"; titulo: string; cliente: string | null; data: string; hora: string | null; whatsapp: boolean }
   | { tipo: "anotar_em_tarefa"; titulo: string; data: string | null; texto: string }
+  | { tipo: "anotar_em_checklist"; checklist: string; texto: string }
   | { tipo: "registrar_humor"; nivel: 1 | 2 | 3 | 4 | 5; emocao: string | null }
   | { tipo: "registrar_sono"; dormiu: string | null; acordou: string | null }
   | { tipo: "registrar_agua"; ml: number }
@@ -209,6 +210,19 @@ export const FERRAMENTAS_DO_FARO: Anthropic.Tool[] = [
         texto: { type: "string", description: "O que acrescentar à anotação." },
       },
       required: ["titulo", "texto"],
+    },
+  },
+  {
+    name: "anotar_em_checklist",
+    description:
+      "ACRESCENTA um texto nas OBSERVAÇÕES (anotações) de um checklist, por exemplo de uma viagem: reserva, endereço, nome do hotel, combinados, o que aconteceu no dia. Serve tanto para a primeira anotação quanto para novas depois: sempre soma ao que já está lá, nunca apaga nem reescreve. Use quando ele disser 'coloca na observação do checklist', 'anota na viagem de Vitória que...'. Se for um gasto com valor, use anotar_gasto. Escreva o texto limpo, nas palavras dele. Use o título como aparece em CHECKLISTS.",
+    input_schema: {
+      type: "object",
+      properties: {
+        checklist: { type: "string", description: "Título do checklist, como aparece em CHECKLISTS." },
+        texto: { type: "string", description: "O que acrescentar nas observações." },
+      },
+      required: ["checklist", "texto"],
     },
   },
   {
@@ -518,6 +532,13 @@ export function validarAcao(nome: string, entrada: unknown): ResultadoDaValidaca
       if (!textoNota) return { ok: false, motivo: "faltou o texto da anotação" };
       return { ok: true, acao: { tipo: "anotar_em_tarefa", titulo, data: dataValida(e.data), texto: textoNota } };
     }
+    case "anotar_em_checklist": {
+      const checklist = texto(e.checklist, 200);
+      const textoNota = texto(e.texto, 4000);
+      if (!checklist) return { ok: false, motivo: "faltou o nome do checklist" };
+      if (!textoNota) return { ok: false, motivo: "faltou o texto da observação" };
+      return { ok: true, acao: { tipo: "anotar_em_checklist", checklist, texto: textoNota } };
+    }
     case "registrar_humor": {
       const nivel = typeof e.nivel === "number" ? Math.round(e.nivel) : 0;
       if (nivel < 1 || nivel > 5) return { ok: false, motivo: "nível de humor deve ser de 1 a 5" };
@@ -681,6 +702,8 @@ export function descreverAcao(a: AcaoProposta): string {
       return `Criar reunião: ${a.titulo}${a.cliente ? ` (${a.cliente})` : ""}, em ${dataBr(a.data)}${a.hora ? ` às ${a.hora}` : ""}${a.whatsapp && a.hora ? ", avisando também no WhatsApp" : ""}`;
     case "anotar_em_tarefa":
       return `Acrescentar à anotação de "${a.titulo}": ${a.texto.length > 120 ? a.texto.slice(0, 117) + "…" : a.texto}`;
+    case "anotar_em_checklist":
+      return `Acrescentar nas observações do checklist "${a.checklist}": ${a.texto.length > 120 ? a.texto.slice(0, 117) + "…" : a.texto}`;
     case "registrar_humor":
       return `Registrar o humor de hoje: ${NIVEIS[a.nivel]}${a.emocao ? ` (${a.emocao.replace("_", " ")})` : ""}`;
     case "registrar_sono":
